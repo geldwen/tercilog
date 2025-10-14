@@ -51,6 +51,7 @@ class User(BaseModel):
     name: str
     role: str  # "teacher" or "student"
     credit_hours: float = 0.0
+    total_hours: float = 0.0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserCreate(BaseModel):
@@ -59,6 +60,7 @@ class UserCreate(BaseModel):
     name: str
     role: str
     credit_hours: float = 0.0
+    total_hours: float = 0.0
 
 class UserLogin(BaseModel):
     email: EmailStr
