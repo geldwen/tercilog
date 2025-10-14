@@ -40,6 +40,7 @@ export default function TeacherDashboard({ user, onLogout }) {
     email: "",
     password: "",
     credit_hours: 0,
+    total_hours: 0,
   });
 
   // Générer 7 mois : mois actuel + 6 mois suivants
@@ -108,10 +109,12 @@ export default function TeacherDashboard({ user, onLogout }) {
   const handleCreateStudent = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/students`, {
+      const newStudent = {
         ...studentForm,
         role: "student",
-      });
+        credit_hours: studentForm.total_hours,
+      };
+      await axios.post(`${API}/students`, newStudent);
       toast.success("Élève créé avec succès !");
       setShowCreateStudent(false);
       setStudentForm({
@@ -119,6 +122,7 @@ export default function TeacherDashboard({ user, onLogout }) {
         email: "",
         password: "",
         credit_hours: 0,
+        total_hours: 0,
       });
       loadData(selectedMonth);
     } catch (error) {
@@ -459,16 +463,16 @@ export default function TeacherDashboard({ user, onLogout }) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="credit_hours">Heures restantes</Label>
+                      <Label htmlFor="total_hours">Heures totales</Label>
                       <Input
-                        id="credit_hours"
+                        id="total_hours"
                         type="number"
                         step="0.5"
                         min="0"
                         placeholder="ex: 20"
-                        value={studentForm.credit_hours}
-                        onChange={(e) => setStudentForm({ ...studentForm, credit_hours: parseFloat(e.target.value) || 0 })}
-                        data-testid="student-credit-hours-input"
+                        value={studentForm.total_hours}
+                        onChange={(e) => setStudentForm({ ...studentForm, total_hours: parseFloat(e.target.value) || 0 })}
+                        data-testid="student-total-hours-input"
                       />
                     </div>
                     <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }} data-testid="submit-student-button">
@@ -489,6 +493,9 @@ export default function TeacherDashboard({ user, onLogout }) {
               ) : (
                 students.map((student) => {
                   const studentSessions = sessions.filter(s => s.student_id === student.id);
+                  const totalHours = student.total_hours || student.credit_hours;
+                  const remainingHours = student.credit_hours;
+                  
                   return (
                     <Card key={student.id} className="border-0 shadow-md card-hover" data-testid={`student-card-${student.id}`}>
                       <CardContent className="pt-6">
@@ -498,52 +505,61 @@ export default function TeacherDashboard({ user, onLogout }) {
                               <h3 className="text-lg font-semibold text-gray-900" data-testid={`student-name-${student.id}`}>{student.name}</h3>
                               <p className="text-sm text-gray-600" data-testid={`student-email-${student.id}`}>{student.email}</p>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
+                              <div className="px-4 py-2 rounded-lg bg-gray-100" data-testid={`student-total-hours-${student.id}`}>
+                                <p className="text-xs text-gray-600">Heures totales</p>
+                                <p className="text-xl font-bold text-gray-900">{totalHours}h</p>
+                              </div>
                               <div className="px-4 py-2 rounded-lg" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }} data-testid={`student-credit-hours-${student.id}`}>
                                 <p className="text-xs text-gray-600">Heures restantes</p>
-                                <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{student.credit_hours}h</p>
+                                <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{remainingHours}h</p>
                               </div>
                             </div>
                           </div>
 
                           {studentSessions.length > 0 && (
                             <div className="border-t pt-4">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Historique des séances</h4>
+                              <h4 className="text-sm font-semibold text-gray-700 mb-3">Historique des séances</h4>
                               <div className="space-y-2">
                                 {studentSessions.slice(0, 5).map((session) => (
-                                  <div key={session.id} className="flex items-center justify-between text-sm py-2 px-3 bg-gray-50 rounded-lg">
-                                    <div className="flex items-center gap-2">
+                                  <div key={session.id} className="flex items-center justify-between text-sm py-3 px-4 bg-gray-50 rounded-lg">
+                                    <div className="flex items-center gap-3 flex-1">
                                       <span className="font-medium text-gray-900">{session.subject}</span>
                                       <span className="text-gray-500">le {new Date(session.date).toLocaleDateString('fr-FR')}</span>
+                                      <span className="font-semibold text-gray-700">{session.duration_hours}h</span>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-3">
                                       {session.status === 'confirmed' && (
-                                        <>
-                                          <CheckCircle className="w-4 h-4 text-green-600" />
-                                          <span className="text-green-700 font-medium">Accepté</span>
+                                        <div className="flex items-center gap-2">
+                                          <div className="flex items-center gap-1">
+                                            <CheckCircle className="w-4 h-4 text-green-600" />
+                                            <span className="text-green-700 font-medium">Accepté</span>
+                                          </div>
                                           {session.validated_at && (
                                             <span className="text-xs text-gray-500">
                                               le {new Date(session.validated_at).toLocaleDateString('fr-FR')}
                                             </span>
                                           )}
-                                        </>
+                                        </div>
                                       )}
                                       {session.status === 'rejected' && (
-                                        <>
-                                          <XCircle className="w-4 h-4 text-red-600" />
-                                          <span className="text-red-700 font-medium">Refusé</span>
+                                        <div className="flex items-center gap-2">
+                                          <div className="flex items-center gap-1">
+                                            <XCircle className="w-4 h-4 text-red-600" />
+                                            <span className="text-red-700 font-medium">Refusé</span>
+                                          </div>
                                           {session.validated_at && (
                                             <span className="text-xs text-gray-500">
                                               le {new Date(session.validated_at).toLocaleDateString('fr-FR')}
                                             </span>
                                           )}
-                                        </>
+                                        </div>
                                       )}
                                       {session.status === 'pending' && (
-                                        <>
+                                        <div className="flex items-center gap-1">
                                           <AlertCircle className="w-4 h-4 text-yellow-600" />
                                           <span className="text-yellow-700 font-medium">En attente</span>
-                                        </>
+                                        </div>
                                       )}
                                     </div>
                                   </div>
