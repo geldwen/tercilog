@@ -159,16 +159,22 @@ export default function TeacherDashboard({ user, onLogout }) {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold" style={{ color: '#1e3a5f' }}>
+                Séances du mois - {new Date(stats.month).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="card-hover border-0 shadow-md" data-testid="stats-total-sessions">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Séances</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total_sessions}</p>
+                    <p className="text-3xl font-bold mt-1" style={{ color: '#1e3a5f' }}>{stats.total_sessions}</p>
                   </div>
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#e8f0f7' }}>
+                    <Calendar className="w-6 h-6" style={{ color: '#1e3a5f' }} />
                   </div>
                 </div>
               </CardContent>
