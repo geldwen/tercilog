@@ -487,24 +487,80 @@ export default function TeacherDashboard({ user, onLogout }) {
                   </CardContent>
                 </Card>
               ) : (
-                students.map((student) => (
-                  <Card key={student.id} className="border-0 shadow-md card-hover" data-testid={`student-card-${student.id}`}>
-                    <CardContent className="pt-6">
-                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div className="space-y-1">
-                          <h3 className="text-lg font-semibold text-gray-900" data-testid={`student-name-${student.id}`}>{student.name}</h3>
-                          <p className="text-sm text-gray-600" data-testid={`student-email-${student.id}`}>{student.email}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="px-4 py-2 rounded-lg" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }} data-testid={`student-credit-hours-${student.id}`}>
-                            <p className="text-xs text-gray-600">Crédit heures</p>
-                            <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{student.credit_hours}h</p>
+                students.map((student) => {
+                  const studentSessions = sessions.filter(s => s.student_id === student.id);
+                  return (
+                    <Card key={student.id} className="border-0 shadow-md card-hover" data-testid={`student-card-${student.id}`}>
+                      <CardContent className="pt-6">
+                        <div className="space-y-4">
+                          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                            <div className="space-y-1 flex-1">
+                              <h3 className="text-lg font-semibold text-gray-900" data-testid={`student-name-${student.id}`}>{student.name}</h3>
+                              <p className="text-sm text-gray-600" data-testid={`student-email-${student.id}`}>{student.email}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="px-4 py-2 rounded-lg" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }} data-testid={`student-credit-hours-${student.id}`}>
+                                <p className="text-xs text-gray-600">Heures restantes</p>
+                                <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{student.credit_hours}h</p>
+                              </div>
+                            </div>
                           </div>
+
+                          {studentSessions.length > 0 && (
+                            <div className="border-t pt-4">
+                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Historique des séances</h4>
+                              <div className="space-y-2">
+                                {studentSessions.slice(0, 5).map((session) => (
+                                  <div key={session.id} className="flex items-center justify-between text-sm py-2 px-3 bg-gray-50 rounded-lg">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium text-gray-900">{session.subject}</span>
+                                      <span className="text-gray-500">le {new Date(session.date).toLocaleDateString('fr-FR')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {session.status === 'confirmed' && (
+                                        <>
+                                          <CheckCircle className="w-4 h-4 text-green-600" />
+                                          <span className="text-green-700 font-medium">Accepté</span>
+                                          {session.validated_at && (
+                                            <span className="text-xs text-gray-500">
+                                              le {new Date(session.validated_at).toLocaleDateString('fr-FR')}
+                                            </span>
+                                          )}
+                                        </>
+                                      )}
+                                      {session.status === 'rejected' && (
+                                        <>
+                                          <XCircle className="w-4 h-4 text-red-600" />
+                                          <span className="text-red-700 font-medium">Refusé</span>
+                                          {session.validated_at && (
+                                            <span className="text-xs text-gray-500">
+                                              le {new Date(session.validated_at).toLocaleDateString('fr-FR')}
+                                            </span>
+                                          )}
+                                        </>
+                                      )}
+                                      {session.status === 'pending' && (
+                                        <>
+                                          <AlertCircle className="w-4 h-4 text-yellow-600" />
+                                          <span className="text-yellow-700 font-medium">En attente</span>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                                {studentSessions.length > 5 && (
+                                  <p className="text-xs text-gray-500 text-center pt-2">
+                                    ... et {studentSessions.length - 5} autre(s) séance(s)
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                      </CardContent>
+                    </Card>
+                  );
+                })
               )}
             </div>
           </TabsContent>
