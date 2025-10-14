@@ -42,12 +42,12 @@ export default function TeacherDashboard({ user, onLogout }) {
     credit_hours: 0,
   });
 
-  // Générer les 12 derniers mois
+  // Générer 7 mois : mois actuel + 6 mois suivants
   const getMonthsList = () => {
     const months = [];
     const now = new Date();
-    for (let i = 0; i < 12; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
       const monthKey = date.toISOString().slice(0, 7);
       const monthLabel = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
       months.push({ key: monthKey, label: monthLabel });
