@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { LogOut, Calendar, Clock, CheckCircle, XCircle, AlertCircle, BookOpen } from "lucide-react";
+import { LogOut, Calendar, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+const TERCIFORM_BLUE = '#1e3a5f';
+const TERCIFORM_BLUE_HOVER = '#152a47';
+const TERCIFORM_BLUE_LIGHT = '#e8f0f7';
 
 export default function StudentDashboard({ user, onLogout }) {
   const [sessions, setSessions] = useState([]);
@@ -67,23 +71,25 @@ export default function StudentDashboard({ user, onLogout }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: TERCIFORM_BLUE }}></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Espace Élève</h1>
+              <img 
+                src="https://customer-assets.emergentagent.com/job_f0bae013-d5d3-4906-a078-392b9e03aa37/artifacts/tiidl44l_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png"
+                alt="Terciform"
+                className="h-10"
+              />
+              <div className="border-l border-gray-300 pl-3">
+                <h1 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>Espace Élève</h1>
                 <p className="text-sm text-gray-600">{user.name}</p>
               </div>
             </div>
@@ -103,7 +109,7 @@ export default function StudentDashboard({ user, onLogout }) {
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Credit Hours Card */}
-        <Card className="mb-8 border-0 shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white" data-testid="credit-hours-card">
+        <Card className="mb-8 border-0 shadow-lg text-white" style={{ background: `linear-gradient(135deg, ${TERCIFORM_BLUE} 0%, ${TERCIFORM_BLUE_HOVER} 100%)` }} data-testid="credit-hours-card">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -146,16 +152,16 @@ export default function StudentDashboard({ user, onLogout }) {
           {/* Pending Sessions */}
           <TabsContent value="pending" className="space-y-4">
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Séances à valider</h2>
+              <h2 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>Séances à valider</h2>
               <p className="text-sm text-gray-600 mt-1">
-                Acceptez ou refusez les séances proposées par votre formateur
+                Acceptez ou refusez les séances proposées
               </p>
             </div>
 
             {pendingSessions.length === 0 ? (
               <Card className="border-0 shadow-md">
                 <CardContent className="pt-6 text-center text-gray-500">
-                  Aucune séance en attente de validation
+                  Aucune séance en attente
                 </CardContent>
               </Card>
             ) : (
@@ -206,7 +212,7 @@ export default function StudentDashboard({ user, onLogout }) {
                           ) : (
                             <span className="flex items-center gap-2">
                               <CheckCircle className="w-5 h-5" />
-                              Oui, je m'engage à être présent
+                              Oui, je m'engage
                             </span>
                           )}
                         </Button>
@@ -233,10 +239,7 @@ export default function StudentDashboard({ user, onLogout }) {
           {/* Confirmed Sessions */}
           <TabsContent value="confirmed" className="space-y-4">
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Séances confirmées</h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Séances auxquelles vous vous êtes engagé à participer
-              </p>
+              <h2 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>Séances confirmées</h2>
             </div>
 
             {confirmedSessions.length === 0 ? (
@@ -249,28 +252,26 @@ export default function StudentDashboard({ user, onLogout }) {
               confirmedSessions.map((session) => (
                 <Card key={session.id} className="border-0 shadow-md card-hover" data-testid={`confirmed-session-card-${session.id}`}>
                   <CardContent className="pt-6">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold text-gray-900" data-testid={`confirmed-session-subject-${session.id}`}>{session.subject}</h3>
-                          {getStatusBadge(session.status)}
-                        </div>
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                          <span className="flex items-center gap-1" data-testid={`confirmed-session-date-${session.id}`}>
-                            <Calendar className="w-4 h-4" />
-                            {new Date(session.date).toLocaleDateString('fr-FR')}
-                          </span>
-                          <span className="flex items-center gap-1" data-testid={`confirmed-session-time-${session.id}`}>
-                            <Clock className="w-4 h-4" />
-                            {session.start_time} - {session.end_time}
-                          </span>
-                        </div>
-                        {session.validated_at && (
-                          <p className="text-xs text-gray-500" data-testid={`confirmed-session-validated-at-${session.id}`}>
-                            Confirmé le {new Date(session.validated_at).toLocaleString('fr-FR')}
-                          </p>
-                        )}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-semibold text-gray-900" data-testid={`confirmed-session-subject-${session.id}`}>{session.subject}</h3>
+                        {getStatusBadge(session.status)}
                       </div>
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                        <span className="flex items-center gap-1" data-testid={`confirmed-session-date-${session.id}`}>
+                          <Calendar className="w-4 h-4" />
+                          {new Date(session.date).toLocaleDateString('fr-FR')}
+                        </span>
+                        <span className="flex items-center gap-1" data-testid={`confirmed-session-time-${session.id}`}>
+                          <Clock className="w-4 h-4" />
+                          {session.start_time} - {session.end_time}
+                        </span>
+                      </div>
+                      {session.validated_at && (
+                        <p className="text-xs text-gray-500" data-testid={`confirmed-session-validated-at-${session.id}`}>
+                          Confirmé le {new Date(session.validated_at).toLocaleString('fr-FR')}
+                        </p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -281,10 +282,7 @@ export default function StudentDashboard({ user, onLogout }) {
           {/* Rejected Sessions */}
           <TabsContent value="rejected" className="space-y-4">
             <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Séances refusées</h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Séances que vous avez refusées
-              </p>
+              <h2 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>Séances refusées</h2>
             </div>
 
             {rejectedSessions.length === 0 ? (
@@ -297,28 +295,26 @@ export default function StudentDashboard({ user, onLogout }) {
               rejectedSessions.map((session) => (
                 <Card key={session.id} className="border-0 shadow-md card-hover" data-testid={`rejected-session-card-${session.id}`}>
                   <CardContent className="pt-6">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold text-gray-900" data-testid={`rejected-session-subject-${session.id}`}>{session.subject}</h3>
-                          {getStatusBadge(session.status)}
-                        </div>
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                          <span className="flex items-center gap-1" data-testid={`rejected-session-date-${session.id}`}>
-                            <Calendar className="w-4 h-4" />
-                            {new Date(session.date).toLocaleDateString('fr-FR')}
-                          </span>
-                          <span className="flex items-center gap-1" data-testid={`rejected-session-time-${session.id}`}>
-                            <Clock className="w-4 h-4" />
-                            {session.start_time} - {session.end_time}
-                          </span>
-                        </div>
-                        {session.validated_at && (
-                          <p className="text-xs text-gray-500" data-testid={`rejected-session-validated-at-${session.id}`}>
-                            Refusé le {new Date(session.validated_at).toLocaleString('fr-FR')}
-                          </p>
-                        )}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-semibold text-gray-900" data-testid={`rejected-session-subject-${session.id}`}>{session.subject}</h3>
+                        {getStatusBadge(session.status)}
                       </div>
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                        <span className="flex items-center gap-1" data-testid={`rejected-session-date-${session.id}`}>
+                          <Calendar className="w-4 h-4" />
+                          {new Date(session.date).toLocaleDateString('fr-FR')}
+                        </span>
+                        <span className="flex items-center gap-1" data-testid={`rejected-session-time-${session.id}`}>
+                          <Clock className="w-4 h-4" />
+                          {session.start_time} - {session.end_time}
+                        </span>
+                      </div>
+                      {session.validated_at && (
+                        <p className="text-xs text-gray-500" data-testid={`rejected-session-validated-at-${session.id}`}>
+                          Refusé le {new Date(session.validated_at).toLocaleString('fr-FR')}
+                        </p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

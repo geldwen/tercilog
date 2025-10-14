@@ -3,15 +3,19 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, BarChart3 } from "lucide-react";
+import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+const TERCIFORM_BLUE = '#1e3a5f';
+const TERCIFORM_BLUE_HOVER = '#152a47';
+const TERCIFORM_BLUE_LIGHT = '#e8f0f7';
 
 export default function TeacherDashboard({ user, onLogout }) {
   const [sessions, setSessions] = useState([]);
@@ -62,7 +66,7 @@ export default function TeacherDashboard({ user, onLogout }) {
     e.preventDefault();
     try {
       await axios.post(`${API}/sessions`, sessionForm);
-      toast.success("Séance créée et email envoyé à l'élève !");
+      toast.success("Séance créée et email envoyé !");
       setShowCreateSession(false);
       setSessionForm({
         subject: "",
@@ -120,7 +124,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: TERCIFORM_BLUE }}></div>
       </div>
     );
   }
@@ -138,7 +142,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 className="h-10"
               />
               <div className="border-l border-gray-300 pl-3">
-                <h1 className="text-xl font-bold" style={{ color: '#1e3a5f' }}>Espace Professeur</h1>
+                <h1 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>Espace Professeur</h1>
                 <p className="text-sm text-gray-600">{user.name}</p>
               </div>
             </div>
@@ -161,66 +165,66 @@ export default function TeacherDashboard({ user, onLogout }) {
         {stats && (
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold" style={{ color: '#1e3a5f' }}>
-                Séances du mois - {new Date(stats.month).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+              <h2 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>
+                Séances - {new Date(stats.month + '-01').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="card-hover border-0 shadow-md" data-testid="stats-total-sessions">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Séances</p>
-                    <p className="text-3xl font-bold mt-1" style={{ color: '#1e3a5f' }}>{stats.total_sessions}</p>
+              <Card className="card-hover border-0 shadow-md" data-testid="stats-total-sessions">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total</p>
+                      <p className="text-3xl font-bold mt-1" style={{ color: TERCIFORM_BLUE }}>{stats.total_sessions}</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
+                      <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
+                    </div>
                   </div>
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#e8f0f7' }}>
-                    <Calendar className="w-6 h-6" style={{ color: '#1e3a5f' }} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card className="card-hover border-0 shadow-md" data-testid="stats-pending-sessions">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">En attente</p>
-                    <p className="text-3xl font-bold text-yellow-600 mt-1">{stats.pending_sessions}</p>
+              <Card className="card-hover border-0 shadow-md" data-testid="stats-pending-sessions">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">En attente</p>
+                      <p className="text-3xl font-bold text-yellow-600 mt-1">{stats.pending_sessions}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                      <AlertCircle className="w-6 h-6 text-yellow-600" />
+                    </div>
                   </div>
-                  <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                    <AlertCircle className="w-6 h-6 text-yellow-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card className="card-hover border-0 shadow-md" data-testid="stats-confirmed-sessions">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Confirmées</p>
-                    <p className="text-3xl font-bold text-green-600 mt-1">{stats.confirmed_sessions}</p>
+              <Card className="card-hover border-0 shadow-md" data-testid="stats-confirmed-sessions">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Confirmées</p>
+                      <p className="text-3xl font-bold text-green-600 mt-1">{stats.confirmed_sessions}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6 text-green-600" />
+                    </div>
                   </div>
-                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card className="card-hover border-0 shadow-md" data-testid="stats-rejected-sessions">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Refusées</p>
-                    <p className="text-3xl font-bold text-red-600 mt-1">{stats.rejected_sessions}</p>
+              <Card className="card-hover border-0 shadow-md" data-testid="stats-rejected-sessions">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Refusées</p>
+                      <p className="text-3xl font-bold text-red-600 mt-1">{stats.rejected_sessions}</p>
+                    </div>
+                    <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                      <XCircle className="w-6 h-6 text-red-600" />
+                    </div>
                   </div>
-                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                    <XCircle className="w-6 h-6 text-red-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
             </div>
           </div>
         )}
@@ -228,11 +232,22 @@ export default function TeacherDashboard({ user, onLogout }) {
         {/* Tabs */}
         <Tabs defaultValue="sessions" className="space-y-6">
           <TabsList className="bg-white border border-gray-200 shadow-sm" data-testid="dashboard-tabs">
-            <TabsTrigger value="sessions" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="sessions-tab">
+            <TabsTrigger 
+              value="sessions" 
+              className="data-[state=active]:text-white" 
+              style={{ '--tw-bg-opacity': '1' }}
+              data-[state=active]:style={{ backgroundColor: TERCIFORM_BLUE }}
+              data-testid="sessions-tab"
+            >
               <Calendar className="w-4 h-4 mr-2" />
               Séances
             </TabsTrigger>
-            <TabsTrigger value="students" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white" data-testid="students-tab">
+            <TabsTrigger 
+              value="students" 
+              className="data-[state=active]:text-white" 
+              data-[state=active]:style={{ backgroundColor: TERCIFORM_BLUE }}
+              data-testid="students-tab"
+            >
               <Users className="w-4 h-4 mr-2" />
               Élèves
             </TabsTrigger>
@@ -244,7 +259,11 @@ export default function TeacherDashboard({ user, onLogout }) {
               <h2 className="text-xl font-bold text-gray-900">Gestion des Séances</h2>
               <Dialog open={showCreateSession} onOpenChange={setShowCreateSession}>
                 <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700 gap-2" data-testid="create-session-button">
+                  <Button 
+                    className="gap-2 text-white" 
+                    style={{ backgroundColor: TERCIFORM_BLUE }}
+                    data-testid="create-session-button"
+                  >
                     <Plus className="w-4 h-4" />
                     Créer une séance
                   </Button>
@@ -316,14 +335,19 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <SelectContent>
                           {students.map((student) => (
                             <SelectItem key={student.id} value={student.id} data-testid={`student-option-${student.id}`}>
-                              {student.name} ({student.email})
+                              {student.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
-                    <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" data-testid="submit-session-button">
-                      Créer et envoyer l'email
+                    <Button 
+                      type="submit" 
+                      className="w-full text-white" 
+                      style={{ backgroundColor: TERCIFORM_BLUE }}
+                      data-testid="submit-session-button"
+                    >
+                      Créer et envoyer
                     </Button>
                   </form>
                 </DialogContent>
@@ -334,7 +358,7 @@ export default function TeacherDashboard({ user, onLogout }) {
               {sessions.length === 0 ? (
                 <Card className="border-0 shadow-md">
                   <CardContent className="pt-6 text-center text-gray-500">
-                    Aucune séance créée pour le moment
+                    Aucune séance pour le moment
                   </CardContent>
                 </Card>
               ) : (
@@ -381,7 +405,11 @@ export default function TeacherDashboard({ user, onLogout }) {
               <h2 className="text-xl font-bold text-gray-900">Gestion des Élèves</h2>
               <Dialog open={showCreateStudent} onOpenChange={setShowCreateStudent}>
                 <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700 gap-2" data-testid="create-student-button">
+                  <Button 
+                    className="gap-2 text-white" 
+                    style={{ backgroundColor: TERCIFORM_BLUE }}
+                    data-testid="create-student-button"
+                  >
                     <Plus className="w-4 h-4" />
                     Ajouter un élève
                   </Button>
@@ -442,7 +470,12 @@ export default function TeacherDashboard({ user, onLogout }) {
                         data-testid="student-credit-hours-input"
                       />
                     </div>
-                    <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" data-testid="submit-student-button">
+                    <Button 
+                      type="submit" 
+                      className="w-full text-white" 
+                      style={{ backgroundColor: TERCIFORM_BLUE }}
+                      data-testid="submit-student-button"
+                    >
                       Créer l'élève
                     </Button>
                   </form>
@@ -454,7 +487,7 @@ export default function TeacherDashboard({ user, onLogout }) {
               {students.length === 0 ? (
                 <Card className="border-0 shadow-md">
                   <CardContent className="pt-6 text-center text-gray-500">
-                    Aucun élève enregistré pour le moment
+                    Aucun élève enregistré
                   </CardContent>
                 </Card>
               ) : (
@@ -467,9 +500,9 @@ export default function TeacherDashboard({ user, onLogout }) {
                           <p className="text-sm text-gray-600" data-testid={`student-email-${student.id}`}>{student.email}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="px-4 py-2 bg-blue-100 rounded-lg" data-testid={`student-credit-hours-${student.id}`}>
+                          <div className="px-4 py-2 rounded-lg" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }} data-testid={`student-credit-hours-${student.id}`}>
                             <p className="text-xs text-gray-600">Crédit heures</p>
-                            <p className="text-xl font-bold text-blue-600">{student.credit_hours}h</p>
+                            <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{student.credit_hours}h</p>
                           </div>
                         </div>
                       </div>
