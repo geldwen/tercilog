@@ -235,9 +235,8 @@ export default function TeacherDashboard({ user, onLogout }) {
             <TabsTrigger 
               value="sessions" 
               className="data-[state=active]:text-white" 
-              style={{ '--tw-bg-opacity': '1' }}
-              data-[state=active]:style={{ backgroundColor: TERCIFORM_BLUE }}
               data-testid="sessions-tab"
+              style={{ '--active-bg': TERCIFORM_BLUE } as any}
             >
               <Calendar className="w-4 h-4 mr-2" />
               Séances
@@ -245,8 +244,8 @@ export default function TeacherDashboard({ user, onLogout }) {
             <TabsTrigger 
               value="students" 
               className="data-[state=active]:text-white" 
-              data-[state=active]:style={{ backgroundColor: TERCIFORM_BLUE }}
               data-testid="students-tab"
+              style={{ '--active-bg': TERCIFORM_BLUE } as any}
             >
               <Users className="w-4 h-4 mr-2" />
               Élèves
