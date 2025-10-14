@@ -48,7 +48,7 @@ export default function TeacherDashboard({ user, onLogout }) {
     const now = new Date();
     for (let i = 0; i < 12; i++) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthKey = date.toISOString().slice(0, 7); // Format: YYYY-MM
+      const monthKey = date.toISOString().slice(0, 7);
       const monthLabel = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
       months.push({ key: monthKey, label: monthLabel });
     }
@@ -58,7 +58,6 @@ export default function TeacherDashboard({ user, onLogout }) {
   const monthsList = getMonthsList();
 
   useEffect(() => {
-    // Définir le mois actuel par défaut
     const currentMonth = new Date().toISOString().slice(0, 7);
     setSelectedMonth(currentMonth);
   }, []);
@@ -145,7 +144,6 @@ export default function TeacherDashboard({ user, onLogout }) {
     );
   };
 
-  // Filtrer les séances du mois sélectionné
   const filteredSessions = sessions.filter(s => s.date.startsWith(selectedMonth));
 
   if (loading) {
@@ -158,7 +156,6 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
@@ -173,12 +170,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <p className="text-sm text-gray-600">{user.name}</p>
               </div>
             </div>
-            <Button
-              onClick={onLogout}
-              variant="outline"
-              className="gap-2"
-              data-testid="logout-button"
-            >
+            <Button onClick={onLogout} variant="outline" className="gap-2" data-testid="logout-button">
               <LogOut className="w-4 h-4" />
               Déconnexion
             </Button>
@@ -186,9 +178,7 @@ export default function TeacherDashboard({ user, onLogout }) {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Month Tabs */}
         <div className="mb-6">
           <h2 className="text-xl font-bold mb-4" style={{ color: TERCIFORM_BLUE }}>Séances par mois</h2>
           <Tabs value={selectedMonth} onValueChange={setSelectedMonth} className="space-y-6">
@@ -207,7 +197,6 @@ export default function TeacherDashboard({ user, onLogout }) {
 
             {monthsList.map((month) => (
               <TabsContent key={month.key} value={month.key} className="space-y-6">
-                {/* Stats Cards */}
                 {stats && stats.month === month.key && (
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <Card className="card-hover border-0 shadow-md" data-testid="stats-total-sessions">
@@ -272,38 +261,24 @@ export default function TeacherDashboard({ user, onLogout }) {
           </Tabs>
         </div>
 
-        {/* Tabs Séances/Élèves */}
         <Tabs defaultValue="sessions" className="space-y-6">
           <TabsList className="bg-white border border-gray-200 shadow-sm" data-testid="dashboard-tabs">
-            <TabsTrigger 
-              value="sessions" 
-              className="data-[state=active]:text-white"
-              data-testid="sessions-tab"
-            >
+            <TabsTrigger value="sessions" className="data-[state=active]:text-white" data-testid="sessions-tab">
               <Calendar className="w-4 h-4 mr-2" />
               Séances
             </TabsTrigger>
-            <TabsTrigger 
-              value="students" 
-              className="data-[state=active]:text-white"
-              data-testid="students-tab"
-            >
+            <TabsTrigger value="students" className="data-[state=active]:text-white" data-testid="students-tab">
               <Users className="w-4 h-4 mr-2" />
               Élèves
             </TabsTrigger>
           </TabsList>
 
-          {/* Sessions Tab */}
           <TabsContent value="sessions" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-900">Liste des Séances</h2>
               <Dialog open={showCreateSession} onOpenChange={setShowCreateSession}>
                 <DialogTrigger asChild>
-                  <Button 
-                    className="gap-2 text-white" 
-                    style={{ backgroundColor: TERCIFORM_BLUE }}
-                    data-testid="create-session-button"
-                  >
+                  <Button className="gap-2 text-white" style={{ backgroundColor: TERCIFORM_BLUE }} data-testid="create-session-button">
                     <Plus className="w-4 h-4" />
                     Créer une séance
                   </Button>
@@ -311,9 +286,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <DialogContent className="max-w-md" data-testid="create-session-dialog">
                   <DialogHeader>
                     <DialogTitle>Nouvelle Séance</DialogTitle>
-                    <DialogDescription>
-                      Créer une nouvelle séance de formation pour un élève
-                    </DialogDescription>
+                    <DialogDescription>Créer une nouvelle séance de formation pour un élève</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleCreateSession} className="space-y-4">
                     <div className="space-y-2">
@@ -381,12 +354,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         </SelectContent>
                       </Select>
                     </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full text-white" 
-                      style={{ backgroundColor: TERCIFORM_BLUE }}
-                      data-testid="submit-session-button"
-                    >
+                    <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }} data-testid="submit-session-button">
                       Créer et envoyer
                     </Button>
                   </form>
@@ -439,17 +407,12 @@ export default function TeacherDashboard({ user, onLogout }) {
             </div>
           </TabsContent>
 
-          {/* Students Tab */}
           <TabsContent value="students" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-900">Gestion des Élèves</h2>
               <Dialog open={showCreateStudent} onOpenChange={setShowCreateStudent}>
                 <DialogTrigger asChild>
-                  <Button 
-                    className="gap-2 text-white" 
-                    style={{ backgroundColor: TERCIFORM_BLUE }}
-                    data-testid="create-student-button"
-                  >
+                  <Button className="gap-2 text-white" style={{ backgroundColor: TERCIFORM_BLUE }} data-testid="create-student-button">
                     <Plus className="w-4 h-4" />
                     Ajouter un élève
                   </Button>
@@ -457,9 +420,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <DialogContent className="max-w-md" data-testid="create-student-dialog">
                   <DialogHeader>
                     <DialogTitle>Nouvel Élève</DialogTitle>
-                    <DialogDescription>
-                      Créer un compte élève avec ses identifiants
-                    </DialogDescription>
+                    <DialogDescription>Créer un compte élève avec ses identifiants</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleCreateStudent} className="space-y-4">
                     <div className="space-y-2">
@@ -510,12 +471,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         data-testid="student-credit-hours-input"
                       />
                     </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full text-white" 
-                      style={{ backgroundColor: TERCIFORM_BLUE }}
-                      data-testid="submit-student-button"
-                    >
+                    <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }} data-testid="submit-student-button">
                       Créer l'élève
                     </Button>
                   </form>
