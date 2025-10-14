@@ -234,18 +234,16 @@ export default function TeacherDashboard({ user, onLogout }) {
           <TabsList className="bg-white border border-gray-200 shadow-sm" data-testid="dashboard-tabs">
             <TabsTrigger 
               value="sessions" 
-              className="data-[state=active]:text-white" 
+              className="data-[state=active]:text-white"
               data-testid="sessions-tab"
-              style={{ '--active-bg': TERCIFORM_BLUE } as any}
             >
               <Calendar className="w-4 h-4 mr-2" />
               Séances
             </TabsTrigger>
             <TabsTrigger 
               value="students" 
-              className="data-[state=active]:text-white" 
+              className="data-[state=active]:text-white"
               data-testid="students-tab"
-              style={{ '--active-bg': TERCIFORM_BLUE } as any}
             >
               <Users className="w-4 h-4 mr-2" />
               Élèves
