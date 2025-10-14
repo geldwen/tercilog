@@ -221,6 +221,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </div>
         )}
 
