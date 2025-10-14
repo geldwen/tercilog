@@ -47,8 +47,15 @@ export default function TeacherDashboard({ user, onLogout }) {
   const getMonthsList = () => {
     const months = [];
     const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-11
+    
     for (let i = 0; i < 7; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const totalMonths = currentMonth + i;
+      const year = currentYear + Math.floor(totalMonths / 12);
+      const month = totalMonths % 12;
+      
+      const date = new Date(year, month, 1);
       const monthKey = date.toISOString().slice(0, 7);
       const monthLabel = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
       months.push({ key: monthKey, label: monthLabel });
