@@ -24,6 +24,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [showCreateSession, setShowCreateSession] = useState(false);
   const [showCreateStudent, setShowCreateStudent] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState('');
 
   const [sessionForm, setSessionForm] = useState({
     subject: "",
@@ -41,16 +42,39 @@ export default function TeacherDashboard({ user, onLogout }) {
     credit_hours: 0,
   });
 
+  // Générer les 12 derniers mois
+  const getMonthsList = () => {
+    const months = [];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthKey = date.toISOString().slice(0, 7); // Format: YYYY-MM
+      const monthLabel = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+      months.push({ key: monthKey, label: monthLabel });
+    }
+    return months;
+  };
+
+  const monthsList = getMonthsList();
+
   useEffect(() => {
-    loadData();
+    // Définir le mois actuel par défaut
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    setSelectedMonth(currentMonth);
   }, []);
 
-  const loadData = async () => {
+  useEffect(() => {
+    if (selectedMonth) {
+      loadData(selectedMonth);
+    }
+  }, [selectedMonth]);
+
+  const loadData = async (month) => {
     try {
       const [sessionsRes, studentsRes, statsRes] = await Promise.all([
         axios.get(`${API}/sessions`),
         axios.get(`${API}/students`),
-        axios.get(`${API}/sessions/stats`),
+        axios.get(`${API}/sessions/stats?month=${month}`),
       ]);
       setSessions(sessionsRes.data);
       setStudents(studentsRes.data);
@@ -76,7 +100,7 @@ export default function TeacherDashboard({ user, onLogout }) {
         student_id: "",
         validation_deadline_hours: 48,
       });
-      loadData();
+      loadData(selectedMonth);
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur lors de la création de la séance");
     }
@@ -97,7 +121,7 @@ export default function TeacherDashboard({ user, onLogout }) {
         password: "",
         credit_hours: 0,
       });
-      loadData();
+      loadData(selectedMonth);
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur lors de la création de l'élève");
     }
@@ -120,6 +144,9 @@ export default function TeacherDashboard({ user, onLogout }) {
       </span>
     );
   };
+
+  // Filtrer les séances du mois sélectionné
+  const filteredSessions = sessions.filter(s => s.date.startsWith(selectedMonth));
 
   if (loading) {
     return (
@@ -161,75 +188,91 @@ export default function TeacherDashboard({ user, onLogout }) {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        {stats && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>
-                Séances - {new Date(stats.month + '-01').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <Card className="card-hover border-0 shadow-md" data-testid="stats-total-sessions">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Total</p>
-                      <p className="text-3xl font-bold mt-1" style={{ color: TERCIFORM_BLUE }}>{stats.total_sessions}</p>
-                    </div>
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
-                      <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Month Tabs */}
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-4" style={{ color: TERCIFORM_BLUE }}>Séances par mois</h2>
+          <Tabs value={selectedMonth} onValueChange={setSelectedMonth} className="space-y-6">
+            <TabsList className="bg-white border border-gray-200 shadow-sm flex-wrap h-auto" data-testid="month-tabs">
+              {monthsList.map((month) => (
+                <TabsTrigger 
+                  key={month.key}
+                  value={month.key}
+                  className="data-[state=active]:text-white capitalize"
+                  data-testid={`month-tab-${month.key}`}
+                >
+                  {month.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-              <Card className="card-hover border-0 shadow-md" data-testid="stats-pending-sessions">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">En attente</p>
-                      <p className="text-3xl font-bold text-yellow-600 mt-1">{stats.pending_sessions}</p>
-                    </div>
-                    <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                      <AlertCircle className="w-6 h-6 text-yellow-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            {monthsList.map((month) => (
+              <TabsContent key={month.key} value={month.key} className="space-y-6">
+                {/* Stats Cards */}
+                {stats && stats.month === month.key && (
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <Card className="card-hover border-0 shadow-md" data-testid="stats-total-sessions">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Total</p>
+                            <p className="text-3xl font-bold mt-1" style={{ color: TERCIFORM_BLUE }}>{stats.total_sessions}</p>
+                          </div>
+                          <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
+                            <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-              <Card className="card-hover border-0 shadow-md" data-testid="stats-confirmed-sessions">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Confirmées</p>
-                      <p className="text-3xl font-bold text-green-600 mt-1">{stats.confirmed_sessions}</p>
-                    </div>
-                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                      <CheckCircle className="w-6 h-6 text-green-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    <Card className="card-hover border-0 shadow-md" data-testid="stats-pending-sessions">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">En attente</p>
+                            <p className="text-3xl font-bold text-yellow-600 mt-1">{stats.pending_sessions}</p>
+                          </div>
+                          <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                            <AlertCircle className="w-6 h-6 text-yellow-600" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-              <Card className="card-hover border-0 shadow-md" data-testid="stats-rejected-sessions">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Refusées</p>
-                      <p className="text-3xl font-bold text-red-600 mt-1">{stats.rejected_sessions}</p>
-                    </div>
-                    <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                      <XCircle className="w-6 h-6 text-red-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
+                    <Card className="card-hover border-0 shadow-md" data-testid="stats-confirmed-sessions">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Confirmées</p>
+                            <p className="text-3xl font-bold text-green-600 mt-1">{stats.confirmed_sessions}</p>
+                          </div>
+                          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                            <CheckCircle className="w-6 h-6 text-green-600" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-        {/* Tabs */}
+                    <Card className="card-hover border-0 shadow-md" data-testid="stats-rejected-sessions">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">Refusées</p>
+                            <p className="text-3xl font-bold text-red-600 mt-1">{stats.rejected_sessions}</p>
+                          </div>
+                          <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                            <XCircle className="w-6 h-6 text-red-600" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </TabsContent>
+            ))}
+          </Tabs>
+        </div>
+
+        {/* Tabs Séances/Élèves */}
         <Tabs defaultValue="sessions" className="space-y-6">
           <TabsList className="bg-white border border-gray-200 shadow-sm" data-testid="dashboard-tabs">
             <TabsTrigger 
@@ -253,7 +296,7 @@ export default function TeacherDashboard({ user, onLogout }) {
           {/* Sessions Tab */}
           <TabsContent value="sessions" className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">Gestion des Séances</h2>
+              <h2 className="text-xl font-bold text-gray-900">Liste des Séances</h2>
               <Dialog open={showCreateSession} onOpenChange={setShowCreateSession}>
                 <DialogTrigger asChild>
                   <Button 
@@ -352,14 +395,14 @@ export default function TeacherDashboard({ user, onLogout }) {
             </div>
 
             <div className="grid gap-4">
-              {sessions.length === 0 ? (
+              {filteredSessions.length === 0 ? (
                 <Card className="border-0 shadow-md">
                   <CardContent className="pt-6 text-center text-gray-500">
-                    Aucune séance pour le moment
+                    Aucune séance pour ce mois
                   </CardContent>
                 </Card>
               ) : (
-                sessions.map((session) => (
+                filteredSessions.map((session) => (
                   <Card key={session.id} className="border-0 shadow-md card-hover" data-testid={`session-card-${session.id}`}>
                     <CardContent className="pt-6">
                       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
