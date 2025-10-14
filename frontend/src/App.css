@@ -21,6 +21,13 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 100vh;
 }
 
+/* Terciform colors */
+:root {
+  --terciform-blue: #1e3a5f;
+  --terciform-blue-light: #2d5a8f;
+  --terciform-blue-dark: #152a47;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -32,12 +39,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--terciform-blue-light);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--terciform-blue);
 }
 
 /* Button animations */
@@ -56,7 +63,7 @@ button:active {
 
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(30, 58, 95, 0.15);
 }
 
 /* Animations */

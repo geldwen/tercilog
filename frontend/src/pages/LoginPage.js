@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { LogIn, GraduationCap } from "lucide-react";
+import { LogIn } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -35,19 +35,20 @@ export default function LoginPage({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
       <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg">
-            <GraduationCap className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Plateforme de Formation</h1>
-          <p className="text-gray-600">Gestion et planification des séances</p>
+          <img 
+            src="https://customer-assets.emergentagent.com/job_f0bae013-d5d3-4906-a078-392b9e03aa37/artifacts/tiidl44l_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png"
+            alt="Terciform"
+            className="h-24 mx-auto mb-4"
+          />
+          <p className="text-lg text-gray-700 font-medium">Propulsez vos compétences</p>
         </div>
 
-        <Card className="shadow-xl border-0 backdrop-blur-sm bg-white/90">
+        <Card className="shadow-xl border-0 backdrop-blur-sm bg-white">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Connexion</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center" style={{ color: '#1e3a5f' }}>Connexion</CardTitle>
             <CardDescription className="text-center">
               Entrez vos identifiants pour accéder à votre espace
             </CardDescription>
@@ -82,7 +83,8 @@ export default function LoginPage({ onLogin }) {
               </div>
               <Button
                 type="submit"
-                className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                className="w-full h-11 text-white font-medium"
+                style={{ backgroundColor: '#1e3a5f' }}
                 disabled={loading}
                 data-testid="login-submit-button"
               >

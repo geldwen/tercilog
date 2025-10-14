@@ -253,12 +253,12 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
     <html>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #2563eb;">Nouvelle séance de formation</h2>
+            <h2 style="color: #1e3a5f;">Nouvelle séance de formation</h2>
             <p>Bonjour {student['name']},</p>
             <p><strong>Vous avez été affecté à la séance {session_data.subject} du {session_data.date} de {session_data.start_time} à {session_data.end_time}.</strong></p>
             <p>Veuillez confirmer votre présence en vous connectant à la plateforme :</p>
             <div style="margin: 30px 0;">
-                <a href="{frontend_url}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Accéder à la plateforme</a>
+                <a href="{frontend_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Accéder à la plateforme</a>
             </div>
             <p style="color: #dc2626; font-weight: bold;">⚠️ Important : En cas d'absence d'une séance validée, les heures de formation seront perdues.</p>
             <p>Cordialement,<br>Votre formateur</p>
@@ -314,7 +314,7 @@ async def validate_session(session_id: str, validation: SessionValidate, current
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #2563eb;">Validation de séance</h2>
+                <h2 style="color: #1e3a5f;">Validation de séance</h2>
                 <p>L'élève <strong>{current_user.name}</strong> a {status_text} la séance :</p>
                 <ul>
                     <li><strong>Matière :</strong> {session_doc['subject']}</li>
@@ -333,18 +333,27 @@ async def validate_session(session_id: str, validation: SessionValidate, current
     return Session(**session_doc)
 
 @api_router.get("/sessions/stats")
-async def get_stats(current_user: User = Depends(get_current_user)):
+async def get_stats(current_user: User = Depends(get_current_user), month: Optional[str] = None):
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
+    # Get current month if not specified
+    if not month:
+        now = datetime.now(timezone.utc)
+        month = now.strftime('%Y-%m')
+    
+    # Filter sessions for the specified month
     all_sessions = await db.sessions.find({}, {"_id": 0}).to_list(1000)
+    monthly_sessions = [s for s in all_sessions if s['date'].startswith(month)]
+    
     students = await db.users.find({"role": "student"}, {"_id": 0}).to_list(1000)
     
     stats = {
-        "total_sessions": len(all_sessions),
-        "pending_sessions": len([s for s in all_sessions if s['status'] == 'pending']),
-        "confirmed_sessions": len([s for s in all_sessions if s['status'] == 'confirmed']),
-        "rejected_sessions": len([s for s in all_sessions if s['status'] == 'rejected']),
+        "month": month,
+        "total_sessions": len(monthly_sessions),
+        "pending_sessions": len([s for s in monthly_sessions if s['status'] == 'pending']),
+        "confirmed_sessions": len([s for s in monthly_sessions if s['status'] == 'confirmed']),
+        "rejected_sessions": len([s for s in monthly_sessions if s['status'] == 'rejected']),
         "students": [{"id": s['id'], "name": s['name'], "email": s['email'], "credit_hours": s['credit_hours']} for s in students]
     }
     
