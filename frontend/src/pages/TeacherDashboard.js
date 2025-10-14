@@ -459,7 +459,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="credit_hours">Crédit heures</Label>
+                      <Label htmlFor="credit_hours">Heures restantes</Label>
                       <Input
                         id="credit_hours"
                         type="number"
