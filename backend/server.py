@@ -361,12 +361,18 @@ async def get_stats(current_user: User = Depends(get_current_user), month: Optio
     
     students = await db.users.find({"role": "student"}, {"_id": 0}).to_list(1000)
     
+    # Calculer les heures totales
+    confirmed_hours = sum(s.get('duration_hours', 0) for s in monthly_sessions if s['status'] == 'confirmed')
+    rejected_hours = sum(s.get('duration_hours', 0) for s in monthly_sessions if s['status'] == 'rejected')
+    
     stats = {
         "month": month,
         "total_sessions": len(monthly_sessions),
         "pending_sessions": len([s for s in monthly_sessions if s['status'] == 'pending']),
         "confirmed_sessions": len([s for s in monthly_sessions if s['status'] == 'confirmed']),
+        "confirmed_hours": confirmed_hours,
         "rejected_sessions": len([s for s in monthly_sessions if s['status'] == 'rejected']),
+        "rejected_hours": rejected_hours,
         "students": [{"id": s['id'], "name": s['name'], "email": s['email'], "credit_hours": s['credit_hours']} for s in students]
     }
     
