@@ -108,20 +108,38 @@ export default function StudentDashboard({ user, onLogout }) {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Credit Hours Card */}
-        <Card className="mb-8 border-0 shadow-lg text-white" style={{ background: `linear-gradient(135deg, ${TERCIFORM_BLUE} 0%, ${TERCIFORM_BLUE_HOVER} 100%)` }} data-testid="credit-hours-card">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90">Crédit heures disponibles</p>
-                <p className="text-4xl font-bold mt-1" data-testid="credit-hours-value">{user.credit_hours}h</p>
+        {/* Hours Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Total Hours Card */}
+          <Card className="border-0 shadow-lg" data-testid="total-hours-card">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Total heures parcours</p>
+                  <p className="text-4xl font-bold mt-1 text-gray-900" data-testid="total-hours-value">{user.total_hours || user.credit_hours}h</p>
+                </div>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
+                  <Clock className="w-8 h-8" style={{ color: TERCIFORM_BLUE }} />
+                </div>
               </div>
-              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                <Clock className="w-8 h-8" />
+            </CardContent>
+          </Card>
+
+          {/* Remaining Hours Card */}
+          <Card className="border-0 shadow-lg text-white" style={{ background: `linear-gradient(135deg, ${TERCIFORM_BLUE} 0%, ${TERCIFORM_BLUE_HOVER} 100%)` }} data-testid="credit-hours-card">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm opacity-90">Crédit heures disponibles</p>
+                  <p className="text-4xl font-bold mt-1" data-testid="credit-hours-value">{user.credit_hours}h</p>
+                </div>
+                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <Clock className="w-8 h-8" />
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Tabs */}
         <Tabs defaultValue="pending" className="space-y-6">
