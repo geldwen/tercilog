@@ -7,13 +7,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Trash2 } from "lucide-react";
+import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Trash2, Mail } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const TERCIFORM_BLUE = '#1e3a5f';
-const TERCIFORM_BLUE_HOVER = '#152a47';
 const TERCIFORM_BLUE_LIGHT = '#e8f0f7';
 
 export default function TeacherDashboard({ user, onLogout }) {
@@ -38,24 +37,21 @@ export default function TeacherDashboard({ user, onLogout }) {
     name: "",
     email: "",
     password: "",
-    credit_hours: 0,
     total_hours: 0,
   });
 
   const getMonthsList = () => {
-    const months = [
+    return [
       { key: '2025-10', label: 'octobre 2025' },
       { key: '2025-11', label: 'novembre 2025' },
       { key: '2025-12', label: 'décembre 2025' }
     ];
-    return months;
   };
 
   const monthsList = getMonthsList();
 
   useEffect(() => {
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    setSelectedMonth(currentMonth);
+    setSelectedMonth('2025-10');
   }, []);
 
   useEffect(() => {
@@ -66,18 +62,16 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   const loadData = async (month) => {
     try {
-      console.log(`📅 Chargement des données pour le mois: ${month}`);
       const [sessionsRes, studentsRes, statsRes] = await Promise.all([
         axios.get(`${API}/sessions`),
         axios.get(`${API}/students`),
         axios.get(`${API}/sessions/stats?month=${month}`),
       ]);
-      console.log(`📊 Stats reçues pour le mois: ${statsRes.data.month}`);
       setSessions(sessionsRes.data);
       setStudents(studentsRes.data);
       setStats(statsRes.data);
     } catch (error) {
-      toast.error("Erreur lors du chargement des données");
+      toast.error("Erreur lors du chargement");
     } finally {
       setLoading(false);
     }
@@ -93,89 +87,88 @@ export default function TeacherDashboard({ user, onLogout }) {
       await axios.post(`${API}/sessions`, sessionForm);
       toast.success("Séance créée et email envoyé !");
       setShowCreateSession(false);
-      setSessionForm({
-        subject: "",
-        date: "",
-        start_time: "",
-        end_time: "",
-        student_id: "",
-        validation_deadline_hours: 48,
-      });
+      setSessionForm({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48 });
       loadData(selectedMonth);
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Erreur lors de la création de la séance");
+      toast.error(error.response?.data?.detail || "Erreur");
     }
   };
 
   const handleCreateStudent = async (e) => {
     e.preventDefault();
     try {
-      const newStudent = {
-        ...studentForm,
-        role: "student",
-        credit_hours: studentForm.total_hours,
-      };
-      await axios.post(`${API}/students`, newStudent);
-      toast.success("Élève créé avec succès !");
+      await axios.post(`${API}/students`, { ...studentForm, role: "student", credit_hours: studentForm.total_hours });
+      toast.success("Élève créé !");
       setShowCreateStudent(false);
-      setStudentForm({
-        name: "",
-        email: "",
-        password: "",
-        credit_hours: 0,
-        total_hours: 0,
-      });
+      setStudentForm({ name: "", email: "", password: "", total_hours: 0 });
       loadData(selectedMonth);
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Erreur lors de la création de l'élève");
+      toast.error(error.response?.data?.detail || "Erreur");
     }
   };
 
   const handleDeleteSession = async (sessionId) => {
-    if (!window.confirm("Voulez-vous vraiment supprimer cette séance ?")) {
-      return;
-    }
+    if (!window.confirm("Supprimer cette séance ?")) return;
     try {
       await axios.delete(`${API}/sessions/${sessionId}`);
       toast.success("Séance supprimée");
       loadData(selectedMonth);
     } catch (error) {
-      toast.error("Erreur lors de la suppression");
+      toast.error("Erreur");
+    }
+  };
+
+  const handleResendEmail = async (sessionId) => {
+    try {
+      await axios.post(`${API}/sessions/${sessionId}/resend-email`);
+      toast.success("Email renvoyé !");
+    } catch (error) {
+      toast.error("Erreur lors de l'envoi");
     }
   };
 
   const handleDeleteStudent = async (studentId, studentName) => {
-    if (!window.confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} et toutes ses séances ?`)) {
-      return;
-    }
+    if (!window.confirm(`Supprimer ${studentName} et toutes ses séances ?`)) return;
     try {
       await axios.delete(`${API}/students/${studentId}`);
       toast.success("Élève supprimé");
       loadData(selectedMonth);
     } catch (error) {
-      toast.error("Erreur lors de la suppression");
+      toast.error("Erreur");
     }
   };
 
   const getStatusBadge = (status) => {
-    const statusConfig = {
+    const cfg = {
       pending: { label: "En attente", icon: AlertCircle, className: "status-badge status-pending" },
       confirmed: { label: "Confirmée", icon: CheckCircle, className: "status-badge status-confirmed" },
       rejected: { label: "Refusée", icon: XCircle, className: "status-badge status-rejected" },
     };
-
-    const config = statusConfig[status] || statusConfig.pending;
-    const Icon = config.icon;
-
-    return (
-      <span className={config.className} data-testid={`session-status-${status}`}>
-        <Icon className="w-3 h-3 mr-1" />
-        {config.label}
-      </span>
-    );
+    const c = cfg[status] || cfg.pending;
+    const Icon = c.icon;
+    return <span className={c.className}><Icon className="w-3 h-3 mr-1" />{c.label}</span>;
   };
 
   const filteredSessions = sessions.filter(s => s.date.startsWith(selectedMonth));
+
+  // Grouper les séances par date + matière + horaire
+  const groupedSessions = {};
+  filteredSessions.forEach(session => {
+    const key = `${session.date}_${session.subject}_${session.start_time}_${session.end_time}`;
+    if (!groupedSessions[key]) {
+      groupedSessions[key] = {
+        subject: session.subject,
+        date: session.date,
+        start_time: session.start_time,
+        end_time: session.end_time,
+        duration_hours: session.duration_hours,
+        sessions: []
+      };
+    }
+    groupedSessions[key].sessions.push(session);
+  });
+
+  const groupedSessionsList = Object.values(groupedSessions).sort((a, b) => a.date.localeCompare(b.date));
 
   if (loading) {
     return (
@@ -218,8 +211,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <TabsTrigger 
                   key={month.key}
                   value={month.key}
-                  className="capitalize"
-                  style={{ color: selectedMonth === month.key ? '#1e3a5f' : '#6b7280' }}
+                  className="capitalize data-[state=active]:bg-gray-200"
+                  style={{ color: TERCIFORM_BLUE }}
                   data-testid={`month-tab-${month.key}`}
                 >
                   {month.label}
@@ -231,13 +224,13 @@ export default function TeacherDashboard({ user, onLogout }) {
               <TabsContent key={month.key} value={month.key} className="space-y-6">
                 {stats && stats.month === month.key && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card className="card-hover border-0 shadow-md" data-testid="stats-total-sessions">
+                    <Card className="card-hover border-0 shadow-md">
                       <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-gray-600">Total</p>
                             <p className="text-3xl font-bold mt-1" style={{ color: TERCIFORM_BLUE }}>
-                              {(stats.confirmed_hours || 0) + (stats.rejected_hours || 0)}h
+                              {stats.total_hours || 0}h
                             </p>
                             <p className="text-xs text-gray-500 mt-1">{stats.total_sessions} séance(s)</p>
                           </div>
@@ -248,7 +241,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                       </CardContent>
                     </Card>
 
-                    <Card className="card-hover border-0 shadow-md" data-testid="stats-confirmed-sessions">
+                    <Card className="card-hover border-0 shadow-md">
                       <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                           <div>
@@ -263,7 +256,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                       </CardContent>
                     </Card>
 
-                    <Card className="card-hover border-0 shadow-md" data-testid="stats-rejected-sessions">
+                    <Card className="card-hover border-0 shadow-md">
                       <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                           <div>
@@ -285,12 +278,12 @@ export default function TeacherDashboard({ user, onLogout }) {
         </div>
 
         <Tabs defaultValue="sessions" className="space-y-6">
-          <TabsList className="bg-white border border-gray-200 shadow-sm" data-testid="dashboard-tabs">
-            <TabsTrigger value="sessions" className="data-[state=active]:text-white" data-testid="sessions-tab">
+          <TabsList className="bg-white border border-gray-200 shadow-sm">
+            <TabsTrigger value="sessions" className="data-[state=active]:text-white">
               <Calendar className="w-4 h-4 mr-2" />
               Séances
             </TabsTrigger>
-            <TabsTrigger value="students" className="data-[state=active]:text-white" data-testid="students-tab">
+            <TabsTrigger value="students" className="data-[state=active]:text-white">
               <Users className="w-4 h-4 mr-2" />
               Élèves
             </TabsTrigger>
@@ -306,10 +299,10 @@ export default function TeacherDashboard({ user, onLogout }) {
                     Créer une séance
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-md" data-testid="create-session-dialog">
+                <DialogContent className="max-w-md">
                   <DialogHeader>
                     <DialogTitle>Nouvelle Séance</DialogTitle>
-                    <DialogDescription>Créer une nouvelle séance de formation pour un élève</DialogDescription>
+                    <DialogDescription>Créer une nouvelle séance</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleCreateSession} className="space-y-4">
                     <div className="space-y-2">
@@ -364,7 +357,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                         id="student"
                         value={sessionForm.student_id}
                         onChange={(e) => handleStudentChange(e.target.value)}
-                        className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2"
+                        style={{ '--tw-ring-color': TERCIFORM_BLUE }}
                         data-testid="session-student-select"
                       >
                         <option value="">Sélectionner un élève</option>
@@ -379,7 +373,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                       type="submit" 
                       className="w-full text-white" 
                       style={{ backgroundColor: TERCIFORM_BLUE }} 
-                      data-testid="submit-session-button"
                       disabled={!sessionForm.student_id}
                     >
                       Créer et envoyer
@@ -390,51 +383,78 @@ export default function TeacherDashboard({ user, onLogout }) {
             </div>
 
             <div className="grid gap-4">
-              {filteredSessions.length === 0 ? (
+              {groupedSessionsList.length === 0 ? (
                 <Card className="border-0 shadow-md">
                   <CardContent className="pt-6 text-center text-gray-500">
                     Aucune séance pour ce mois
                   </CardContent>
                 </Card>
               ) : (
-                filteredSessions.map((session) => (
-                  <Card key={session.id} className="border-0 shadow-md card-hover" data-testid={`session-card-${session.id}`}>
+                groupedSessionsList.map((group, idx) => (
+                  <Card key={idx} className="border-0 shadow-md card-hover">
                     <CardContent className="pt-6">
-                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center gap-3">
-                            <h3 className="text-lg font-semibold text-gray-900" data-testid={`session-subject-${session.id}`}>{session.subject}</h3>
-                            {getStatusBadge(session.status)}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-gray-900">{group.subject}</h3>
+                            <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-1">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4" />
+                                {new Date(group.date).toLocaleDateString('fr-FR')}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-4 h-4" />
+                                {group.start_time} - {group.end_time} ({group.duration_hours}h)
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                            <span className="flex items-center gap-1" data-testid={`session-date-${session.id}`}>
-                              <Calendar className="w-4 h-4" />
-                              {new Date(session.date).toLocaleDateString('fr-FR')}
-                            </span>
-                            <span className="flex items-center gap-1" data-testid={`session-time-${session.id}`}>
-                              <Clock className="w-4 h-4" />
-                              {session.start_time} - {session.end_time}
-                            </span>
-                            <span className="flex items-center gap-1" data-testid={`session-student-${session.id}`}>
-                              <Users className="w-4 h-4" />
-                              {session.student_name}
-                            </span>
-                          </div>
-                          {session.validated_at && (
-                            <p className="text-xs text-gray-500" data-testid={`session-validated-at-${session.id}`}>
-                              Validé le {new Date(session.validated_at).toLocaleString('fr-FR')}
-                            </p>
-                          )}
                         </div>
-                        <Button
-                          onClick={() => handleDeleteSession(session.id)}
-                          variant="outline"
-                          className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
-                          data-testid={`delete-session-button-${session.id}`}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Supprimer
-                        </Button>
+
+                        <div className="border-t pt-3">
+                          <p className="text-sm font-medium text-gray-700 mb-2">Élèves :</p>
+                          <div className="space-y-2">
+                            {group.sessions.map((session) => (
+                              <div key={session.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-3 flex-1">
+                                  <span className="font-medium text-gray-900">{session.student_name}</span>
+                                  {getStatusBadge(session.status)}
+                                  {session.validated_at && (
+                                    <span className="text-xs text-gray-500">
+                                      le {new Date(session.validated_at).toLocaleString('fr-FR', {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        second: '2-digit'
+                                      })}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    onClick={() => handleResendEmail(session.id)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                                    data-testid={`resend-email-button-${session.id}`}
+                                  >
+                                    <Mail className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleDeleteSession(session.id)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-red-600 border-red-300 hover:bg-red-50"
+                                    data-testid={`delete-session-button-${session.id}`}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -453,10 +473,10 @@ export default function TeacherDashboard({ user, onLogout }) {
                     Ajouter un élève
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-md" data-testid="create-student-dialog">
+                <DialogContent className="max-w-md">
                   <DialogHeader>
                     <DialogTitle>Nouvel Élève</DialogTitle>
-                    <DialogDescription>Créer un compte élève avec ses identifiants</DialogDescription>
+                    <DialogDescription>Créer un compte élève</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleCreateStudent} className="space-y-4">
                     <div className="space-y-2">
@@ -507,7 +527,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         data-testid="student-total-hours-input"
                       />
                     </div>
-                    <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }} data-testid="submit-student-button">
+                    <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }}>
                       Créer l'élève
                     </Button>
                   </form>
@@ -529,20 +549,20 @@ export default function TeacherDashboard({ user, onLogout }) {
                   const remainingHours = student.credit_hours;
                   
                   return (
-                    <Card key={student.id} className="border-0 shadow-md card-hover" data-testid={`student-card-${student.id}`}>
+                    <Card key={student.id} className="border-0 shadow-md card-hover">
                       <CardContent className="pt-6">
                         <div className="space-y-4">
                           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                             <div className="space-y-1 flex-1">
-                              <h3 className="text-lg font-semibold text-gray-900" data-testid={`student-name-${student.id}`}>{student.name}</h3>
-                              <p className="text-sm text-gray-600" data-testid={`student-email-${student.id}`}>{student.email}</p>
+                              <h3 className="text-lg font-semibold text-gray-900">{student.name}</h3>
+                              <p className="text-sm text-gray-600">{student.email}</p>
                             </div>
                             <div className="flex items-center gap-3">
-                              <div className="px-4 py-2 rounded-lg text-white" style={{ backgroundColor: TERCIFORM_BLUE }} data-testid={`student-total-hours-${student.id}`}>
+                              <div className="px-4 py-2 rounded-lg text-white" style={{ backgroundColor: TERCIFORM_BLUE }}>
                                 <p className="text-xs opacity-90">Heures totales</p>
                                 <p className="text-xl font-bold">{totalHours}h</p>
                               </div>
-                              <div className="px-4 py-2 rounded-lg" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }} data-testid={`student-credit-hours-${student.id}`}>
+                              <div className="px-4 py-2 rounded-lg" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
                                 <p className="text-xs text-gray-600">Heures restantes</p>
                                 <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{remainingHours}h</p>
                               </div>
@@ -550,8 +570,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 onClick={() => handleDeleteStudent(student.id, student.name)}
                                 variant="outline"
                                 size="sm"
-                                className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
-                                data-testid={`delete-student-button-${student.id}`}
+                                className="text-red-600 border-red-300 hover:bg-red-50"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -578,7 +597,14 @@ export default function TeacherDashboard({ user, onLogout }) {
                                           </div>
                                           {session.validated_at && (
                                             <span className="text-xs text-gray-500">
-                                              le {new Date(session.validated_at).toLocaleDateString('fr-FR')}
+                                              le {new Date(session.validated_at).toLocaleString('fr-FR', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                second: '2-digit'
+                                              })}
                                             </span>
                                           )}
                                         </div>
@@ -591,7 +617,14 @@ export default function TeacherDashboard({ user, onLogout }) {
                                           </div>
                                           {session.validated_at && (
                                             <span className="text-xs text-gray-500">
-                                              le {new Date(session.validated_at).toLocaleDateString('fr-FR')}
+                                              le {new Date(session.validated_at).toLocaleString('fr-FR', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                second: '2-digit'
+                                              })}
                                             </span>
                                           )}
                                         </div>
