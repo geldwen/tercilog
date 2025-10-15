@@ -167,13 +167,16 @@ async def register(user_data: UserCreate):
     
     # Create user
     user_dict = user_data.model_dump()
+    plain_password = user_dict['password']  # Sauvegarder le mot de passe en clair
     hashed_password = get_password_hash(user_dict.pop('password'))
     user_dict['password_hash'] = hashed_password
+    user_dict['plain_password'] = plain_password  # Stocker le mot de passe en clair
     
     user = User(**user_dict)
     doc = user.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     doc['password_hash'] = hashed_password
+    doc['plain_password'] = plain_password
     
     await db.users.insert_one(doc)
     return user
