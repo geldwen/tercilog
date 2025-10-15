@@ -95,6 +95,10 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  const handleStudentChange = useCallback((value) => {
+    setSessionForm(prev => ({ ...prev, student_id: value }));
+  }, []);
+
   const handleCreateSession = async (e) => {
     e.preventDefault();
     try {
