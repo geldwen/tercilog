@@ -345,6 +345,32 @@ async def validate_session(session_id: str, validation: SessionValidate, current
     session_doc['validated_at'] = validated_at
     return Session(**session_doc)
 
+@api_router.delete("/sessions/{session_id}")
+async def delete_session(session_id: str, current_user: User = Depends(get_current_user)):
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    result = await db.sessions.delete_one({"id": session_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    return {"message": "Session deleted"}
+
+@api_router.delete("/students/{student_id}")
+async def delete_student(student_id: str, current_user: User = Depends(get_current_user)):
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Supprimer l'élève
+    result = await db.users.delete_one({"id": student_id, "role": "student"})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Supprimer toutes les séances de cet élève
+    await db.sessions.delete_many({"student_id": student_id})
+    
+    return {"message": "Student deleted"}
+
 @api_router.get("/sessions/stats")
 async def get_stats(current_user: User = Depends(get_current_user), month: Optional[str] = None):
     if current_user.role != "teacher":
