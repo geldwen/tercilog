@@ -345,21 +345,20 @@ export default function TeacherDashboard({ user, onLogout }) {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="student">Élève *</Label>
-                      <Select
+                      <select
+                        id="student"
                         value={sessionForm.student_id}
-                        onValueChange={handleStudentChange}
+                        onChange={(e) => handleStudentChange(e.target.value)}
+                        className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        data-testid="session-student-select"
                       >
-                        <SelectTrigger data-testid="session-student-select">
-                          <SelectValue placeholder="Sélectionner un élève" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {students.map((student) => (
-                            <SelectItem key={student.id} value={student.id}>
-                              {student.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <option value="">Sélectionner un élève</option>
+                        {students.map((student) => (
+                          <option key={student.id} value={student.id}>
+                            {student.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <Button 
                       type="submit" 
