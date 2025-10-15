@@ -43,23 +43,13 @@ export default function TeacherDashboard({ user, onLogout }) {
     total_hours: 0,
   });
 
-  // Générer 7 mois : mois actuel + 6 mois suivants
+  // Générer 3 mois : Octobre 2025, Novembre 2025, Décembre 2025
   const getMonthsList = () => {
-    const months = [];
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth(); // 0-11
-    
-    for (let i = 0; i < 7; i++) {
-      const totalMonths = currentMonth + i;
-      const year = currentYear + Math.floor(totalMonths / 12);
-      const month = totalMonths % 12;
-      
-      const date = new Date(year, month, 1);
-      const monthKey = date.toISOString().slice(0, 7);
-      const monthLabel = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-      months.push({ key: monthKey, label: monthLabel });
-    }
+    const months = [
+      { key: '2025-10', label: 'octobre 2025' },
+      { key: '2025-11', label: 'novembre 2025' },
+      { key: '2025-12', label: 'décembre 2025' }
+    ];
     return months;
   };
 
