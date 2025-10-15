@@ -356,6 +356,49 @@ async def delete_session(session_id: str, current_user: User = Depends(get_curre
     
     return {"message": "Session deleted"}
 
+@api_router.post("/sessions/{session_id}/resend-email")
+async def resend_session_email(session_id: str, current_user: User = Depends(get_current_user)):
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session_doc:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    student = await db.users.find_one({"id": session_doc['student_id']}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+    student_password = student.get('plain_password', '***')
+    
+    email_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #1e3a5f;">Nouvelle séance de formation TerciForm</h2>
+            <p>Bonjour {student['name']},</p>
+            <p><strong>Vous avez été affecté à la séance {session_doc['subject']} du {session_doc['date']} de {session_doc['start_time']} à {session_doc['end_time']}.</strong></p>
+            <p>Veuillez confirmer votre présence en vous connectant à la plateforme :</p>
+            <div style="margin: 30px 0;">
+                <a href="{frontend_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Accédez à TerciLog</a>
+            </div>
+            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Rappel de vos identifiants :</p>
+                <p style="margin: 5px 0;"><strong>Identifiant :</strong> {student['email']}</p>
+                <p style="margin: 5px 0;"><strong>Mot de passe :</strong> {student_password}</p>
+            </div>
+            <p style="color: #dc2626; font-weight: bold;">⚠️ Important : En cas d'absence d'une séance validée, les heures de formation seront perdues.</p>
+            <p>Cordialement,<br>Votre formateur</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    send_email(student['email'], f"Nouvelle séance TerciForm - {session_doc['subject']}", email_body)
+    
+    return {"message": "Email resent"}
+
 @api_router.delete("/students/{student_id}")
 async def delete_student(student_id: str, current_user: User = Depends(get_current_user)):
     if current_user.role != "teacher":
