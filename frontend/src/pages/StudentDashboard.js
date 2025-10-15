@@ -142,21 +142,8 @@ export default function StudentDashboard({ user, onLogout }) {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="pending" className="space-y-6">
+        <Tabs defaultValue="confirmed" className="space-y-6">
           <TabsList className="bg-white border border-gray-200 shadow-sm" data-testid="sessions-tabs">
-            <TabsTrigger
-              value="pending"
-              className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white relative"
-              data-testid="pending-sessions-tab"
-            >
-              <AlertCircle className="w-4 h-4 mr-2" />
-              En attente
-              {pendingSessions.length > 0 && (
-                <span className="ml-2 px-2 py-0.5 bg-yellow-500 text-white text-xs rounded-full" data-testid="pending-count-badge">
-                  {pendingSessions.length}
-                </span>
-              )}
-            </TabsTrigger>
             <TabsTrigger value="confirmed" className="data-[state=active]:bg-green-600 data-[state=active]:text-white" data-testid="confirmed-sessions-tab">
               <CheckCircle className="w-4 h-4 mr-2" />
               Confirmées
