@@ -340,11 +340,10 @@ export default function TeacherDashboard({ user, onLogout }) {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="student">Élève</Label>
+                      <Label htmlFor="student">Élève *</Label>
                       <Select
                         value={sessionForm.student_id}
                         onValueChange={(value) => setSessionForm({ ...sessionForm, student_id: value })}
-                        required
                       >
                         <SelectTrigger data-testid="session-student-select">
                           <SelectValue placeholder="Sélectionner un élève" />
@@ -358,7 +357,13 @@ export default function TeacherDashboard({ user, onLogout }) {
                         </SelectContent>
                       </Select>
                     </div>
-                    <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }} data-testid="submit-session-button">
+                    <Button 
+                      type="submit" 
+                      className="w-full text-white" 
+                      style={{ backgroundColor: TERCIFORM_BLUE }} 
+                      data-testid="submit-session-button"
+                      disabled={!sessionForm.student_id}
+                    >
                       Créer et envoyer
                     </Button>
                   </form>
