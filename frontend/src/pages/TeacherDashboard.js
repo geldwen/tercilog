@@ -347,14 +347,14 @@ export default function TeacherDashboard({ user, onLogout }) {
                       <Label htmlFor="student">Élève *</Label>
                       <Select
                         value={sessionForm.student_id}
-                        onValueChange={(value) => setSessionForm({ ...sessionForm, student_id: value })}
+                        onValueChange={handleStudentChange}
                       >
                         <SelectTrigger data-testid="session-student-select">
                           <SelectValue placeholder="Sélectionner un élève" />
                         </SelectTrigger>
                         <SelectContent>
                           {students.map((student) => (
-                            <SelectItem key={student.id} value={student.id} data-testid={`student-option-${student.id}`}>
+                            <SelectItem key={student.id} value={student.id}>
                               {student.name}
                             </SelectItem>
                           ))}
