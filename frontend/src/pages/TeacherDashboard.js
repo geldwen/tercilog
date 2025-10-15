@@ -229,7 +229,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-gray-600">Confirmées</p>
-                            <p className="text-3xl font-bold text-green-600 mt-1">{stats.confirmed_sessions}</p>
+                            <p className="text-3xl font-bold text-green-600 mt-1">{stats.confirmed_hours || 0}h</p>
+                            <p className="text-xs text-gray-500 mt-1">{stats.confirmed_sessions} séance(s)</p>
                           </div>
                           <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                             <CheckCircle className="w-6 h-6 text-green-600" />
@@ -243,7 +244,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-gray-600">Refusées</p>
-                            <p className="text-3xl font-bold text-red-600 mt-1">{stats.rejected_sessions}</p>
+                            <p className="text-3xl font-bold text-red-600 mt-1">{stats.rejected_hours || 0}h</p>
+                            <p className="text-xs text-gray-500 mt-1">{stats.rejected_sessions} séance(s)</p>
                           </div>
                           <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
                             <XCircle className="w-6 h-6 text-red-600" />
