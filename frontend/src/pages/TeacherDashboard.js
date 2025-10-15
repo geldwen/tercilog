@@ -209,7 +209,7 @@ export default function TeacherDashboard({ user, onLogout }) {
             {monthsList.map((month) => (
               <TabsContent key={month.key} value={month.key} className="space-y-6">
                 {stats && stats.month === month.key && (
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card className="card-hover border-0 shadow-md" data-testid="stats-total-sessions">
                       <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
@@ -219,20 +219,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                           </div>
                           <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
                             <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="card-hover border-0 shadow-md" data-testid="stats-pending-sessions">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-gray-600">En attente</p>
-                            <p className="text-3xl font-bold text-yellow-600 mt-1">{stats.pending_sessions}</p>
-                          </div>
-                          <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                            <AlertCircle className="w-6 h-6 text-yellow-600" />
                           </div>
                         </div>
                       </CardContent>
