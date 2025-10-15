@@ -78,11 +78,13 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   const loadData = async (month) => {
     try {
+      console.log(`📅 Chargement des données pour le mois: ${month}`);
       const [sessionsRes, studentsRes, statsRes] = await Promise.all([
         axios.get(`${API}/sessions`),
         axios.get(`${API}/students`),
         axios.get(`${API}/sessions/stats?month=${month}`),
       ]);
+      console.log(`📊 Stats reçues pour le mois: ${statsRes.data.month}`);
       setSessions(sessionsRes.data);
       setStudents(studentsRes.data);
       setStats(statsRes.data);
