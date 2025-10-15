@@ -5,10 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Trash2 } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -43,7 +42,6 @@ export default function TeacherDashboard({ user, onLogout }) {
     total_hours: 0,
   });
 
-  // Générer 3 mois : Octobre 2025, Novembre 2025, Décembre 2025
   const getMonthsList = () => {
     const months = [
       { key: '2025-10', label: 'octobre 2025' },
@@ -133,6 +131,32 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  const handleDeleteSession = async (sessionId) => {
+    if (!window.confirm("Voulez-vous vraiment supprimer cette séance ?")) {
+      return;
+    }
+    try {
+      await axios.delete(`${API}/sessions/${sessionId}`);
+      toast.success("Séance supprimée");
+      loadData(selectedMonth);
+    } catch (error) {
+      toast.error("Erreur lors de la suppression");
+    }
+  };
+
+  const handleDeleteStudent = async (studentId, studentName) => {
+    if (!window.confirm(`Voulez-vous vraiment supprimer l'élève ${studentName} et toutes ses séances ?`)) {
+      return;
+    }
+    try {
+      await axios.delete(`${API}/students/${studentId}`);
+      toast.success("Élève supprimé");
+      loadData(selectedMonth);
+    } catch (error) {
+      toast.error("Erreur lors de la suppression");
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: { label: "En attente", icon: AlertCircle, className: "status-badge status-pending" },
@@ -194,7 +218,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <TabsTrigger 
                   key={month.key}
                   value={month.key}
-                  className="data-[state=active]:text-white capitalize"
+                  className="capitalize"
+                  style={{ color: selectedMonth === month.key ? '#1e3a5f' : '#6b7280' }}
                   data-testid={`month-tab-${month.key}`}
                 >
                   {month.label}
@@ -401,6 +426,15 @@ export default function TeacherDashboard({ user, onLogout }) {
                             </p>
                           )}
                         </div>
+                        <Button
+                          onClick={() => handleDeleteSession(session.id)}
+                          variant="outline"
+                          className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
+                          data-testid={`delete-session-button-${session.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Supprimer
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -504,14 +538,23 @@ export default function TeacherDashboard({ user, onLogout }) {
                               <p className="text-sm text-gray-600" data-testid={`student-email-${student.id}`}>{student.email}</p>
                             </div>
                             <div className="flex items-center gap-3">
-                              <div className="px-4 py-2 rounded-lg bg-gray-100" data-testid={`student-total-hours-${student.id}`}>
-                                <p className="text-xs text-gray-600">Heures totales</p>
-                                <p className="text-xl font-bold text-gray-900">{totalHours}h</p>
+                              <div className="px-4 py-2 rounded-lg text-white" style={{ backgroundColor: TERCIFORM_BLUE }} data-testid={`student-total-hours-${student.id}`}>
+                                <p className="text-xs opacity-90">Heures totales</p>
+                                <p className="text-xl font-bold">{totalHours}h</p>
                               </div>
                               <div className="px-4 py-2 rounded-lg" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }} data-testid={`student-credit-hours-${student.id}`}>
                                 <p className="text-xs text-gray-600">Heures restantes</p>
                                 <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{remainingHours}h</p>
                               </div>
+                              <Button
+                                onClick={() => handleDeleteStudent(student.id, student.name)}
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
+                                data-testid={`delete-student-button-${student.id}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
                           </div>
 
@@ -519,7 +562,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                             <div className="border-t pt-4">
                               <h4 className="text-sm font-semibold text-gray-700 mb-3">Historique des séances</h4>
                               <div className="space-y-2">
-                                {studentSessions.slice(0, 5).map((session) => (
+                                {studentSessions.map((session) => (
                                   <div key={session.id} className="flex items-center justify-between text-sm py-3 px-4 bg-gray-50 rounded-lg">
                                     <div className="flex items-center gap-3 flex-1">
                                       <span className="font-medium text-gray-900">{session.subject}</span>
@@ -562,11 +605,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     </div>
                                   </div>
                                 ))}
-                                {studentSessions.length > 5 && (
-                                  <p className="text-xs text-gray-500 text-center pt-2">
-                                    ... et {studentSessions.length - 5} autre(s) séance(s)
-                                  </p>
-                                )}
                               </div>
                             </div>
                           )}
