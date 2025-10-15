@@ -43,7 +43,7 @@ export default function LoginPage({ onLogin }) {
             alt="Terciform"
             className="h-24 mx-auto mb-4"
           />
-          <p className="text-lg text-gray-700 font-medium">Propulsez vos compétences</p>
+          <p className="text-2xl font-bold" style={{ color: '#1e3a5f' }}>TerciLog</p>
         </div>
 
         <Card className="shadow-xl border-0 backdrop-blur-sm bg-white">
