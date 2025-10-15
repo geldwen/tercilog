@@ -215,7 +215,10 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm font-medium text-gray-600">Total</p>
-                            <p className="text-3xl font-bold mt-1" style={{ color: TERCIFORM_BLUE }}>{stats.total_sessions}</p>
+                            <p className="text-3xl font-bold mt-1" style={{ color: TERCIFORM_BLUE }}>
+                              {(stats.confirmed_hours || 0) + (stats.rejected_hours || 0)}h
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">{stats.total_sessions} séance(s)</p>
                           </div>
                           <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
                             <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
