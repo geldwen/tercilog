@@ -260,7 +260,7 @@ export default function TeacherDashboard({ user, onLogout }) {
 
             {monthsList.map(month => (
               <TabsContent key={month.key} value={month.key} className="space-y-6">
-                {/* Nouvelles bulles : Heures totales et restantes des élèves */}
+                {/* Nouvelles bulles : Heures totales et restantes des séances */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <Card className="card-hover border-2 shadow-md" style={{ borderColor: TERCIFORM_BLUE }}>
                     <CardContent className="pt-6">
@@ -269,12 +269,12 @@ export default function TeacherDashboard({ user, onLogout }) {
                           <p className="text-sm font-medium text-gray-600">Heures totales du mois</p>
                           <p className="text-xs text-gray-500 mb-2">{month.label}</p>
                           <p className="text-3xl font-bold" style={{ color: TERCIFORM_BLUE }}>
-                            {studentsWithSessionsThisMonth.reduce((sum, s) => sum + (s.total_hours || 0), 0)}h
+                            {filteredSessions.reduce((sum, s) => sum + (s.duration_hours || 0), 0)}h
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">{studentsWithSessionsThisMonth.length} élève(s)</p>
+                          <p className="text-xs text-gray-500 mt-1">{filteredSessions.length} séance(s)</p>
                         </div>
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
-                          <Users className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
+                          <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
                         </div>
                       </div>
                     </CardContent>
@@ -286,9 +286,9 @@ export default function TeacherDashboard({ user, onLogout }) {
                           <p className="text-sm font-medium text-gray-600">Heures restantes du mois</p>
                           <p className="text-xs text-gray-500 mb-2">{month.label}</p>
                           <p className="text-3xl font-bold text-green-600">
-                            {studentsWithSessionsThisMonth.reduce((sum, s) => sum + (s.credit_hours || 0), 0)}h
+                            {filteredSessions.filter(s => !s.signature).reduce((sum, s) => sum + (s.duration_hours || 0), 0)}h
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">{studentsWithSessionsThisMonth.length} élève(s)</p>
+                          <p className="text-xs text-gray-500 mt-1">{filteredSessions.filter(s => !s.signature).length} séance(s) non émargée(s)</p>
                         </div>
                         <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                           <Clock className="w-6 h-6 text-green-600" />
