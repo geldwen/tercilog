@@ -96,6 +96,11 @@ class Session(BaseModel):
     validation_deadline: Optional[str] = None
     validated_at: Optional[str] = None
     duration_hours: float = 0.0
+    signature: Optional[str] = None  # Base64 image de la signature
+    signed_at: Optional[str] = None  # Horodatage de l'émargement
+    signature_status: str = "not_required"  # not_required, pending, signed, expired
+    signature_deadline: Optional[str] = None  # Délai de 2h après la fin de séance
+    attendance_email_sent: bool = False  # Email d'émargement envoyé ou non
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class SessionCreate(BaseModel):
