@@ -190,46 +190,30 @@ def send_attendance_email(to_email: str, student_name: str, subject: str, date: 
     """Envoyer l'email d'émargement après la fin de séance"""
     frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
     
-    # Email simple en texte brut avec URL - automatiquement transformé en lien cliquable
-    text_body = f"""Bonjour {student_name},
+    # Email HTML ultra-simple avec lien qui MARCHE
+    html_body = f"""<html>
+<body>
+<p>Bonjour {student_name},</p>
 
-Vous avez effectué une séance :
+<p>Vous avez effectué une séance :</p>
 
-• Matière : {subject}
-• Date : {date}
-• Horaires : {start_time} - {end_time}
+<ul>
+<li>Matière : {subject}</li>
+<li>Date : {date}</li>
+<li>Horaires : {start_time} - {end_time}</li>
+</ul>
 
-Merci de vous connecter sur votre espace élève pour signer votre séance.
+<p><strong>Merci de vous connecter sur votre espace élève pour signer votre séance.</strong></p>
 
-Cliquez sur le lien ci-dessous pour accéder à votre espace :
+<p><a href="{frontend_url}">CLIQUEZ ICI POUR ACCÉDER À VOTRE ESPACE ÉLÈVE</a></p>
 
-{frontend_url}
+<p style="color: red;"><strong>⚠️ ATTENTION : Vous avez 2 heures après la fin de la séance pour émarger.</strong></p>
 
-⚠️ ATTENTION : Vous avez 2 heures après la fin de la séance pour émarger.
-
-Cordialement,
-TerciForm"""
+<p>Cordialement,<br>TerciForm</p>
+</body>
+</html>"""
     
-    try:
-        gmail_user = os.environ['GMAIL_USER']
-        gmail_password = os.environ['GMAIL_PASSWORD']
-        
-        msg = MIMEText(text_body, 'plain', 'utf-8')
-        msg['From'] = gmail_user
-        msg['To'] = to_email
-        msg['Subject'] = "TerciForm - Émargement de séance"
-        
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(gmail_user, gmail_password)
-        server.send_message(msg)
-        server.quit()
-        
-        logger.info(f"Attendance email sent to {to_email}")
-        return True
-    except Exception as e:
-        logger.error(f"Error sending attendance email: {e}")
-        return False
+    return send_email(to_email, "TerciForm - Émargement de séance", html_body)
 
 
 
