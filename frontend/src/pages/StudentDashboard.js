@@ -18,6 +18,11 @@ export default function StudentDashboard({ user, onLogout }) {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [validating, setValidating] = useState(null);
+  const [showSignatureDialog, setShowSignatureDialog] = useState(false);
+  const [currentSessionToSign, setCurrentSessionToSign] = useState(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const canvasRef = useRef(null);
+  const [signatureData, setSignatureData] = useState(null);
 
   useEffect(() => {
     loadSessions();
