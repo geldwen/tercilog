@@ -105,6 +105,38 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  const handleEditStudent = (student) => {
+    setEditingStudent(student);
+    setStudentForm({
+      name: student.name || "",
+      phone: student.phone || "",
+      email: student.email || "",
+      password: "",
+      organism: student.organism || "",
+      support_type: student.support_type || "",
+      start_date: student.start_date || "",
+      end_date: student.end_date || "",
+      total_hours: student.total_hours || student.credit_hours || 0
+    });
+    setShowEditStudent(true);
+  };
+
+  const handleUpdateStudent = async (e) => {
+    e.preventDefault();
+    try {
+      const updateData = { ...studentForm };
+      if (!updateData.password) delete updateData.password;
+      await axios.put(`${API}/students/${editingStudent.id}`, { ...updateData, credit_hours: updateData.total_hours });
+      toast.success("Élève modifié !");
+      setShowEditStudent(false);
+      setEditingStudent(null);
+      setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", start_date: "", end_date: "", total_hours: 0 });
+      loadData(selectedMonth);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erreur");
+    }
+  };
+
   const getStatusBadge = (status) => {
     const cfg = { pending: { label: "En attente", icon: AlertCircle, className: "status-badge status-pending" }, confirmed: { label: "Confirmée", icon: CheckCircle, className: "status-badge status-confirmed" }, rejected: { label: "Refusée", icon: XCircle, className: "status-badge status-rejected" } };
     const c = cfg[status] || cfg.pending;
