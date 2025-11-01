@@ -11,7 +11,6 @@ import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
-
 const TERCIFORM_BLUE = '#1e3a5f';
 const TERCIFORM_BLUE_LIGHT = '#e8f0f7';
 
@@ -24,62 +23,28 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [showCreateStudent, setShowCreateStudent] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState('');
 
-  const [sessionForm, setSessionForm] = useState({
-    subject: "",
-    date: "",
-    start_time: "",
-    end_time: "",
-    student_id: "",
-    validation_deadline_hours: 48,
-  });
+  const [sessionForm, setSessionForm] = useState({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48 });
+  const [studentForm, setStudentForm] = useState({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", start_date: "", end_date: "", total_hours: 0 });
 
-  const [studentForm, setStudentForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    total_hours: 0,
-  });
+  const monthsList = [{ key: '2025-10', label: 'octobre 2025' }, { key: '2025-11', label: 'novembre 2025' }, { key: '2025-12', label: 'décembre 2025' }];
 
-  const getMonthsList = () => {
-    return [
-      { key: '2025-10', label: 'octobre 2025' },
-      { key: '2025-11', label: 'novembre 2025' },
-      { key: '2025-12', label: 'décembre 2025' }
-    ];
-  };
-
-  const monthsList = getMonthsList();
-
-  useEffect(() => {
-    setSelectedMonth('2025-10');
-  }, []);
-
-  useEffect(() => {
-    if (selectedMonth) {
-      loadData(selectedMonth);
-    }
-  }, [selectedMonth]);
+  useEffect(() => { setSelectedMonth('2025-10'); }, []);
+  useEffect(() => { if (selectedMonth) loadData(selectedMonth); }, [selectedMonth]);
 
   const loadData = async (month) => {
     try {
-      const [sessionsRes, studentsRes, statsRes] = await Promise.all([
-        axios.get(`${API}/sessions`),
-        axios.get(`${API}/students`),
-        axios.get(`${API}/sessions/stats?month=${month}`),
-      ]);
+      const [sessionsRes, studentsRes, statsRes] = await Promise.all([axios.get(`${API}/sessions`), axios.get(`${API}/students`), axios.get(`${API}/sessions/stats?month=${month}`)]);
       setSessions(sessionsRes.data);
       setStudents(studentsRes.data);
       setStats(statsRes.data);
     } catch (error) {
-      toast.error("Erreur lors du chargement");
+      toast.error("Erreur chargement");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStudentChange = useCallback((value) => {
-    setSessionForm(prev => ({ ...prev, student_id: value }));
-  }, []);
+  const handleStudentChange = useCallback((value) => { setSessionForm(prev => ({ ...prev, student_id: value })); }, []);
 
   const handleCreateSession = async (e) => {
     e.preventDefault();
@@ -100,7 +65,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       await axios.post(`${API}/students`, { ...studentForm, role: "student", credit_hours: studentForm.total_hours });
       toast.success("Élève créé !");
       setShowCreateStudent(false);
-      setStudentForm({ name: "", email: "", password: "", total_hours: 0 });
+      setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", start_date: "", end_date: "", total_hours: 0 });
       loadData(selectedMonth);
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur");
@@ -123,12 +88,12 @@ export default function TeacherDashboard({ user, onLogout }) {
       await axios.post(`${API}/sessions/${sessionId}/resend-email`);
       toast.success("Email renvoyé !");
     } catch (error) {
-      toast.error("Erreur lors de l'envoi");
+      toast.error("Erreur envoi");
     }
   };
 
   const handleDeleteStudent = async (studentId, studentName) => {
-    if (!window.confirm(`Supprimer ${studentName} et toutes ses séances ?`)) return;
+    if (!window.confirm(`Supprimer ${studentName} ?")) return;
     try {
       await axios.delete(`${API}/students/${studentId}`);
       toast.success("Élève supprimé");
@@ -139,11 +104,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   };
 
   const getStatusBadge = (status) => {
-    const cfg = {
-      pending: { label: "En attente", icon: AlertCircle, className: "status-badge status-pending" },
-      confirmed: { label: "Confirmée", icon: CheckCircle, className: "status-badge status-confirmed" },
-      rejected: { label: "Refusée", icon: XCircle, className: "status-badge status-rejected" },
-    };
+    const cfg = { pending: { label: "En attente", icon: AlertCircle, className: "status-badge status-pending" }, confirmed: { label: "Confirmée", icon: CheckCircle, className: "status-badge status-confirmed" }, rejected: { label: "Refusée", icon: XCircle, className: "status-badge status-rejected" } };
     const c = cfg[status] || cfg.pending;
     const Icon = c.icon;
     return <span className={c.className}><Icon className="w-3 h-3 mr-1" />{c.label}</span>;
@@ -151,32 +112,21 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   const filteredSessions = sessions.filter(s => s.date.startsWith(selectedMonth));
 
-  // Grouper les séances par date + matière + horaire
+  // Grouper par date + matière + horaire
   const groupedSessions = {};
   filteredSessions.forEach(session => {
     const key = `${session.date}_${session.subject}_${session.start_time}_${session.end_time}`;
     if (!groupedSessions[key]) {
-      groupedSessions[key] = {
-        subject: session.subject,
-        date: session.date,
-        start_time: session.start_time,
-        end_time: session.end_time,
-        duration_hours: session.duration_hours,
-        sessions: []
-      };
+      groupedSessions[key] = { subject: session.subject, date: session.date, start_time: session.start_time, end_time: session.end_time, duration_hours: session.duration_hours, sessions: [] };
     }
     groupedSessions[key].sessions.push(session);
   });
-
   const groupedSessionsList = Object.values(groupedSessions).sort((a, b) => a.date.localeCompare(b.date));
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: TERCIFORM_BLUE }}></div>
-      </div>
-    );
-  }
+  // Filtrer élèves ayant des séances ce mois
+  const studentsWithSessionsThisMonth = students.filter(student => filteredSessions.some(s => s.student_id === student.id));
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: TERCIFORM_BLUE }}></div></div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -184,20 +134,13 @@ export default function TeacherDashboard({ user, onLogout }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <img 
-                src="https://customer-assets.emergentagent.com/job_f0bae013-d5d3-4906-a078-392b9e03aa37/artifacts/tiidl44l_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png"
-                alt="Terciform"
-                className="h-10"
-              />
+              <img src="https://customer-assets.emergentagent.com/job_f0bae013-d5d3-4906-a078-392b9e03aa37/artifacts/tiidl44l_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="Terciform" className="h-10" />
               <div className="border-l border-gray-300 pl-3">
                 <h1 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>Espace Professeur</h1>
                 <p className="text-sm text-gray-600">{user.name}</p>
               </div>
             </div>
-            <Button onClick={onLogout} variant="outline" className="gap-2" data-testid="logout-button">
-              <LogOut className="w-4 h-4" />
-              Déconnexion
-            </Button>
+            <Button onClick={onLogout} variant="outline" className="gap-2"><LogOut className="w-4 h-4" />Déconnexion</Button>
           </div>
         </div>
       </header>
@@ -206,70 +149,17 @@ export default function TeacherDashboard({ user, onLogout }) {
         <div className="mb-6">
           <h2 className="text-xl font-bold mb-4" style={{ color: TERCIFORM_BLUE }}>Séances par mois</h2>
           <Tabs value={selectedMonth} onValueChange={setSelectedMonth} className="space-y-6">
-            <TabsList className="bg-white border border-gray-200 shadow-sm flex-wrap h-auto" data-testid="month-tabs">
-              {monthsList.map((month) => (
-                <TabsTrigger 
-                  key={month.key}
-                  value={month.key}
-                  className="capitalize data-[state=active]:bg-gray-200"
-                  style={{ color: TERCIFORM_BLUE }}
-                  data-testid={`month-tab-${month.key}`}
-                >
-                  {month.label}
-                </TabsTrigger>
-              ))}
+            <TabsList className="bg-white border border-gray-200 shadow-sm flex-wrap h-auto">
+              {monthsList.map(m => <TabsTrigger key={m.key} value={m.key} className="capitalize data-[state=active]:bg-gray-200" style={{ color: TERCIFORM_BLUE }}>{m.label}</TabsTrigger>)}
             </TabsList>
 
-            {monthsList.map((month) => (
+            {monthsList.map(month => (
               <TabsContent key={month.key} value={month.key} className="space-y-6">
                 {stats && stats.month === month.key && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card className="card-hover border-0 shadow-md">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-gray-600">Total</p>
-                            <p className="text-3xl font-bold mt-1" style={{ color: TERCIFORM_BLUE }}>
-                              {stats.total_hours || 0}h
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">{stats.total_sessions} séance(s)</p>
-                          </div>
-                          <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
-                            <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="card-hover border-0 shadow-md">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-gray-600">Confirmées</p>
-                            <p className="text-3xl font-bold text-green-600 mt-1">{stats.confirmed_hours || 0}h</p>
-                            <p className="text-xs text-gray-500 mt-1">{stats.confirmed_sessions} séance(s)</p>
-                          </div>
-                          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                            <CheckCircle className="w-6 h-6 text-green-600" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="card-hover border-0 shadow-md">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-gray-600">Refusées</p>
-                            <p className="text-3xl font-bold text-red-600 mt-1">{stats.rejected_hours || 0}h</p>
-                            <p className="text-xs text-gray-500 mt-1">{stats.rejected_sessions} séance(s)</p>
-                          </div>
-                          <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                            <XCircle className="w-6 h-6 text-red-600" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <Card className="card-hover border-0 shadow-md"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Total</p><p className="text-3xl font-bold mt-1" style={{ color: TERCIFORM_BLUE }}>{stats.total_hours || 0}h</p><p className="text-xs text-gray-500 mt-1">{stats.total_sessions} séance(s)</p></div><div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}><Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} /></div></div></CardContent></Card>
+                    <Card className="card-hover border-0 shadow-md"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Confirmées</p><p className="text-3xl font-bold text-green-600 mt-1">{stats.confirmed_hours || 0}h</p><p className="text-xs text-gray-500 mt-1">{stats.confirmed_sessions} séance(s)</p></div><div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center"><CheckCircle className="w-6 h-6 text-green-600" /></div></div></CardContent></Card>
+                    <Card className="card-hover border-0 shadow-md"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Refusées</p><p className="text-3xl font-bold text-red-600 mt-1">{stats.rejected_hours || 0}h</p><p className="text-xs text-gray-500 mt-1">{stats.rejected_sessions} séance(s)</p></div><div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center"><XCircle className="w-6 h-6 text-red-600" /></div></div></CardContent></Card>
                   </div>
                 )}
               </TabsContent>
@@ -279,14 +169,8 @@ export default function TeacherDashboard({ user, onLogout }) {
 
         <Tabs defaultValue="sessions" className="space-y-6">
           <TabsList className="bg-white border border-gray-200 shadow-sm">
-            <TabsTrigger value="sessions" className="data-[state=active]:text-white">
-              <Calendar className="w-4 h-4 mr-2" />
-              Séances
-            </TabsTrigger>
-            <TabsTrigger value="students" className="data-[state=active]:text-white">
-              <Users className="w-4 h-4 mr-2" />
-              Élèves
-            </TabsTrigger>
+            <TabsTrigger value="sessions" className="data-[state=active]:text-white"><Calendar className="w-4 h-4 mr-2" />Séances</TabsTrigger>
+            <TabsTrigger value="students" className="data-[state=active]:text-white"><Users className="w-4 h-4 mr-2" />Élèves</TabsTrigger>
           </TabsList>
 
           <TabsContent value="sessions" className="space-y-6">
@@ -294,89 +178,25 @@ export default function TeacherDashboard({ user, onLogout }) {
               <h2 className="text-xl font-bold text-gray-900">Liste des Séances</h2>
               <Dialog open={showCreateSession} onOpenChange={setShowCreateSession}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2 text-white" style={{ backgroundColor: TERCIFORM_BLUE }} data-testid="create-session-button">
-                    <Plus className="w-4 h-4" />
-                    Créer une séance
-                  </Button>
+                  <Button className="gap-2 text-white" style={{ backgroundColor: TERCIFORM_BLUE }}><Plus className="w-4 h-4" />Créer une séance</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Nouvelle Séance</DialogTitle>
-                    <DialogDescription>Créer une nouvelle séance</DialogDescription>
-                  </DialogHeader>
+                  <DialogHeader><DialogTitle>Nouvelle Séance</DialogTitle><DialogDescription>Créer une nouvelle séance</DialogDescription></DialogHeader>
                   <form onSubmit={handleCreateSession} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="subject">Matière</Label>
-                      <Input
-                        id="subject"
-                        placeholder="ex: Anglais"
-                        value={sessionForm.subject}
-                        onChange={(e) => setSessionForm({ ...sessionForm, subject: e.target.value })}
-                        required
-                        data-testid="session-subject-input"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="date">Date</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={sessionForm.date}
-                        onChange={(e) => setSessionForm({ ...sessionForm, date: e.target.value })}
-                        required
-                        data-testid="session-date-input"
-                      />
-                    </div>
+                    <div className="space-y-2"><Label>Matière</Label><Input placeholder="ex: Anglais" value={sessionForm.subject} onChange={(e) => setSessionForm({ ...sessionForm, subject: e.target.value })} required /></div>
+                    <div className="space-y-2"><Label>Date</Label><Input type="date" value={sessionForm.date} onChange={(e) => setSessionForm({ ...sessionForm, date: e.target.value })} required /></div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="start_time">Heure début</Label>
-                        <Input
-                          id="start_time"
-                          type="time"
-                          value={sessionForm.start_time}
-                          onChange={(e) => setSessionForm({ ...sessionForm, start_time: e.target.value })}
-                          required
-                          data-testid="session-start-time-input"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="end_time">Heure fin</Label>
-                        <Input
-                          id="end_time"
-                          type="time"
-                          value={sessionForm.end_time}
-                          onChange={(e) => setSessionForm({ ...sessionForm, end_time: e.target.value })}
-                          required
-                          data-testid="session-end-time-input"
-                        />
-                      </div>
+                      <div className="space-y-2"><Label>Heure début</Label><Input type="time" value={sessionForm.start_time} onChange={(e) => setSessionForm({ ...sessionForm, start_time: e.target.value })} required /></div>
+                      <div className="space-y-2"><Label>Heure fin</Label><Input type="time" value={sessionForm.end_time} onChange={(e) => setSessionForm({ ...sessionForm, end_time: e.target.value })} required /></div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="student">Élève *</Label>
-                      <select
-                        id="student"
-                        value={sessionForm.student_id}
-                        onChange={(e) => handleStudentChange(e.target.value)}
-                        className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2"
-                        style={{ '--tw-ring-color': TERCIFORM_BLUE }}
-                        data-testid="session-student-select"
-                      >
+                      <Label>Élève *</Label>
+                      <select value={sessionForm.student_id} onChange={(e) => handleStudentChange(e.target.value)} className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md">
                         <option value="">Sélectionner un élève</option>
-                        {students.map((student) => (
-                          <option key={student.id} value={student.id}>
-                            {student.name}
-                          </option>
-                        ))}
+                        {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
                     </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full text-white" 
-                      style={{ backgroundColor: TERCIFORM_BLUE }} 
-                      disabled={!sessionForm.student_id}
-                    >
-                      Créer et envoyer
-                    </Button>
+                    <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }} disabled={!sessionForm.student_id}>Créer et envoyer</Button>
                   </form>
                 </DialogContent>
               </Dialog>
@@ -384,11 +204,7 @@ export default function TeacherDashboard({ user, onLogout }) {
 
             <div className="grid gap-4">
               {groupedSessionsList.length === 0 ? (
-                <Card className="border-0 shadow-md">
-                  <CardContent className="pt-6 text-center text-gray-500">
-                    Aucune séance pour ce mois
-                  </CardContent>
-                </Card>
+                <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucune séance</CardContent></Card>
               ) : (
                 groupedSessionsList.map((group, idx) => (
                   <Card key={idx} className="border-0 shadow-md card-hover">
@@ -398,58 +214,24 @@ export default function TeacherDashboard({ user, onLogout }) {
                           <div className="flex-1">
                             <h3 className="text-lg font-semibold text-gray-900">{group.subject}</h3>
                             <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-1">
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
-                                {new Date(group.date).toLocaleDateString('fr-FR')}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-4 h-4" />
-                                {group.start_time} - {group.end_time} ({group.duration_hours}h)
-                              </span>
+                              <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{new Date(group.date).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                              <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{group.start_time} - {group.end_time} ({group.duration_hours}h)</span>
                             </div>
                           </div>
                         </div>
-
                         <div className="border-t pt-3">
                           <p className="text-sm font-medium text-gray-700 mb-2">Élèves :</p>
                           <div className="space-y-2">
-                            {group.sessions.map((session) => (
+                            {group.sessions.map(session => (
                               <div key={session.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
                                 <div className="flex items-center gap-3 flex-1">
                                   <span className="font-medium text-gray-900">{session.student_name}</span>
                                   {getStatusBadge(session.status)}
-                                  {session.validated_at && (
-                                    <span className="text-xs text-gray-500">
-                                      le {new Date(session.validated_at).toLocaleString('fr-FR', {
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                        second: '2-digit'
-                                      })}
-                                    </span>
-                                  )}
+                                  {session.validated_at && <span className="text-xs text-gray-500">le {new Date(session.validated_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Button
-                                    onClick={() => handleResendEmail(session.id)}
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                                    data-testid={`resend-email-button-${session.id}`}
-                                  >
-                                    <Mail className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    onClick={() => handleDeleteSession(session.id)}
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-red-600 border-red-300 hover:bg-red-50"
-                                    data-testid={`delete-session-button-${session.id}`}
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
+                                  <Button onClick={() => handleResendEmail(session.id)} variant="outline" size="sm" className="text-blue-600 border-blue-300 hover:bg-blue-50"><Mail className="w-4 h-4" /></Button>
+                                  <Button onClick={() => handleDeleteSession(session.id)} variant="outline" size="sm" className="text-red-600 border-red-300 hover:bg-red-50"><Trash2 className="w-4 h-4" /></Button>
                                 </div>
                               </div>
                             ))}
@@ -465,89 +247,37 @@ export default function TeacherDashboard({ user, onLogout }) {
 
           <TabsContent value="students" className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">Gestion des Élèves</h2>
+              <h2 className="text-xl font-bold text-gray-900">Élèves du mois</h2>
               <Dialog open={showCreateStudent} onOpenChange={setShowCreateStudent}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2 text-white" style={{ backgroundColor: TERCIFORM_BLUE }} data-testid="create-student-button">
-                    <Plus className="w-4 h-4" />
-                    Ajouter un élève
-                  </Button>
+                  <Button className="gap-2 text-white" style={{ backgroundColor: TERCIFORM_BLUE }}><Plus className="w-4 h-4" />Ajouter un élève</Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Nouvel Élève</DialogTitle>
-                    <DialogDescription>Créer un compte élève</DialogDescription>
-                  </DialogHeader>
+                <DialogContent className="max-w-lg">
+                  <DialogHeader><DialogTitle>Nouvel Élève</DialogTitle><DialogDescription>Créer un compte élève</DialogDescription></DialogHeader>
                   <form onSubmit={handleCreateStudent} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="student_name">Nom complet</Label>
-                      <Input
-                        id="student_name"
-                        placeholder="ex: Jean Dupont"
-                        value={studentForm.name}
-                        onChange={(e) => setStudentForm({ ...studentForm, name: e.target.value })}
-                        required
-                        data-testid="student-name-input"
-                      />
+                    <div className="space-y-2"><Label>Nom complet</Label><Input placeholder="ex: Jean Dupont" value={studentForm.name} onChange={(e) => setStudentForm({ ...studentForm, name: e.target.value })} required /></div>
+                    <div className="space-y-2"><Label>Numéro de téléphone</Label><Input placeholder="ex: 06 12 34 56 78" value={studentForm.phone} onChange={(e) => setStudentForm({ ...studentForm, phone: e.target.value })} /></div>
+                    <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="jean.dupont@email.com" value={studentForm.email} onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })} required /></div>
+                    <div className="space-y-2"><Label>Mot de passe TerciLog</Label><Input type="password" placeholder="••••••••" value={studentForm.password} onChange={(e) => setStudentForm({ ...studentForm, password: e.target.value })} required /></div>
+                    <div className="space-y-2"><Label>Organisme de formation</Label><Input placeholder="ex: Pôle Emploi" value={studentForm.organism} onChange={(e) => setStudentForm({ ...studentForm, organism: e.target.value })} /></div>
+                    <div className="space-y-2"><Label>Prise en charge parcours</Label><Input placeholder="ex: CPF" value={studentForm.support_type} onChange={(e) => setStudentForm({ ...studentForm, support_type: e.target.value })} /></div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2"><Label>Date d'entrée</Label><Input type="date" value={studentForm.start_date} onChange={(e) => setStudentForm({ ...studentForm, start_date: e.target.value })} /></div>
+                      <div className="space-y-2"><Label>Date de sortie</Label><Input type="date" value={studentForm.end_date} onChange={(e) => setStudentForm({ ...studentForm, end_date: e.target.value })} /></div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="student_email">Email</Label>
-                      <Input
-                        id="student_email"
-                        type="email"
-                        placeholder="jean.dupont@email.com"
-                        value={studentForm.email}
-                        onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })}
-                        required
-                        data-testid="student-email-input"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="student_password">Mot de passe</Label>
-                      <Input
-                        id="student_password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={studentForm.password}
-                        onChange={(e) => setStudentForm({ ...studentForm, password: e.target.value })}
-                        required
-                        data-testid="student-password-input"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="total_hours">Heures totales</Label>
-                      <Input
-                        id="total_hours"
-                        type="number"
-                        step="0.5"
-                        min="0"
-                        placeholder="ex: 20"
-                        value={studentForm.total_hours}
-                        onChange={(e) => setStudentForm({ ...studentForm, total_hours: parseFloat(e.target.value) || 0 })}
-                        data-testid="student-total-hours-input"
-                      />
-                    </div>
-                    <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }}>
-                      Créer l'élève
-                    </Button>
+                    <div className="space-y-2"><Label>Heures totales</Label><Input type="number" step="0.5" min="0" placeholder="ex: 20" value={studentForm.total_hours} onChange={(e) => setStudentForm({ ...studentForm, total_hours: parseFloat(e.target.value) || 0 })} /></div>
+                    <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }}>Créer l'élève</Button>
                   </form>
                 </DialogContent>
               </Dialog>
             </div>
 
             <div className="grid gap-4">
-              {students.length === 0 ? (
-                <Card className="border-0 shadow-md">
-                  <CardContent className="pt-6 text-center text-gray-500">
-                    Aucun élève enregistré
-                  </CardContent>
-                </Card>
+              {studentsWithSessionsThisMonth.length === 0 ? (
+                <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucun élève avec séances ce mois</CardContent></Card>
               ) : (
-                students.map((student) => {
+                studentsWithSessionsThisMonth.map(student => {
                   const studentSessions = sessions.filter(s => s.student_id === student.id);
-                  const totalHours = student.total_hours || student.credit_hours;
-                  const remainingHours = student.credit_hours;
-                  
                   return (
                     <Card key={student.id} className="border-0 shadow-md card-hover">
                       <CardContent className="pt-6">
@@ -556,32 +286,25 @@ export default function TeacherDashboard({ user, onLogout }) {
                             <div className="space-y-1 flex-1">
                               <h3 className="text-lg font-semibold text-gray-900">{student.name}</h3>
                               <p className="text-sm text-gray-600">{student.email}</p>
+                              {student.phone && <p className="text-sm text-gray-600">Tel: {student.phone}</p>}
                             </div>
                             <div className="flex items-center gap-3">
                               <div className="px-4 py-2 rounded-lg text-white" style={{ backgroundColor: TERCIFORM_BLUE }}>
                                 <p className="text-xs opacity-90">Heures totales</p>
-                                <p className="text-xl font-bold">{totalHours}h</p>
+                                <p className="text-xl font-bold">{student.total_hours || student.credit_hours}h</p>
                               </div>
                               <div className="px-4 py-2 rounded-lg" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
                                 <p className="text-xs text-gray-600">Heures restantes</p>
-                                <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{remainingHours}h</p>
+                                <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{student.credit_hours}h</p>
                               </div>
-                              <Button
-                                onClick={() => handleDeleteStudent(student.id, student.name)}
-                                variant="outline"
-                                size="sm"
-                                className="text-red-600 border-red-300 hover:bg-red-50"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              <Button onClick={() => handleDeleteStudent(student.id, student.name)} variant="outline" size="sm" className="text-red-600 border-red-300 hover:bg-red-50"><Trash2 className="w-4 h-4" /></Button>
                             </div>
                           </div>
-
                           {studentSessions.length > 0 && (
                             <div className="border-t pt-4">
                               <h4 className="text-sm font-semibold text-gray-700 mb-3">Historique des séances</h4>
                               <div className="space-y-2">
-                                {studentSessions.map((session) => (
+                                {studentSessions.map(session => (
                                   <div key={session.id} className="flex items-center justify-between text-sm py-3 px-4 bg-gray-50 rounded-lg">
                                     <div className="flex items-center gap-3 flex-1">
                                       <span className="font-medium text-gray-900">{session.subject}</span>
@@ -591,50 +314,17 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     <div className="flex items-center gap-3">
                                       {session.status === 'confirmed' && (
                                         <div className="flex items-center gap-2">
-                                          <div className="flex items-center gap-1">
-                                            <CheckCircle className="w-4 h-4 text-green-600" />
-                                            <span className="text-green-700 font-medium">Accepté</span>
-                                          </div>
-                                          {session.validated_at && (
-                                            <span className="text-xs text-gray-500">
-                                              le {new Date(session.validated_at).toLocaleString('fr-FR', {
-                                                day: '2-digit',
-                                                month: '2-digit',
-                                                year: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                                second: '2-digit'
-                                              })}
-                                            </span>
-                                          )}
+                                          <div className="flex items-center gap-1"><CheckCircle className="w-4 h-4 text-green-600" /><span className="text-green-700 font-medium">Accepté</span></div>
+                                          {session.validated_at && <span className="text-xs text-gray-500">le {new Date(session.validated_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>}
                                         </div>
                                       )}
                                       {session.status === 'rejected' && (
                                         <div className="flex items-center gap-2">
-                                          <div className="flex items-center gap-1">
-                                            <XCircle className="w-4 h-4 text-red-600" />
-                                            <span className="text-red-700 font-medium">Refusé</span>
-                                          </div>
-                                          {session.validated_at && (
-                                            <span className="text-xs text-gray-500">
-                                              le {new Date(session.validated_at).toLocaleString('fr-FR', {
-                                                day: '2-digit',
-                                                month: '2-digit',
-                                                year: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                                second: '2-digit'
-                                              })}
-                                            </span>
-                                          )}
+                                          <div className="flex items-center gap-1"><XCircle className="w-4 h-4 text-red-600" /><span className="text-red-700 font-medium">Refusé</span></div>
+                                          {session.validated_at && <span className="text-xs text-gray-500">le {new Date(session.validated_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>}
                                         </div>
                                       )}
-                                      {session.status === 'pending' && (
-                                        <div className="flex items-center gap-1">
-                                          <AlertCircle className="w-4 h-4 text-yellow-600" />
-                                          <span className="text-yellow-700 font-medium">En attente</span>
-                                        </div>
-                                      )}
+                                      {session.status === 'pending' && <div className="flex items-center gap-1"><AlertCircle className="w-4 h-4 text-yellow-600" /><span className="text-yellow-700 font-medium">En attente</span></div>}
                                     </div>
                                   </div>
                                 ))}
