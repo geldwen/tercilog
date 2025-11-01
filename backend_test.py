@@ -395,19 +395,165 @@ class TerciFormTester:
             # Always cleanup
             self.cleanup()
 
+    def test_ghizzo_credit_hours_correction(self):
+        """Test specific Ghizzo Test student credit hours correction"""
+        self.log("🔧 Testing Ghizzo Test Credit Hours Correction")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        # Step 1: Login as teacher
+        if not self.login_as_teacher():
+            return False
+        
+        # Step 2: Get current Ghizzo data
+        self.log("=== STEP 2: Checking Ghizzo Test Current Data ===")
+        ghizzo_id = "a44bb019-ee65-43c0-a186-3d0cfdb507c9"
+        
+        response = self.make_request("GET", "/students", token=self.teacher_token)
+        if not response or response.status_code != 200:
+            self.log("❌ Failed to get students list", "ERROR")
+            return False
+        
+        students = response.json()
+        ghizzo_student = None
+        for student in students:
+            if student["id"] == ghizzo_id:
+                ghizzo_student = student
+                break
+        
+        if not ghizzo_student:
+            self.log(f"❌ Ghizzo Test student not found with ID: {ghizzo_id}", "ERROR")
+            return False
+        
+        self.log(f"✅ Found Ghizzo Test student:")
+        self.log(f"   ID: {ghizzo_student['id']}")
+        self.log(f"   Name: {ghizzo_student['name']}")
+        self.log(f"   Email: {ghizzo_student['email']}")
+        self.log(f"   Current Credit Hours: {ghizzo_student['credit_hours']}")
+        self.log(f"   Total Hours: {ghizzo_student['total_hours']}")
+        
+        # Step 3: Check Ghizzo's sessions
+        self.log("=== STEP 3: Checking Ghizzo's Sessions ===")
+        response = self.make_request("GET", "/sessions", token=self.teacher_token)
+        if not response or response.status_code != 200:
+            self.log("❌ Failed to get sessions list", "ERROR")
+            return False
+        
+        sessions = response.json()
+        ghizzo_sessions = [s for s in sessions if s["student_id"] == ghizzo_id]
+        
+        self.log(f"Found {len(ghizzo_sessions)} sessions for Ghizzo Test:")
+        
+        total_signed_hours = 0
+        signed_sessions_count = 0
+        
+        for i, session in enumerate(ghizzo_sessions, 1):
+            is_signed = session.get("signature") is not None
+            duration = session.get("duration_hours", 0)
+            
+            self.log(f"   Session {i}:")
+            self.log(f"     ID: {session['id']}")
+            self.log(f"     Subject: {session['subject']}")
+            self.log(f"     Date: {session['date']}")
+            self.log(f"     Time: {session['start_time']} - {session['end_time']}")
+            self.log(f"     Duration: {duration}h")
+            self.log(f"     Status: {session['status']}")
+            self.log(f"     Signed: {'Yes' if is_signed else 'No'}")
+            
+            if is_signed:
+                total_signed_hours += duration
+                signed_sessions_count += 1
+        
+        self.log(f"📊 Summary:")
+        self.log(f"   Total sessions: {len(ghizzo_sessions)}")
+        self.log(f"   Signed sessions: {signed_sessions_count}")
+        self.log(f"   Total signed hours: {total_signed_hours}h")
+        
+        # Step 4: Calculate expected credit hours
+        expected_credit_hours = ghizzo_student['total_hours'] - total_signed_hours
+        self.log(f"   Expected credit hours: {ghizzo_student['total_hours']}h - {total_signed_hours}h = {expected_credit_hours}h")
+        
+        # Step 5: Correct credit hours if needed
+        if ghizzo_student['credit_hours'] != expected_credit_hours:
+            self.log("=== STEP 4: Correcting Credit Hours ===")
+            self.log(f"Current credit_hours: {ghizzo_student['credit_hours']}h")
+            self.log(f"Expected credit_hours: {expected_credit_hours}h")
+            
+            update_data = {"credit_hours": expected_credit_hours}
+            response = self.make_request("PUT", f"/students/{ghizzo_id}", update_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to update credit hours", "ERROR")
+                return False
+            
+            updated_student = response.json()
+            self.log(f"✅ Credit hours updated successfully:")
+            self.log(f"   New credit_hours: {updated_student['credit_hours']}h")
+        else:
+            self.log("✅ Credit hours are already correct")
+        
+        # Step 6: Final verification
+        self.log("=== STEP 5: Final Verification ===")
+        response = self.make_request("GET", "/students", token=self.teacher_token)
+        if not response or response.status_code != 200:
+            self.log("❌ Failed to verify final state", "ERROR")
+            return False
+        
+        students = response.json()
+        final_ghizzo = None
+        for student in students:
+            if student["id"] == ghizzo_id:
+                final_ghizzo = student
+                break
+        
+        if not final_ghizzo:
+            self.log("❌ Failed to find Ghizzo after update", "ERROR")
+            return False
+        
+        self.log(f"✅ Final verification:")
+        self.log(f"   Total Hours: {final_ghizzo['total_hours']}h")
+        self.log(f"   Signed Hours: {total_signed_hours}h")
+        self.log(f"   Credit Hours: {final_ghizzo['credit_hours']}h")
+        
+        # Verify calculations
+        checks = []
+        checks.append(("Total hours = 30h", final_ghizzo['total_hours'] == 30))
+        checks.append(("Signed hours = 5h", total_signed_hours == 5))
+        checks.append(("Credit hours = 25h", final_ghizzo['credit_hours'] == 25))
+        checks.append(("Math correct (30-5=25)", final_ghizzo['total_hours'] - total_signed_hours == final_ghizzo['credit_hours']))
+        
+        all_passed = True
+        for check_name, passed in checks:
+            status = "✅" if passed else "❌"
+            self.log(f"   {status} {check_name}")
+            if not passed:
+                all_passed = False
+        
+        if all_passed:
+            self.log("🎉 GHIZZO CREDIT HOURS CORRECTION COMPLETED SUCCESSFULLY!")
+        else:
+            self.log("❌ Some verification checks failed", "ERROR")
+        
+        return all_passed
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
-    success = tester.run_full_test()
+    
+    # Check if we should run Ghizzo correction test
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "ghizzo":
+        success = tester.test_ghizzo_credit_hours_correction()
+    else:
+        success = tester.run_full_test()
     
     if success:
         print("\n" + "="*50)
-        print("✅ DIGITAL SIGNATURE ATTENDANCE TEST COMPLETED")
+        print("✅ TEST COMPLETED SUCCESSFULLY")
         print("="*50)
         exit(0)
     else:
         print("\n" + "="*50)
-        print("❌ DIGITAL SIGNATURE ATTENDANCE TEST FAILED")
+        print("❌ TEST FAILED")
         print("="*50)
         exit(1)
 
