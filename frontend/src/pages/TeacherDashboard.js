@@ -110,6 +110,14 @@ export default function TeacherDashboard({ user, onLogout }) {
     return <span className={c.className}><Icon className="w-3 h-3 mr-1" />{c.label}</span>;
   };
 
+  const formatDateWithDay = (dateString) => {
+    const date = new Date(dateString);
+    const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    const dayName = days[date.getDay()];
+    const formatted = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    return `${dayName} ${formatted}`;
+  };
+
   const filteredSessions = sessions.filter(s => s.date.startsWith(selectedMonth));
 
   // Grouper par date + matière + horaire
