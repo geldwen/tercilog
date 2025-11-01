@@ -314,6 +314,32 @@ export default function TeacherDashboard({ user, onLogout }) {
               </Dialog>
             </div>
 
+              {/* Edit Session Dialog */}
+              <Dialog open={showEditSession} onOpenChange={setShowEditSession}>
+                <DialogContent className="max-w-md">
+                  <DialogHeader><DialogTitle>Modifier la Séance</DialogTitle><DialogDescription>Modifier les informations de la séance</DialogDescription></DialogHeader>
+                  <form onSubmit={handleUpdateSession} className="space-y-4">
+                    <div className="space-y-2"><Label>Matière</Label><Input placeholder="ex: Anglais" value={sessionForm.subject} onChange={(e) => setSessionForm({ ...sessionForm, subject: e.target.value })} required /></div>
+                    <div className="space-y-2"><Label>Date</Label><Input type="date" value={sessionForm.date} onChange={(e) => setSessionForm({ ...sessionForm, date: e.target.value })} required /></div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2"><Label>Heure début</Label><Input type="time" value={sessionForm.start_time} onChange={(e) => setSessionForm({ ...sessionForm, start_time: e.target.value })} required /></div>
+                      <div className="space-y-2"><Label>Heure fin</Label><Input type="time" value={sessionForm.end_time} onChange={(e) => setSessionForm({ ...sessionForm, end_time: e.target.value })} required /></div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Lien visioconférence (Google Meet, Zoom, etc.)</Label>
+                      <Input 
+                        placeholder="https://meet.google.com/xxx-xxxx-xxx" 
+                        value={sessionForm.meeting_link} 
+                        onChange={(e) => setSessionForm({ ...sessionForm, meeting_link: e.target.value })} 
+                      />
+                      <p className="text-xs text-gray-500">💡 Conseil : Créez un lien Google Meet permanent et réutilisez-le pour toutes vos séances</p>
+                    </div>
+                    <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }}>Enregistrer les modifications</Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+
             <div className="grid gap-4">
               {groupedSessionsList.length === 0 ? (
                 <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucune séance</CardContent></Card>
