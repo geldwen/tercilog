@@ -141,7 +141,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       toast.success("Élève modifié !");
       setShowEditStudent(false);
       setEditingStudent(null);
-      setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", start_date: "", end_date: "", total_hours: 0 });
+      setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0 });
       loadData(selectedMonth);
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur");
