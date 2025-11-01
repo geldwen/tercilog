@@ -142,12 +142,29 @@ class TerciFormTester:
             return False
     
     def create_test_student(self):
-        """Create test student"""
-        self.log("=== STEP 2: Creating Test Student ===")
+        """Create test student or use existing one"""
+        self.log("=== STEP 2: Creating/Finding Test Student ===")
+        
+        # First check if student already exists
+        response = self.make_request("GET", "/students", token=self.teacher_token)
+        if response and response.status_code == 200:
+            students = response.json()
+            for student in students:
+                if student["email"] == "terciform@gmail.com":
+                    self.created_student_id = student["id"]
+                    self.log(f"✅ Using existing student:")
+                    self.log(f"   ID: {student['id']}")
+                    self.log(f"   Name: {student['name']}")
+                    self.log(f"   Email: {student['email']}")
+                    return True
+        
+        # If not found, create with unique email
+        import time
+        unique_email = f"test.signature.{int(time.time())}@terciform.com"
         
         student_data = {
             "name": "Élève Test Signature",
-            "email": "terciform@gmail.com",
+            "email": unique_email,
             "password": "Test2024!",
             "phone": "06 12 34 56 78",
             "organism": "Test Formation",
@@ -163,6 +180,8 @@ class TerciFormTester:
         if response and response.status_code == 200:
             student = response.json()
             self.created_student_id = student["id"]
+            self.student_email = student["email"]
+            self.student_password = "Test2024!"
             self.log(f"✅ Student created successfully:")
             self.log(f"   ID: {student['id']}")
             self.log(f"   Name: {student['name']}")
