@@ -93,7 +93,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   };
 
   const handleDeleteStudent = async (studentId, studentName) => {
-    if (!window.confirm(`Supprimer ${studentName} ?")) return;
+    if (!window.confirm(`Supprimer ${studentName} ?`)) return;
     try {
       await axios.delete(`${API}/students/${studentId}`);
       toast.success("Élève supprimé");
