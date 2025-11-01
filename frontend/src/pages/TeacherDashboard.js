@@ -222,9 +222,13 @@ export default function TeacherDashboard({ user, onLogout }) {
   });
   const groupedSessionsList = Object.values(groupedSessions).sort((a, b) => a.date.localeCompare(b.date));
 
-  // Afficher TOUS les élèves dans l'onglet Élèves
-  // Le filtre par mois s'applique uniquement à l'historique des séances de chaque élève
-  const studentsWithSessionsThisMonth = students;
+  // Afficher uniquement les élèves ayant des séances ce mois OU créés ce mois (date d'entrée)
+  const studentsWithSessionsThisMonth = students.filter(student => {
+    const hasSessionThisMonth = filteredSessions.some(s => s.student_id === student.id);
+    const startDateInMonth = student.start_date && student.start_date.startsWith(selectedMonth);
+    const createdInMonth = student.created_at && student.created_at.startsWith(selectedMonth);
+    return hasSessionThisMonth || startDateInMonth || createdInMonth;
+  });
 
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: TERCIFORM_BLUE }}></div></div>;
