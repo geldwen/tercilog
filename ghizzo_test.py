@@ -149,7 +149,7 @@ class GhizzoTester:
         start_time = end_time - timedelta(hours=3)
         
         session_data = {
-            "subject": "Anglais professionnel",
+            "subject": "Formation Excel Avancé",
             "date": now.strftime("%Y-%m-%d"),  # Today (2025-11-01)
             "start_time": start_time.strftime("%H:%M"),
             "end_time": end_time.strftime("%H:%M"),
