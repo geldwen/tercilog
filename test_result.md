@@ -273,6 +273,18 @@ backend:
           agent: "testing"
           comment: "✅ ATTENDANCE EMAIL VERIFICATION COMPLETED: Successfully tested attendance email sending and verified button link format. Found confirmed session for Eloise RUIZ RODRIGUEZ (eloise.ruiz.rodriguez@gmail.com) - Subject: 'Anglais', Date: 2025-10-13, Time: 18:00-20:00. Used POST /api/sessions/{session_id}/resend-attendance-email endpoint. Verified REACT_APP_BACKEND_URL = 'https://terciform-planner.preview.emergentagent.com' from /app/frontend/.env. Email button URL correctly formatted as 'https://terciform-planner.preview.emergentagent.com' (removes '/api' suffix as expected). Backend logs confirm email delivery at 21:07:31,419. All verification checks passed: ✅ Email d'émargement envoyé ✅ URL correcte dans l'environnement ✅ URL du bouton correcte ✅ Séance confirmée trouvée. The blue button in attendance email is correctly clickable and points to the right URL."
 
+  - task: "URGENT - Ghizzo Signature Correction for Attendance"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🚨 URGENT CORRECTION COMPLETED: Successfully corrected Ghizzo's sessions for attendance signature (émargement). Found 1 session for Ghizzo (ghizzo.j@gmail.com) that needed correction - Session ID: 30616ad6-6bb7-47f8-9e76-a7d7ac6d1678, Subject: 'chinois', Status: confirmed, Date: 2025-11-01. Applied correction: Updated signature_status from 'not_required' to 'pending' and set signature_deadline to '2025-11-02T23:59:59+00:00'. Enhanced backend PUT /api/sessions/{session_id} endpoint to support signature_status, signature_deadline, and attendance_email_sent fields. Verification passed: ✅ 1 session corrected ✅ signature_status = 'pending' confirmed ✅ Ghizzo can now see his session in 'Séances à émarger' section. Student login verification: Ghizzo (ghizzo.j@gmail.com, password: ghi1234) successfully accesses session with signature_status = 'pending'. URGENT ISSUE RESOLVED - Ghizzo can now sign his attendance."
+
 frontend:
   - task: "Frontend Integration Testing"
     implemented: true
