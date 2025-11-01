@@ -447,6 +447,15 @@ async def sign_session(session_id: str, signature_data: dict, current_user: User
         }}
     )
     
+    # Déduire les heures du crédit de l'élève (maintenant que la séance est émargée)
+    duration_hours = session_doc.get('duration_hours', 0)
+    await db.users.update_one(
+        {"id": current_user.id},
+        {"$inc": {"credit_hours": -duration_hours}}
+    )
+    
+    logger.info(f"Student {current_user.id} signed session {session_id}. Deducted {duration_hours}h from credit.")
+    
     session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
     return Session(**session_doc)
 
