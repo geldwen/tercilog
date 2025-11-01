@@ -262,6 +262,15 @@ export default function TeacherDashboard({ user, onLogout }) {
                         {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
                     </div>
+                    <div className="space-y-2">
+                      <Label>Lien visioconférence (Google Meet, Zoom, etc.)</Label>
+                      <Input 
+                        placeholder="https://meet.google.com/xxx-xxxx-xxx" 
+                        value={sessionForm.meeting_link} 
+                        onChange={(e) => setSessionForm({ ...sessionForm, meeting_link: e.target.value })} 
+                      />
+                      <p className="text-xs text-gray-500">Optionnel - Copiez le lien de votre visioconférence ici</p>
+                    </div>
                     <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }} disabled={!sessionForm.student_id}>Créer et envoyer</Button>
                   </form>
                 </DialogContent>
