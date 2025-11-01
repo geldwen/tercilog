@@ -413,6 +413,18 @@ export default function TeacherDashboard({ user, onLogout }) {
                     <div className="space-y-2"><Label>Nouveau mot de passe (laisser vide pour ne pas changer)</Label><Input type="password" placeholder="••••••••" value={studentForm.password} onChange={(e) => setStudentForm({ ...studentForm, password: e.target.value })} /></div>
                     <div className="space-y-2"><Label>Organisme de formation</Label><Input placeholder="ex: Pôle Emploi" value={studentForm.organism} onChange={(e) => setStudentForm({ ...studentForm, organism: e.target.value })} /></div>
                     <div className="space-y-2"><Label>Prise en charge parcours</Label><Input placeholder="ex: CPF" value={studentForm.support_type} onChange={(e) => setStudentForm({ ...studentForm, support_type: e.target.value })} /></div>
+                    <div className="space-y-2">
+                      <Label>Type de séance</Label>
+                      <select 
+                        value={studentForm.session_type} 
+                        onChange={(e) => setStudentForm({ ...studentForm, session_type: e.target.value })} 
+                        className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md"
+                      >
+                        <option value="">Sélectionner un type</option>
+                        <option value="distanciel">Distanciel</option>
+                        <option value="présentiel">Présentiel</option>
+                      </select>
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2"><Label>Date d'entrée</Label><Input type="date" value={studentForm.start_date} onChange={(e) => setStudentForm({ ...studentForm, start_date: e.target.value })} /></div>
                       <div className="space-y-2"><Label>Date de sortie</Label><Input type="date" value={studentForm.end_date} onChange={(e) => setStudentForm({ ...studentForm, end_date: e.target.value })} /></div>
