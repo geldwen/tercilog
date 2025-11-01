@@ -140,6 +140,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ Student creation API working correctly. Successfully created test student with all required fields."
+        - working: true
+          agent: "testing"
+          comment: "✅ RE-TESTED: Student creation working perfectly. Created 'Test Élève Debug' (test@debug.com) with all specified fields. Verified: ID generated (893a3595-52b9-4da0-bb31-d12786ed3882), credit_hours = total_hours = 10h as expected. POST /api/students endpoint functioning correctly with proper field validation and credit hours initialization."
 
   - task: "Session Creation API"
     implemented: true
