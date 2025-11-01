@@ -638,10 +638,7 @@ async def update_student(student_id: str, data: dict, current_user: User = Depen
     if "name" in data:
         update_data["name"] = data["name"]
     if "email" in data:
-        # Vérifier que l'email n'est pas déjà utilisé par un autre utilisateur
-        existing = await db.users.find_one({"email": data["email"], "id": {"$ne": student_id}})
-        if existing:
-            raise HTTPException(status_code=400, detail="Email already registered")
+        # Permettre plusieurs élèves avec le même email (pas de vérification)
         update_data["email"] = data["email"]
     if "phone" in data:
         update_data["phone"] = data["phone"]
