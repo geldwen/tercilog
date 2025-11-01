@@ -456,6 +456,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 {student.end_date && <p><span className="font-medium">Date de sortie:</span> {new Date(student.end_date).toLocaleDateString('fr-FR')}</p>}
                                 {student.organism && <p><span className="font-medium">Organisme:</span> {student.organism}</p>}
                                 {student.support_type && <p><span className="font-medium">Prise en charge:</span> {student.support_type}</p>}
+                                {student.session_type && <p><span className="font-medium">Type de séance:</span> <span className="capitalize">{student.session_type}</span></p>}
                               </div>
                               <div className="flex items-center gap-3 mt-3">
                                 <div className="px-4 py-2 rounded-lg text-white" style={{ backgroundColor: TERCIFORM_BLUE }}>
