@@ -69,23 +69,26 @@ class TerciFormTester:
         """Get existing teacher from database"""
         self.log("Checking for existing teachers...")
         
-        # Try to get all users (this might fail if no teacher is logged in)
-        response = self.make_request("GET", "/students")
+        # Try the teacher account that was just created
+        teacher_creds = {"email": "teacher@terciform.com", "password": "Teacher2024!"}
+        self.log(f"Trying existing teacher: {teacher_creds['email']}")
+        login_data = {"email": teacher_creds["email"], "password": teacher_creds["password"]}
+        response = self.make_request("POST", "/auth/login", login_data)
         
-        if response and response.status_code == 403:
-            self.log("Need to login as teacher first")
-            return None
-            
-        # If we can't get students, we need to find a teacher another way
-        # Let's try some common teacher credentials
+        if response and response.status_code == 200:
+            data = response.json()
+            if data.get("user", {}).get("role") == "teacher":
+                self.log(f"Found existing teacher: {teacher_creds['email']}")
+                return teacher_creds
+        
+        # If that doesn't work, try other common credentials
         common_teacher_emails = [
-            "teacher@terciform.com",
             "admin@terciform.com", 
             "formateur@terciform.com",
             "prof@terciform.com"
         ]
         
-        common_passwords = ["password", "admin", "teacher", "123456", "Test2024!"]
+        common_passwords = ["password", "admin", "teacher", "123456", "Test2024!", "Teacher2024!"]
         
         for email in common_teacher_emails:
             for password in common_passwords:
