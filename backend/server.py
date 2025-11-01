@@ -963,43 +963,49 @@ async def send_student_planning_pdf(student_id: str, data: dict, current_user: U
     # Générer le PDF
     pdf_buffer = generate_student_planning_pdf(student, sessions, month, month_label)
     
-    # Envoyer l'email avec le PDF en pièce jointe
+    # Envoyer l'email avec le PDF en pièce jointe à tous les destinataires
     try:
         gmail_user = os.environ['GMAIL_USER']
         gmail_password = os.environ['GMAIL_PASSWORD']
         
-        msg = MIMEMultipart()
-        msg['From'] = gmail_user
-        msg['To'] = recipient_email
-        msg['Subject'] = f"Planning de {student['name']} - {month_label}"
-        
-        # Corps du message
-        body = f"""
+        emails_sent = 0
+        for recipient_email in email_list:
+            pdf_buffer.seek(0)  # Réinitialiser le buffer pour chaque email
+            
+            msg = MIMEMultipart()
+            msg['From'] = gmail_user
+            msg['To'] = recipient_email
+            msg['Subject'] = f"Planning de {student['name']} - {month_label}"
+            
+            # Corps du message
+            body = f"""
 Bonjour,
 
 Vous trouverez le planning à venir de {student['name']}.
 
 Cordialement,
 TerciForm
-        """
-        msg.attach(MIMEText(body, 'plain'))
+            """
+            msg.attach(MIMEText(body, 'plain'))
+            
+            # Attacher le PDF
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(pdf_buffer.read())
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition', f'attachment; filename=Planning_{student["name"].replace(" ", "_")}_{month}.pdf')
+            msg.attach(part)
+            
+            # Envoyer
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(gmail_user, gmail_password)
+            server.send_message(msg)
+            server.quit()
+            
+            emails_sent += 1
+            logger.info(f"Planning PDF sent to {recipient_email} for student {student_id}")
         
-        # Attacher le PDF
-        part = MIMEBase('application', 'octet-stream')
-        part.set_payload(pdf_buffer.read())
-        encoders.encode_base64(part)
-        part.add_header('Content-Disposition', f'attachment; filename=Planning_{student["name"]}_{month}.pdf')
-        msg.attach(part)
-        
-        # Envoyer
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(gmail_user, gmail_password)
-        server.send_message(msg)
-        server.quit()
-        
-        logger.info(f"Planning PDF sent to {recipient_email} for student {student_id}")
-        return {"message": "Planning envoyé avec succès"}
+        return {"message": f"Planning envoyé avec succès à {emails_sent} destinataire(s)"}
         
     except Exception as e:
         logger.error(f"Error sending planning PDF: {e}")
