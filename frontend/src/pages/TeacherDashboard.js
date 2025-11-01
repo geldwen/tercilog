@@ -350,7 +350,10 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 </div>
                               </div>
                             </div>
-                            <Button onClick={() => handleDeleteStudent(student.id, student.name)} variant="outline" size="sm" className="text-red-600 border-red-300 hover:bg-red-50"><Trash2 className="w-4 h-4" /></Button>
+                            <div className="flex items-center gap-2">
+                              <Button onClick={() => handleEditStudent(student)} variant="outline" size="sm" className="text-blue-600 border-blue-300 hover:bg-blue-50"><Edit className="w-4 h-4" /></Button>
+                              <Button onClick={() => handleDeleteStudent(student.id, student.name)} variant="outline" size="sm" className="text-red-600 border-red-300 hover:bg-red-50"><Trash2 className="w-4 h-4" /></Button>
+                            </div>
                           </div>
                           {studentSessions.length > 0 && (
                             <div className="border-t pt-4">
