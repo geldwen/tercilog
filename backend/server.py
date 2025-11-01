@@ -934,12 +934,18 @@ async def send_student_planning_pdf(student_id: str, data: dict, current_user: U
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     
-    # Récupérer le mois et l'email destinataire
+    # Récupérer le mois et les emails destinataires
     month = data.get('month')
-    recipient_email = data.get('recipient_email')
+    recipient_emails = data.get('recipient_email', '')
     
-    if not month or not recipient_email:
+    if not month or not recipient_emails:
         raise HTTPException(status_code=400, detail="Month and recipient_email required")
+    
+    # Séparer les emails (virgule ou point-virgule)
+    email_list = [email.strip() for email in recipient_emails.replace(';', ',').split(',') if email.strip()]
+    
+    if not email_list:
+        raise HTTPException(status_code=400, detail="At least one valid email required")
     
     # Récupérer les séances du mois
     sessions = await db.sessions.find({
