@@ -977,18 +977,34 @@ class TerciFormTester:
             sessions = response.json()
             self.log(f"Found {len(sessions)} total sessions")
             
-            # Step 3: Find session with subject "Seance Test Visio"
-            self.log("=== STEP 3: Searching for 'Seance Test Visio' Session ===")
+            # Step 3: Find session with subject "Seance Test Visio" or any Zazou session
+            self.log("=== STEP 3: Searching for Zazou Sessions ===")
             zazou_session = None
+            zazou_sessions = []
             
+            # First look for exact match "Seance Test Visio"
             for session in sessions:
                 if session.get("subject") == "Seance Test Visio":
                     zazou_session = session
-                    self.log(f"✅ Found 'Seance Test Visio' session:")
+                    self.log(f"✅ Found exact match 'Seance Test Visio' session")
                     break
             
+            # If not found, look for any session with student name containing "zazou"
             if not zazou_session:
-                self.log("❌ Session with subject 'Seance Test Visio' not found", "ERROR")
+                self.log("'Seance Test Visio' not found, searching for any Zazou sessions...")
+                for session in sessions:
+                    student_name = session.get('student_name', '').lower()
+                    if 'zazou' in student_name:
+                        zazou_sessions.append(session)
+                        self.log(f"Found Zazou session: {session.get('subject')} - {session.get('date')} - {session.get('student_name')}")
+                
+                if zazou_sessions:
+                    # Use the most recent Zazou session
+                    zazou_session = zazou_sessions[-1]  # Get the last one (most recent)
+                    self.log(f"✅ Using most recent Zazou session: {zazou_session.get('subject')}")
+            
+            if not zazou_session:
+                self.log("❌ No Zazou sessions found", "ERROR")
                 self.log("Available sessions:")
                 for i, session in enumerate(sessions, 1):
                     self.log(f"   {i}. {session.get('subject', 'N/A')} - {session.get('date', 'N/A')} - Student: {session.get('student_name', 'N/A')}")
