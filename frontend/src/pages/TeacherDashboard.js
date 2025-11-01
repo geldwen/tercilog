@@ -523,7 +523,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   <div key={session.id} className="flex items-center justify-between text-sm py-3 px-4 bg-gray-50 rounded-lg">
                                     <div className="flex items-center gap-3 flex-1 flex-wrap">
                                       <span className="font-medium text-gray-900">{session.subject}</span>
-                                      <span className="text-gray-500">le {new Date(session.date).toLocaleDateString('fr-FR')}</span>
+                                      <span className="text-gray-500">le {new Date(session.date).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}</span>
                                       <span className="font-semibold text-gray-700">{session.duration_hours}h</span>
                                       {session.status === 'confirmed' && session.validated_at && (
                                         <span className="text-xs text-green-700 font-medium">
