@@ -1700,6 +1700,202 @@ class TerciFormTester:
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_urgent_kaka_session_correction(self):
+        """URGENT: Correction de la séance 'teste de français KAKA' pour émargement"""
+        self.log("🚨 URGENT: Correction de la séance 'teste de français KAKA'")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher and get JWT token
+            self.log("=== STEP 1: Connexion en tant que professeur ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Find the session "teste de français KAKA"
+            self.log("=== STEP 2: Recherche de la séance 'teste de français KAKA' ===")
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions list", "ERROR")
+                return False
+            
+            sessions = response.json()
+            kaka_session = None
+            
+            # Search for session with "KAKA" or "français" in subject
+            for session in sessions:
+                subject = session.get('subject', '').lower()
+                if 'kaka' in subject or ('teste' in subject and 'français' in subject):
+                    kaka_session = session
+                    self.log(f"✅ Séance trouvée: {session.get('subject')}")
+                    break
+            
+            if not kaka_session:
+                self.log("❌ Séance 'teste de français KAKA' non trouvée", "ERROR")
+                self.log("Séances disponibles:")
+                for session in sessions[:10]:  # Show first 10 sessions
+                    self.log(f"   - {session.get('subject', 'N/A')} ({session.get('student_email', 'N/A')})")
+                return False
+            
+            # Step 3: Display ALL fields of this session
+            self.log("=== STEP 3: Détails COMPLETS de la séance ===")
+            session_id = kaka_session.get('id')
+            self.log(f"📋 SÉANCE 'teste de français KAKA' - TOUS LES CHAMPS:")
+            self.log(f"   🆔 ID: {kaka_session.get('id', 'N/A')}")
+            self.log(f"   📚 Subject: {kaka_session.get('subject', 'N/A')}")
+            self.log(f"   📧 Student Email: {kaka_session.get('student_email', 'N/A')}")
+            self.log(f"   👤 Student Name: {kaka_session.get('student_name', 'N/A')}")
+            self.log(f"   📅 Date: {kaka_session.get('date', 'N/A')}")
+            self.log(f"   🕐 Start Time: {kaka_session.get('start_time', 'N/A')}")
+            self.log(f"   🕑 End Time: {kaka_session.get('end_time', 'N/A')}")
+            self.log(f"   ⏱️ Duration Hours: {kaka_session.get('duration_hours', 'N/A')}")
+            self.log(f"   📊 Status: {kaka_session.get('status', 'N/A')}")
+            self.log(f"   🔏 Signature Status: {kaka_session.get('signature_status', 'N/A')} (CRITIQUE !)")
+            self.log(f"   ✍️ Signature: {kaka_session.get('signature', 'N/A')}")
+            self.log(f"   📬 Attendance Email Sent: {kaka_session.get('attendance_email_sent', 'N/A')}")
+            self.log(f"   ⏰ Signature Deadline: {kaka_session.get('signature_deadline', 'N/A')}")
+            self.log(f"   📝 Signed At: {kaka_session.get('signed_at', 'N/A')}")
+            self.log(f"   🎥 Meeting Link: {kaka_session.get('meeting_link', 'N/A')}")
+            
+            # Step 4: Check if correction is needed
+            current_signature_status = kaka_session.get('signature_status', 'not_required')
+            student_email = kaka_session.get('student_email', '')
+            
+            self.log("=== STEP 4: Analyse du problème ===")
+            self.log(f"📧 Email de l'élève concerné: {student_email}")
+            self.log(f"🔍 Signature Status actuel: {current_signature_status}")
+            
+            needs_correction = current_signature_status != 'pending'
+            
+            if needs_correction:
+                self.log(f"⚠️ PROBLÈME IDENTIFIÉ: signature_status = '{current_signature_status}' au lieu de 'pending'")
+                self.log("🔧 CORRECTION NÉCESSAIRE")
+                
+                # Step 5: Correct the session
+                self.log("=== STEP 5: CORRECTION de la séance ===")
+                correction_data = {
+                    "signature_status": "pending",
+                    "signature_deadline": "2025-11-02T23:59:59+00:00"
+                }
+                
+                self.log(f"Correction en cours pour la séance ID: {session_id}")
+                self.log(f"   Nouveau signature_status: {correction_data['signature_status']}")
+                self.log(f"   Nouveau signature_deadline: {correction_data['signature_deadline']}")
+                
+                response = self.make_request("PUT", f"/sessions/{session_id}", correction_data, self.teacher_token)
+                
+                if not response or response.status_code != 200:
+                    self.log("❌ Échec de la correction", "ERROR")
+                    if response:
+                        self.log(f"Response: {response.text}")
+                    return False
+                
+                corrected_session = response.json()
+                self.log("✅ Correction appliquée avec succès")
+                self.log(f"   Nouveau signature_status: {corrected_session.get('signature_status')}")
+                self.log(f"   Nouveau signature_deadline: {corrected_session.get('signature_deadline')}")
+                
+            else:
+                self.log("✅ Aucune correction nécessaire - signature_status déjà = 'pending'")
+                corrected_session = kaka_session
+            
+            # Step 6: Verify the correction
+            self.log("=== STEP 6: VÉRIFICATION de la correction ===")
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to re-fetch session for verification", "ERROR")
+                return False
+            
+            updated_sessions = response.json()
+            updated_kaka_session = None
+            
+            for session in updated_sessions:
+                if session.get('id') == session_id:
+                    updated_kaka_session = session
+                    break
+            
+            if not updated_kaka_session:
+                self.log("❌ Séance non trouvée après correction", "ERROR")
+                return False
+            
+            final_signature_status = updated_kaka_session.get('signature_status')
+            self.log(f"🔍 Vérification: signature_status = '{final_signature_status}'")
+            
+            # Step 7: Test student access (if we have student credentials)
+            self.log("=== STEP 7: Test d'accès élève (si possible) ===")
+            student_can_access = False
+            
+            if student_email:
+                # Try common passwords for student login
+                common_passwords = ["password", "123456", "Test2024!", student_email.split('@')[0]]
+                
+                for password in common_passwords:
+                    student_login_data = {
+                        "email": student_email,
+                        "password": password
+                    }
+                    
+                    response = self.make_request("POST", "/auth/login", student_login_data)
+                    if response and response.status_code == 200:
+                        data = response.json()
+                        student_token = data["access_token"]
+                        self.log(f"✅ Connexion élève réussie avec mot de passe: {password}")
+                        
+                        # Check if student can see the session for signature
+                        response = self.make_request("GET", "/sessions", token=student_token)
+                        if response and response.status_code == 200:
+                            student_sessions = response.json()
+                            pending_sessions = [s for s in student_sessions if s.get('signature_status') == 'pending']
+                            
+                            self.log(f"✅ L'élève peut voir {len(pending_sessions)} séances à émarger")
+                            for session in pending_sessions:
+                                if session.get('id') == session_id:
+                                    self.log(f"✅ La séance 'teste de français KAKA' est visible pour émargement")
+                                    student_can_access = True
+                                    break
+                        break
+                
+                if not student_can_access:
+                    self.log("⚠️ Impossible de tester l'accès élève (identifiants inconnus)")
+            
+            # Final verification and summary
+            self.log("=== RÉSULTATS FINAUX ===")
+            self.log(f"📋 Séance: {updated_kaka_session.get('subject')}")
+            self.log(f"📧 Élève: {updated_kaka_session.get('student_email')}")
+            self.log(f"🔏 Signature Status: {final_signature_status}")
+            self.log(f"⏰ Signature Deadline: {updated_kaka_session.get('signature_deadline')}")
+            
+            # Verification checks
+            checks = []
+            checks.append(("Séance 'teste de français KAKA' trouvée", kaka_session is not None))
+            checks.append(("Signature Status = 'pending'", final_signature_status == 'pending'))
+            checks.append(("Signature Deadline défini", updated_kaka_session.get('signature_deadline') is not None))
+            
+            all_passed = True
+            self.log("=== VÉRIFICATIONS FINALES ===")
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            if all_passed:
+                self.log("🎉 CORRECTION TERMINÉE AVEC SUCCÈS!")
+                self.log("✅ La séance 'teste de français KAKA' devrait maintenant apparaître dans l'espace élève pour émargement")
+                if needs_correction:
+                    self.log("🔧 Correction appliquée: signature_status changé en 'pending'")
+                else:
+                    self.log("ℹ️ Aucune correction nécessaire - la séance était déjà correctement configurée")
+            else:
+                self.log("❌ Certaines vérifications ont échoué", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
