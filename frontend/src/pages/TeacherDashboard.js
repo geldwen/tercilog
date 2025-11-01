@@ -106,6 +106,41 @@ export default function TeacherDashboard({ user, onLogout }) {
   };
 
 
+  const handleEditSession = (session) => {
+    setEditingSession(session);
+    setSessionForm({
+      subject: session.subject || "",
+      date: session.date || "",
+      start_time: session.start_time || "",
+      end_time: session.end_time || "",
+      student_id: session.student_id || "",
+      validation_deadline_hours: 48,
+      meeting_link: session.meeting_link || ""
+    });
+    setShowEditSession(true);
+  };
+
+  const handleUpdateSession = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`${API}/sessions/${editingSession.id}`, {
+        subject: sessionForm.subject,
+        date: sessionForm.date,
+        start_time: sessionForm.start_time,
+        end_time: sessionForm.end_time,
+        meeting_link: sessionForm.meeting_link
+      });
+      toast.success("Séance modifiée !");
+      setShowEditSession(false);
+      setEditingSession(null);
+      setSessionForm({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48, meeting_link: "" });
+      loadData(selectedMonth);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erreur");
+    }
+  };
+
+
   const handleDeleteStudent = async (studentId, studentName) => {
     if (!window.confirm(`Supprimer ${studentName} ?`)) return;
     try {
