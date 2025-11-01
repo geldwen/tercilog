@@ -221,6 +221,62 @@ export default function StudentDashboard({ user, onLogout }) {
           </Card>
         </div>
 
+        {/* Sessions to Sign Section */}
+        {sessionsToSign.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-4" style={{ color: TERCIFORM_BLUE }}>Séances à émarger</h2>
+            <div className="space-y-4">
+              {sessionsToSign.map((session) => (
+                <Card key={session.id} className="border-0 shadow-md card-hover border-2 border-orange-300">
+                  <CardContent className="pt-6">
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-semibold text-gray-900">{session.subject}</h3>
+                          <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                            <PenTool className="w-3 h-3 inline mr-1" />
+                            À émarger
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            {new Date(session.date).toLocaleDateString('fr-FR', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {session.start_time} - {session.end_time}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                        <p className="text-sm text-orange-800 font-medium">
+                          ⚠️ Attention : Vous avez 2 heures après la fin de la séance pour émarger.
+                        </p>
+                      </div>
+
+                      <Button
+                        onClick={() => openSignatureDialog(session)}
+                        className="w-full text-white h-12 font-medium"
+                        style={{ backgroundColor: TERCIFORM_BLUE }}
+                      >
+                        <PenTool className="w-5 h-5 mr-2" />
+                        Émarger maintenant
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Pending Sessions Section */}
         {pendingSessions.length > 0 && (
           <div className="mb-8">
