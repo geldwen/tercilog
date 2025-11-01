@@ -294,7 +294,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Add Google Meet Links to Islem Sessions (No Email)"
+    - "Attendance Email Button Link Verification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
