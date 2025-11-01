@@ -188,8 +188,9 @@ def send_email(to_email: str, subject: str, html_body: str):
 
 def send_attendance_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str):
     """Envoyer l'email d'émargement après la fin de séance"""
+    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
     
-    # Email simple en texte brut - plus fiable
+    # Email simple en texte brut avec URL - automatiquement transformé en lien cliquable
     text_body = f"""Bonjour {student_name},
 
 Vous avez effectué une séance :
@@ -199,6 +200,10 @@ Vous avez effectué une séance :
 • Horaires : {start_time} - {end_time}
 
 Merci de vous connecter sur votre espace élève pour signer votre séance.
+
+Cliquez sur le lien ci-dessous pour accéder à votre espace :
+
+{frontend_url}
 
 ⚠️ ATTENTION : Vous avez 2 heures après la fin de la séance pour émarger.
 
@@ -214,7 +219,7 @@ TerciForm"""
         msg['To'] = to_email
         msg['Subject'] = "TerciForm - Émargement de séance"
         
-        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server = smmtp.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(gmail_user, gmail_password)
         server.send_message(msg)
