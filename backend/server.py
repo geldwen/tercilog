@@ -188,56 +188,43 @@ def send_email(to_email: str, subject: str, html_body: str):
 
 def send_attendance_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str):
     """Envoyer l'email d'émargement après la fin de séance"""
-    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
     
-    html_body = f"""<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-</head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; padding: 20px;">
-<tr>
-<td align="center">
-<table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
-<!-- Header -->
-<tr>
-<td style="background-color: #1e3a5f; color: #ffffff; padding: 30px; text-align: center;">
-<h2 style="margin: 0; font-size: 24px;">TerciForm - Émargement de séance</h2>
-</td>
-</tr>
-<!-- Content -->
-<tr>
-<td style="padding: 40px 30px;">
-<p style="margin: 0 0 20px 0; font-size: 16px;">Bonjour {student_name},</p>
-<p style="margin: 0 0 20px 0; font-size: 16px;">Vous venez d'assister à la séance suivante :</p>
-<ul style="margin: 0 0 20px 0; padding-left: 20px;">
-<li style="margin-bottom: 10px;"><strong>Matière :</strong> {subject}</li>
-<li style="margin-bottom: 10px;"><strong>Date :</strong> {date}</li>
-<li style="margin-bottom: 10px;"><strong>Horaires :</strong> {start_time} - {end_time}</li>
-</ul>
-<p style="margin: 0 0 20px 0; font-size: 16px; font-weight: bold;">Merci de vous connecter sur votre espace élève pour signer votre séance.</p>
-<p style="margin: 0 0 30px 0; font-size: 14px; color: #d9534f;"><strong>⚠️ Attention :</strong> Vous avez 2 heures après la fin de la séance pour émarger.</p>
-<p style="margin: 0 0 10px 0; font-size: 16px;">Lien d'accès à votre espace :</p>
-<p style="margin: 0 0 20px 0; font-size: 16px;">
-<a href="{frontend_url}" style="color: #1e3a5f; text-decoration: underline; word-break: break-all;">{frontend_url}</a>
-</p>
-</td>
-</tr>
-<!-- Footer -->
-<tr>
-<td style="background-color: #f9f9f9; padding: 20px; text-align: center;">
-<p style="margin: 0; font-size: 12px; color: #666;">Cet email a été envoyé automatiquement par TerciForm</p>
-</td>
-</tr>
-</table>
-</td>
-</tr>
-</table>
-</body>
-</html>"""
+    # Email simple en texte brut - plus fiable
+    text_body = f"""Bonjour {student_name},
+
+Vous avez effectué une séance :
+
+• Matière : {subject}
+• Date : {date}
+• Horaires : {start_time} - {end_time}
+
+Merci de vous connecter sur votre espace élève pour signer votre séance.
+
+⚠️ ATTENTION : Vous avez 2 heures après la fin de la séance pour émarger.
+
+Cordialement,
+TerciForm"""
     
-    return send_email(to_email, "TerciForm - Émargement de séance", html_body)
+    try:
+        gmail_user = os.environ['GMAIL_USER']
+        gmail_password = os.environ['GMAIL_PASSWORD']
+        
+        msg = MIMEText(text_body, 'plain', 'utf-8')
+        msg['From'] = gmail_user
+        msg['To'] = to_email
+        msg['Subject'] = "TerciForm - Émargement de séance"
+        
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(gmail_user, gmail_password)
+        server.send_message(msg)
+        server.quit()
+        
+        logger.info(f"Attendance email sent to {to_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Error sending attendance email: {e}")
+        return False
 
 
 
