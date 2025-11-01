@@ -808,6 +808,184 @@ async def check_and_send_session_reminders():
     
     return {"message": f"{emails_sent} reminder emails sent"}
 
+
+def generate_student_planning_pdf(student: dict, sessions: list, month: str, month_label: str):
+    """Générer un PDF du planning de l'élève pour le mois"""
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=inch, leftMargin=inch, topMargin=inch, bottomMargin=inch)
+    
+    # Styles
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=20, textColor=colors.HexColor('#1e3a5f'), spaceAfter=30, alignment=1)
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'], fontSize=12, textColor=colors.HexColor('#666666'), spaceAfter=20)
+    
+    # Contenu
+    story = []
+    
+    # Titre
+    story.append(Paragraph(f"Planning de {student['name']}", title_style))
+    story.append(Paragraph(month_label.capitalize(), subtitle_style))
+    story.append(Spacer(1, 0.3*inch))
+    
+    # Informations élève
+    info_data = [
+        ['Nom:', student.get('name', '')],
+        ['Email:', student.get('email', '')],
+        ['Téléphone:', student.get('phone', 'Non renseigné')],
+        ['Organisme:', student.get('organism', 'Non renseigné')],
+        ['Type de séance:', student.get('session_type', 'Non renseigné').capitalize()],
+        ['Date d\'entrée:', student.get('start_date', 'Non renseignée')],
+        ['Date de sortie:', student.get('end_date', 'Non renseignée')],
+        ['Heures totales:', f"{student.get('total_hours', 0)}h"],
+        ['Heures restantes:', f"{student.get('credit_hours', 0)}h"],
+    ]
+    
+    info_table = Table(info_data, colWidths=[2*inch, 4*inch])
+    info_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#e8f0f7')),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#1e3a5f')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(info_table)
+    story.append(Spacer(1, 0.5*inch))
+    
+    # Séances
+    if sessions:
+        story.append(Paragraph(f"<b>Séances du mois ({len(sessions)} séance(s))</b>", styles['Heading2']))
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Total heures du mois
+        total_hours = sum(s.get('duration_hours', 0) for s in sessions)
+        story.append(Paragraph(f"<b>Total des heures du mois : {total_hours}h</b>", subtitle_style))
+        story.append(Spacer(1, 0.2*inch))
+        
+        # Table des séances
+        session_data = [['Date', 'Matière', 'Horaires', 'Durée', 'Statut']]
+        
+        for session in sorted(sessions, key=lambda x: x.get('date', '')):
+            date_obj = datetime.fromisoformat(session['date'])
+            days_fr = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
+            day_name = days_fr[date_obj.weekday()]
+            date_str = f"{day_name} {date_obj.strftime('%d/%m/%Y')}"
+            
+            status_map = {'confirmed': 'Confirmée', 'rejected': 'Refusée', 'pending': 'En attente'}
+            status = status_map.get(session.get('status', 'pending'), 'En attente')
+            
+            session_data.append([
+                date_str,
+                session.get('subject', ''),
+                f"{session.get('start_time', '')} - {session.get('end_time', '')}",
+                f"{session.get('duration_hours', 0)}h",
+                status
+            ])
+        
+        session_table = Table(session_data, colWidths=[1.8*inch, 1.5*inch, 1.3*inch, 0.7*inch, 1*inch])
+        session_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a5f')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
+        ]))
+        story.append(session_table)
+    else:
+        story.append(Paragraph("Aucune séance programmée pour ce mois.", styles['Normal']))
+    
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+@api_router.post("/students/{student_id}/send-planning-pdf")
+async def send_student_planning_pdf(student_id: str, data: dict, current_user: User = Depends(get_current_user)):
+    """Envoyer le planning d'un élève en PDF par email"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Récupérer le mois et l'email destinataire
+    month = data.get('month')
+    recipient_email = data.get('recipient_email')
+    
+    if not month or not recipient_email:
+        raise HTTPException(status_code=400, detail="Month and recipient_email required")
+    
+    # Récupérer les séances du mois
+    sessions = await db.sessions.find({
+        "student_id": student_id,
+        "date": {"$regex": f"^{month}"}
+    }, {"_id": 0}).to_list(100)
+    
+    # Convertir le mois en label
+    month_labels = {
+        '2025-10': 'octobre 2025', '2025-11': 'novembre 2025', '2025-12': 'décembre 2025',
+        '2026-01': 'janvier 2026', '2026-02': 'février 2026'
+    }
+    month_label = month_labels.get(month, month)
+    
+    # Générer le PDF
+    pdf_buffer = generate_student_planning_pdf(student, sessions, month, month_label)
+    
+    # Envoyer l'email avec le PDF en pièce jointe
+    try:
+        gmail_user = os.environ['GMAIL_USER']
+        gmail_password = os.environ['GMAIL_PASSWORD']
+        
+        msg = MIMEMultipart()
+        msg['From'] = gmail_user
+        msg['To'] = recipient_email
+        msg['Subject'] = f"Planning de {student['name']} - {month_label}"
+        
+        # Corps du message
+        body = f"""
+Bonjour,
+
+Vous trouverez le planning à venir de {student['name']}.
+
+Cordialement,
+TerciForm
+        """
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Attacher le PDF
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload(pdf_buffer.read())
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', f'attachment; filename=Planning_{student["name"]}_{month}.pdf')
+        msg.attach(part)
+        
+        # Envoyer
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(gmail_user, gmail_password)
+        server.send_message(msg)
+        server.quit()
+        
+        logger.info(f"Planning PDF sent to {recipient_email} for student {student_id}")
+        return {"message": "Planning envoyé avec succès"}
+        
+    except Exception as e:
+        logger.error(f"Error sending planning PDF: {e}")
+        raise HTTPException(status_code=500, detail="Erreur lors de l'envoi de l'email")
+
+
     # Get current month if not specified
     if not month:
         now = datetime.now(timezone.utc)
