@@ -131,6 +131,8 @@ class TerciFormTester:
             "password": teacher_creds["password"]
         }
         
+        self.log(f"Attempting login with: {teacher_creds['email']}")
+        
         response = self.make_request("POST", "/auth/login", login_data)
         
         if response and response.status_code == 200:
