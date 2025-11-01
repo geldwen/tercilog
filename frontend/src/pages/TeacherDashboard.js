@@ -485,9 +485,29 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Button onClick={() => handleEditStudent(student)} variant="outline" size="sm" className="text-blue-600 border-blue-300 hover:bg-blue-50"><Edit className="w-4 h-4" /></Button>
-                              <Button onClick={() => handleDeleteStudent(student.id, student.name)} variant="outline" size="sm" className="text-red-600 border-red-300 hover:bg-red-50"><Trash2 className="w-4 h-4" /></Button>
+                            <div className="flex items-center gap-3">
+                              <div className="flex flex-col items-center gap-1">
+                                <Button 
+                                  onClick={() => handleEditStudent(student)} 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <span className="text-[10px] text-gray-500 text-center leading-tight">Modifier la<br/>fiche élève</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-1">
+                                <Button 
+                                  onClick={() => handleDeleteStudent(student.id, student.name)} 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-red-600 border-red-300 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                                <span className="text-[10px] text-gray-500 text-center">Supprimer</span>
+                              </div>
                             </div>
                           </div>
                           {studentSessions.length > 0 && (
