@@ -124,6 +124,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       password: "",
       organism: student.organism || "",
       support_type: student.support_type || "",
+      session_type: student.session_type || "",
       start_date: student.start_date || "",
       end_date: student.end_date || "",
       total_hours: student.total_hours || student.credit_hours || 0
