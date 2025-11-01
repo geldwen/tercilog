@@ -1246,6 +1246,159 @@ class TerciFormTester:
             self.log(f"Test failed with exception: {e}", "ERROR")
             return False
 
+    def test_student_creation_debug(self):
+        """Test student creation with specific data as requested by user"""
+        self.log("🎯 Testing Student Creation - Debug Test")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Create student with specific test data
+            self.log("=== STEP 2: Creating Test Student ===")
+            student_data = {
+                "name": "Test Élève Debug",
+                "email": "test@debug.com",
+                "password": "Test123!",
+                "phone": "06 00 00 00 00",
+                "organism": "Test Organisme",
+                "support_type": "CPF",
+                "session_type": "distanciel",
+                "start_date": "2025-11-01",
+                "end_date": "2025-12-31",
+                "total_hours": 10,
+                "role": "student"
+            }
+            
+            self.log(f"Creating student with data:")
+            for key, value in student_data.items():
+                self.log(f"   {key}: {value}")
+            
+            response = self.make_request("POST", "/students", student_data, self.teacher_token)
+            
+            if not response:
+                self.log("❌ No response received from server", "ERROR")
+                return False
+            
+            self.log(f"Response Status Code: {response.status_code}")
+            
+            if response.status_code != 200:
+                self.log("❌ Student creation failed", "ERROR")
+                self.log(f"HTTP Status Code: {response.status_code}")
+                self.log(f"Response Body: {response.text}")
+                
+                # Try to parse error details
+                try:
+                    error_data = response.json()
+                    self.log(f"Error Details: {error_data}")
+                except:
+                    self.log("Could not parse error response as JSON")
+                
+                return False
+            
+            # Parse successful response
+            try:
+                created_student = response.json()
+            except Exception as e:
+                self.log(f"❌ Failed to parse response JSON: {e}", "ERROR")
+                self.log(f"Response text: {response.text}")
+                return False
+            
+            self.log(f"✅ Student created successfully:")
+            self.log(f"   ID: {created_student.get('id', 'N/A')}")
+            self.log(f"   Name: {created_student.get('name', 'N/A')}")
+            self.log(f"   Email: {created_student.get('email', 'N/A')}")
+            self.log(f"   Total Hours: {created_student.get('total_hours', 'N/A')}")
+            self.log(f"   Credit Hours: {created_student.get('credit_hours', 'N/A')}")
+            
+            created_student_id = created_student.get('id')
+            
+            # Step 3: Verify student was created by fetching all students
+            self.log("=== STEP 3: Verifying Student Creation ===")
+            response = self.make_request("GET", "/students", token=self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to fetch students list for verification", "ERROR")
+                return False
+            
+            students = response.json()
+            found_student = None
+            
+            # Look for our created student
+            for student in students:
+                if student.get('name') == 'Test Élève Debug':
+                    found_student = student
+                    break
+            
+            if not found_student:
+                self.log("❌ Created student not found in students list", "ERROR")
+                return False
+            
+            self.log(f"✅ Student found in database:")
+            self.log(f"   ID: {found_student.get('id', 'N/A')}")
+            self.log(f"   Name: {found_student.get('name', 'N/A')}")
+            self.log(f"   Email: {found_student.get('email', 'N/A')}")
+            self.log(f"   Total Hours: {found_student.get('total_hours', 'N/A')}")
+            self.log(f"   Credit Hours: {found_student.get('credit_hours', 'N/A')}")
+            
+            # Step 4: Verification checks
+            self.log("=== STEP 4: Verification Checks ===")
+            checks = []
+            checks.append(("✅ Élève créé avec succès", found_student is not None))
+            checks.append(("✅ ID généré", found_student.get('id') is not None))
+            checks.append(("✅ credit_hours = total_hours = 10", 
+                          found_student.get('credit_hours') == 10 and found_student.get('total_hours') == 10))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Step 5: Show detailed results
+            self.log("=== STEP 5: Detailed Results ===")
+            if found_student:
+                self.log("Student Details:")
+                self.log(f"   ID: {found_student.get('id')}")
+                self.log(f"   Name: {found_student.get('name')}")
+                self.log(f"   Email: {found_student.get('email')}")
+                self.log(f"   Phone: {found_student.get('phone')}")
+                self.log(f"   Organism: {found_student.get('organism')}")
+                self.log(f"   Support Type: {found_student.get('support_type')}")
+                self.log(f"   Session Type: {found_student.get('session_type')}")
+                self.log(f"   Start Date: {found_student.get('start_date')}")
+                self.log(f"   End Date: {found_student.get('end_date')}")
+                self.log(f"   Total Hours: {found_student.get('total_hours')}")
+                self.log(f"   Credit Hours: {found_student.get('credit_hours')}")
+                self.log(f"   Role: {found_student.get('role')}")
+            
+            # Cleanup - delete the test student
+            self.log("=== CLEANUP ===")
+            if created_student_id:
+                self.log("Deleting test student...")
+                response = self.make_request("DELETE", f"/students/{created_student_id}", token=self.teacher_token)
+                if response and response.status_code == 200:
+                    self.log("✅ Test student deleted")
+                else:
+                    self.log("⚠️ Failed to delete test student (cleanup)")
+            
+            if all_passed:
+                self.log("🎉 STUDENT CREATION TEST COMPLETED SUCCESSFULLY!")
+            else:
+                self.log("❌ Some verification checks failed", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
