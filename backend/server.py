@@ -409,6 +409,53 @@ async def resend_session_email(session_id: str, current_user: User = Depends(get
     
     return {"message": "Email resent"}
 
+
+@api_router.put("/students/{student_id}")
+async def update_student(student_id: str, data: dict, current_user: User = Depends(get_current_user)):
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Vérifier que l'élève existe
+    student = await db.users.find_one({"id": student_id, "role": "student"})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Préparer les données de mise à jour
+    update_data = {}
+    if "name" in data:
+        update_data["name"] = data["name"]
+    if "email" in data:
+        # Vérifier que l'email n'est pas déjà utilisé par un autre utilisateur
+        existing = await db.users.find_one({"email": data["email"], "id": {"$ne": student_id}})
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        update_data["email"] = data["email"]
+    if "phone" in data:
+        update_data["phone"] = data["phone"]
+    if "organism" in data:
+        update_data["organism"] = data["organism"]
+    if "support_type" in data:
+        update_data["support_type"] = data["support_type"]
+    if "start_date" in data:
+        update_data["start_date"] = data["start_date"]
+    if "end_date" in data:
+        update_data["end_date"] = data["end_date"]
+    if "total_hours" in data:
+        update_data["total_hours"] = data["total_hours"]
+    if "credit_hours" in data:
+        update_data["credit_hours"] = data["credit_hours"]
+    if "password" in data and data["password"]:
+        # Hasher le nouveau mot de passe
+        update_data["hashed_password"] = pwd_context.hash(data["password"])
+        update_data["plain_password"] = data["password"]
+    
+    # Mettre à jour l'élève
+    await db.users.update_one({"id": student_id}, {"$set": update_data})
+    
+    # Récupérer l'élève mis à jour
+    updated_student = await db.users.find_one({"id": student_id})
+    return User(**updated_student)
+
 @api_router.delete("/students/{student_id}")
 async def delete_student(student_id: str, current_user: User = Depends(get_current_user)):
     if current_user.role != "teacher":
