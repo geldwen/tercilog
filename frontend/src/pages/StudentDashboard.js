@@ -415,6 +415,18 @@ export default function StudentDashboard({ user, onLogout }) {
                           Confirmé le {new Date(session.validated_at).toLocaleString('fr-FR')}
                         </p>
                       )}
+                      {session.meeting_link && (
+                        <div className="mt-3">
+                          <Button
+                            onClick={() => window.open(session.meeting_link, '_blank')}
+                            className="w-full text-white h-10 font-medium"
+                            size="sm"
+                            style={{ backgroundColor: TERCIFORM_BLUE }}
+                          >
+                            🎥 Rejoindre la séance
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
