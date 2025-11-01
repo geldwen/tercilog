@@ -535,14 +535,223 @@ class TerciFormTester:
         
         return all_passed
 
+    def test_islem_signature_session(self):
+        """Test creating session for Islem (terciform@gmail.com) and sending attendance email"""
+        self.log("🎯 Testing Islem Signature Session Creation")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Find Islem student
+            self.log("=== STEP 2: Finding Élève Test Signature (Islem) ===")
+            response = self.make_request("GET", "/students", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get students list", "ERROR")
+                return False
+            
+            students = response.json()
+            islem_student = None
+            for student in students:
+                if student["email"] == "terciform@gmail.com":
+                    islem_student = student
+                    break
+            
+            if not islem_student:
+                self.log("❌ Élève Test Signature (terciform@gmail.com) not found", "ERROR")
+                self.log("Available students:")
+                for student in students:
+                    self.log(f"   - {student['name']} ({student['email']})")
+                return False
+            
+            self.log(f"✅ Found Élève Test Signature:")
+            self.log(f"   ID: {islem_student['id']}")
+            self.log(f"   Name: {islem_student['name']}")
+            self.log(f"   Email: {islem_student['email']}")
+            self.log(f"   Current Credit Hours: {islem_student['credit_hours']}")
+            
+            # Step 3: Create 1-hour session that ended 5 minutes ago
+            self.log("=== STEP 3: Creating 1-hour Session (ended 5 minutes ago) ===")
+            now = datetime.now(timezone.utc)
+            end_time = now - timedelta(minutes=5)  # Ended 5 minutes ago
+            start_time = end_time - timedelta(hours=1)  # 1 hour duration
+            
+            session_data = {
+                "subject": "Anglais - Conversation",
+                "date": end_time.strftime("%Y-%m-%d"),  # Today's date
+                "start_time": start_time.strftime("%H:%M"),
+                "end_time": end_time.strftime("%H:%M"),
+                "student_id": islem_student["id"],
+                "validation_deadline_hours": 48
+            }
+            
+            self.log(f"Session details:")
+            self.log(f"   Subject: {session_data['subject']}")
+            self.log(f"   Date: {session_data['date']} (today: 2025-11-01)")
+            self.log(f"   Start: {session_data['start_time']}")
+            self.log(f"   End: {session_data['end_time']}")
+            self.log(f"   Duration: 1 hour")
+            self.log(f"   Current time: {now.strftime('%H:%M')} (session ended 5 min ago)")
+            
+            response = self.make_request("POST", "/sessions", session_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create session", "ERROR")
+                return False
+            
+            session = response.json()
+            created_session_id = session["id"]
+            self.log(f"✅ Session created successfully:")
+            self.log(f"   ID: {session['id']}")
+            self.log(f"   Subject: {session['subject']}")
+            self.log(f"   Status: {session['status']}")
+            self.log(f"   Duration: {session.get('duration_hours', 0)} hours")
+            
+            # Step 4: Login as Islem
+            self.log("=== STEP 4: Login as Islem ===")
+            islem_login_data = {
+                "email": "terciform@gmail.com",
+                "password": "Test2024!"
+            }
+            
+            response = self.make_request("POST", "/auth/login", islem_login_data)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Islem login failed", "ERROR")
+                return False
+            
+            data = response.json()
+            islem_token = data["access_token"]
+            islem_info = data["user"]
+            self.log(f"✅ Islem login successful: {islem_info['name']}")
+            
+            # Step 5: Confirm session as Islem
+            self.log("=== STEP 5: Confirming Session as Islem ===")
+            validation_data = {"status": "confirmed"}
+            
+            response = self.make_request(
+                "PATCH", 
+                f"/sessions/{created_session_id}/validate", 
+                validation_data, 
+                islem_token
+            )
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to confirm session", "ERROR")
+                return False
+            
+            confirmed_session = response.json()
+            self.log(f"✅ Session confirmed successfully:")
+            self.log(f"   Status: {confirmed_session['status']}")
+            self.log(f"   Validated at: {confirmed_session.get('validated_at', 'N/A')}")
+            
+            # Step 6: Send attendance email
+            self.log("=== STEP 6: Sending Attendance Email ===")
+            response = self.make_request("POST", "/sessions/check-attendance-emails")
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to send attendance emails", "ERROR")
+                return False
+            
+            result = response.json()
+            self.log(f"✅ Attendance email script executed:")
+            self.log(f"   {result.get('message', 'No message')}")
+            
+            # Step 7: Verify final session state
+            self.log("=== STEP 7: Final Verification ===")
+            response = self.make_request("GET", "/sessions", token=islem_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions for verification", "ERROR")
+                return False
+            
+            sessions = response.json()
+            final_session = None
+            
+            for session in sessions:
+                if session["id"] == created_session_id:
+                    final_session = session
+                    break
+            
+            if not final_session:
+                self.log("❌ Created session not found in verification", "ERROR")
+                return False
+            
+            self.log("✅ Final Session Details:")
+            self.log(f"   ID: {final_session['id']}")
+            self.log(f"   Subject: {final_session['subject']}")
+            self.log(f"   Date: {final_session['date']}")
+            self.log(f"   Time: {final_session['start_time']} - {final_session['end_time']}")
+            self.log(f"   Duration: {final_session.get('duration_hours', 0)} hours")
+            self.log(f"   Status: {final_session['status']}")
+            self.log(f"   Signature Status: {final_session.get('signature_status', 'N/A')}")
+            self.log(f"   Signature Deadline: {final_session.get('signature_deadline', 'N/A')}")
+            self.log(f"   Attendance Email Sent: {final_session.get('attendance_email_sent', False)}")
+            
+            # Verify all expected conditions
+            self.log("=== VERIFICATION CHECKS ===")
+            checks = []
+            checks.append(("Élève Islem found", islem_student is not None))
+            checks.append(("1h session created", final_session.get('duration_hours') == 1.0))
+            checks.append(("Session confirmed by Islem", final_session['status'] == 'confirmed'))
+            checks.append(("Attendance email sent", final_session.get('attendance_email_sent') == True))
+            checks.append(("Signature status = pending", final_session.get('signature_status') == 'pending'))
+            checks.append(("Signature deadline set", final_session.get('signature_deadline') is not None))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Show student details and session details as requested
+            self.log("=== FINAL RESULTS ===")
+            self.log(f"Student Details:")
+            self.log(f"   ID: {islem_student['id']}")
+            self.log(f"   Current Credit Hours: {islem_student['credit_hours']}")
+            self.log(f"Session Details:")
+            self.log(f"   ID: {final_session['id']}")
+            self.log(f"   Date: {final_session['date']}")
+            self.log(f"   Time: {final_session['start_time']} - {final_session['end_time']}")
+            if final_session.get('signature_deadline'):
+                deadline_dt = datetime.fromisoformat(final_session['signature_deadline'])
+                self.log(f"   Signature Deadline: {deadline_dt.strftime('%H:%M:%S')} UTC (2h after session end)")
+            
+            if all_passed:
+                self.log("🎉 ISLEM SIGNATURE SESSION TEST COMPLETED SUCCESSFULLY!")
+            else:
+                self.log("❌ Some verification checks failed", "ERROR")
+            
+            # Cleanup
+            self.log("=== CLEANUP ===")
+            self.log("Deleting test session...")
+            response = self.make_request("DELETE", f"/sessions/{created_session_id}", token=self.teacher_token)
+            if response and response.status_code == 200:
+                self.log("✅ Test session deleted")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            return False
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
     
-    # Check if we should run Ghizzo correction test
+    # Check if we should run specific tests
     import sys
-    if len(sys.argv) > 1 and sys.argv[1] == "ghizzo":
-        success = tester.test_ghizzo_credit_hours_correction()
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "ghizzo":
+            success = tester.test_ghizzo_credit_hours_correction()
+        elif sys.argv[1] == "islem":
+            success = tester.test_islem_signature_session()
+        else:
+            success = tester.run_full_test()
     else:
         success = tester.run_full_test()
     
