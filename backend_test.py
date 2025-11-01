@@ -235,8 +235,8 @@ class TerciFormTester:
         self.log("=== STEP 4: Student Login ===")
         
         login_data = {
-            "email": "terciform@gmail.com",
-            "password": "Test2024!"
+            "email": self.student_email,
+            "password": self.student_password
         }
         
         response = self.make_request("POST", "/auth/login", login_data)
