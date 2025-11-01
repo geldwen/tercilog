@@ -956,6 +956,106 @@ class TerciFormTester:
             self.log(f"Test failed with exception: {e}", "ERROR")
             return False
 
+    def verify_zazou_existing_session(self):
+        """Verify that the existing Zazou visio session has the correct meeting_link"""
+        self.log("🔍 Verifying Existing Zazou Visio Session")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Get all sessions
+            self.log("=== STEP 2: Retrieving All Sessions ===")
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions list", "ERROR")
+                return False
+            
+            sessions = response.json()
+            self.log(f"Found {len(sessions)} total sessions")
+            
+            # Step 3: Find session with subject "Seance Test Visio"
+            self.log("=== STEP 3: Searching for 'Seance Test Visio' Session ===")
+            zazou_session = None
+            
+            for session in sessions:
+                if session.get("subject") == "Seance Test Visio":
+                    zazou_session = session
+                    self.log(f"✅ Found 'Seance Test Visio' session:")
+                    break
+            
+            if not zazou_session:
+                self.log("❌ Session with subject 'Seance Test Visio' not found", "ERROR")
+                self.log("Available sessions:")
+                for i, session in enumerate(sessions, 1):
+                    self.log(f"   {i}. {session.get('subject', 'N/A')} - {session.get('date', 'N/A')} - Student: {session.get('student_name', 'N/A')}")
+                return False
+            
+            # Step 4: Display complete session details
+            self.log("=== STEP 4: Complete Session Details ===")
+            self.log(f"✅ Session Found - Complete Details:")
+            self.log(f"   ID: {zazou_session.get('id', 'N/A')}")
+            self.log(f"   Subject: {zazou_session.get('subject', 'N/A')}")
+            self.log(f"   Date: {zazou_session.get('date', 'N/A')}")
+            self.log(f"   Start Time: {zazou_session.get('start_time', 'N/A')}")
+            self.log(f"   End Time: {zazou_session.get('end_time', 'N/A')}")
+            self.log(f"   Duration: {zazou_session.get('duration_hours', 'N/A')} hours")
+            self.log(f"   Student ID: {zazou_session.get('student_id', 'N/A')}")
+            self.log(f"   Student Name: {zazou_session.get('student_name', 'N/A')}")
+            self.log(f"   Student Email: {zazou_session.get('student_email', 'N/A')}")
+            self.log(f"   Status: {zazou_session.get('status', 'N/A')}")
+            self.log(f"   Meeting Link: {zazou_session.get('meeting_link', 'N/A')}")
+            self.log(f"   Validation Deadline: {zazou_session.get('validation_deadline', 'N/A')}")
+            self.log(f"   Validated At: {zazou_session.get('validated_at', 'N/A')}")
+            self.log(f"   Signature Status: {zazou_session.get('signature_status', 'N/A')}")
+            self.log(f"   Signature Deadline: {zazou_session.get('signature_deadline', 'N/A')}")
+            self.log(f"   Attendance Email Sent: {zazou_session.get('attendance_email_sent', 'N/A')}")
+            self.log(f"   Created At: {zazou_session.get('created_at', 'N/A')}")
+            
+            # Step 5: Verify meeting_link
+            self.log("=== STEP 5: Meeting Link Verification ===")
+            meeting_link = zazou_session.get('meeting_link', '')
+            expected_link = "https://meet.google.com/test-zazou-terciform"
+            
+            checks = []
+            checks.append(("Session 'Seance Test Visio' found", zazou_session is not None))
+            checks.append(("Meeting link field exists", 'meeting_link' in zazou_session))
+            checks.append(("Meeting link is not empty", meeting_link != ''))
+            checks.append(("Meeting link is correct", meeting_link == expected_link))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Additional details
+            self.log("=== VERIFICATION SUMMARY ===")
+            if meeting_link:
+                self.log(f"✅ Meeting Link Found: {meeting_link}")
+                if meeting_link == expected_link:
+                    self.log("✅ Meeting Link Value is Correct")
+                else:
+                    self.log(f"❌ Meeting Link Mismatch - Expected: {expected_link}")
+            else:
+                self.log("❌ Meeting Link is Empty or Missing")
+            
+            if all_passed:
+                self.log("🎉 ZAZOU VISIO SESSION VERIFICATION COMPLETED SUCCESSFULLY!")
+                self.log("✅ The session 'Seance Test Visio' exists and has the correct meeting_link")
+            else:
+                self.log("❌ Some verification checks failed", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Verification failed with exception: {e}", "ERROR")
+            return False
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
@@ -969,6 +1069,8 @@ def main():
             success = tester.test_islem_signature_session()
         elif sys.argv[1] == "zazou":
             success = tester.test_zazou_visio_session()
+        elif sys.argv[1] == "verify-zazou":
+            success = tester.verify_zazou_existing_session()
         else:
             success = tester.run_full_test()
     else:
