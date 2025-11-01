@@ -555,10 +555,22 @@ class TerciFormTester:
             
             students = response.json()
             islem_student = None
+            
+            # First try to find by exact email
             for student in students:
                 if student["email"] == "terciform@gmail.com":
                     islem_student = student
                     break
+            
+            # If not found, try to find by name containing "Élève Test Signature" or "Islem"
+            if not islem_student:
+                for student in students:
+                    if ("Élève Test Signature" in student["name"] or 
+                        "Islem" in student["name"] or 
+                        "isleme" in student["name"].lower()):
+                        islem_student = student
+                        self.log(f"Found student by name match: {student['name']} ({student['email']})")
+                        break
             
             if not islem_student:
                 self.log("❌ Élève Test Signature (terciform@gmail.com) not found", "ERROR")
