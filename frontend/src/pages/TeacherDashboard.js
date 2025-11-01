@@ -404,26 +404,32 @@ export default function TeacherDashboard({ user, onLogout }) {
                               <div className="space-y-2">
                                 {studentSessions.map(session => (
                                   <div key={session.id} className="flex items-center justify-between text-sm py-3 px-4 bg-gray-50 rounded-lg">
-                                    <div className="flex items-center gap-3 flex-1">
+                                    <div className="flex items-center gap-3 flex-1 flex-wrap">
                                       <span className="font-medium text-gray-900">{session.subject}</span>
                                       <span className="text-gray-500">le {new Date(session.date).toLocaleDateString('fr-FR')}</span>
                                       <span className="font-semibold text-gray-700">{session.duration_hours}h</span>
                                       {session.status === 'confirmed' && session.validated_at && (
                                         <span className="text-xs text-green-700 font-medium">
-                                          Accepté le {formatDateWithDay(session.validated_at)}
+                                          - Confirmée le {formatDateWithDay(session.validated_at)}
                                         </span>
                                       )}
                                       {session.status === 'rejected' && session.validated_at && (
                                         <span className="text-xs text-red-700 font-medium">
-                                          Refusé le {formatDateWithDay(session.validated_at)}
+                                          - Refusée le {formatDateWithDay(session.validated_at)}
+                                        </span>
+                                      )}
+                                      {session.status === 'pending' && (
+                                        <span className="text-xs text-yellow-700 font-medium flex items-center gap-1">
+                                          <AlertCircle className="w-4 h-4" />
+                                          - En attente de validation
                                         </span>
                                       )}
                                     </div>
                                     <div className="flex items-center gap-3">
-                                      {session.signature && (
+                                      {session.signature && session.signed_at && (
                                         <div className="flex items-center gap-2">
                                           <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
-                                            ✓ Émargé
+                                            ✓ Émargé le {formatDateWithDay(session.signed_at)}
                                           </span>
                                           <img 
                                             src={session.signature} 
@@ -437,12 +443,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                                         <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
                                           ⏳ En attente d'émargement
                                         </span>
-                                      )}
-                                      {session.status === 'pending' && (
-                                        <div className="flex items-center gap-1">
-                                          <AlertCircle className="w-4 h-4 text-yellow-600" />
-                                          <span className="text-yellow-700 font-medium">En attente</span>
-                                        </div>
                                       )}
                                     </div>
                                   </div>
