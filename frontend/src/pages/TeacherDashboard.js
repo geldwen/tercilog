@@ -323,13 +323,13 @@ export default function TeacherDashboard({ user, onLogout }) {
                                       {session.status === 'confirmed' && (
                                         <div className="flex items-center gap-2">
                                           <div className="flex items-center gap-1"><CheckCircle className="w-4 h-4 text-green-600" /><span className="text-green-700 font-medium">Accepté</span></div>
-                                          {session.validated_at && <span className="text-xs text-gray-500">le {new Date(session.validated_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>}
+                                          {session.validated_at && <span className="text-xs text-gray-500">le {formatDateWithDay(session.validated_at)}</span>}
                                         </div>
                                       )}
                                       {session.status === 'rejected' && (
                                         <div className="flex items-center gap-2">
                                           <div className="flex items-center gap-1"><XCircle className="w-4 h-4 text-red-600" /><span className="text-red-700 font-medium">Refusé</span></div>
-                                          {session.validated_at && <span className="text-xs text-gray-500">le {new Date(session.validated_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>}
+                                          {session.validated_at && <span className="text-xs text-gray-500">le {formatDateWithDay(session.validated_at)}</span>}
                                         </div>
                                       )}
                                       {session.status === 'pending' && <div className="flex items-center gap-1"><AlertCircle className="w-4 h-4 text-yellow-600" /><span className="text-yellow-700 font-medium">En attente</span></div>}
