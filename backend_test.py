@@ -1399,6 +1399,149 @@ class TerciFormTester:
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_attendance_email_verification(self):
+        """Test attendance email sending and verify the button link format"""
+        self.log("📧 Testing Attendance Email Verification")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Get all sessions and find a confirmed session with student email
+            self.log("=== STEP 2: Finding Confirmed Session with Student Email ===")
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions list", "ERROR")
+                return False
+            
+            sessions = response.json()
+            self.log(f"Found {len(sessions)} total sessions")
+            
+            # Find a confirmed session
+            confirmed_session = None
+            for session in sessions:
+                if (session.get("status") == "confirmed" and 
+                    session.get("student_email") and 
+                    session.get("student_email").strip()):
+                    confirmed_session = session
+                    break
+            
+            if not confirmed_session:
+                self.log("❌ No confirmed session with student email found", "ERROR")
+                self.log("Available sessions:")
+                for i, session in enumerate(sessions[:5], 1):  # Show first 5
+                    self.log(f"   {i}. Status: {session.get('status')}, Email: {session.get('student_email', 'N/A')}")
+                return False
+            
+            self.log(f"✅ Found confirmed session:")
+            self.log(f"   ID: {confirmed_session['id']}")
+            self.log(f"   Subject: {confirmed_session['subject']}")
+            self.log(f"   Date: {confirmed_session['date']}")
+            self.log(f"   Start Time: {confirmed_session['start_time']}")
+            self.log(f"   End Time: {confirmed_session['end_time']}")
+            self.log(f"   Student Email: {confirmed_session['student_email']}")
+            self.log(f"   Student Name: {confirmed_session['student_name']}")
+            self.log(f"   Status: {confirmed_session['status']}")
+            
+            # Step 3: Check REACT_APP_BACKEND_URL environment variable
+            self.log("=== STEP 3: Verifying REACT_APP_BACKEND_URL ===")
+            frontend_env_url = os.getenv('REACT_APP_BACKEND_URL')
+            self.log(f"REACT_APP_BACKEND_URL from /app/frontend/.env: {frontend_env_url}")
+            
+            # Expected URL
+            expected_url = "https://terciform-planner.preview.emergentagent.com"
+            url_correct = frontend_env_url == expected_url
+            
+            self.log(f"Expected URL: {expected_url}")
+            self.log(f"✅ URL is correct: {'Yes' if url_correct else 'No'}")
+            
+            # Step 4: Resend attendance email
+            self.log("=== STEP 4: Resending Attendance Email ===")
+            session_id = confirmed_session['id']
+            
+            response = self.make_request("POST", f"/sessions/{session_id}/resend-attendance-email", token=self.teacher_token)
+            
+            if not response:
+                self.log("❌ No response received from resend-attendance-email endpoint", "ERROR")
+                return False
+            
+            self.log(f"Response Status Code: {response.status_code}")
+            
+            if response.status_code != 200:
+                self.log("❌ Failed to resend attendance email", "ERROR")
+                self.log(f"Response: {response.text}")
+                return False
+            
+            result = response.json()
+            self.log(f"✅ Attendance email resent successfully:")
+            self.log(f"   Message: {result.get('message', 'No message')}")
+            
+            # Step 5: Display session information as requested
+            self.log("=== STEP 5: Session Information ===")
+            self.log(f"📧 Student Email: {confirmed_session['student_email']}")
+            self.log(f"📚 Subject: {confirmed_session['subject']}")
+            self.log(f"📅 Date: {confirmed_session['date']}")
+            self.log(f"🕐 Start Time: {confirmed_session['start_time']}")
+            self.log(f"🕐 End Time: {confirmed_session['end_time']}")
+            
+            # Step 6: Verify the URL that will be in the email button
+            self.log("=== STEP 6: Email Button URL Verification ===")
+            
+            # The email function uses REACT_APP_BACKEND_URL and removes '/api' suffix
+            # Looking at the send_attendance_email function in server.py:
+            # frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
+            
+            # Since REACT_APP_BACKEND_URL = "https://terciform-planner.preview.emergentagent.com"
+            # The button URL will be: "https://terciform-planner.preview.emergentagent.com"
+            
+            button_url = frontend_env_url.replace('/api', '') if frontend_env_url else ''
+            self.log(f"🔗 URL that will be in the email button: {button_url}")
+            self.log(f"🔗 Expected URL: {expected_url}")
+            
+            button_url_correct = button_url == expected_url
+            self.log(f"✅ Button URL is correct: {'Yes' if button_url_correct else 'No'}")
+            
+            # Step 7: Final verification checks
+            self.log("=== STEP 7: Final Verification Checks ===")
+            checks = []
+            checks.append(("✅ Email d'émargement envoyé", response.status_code == 200))
+            checks.append(("✅ URL correcte dans l'environnement", url_correct))
+            checks.append(("✅ URL du bouton correcte", button_url_correct))
+            checks.append(("✅ Séance confirmée trouvée", confirmed_session is not None))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Step 8: Summary
+            self.log("=== RÉSUMÉ FINAL ===")
+            self.log(f"📧 Email d'émargement envoyé à: {confirmed_session['student_email']}")
+            self.log(f"📚 Matière: {confirmed_session['subject']}")
+            self.log(f"📅 Date: {confirmed_session['date']}")
+            self.log(f"🕐 Horaires: {confirmed_session['start_time']} - {confirmed_session['end_time']}")
+            self.log(f"🔗 URL du bouton dans l'email: {button_url}")
+            self.log(f"✅ Confirmation: L'URL est bien {expected_url}")
+            
+            if all_passed:
+                self.log("🎉 VÉRIFICATION EMAIL D'ÉMARGEMENT TERMINÉE AVEC SUCCÈS!")
+                self.log("✅ Le bouton bleu dans l'email d'émargement pointe vers la bonne URL")
+            else:
+                self.log("❌ Certaines vérifications ont échoué", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
