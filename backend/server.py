@@ -556,6 +556,58 @@ async def delete_student(student_id: str, current_user: User = Depends(get_curre
     
     return {"message": "Student deleted"}
 
+
+@api_router.post("/sessions/check-attendance-emails")
+async def check_and_send_attendance_emails():
+    """Vérifier les séances terminées et envoyer les emails d'émargement"""
+    now = datetime.now(timezone.utc)
+    
+    # Récupérer toutes les séances confirmées qui n'ont pas encore reçu d'email d'émargement
+    sessions = await db.sessions.find({
+        "status": "confirmed",
+        "attendance_email_sent": {"$ne": True}
+    }, {"_id": 0}).to_list(1000)
+    
+    emails_sent = 0
+    for session_doc in sessions:
+        try:
+            # Construire la date et heure de fin de séance
+            session_datetime_str = f"{session_doc['date']}T{session_doc['end_time']}:00"
+            session_end = datetime.fromisoformat(session_datetime_str)
+            
+            # Si la séance est terminée (heure actuelle > heure de fin)
+            if now > session_end:
+                # Calculer le délai de 2 heures
+                signature_deadline = session_end + timedelta(hours=2)
+                
+                # Envoyer l'email d'émargement
+                email_sent = send_attendance_email(
+                    session_doc['student_email'],
+                    session_doc['student_name'],
+                    session_doc['subject'],
+                    session_doc['date'],
+                    session_doc['start_time'],
+                    session_doc['end_time']
+                )
+                
+                if email_sent:
+                    # Marquer l'email comme envoyé et mettre à jour le statut de signature
+                    await db.sessions.update_one(
+                        {"id": session_doc['id']},
+                        {"$set": {
+                            "attendance_email_sent": True,
+                            "signature_status": "pending",
+                            "signature_deadline": signature_deadline.isoformat()
+                        }}
+                    )
+                    emails_sent += 1
+                    logger.info(f"Attendance email sent for session {session_doc['id']}")
+        except Exception as e:
+            logger.error(f"Error processing session {session_doc.get('id')}: {e}")
+            continue
+    
+    return {"message": f"{emails_sent} attendance emails sent"}
+
 @api_router.get("/sessions/stats")
 async def get_stats(current_user: User = Depends(get_current_user), month: Optional[str] = None):
     if current_user.role != "teacher":
