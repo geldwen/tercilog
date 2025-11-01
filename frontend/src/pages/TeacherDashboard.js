@@ -317,9 +317,40 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     </span>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <Button onClick={() => handleResendEmail(session.id)} variant="outline" size="sm" className="text-blue-600 border-blue-300 hover:bg-blue-50"><Mail className="w-4 h-4" /></Button>
-                                  <Button onClick={() => handleDeleteSession(session.id)} variant="outline" size="sm" className="text-red-600 border-red-300 hover:bg-red-50"><Trash2 className="w-4 h-4" /></Button>
+                                <div className="flex items-center gap-3">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <Button 
+                                      onClick={() => handleResendEmail(session.id)} 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                                    >
+                                      <Mail className="w-4 h-4" />
+                                    </Button>
+                                    <span className="text-[10px] text-gray-500 text-center leading-tight">Renvoyer<br/>confirmation</span>
+                                  </div>
+                                  <div className="flex flex-col items-center gap-1">
+                                    <Button 
+                                      onClick={() => handleResendAttendanceEmail(session.id)} 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                                    >
+                                      <PenTool className="w-4 h-4" />
+                                    </Button>
+                                    <span className="text-[10px] text-gray-500 text-center leading-tight">Renvoyer<br/>émargement</span>
+                                  </div>
+                                  <div className="flex flex-col items-center gap-1">
+                                    <Button 
+                                      onClick={() => handleDeleteSession(session.id)} 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="text-red-600 border-red-300 hover:bg-red-50"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                    <span className="text-[10px] text-gray-500 text-center">Supprimer</span>
+                                  </div>
                                 </div>
                               </div>
                             ))}
