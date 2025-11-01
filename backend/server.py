@@ -812,92 +812,106 @@ async def check_and_send_session_reminders():
 def generate_student_planning_pdf(student: dict, sessions: list, month: str, month_label: str):
     """Générer un PDF du planning de l'élève pour le mois"""
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=inch, leftMargin=inch, topMargin=inch, bottomMargin=inch)
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=0.5*inch, leftMargin=0.5*inch, topMargin=0.5*inch, bottomMargin=0.5*inch)
     
     # Styles
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=20, textColor=colors.HexColor('#1e3a5f'), spaceAfter=30, alignment=1)
-    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'], fontSize=12, textColor=colors.HexColor('#666666'), spaceAfter=20)
+    title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#1e3a5f'), spaceAfter=10, alignment=1)
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#666666'), spaceAfter=10, alignment=1)
     
     # Contenu
     story = []
     
-    # Titre
+    # Logo / Titre Terciform
+    story.append(Paragraph("<b>TERCIFORM</b>", ParagraphStyle('Logo', parent=styles['Heading1'], fontSize=24, textColor=colors.HexColor('#1e3a5f'), spaceAfter=5, alignment=1)))
+    story.append(Spacer(1, 0.1*inch))
+    
+    # Titre du planning
     story.append(Paragraph(f"Planning de {student['name']}", title_style))
     story.append(Paragraph(month_label.capitalize(), subtitle_style))
-    story.append(Spacer(1, 0.3*inch))
+    story.append(Spacer(1, 0.1*inch))
     
-    # Informations élève
+    # Informations élève (compactes)
     info_data = [
         ['Nom:', student.get('name', '')],
         ['Email:', student.get('email', '')],
-        ['Téléphone:', student.get('phone', 'Non renseigné')],
-        ['Organisme:', student.get('organism', 'Non renseigné')],
-        ['Type de séance:', student.get('session_type', 'Non renseigné').capitalize()],
-        ['Date d\'entrée:', student.get('start_date', 'Non renseignée')],
-        ['Date de sortie:', student.get('end_date', 'Non renseignée')],
-        ['Heures totales:', f"{student.get('total_hours', 0)}h"],
-        ['Heures restantes:', f"{student.get('credit_hours', 0)}h"],
+        ['Tél:', student.get('phone', 'Non rens.')],
+        ['Organisme:', student.get('organism', 'Non rens.')[:30]],  # Limité à 30 caractères
+        ['Type:', student.get('session_type', 'Non rens.').capitalize()],
+        ['Entrée:', student.get('start_date', 'N/A')],
+        ['Sortie:', student.get('end_date', 'N/A')],
+        ['H. totales:', f"{student.get('total_hours', 0)}h"],
+        ['H. restantes:', f"{student.get('credit_hours', 0)}h"],
     ]
     
-    info_table = Table(info_data, colWidths=[2*inch, 4*inch])
+    info_table = Table(info_data, colWidths=[1.3*inch, 3.5*inch])
     info_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#e8f0f7')),
         ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#1e3a5f')),
         ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 10),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
     ]))
     story.append(info_table)
-    story.append(Spacer(1, 0.5*inch))
+    story.append(Spacer(1, 0.2*inch))
     
     # Séances
     if sessions:
-        story.append(Paragraph(f"<b>Séances du mois ({len(sessions)} séance(s))</b>", styles['Heading2']))
-        story.append(Spacer(1, 0.2*inch))
+        story.append(Paragraph(f"<b>Séances du mois ({len(sessions)} séance(s))</b>", ParagraphStyle('Heading2', parent=styles['Heading2'], fontSize=12, spaceAfter=5)))
         
         # Total heures du mois
         total_hours = sum(s.get('duration_hours', 0) for s in sessions)
-        story.append(Paragraph(f"<b>Total des heures du mois : {total_hours}h</b>", subtitle_style))
-        story.append(Spacer(1, 0.2*inch))
+        story.append(Paragraph(f"<b>Total : {total_hours}h</b>", ParagraphStyle('Bold', parent=styles['Normal'], fontSize=10, spaceAfter=8)))
         
-        # Table des séances
+        # Table des séances (compacte)
         session_data = [['Date', 'Matière', 'Horaires', 'Durée', 'Statut']]
         
         for session in sorted(sessions, key=lambda x: x.get('date', '')):
             date_obj = datetime.fromisoformat(session['date'])
-            days_fr = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
+            days_fr = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
             day_name = days_fr[date_obj.weekday()]
-            date_str = f"{day_name} {date_obj.strftime('%d/%m/%Y')}"
+            date_str = f"{day_name} {date_obj.strftime('%d/%m')}"
             
-            status_map = {'confirmed': 'Confirmée', 'rejected': 'Refusée', 'pending': 'En attente'}
-            status = status_map.get(session.get('status', 'pending'), 'En attente')
+            # Raccourcir les noms de matières longs
+            subject = session.get('subject', '')
+            if len(subject) > 20:
+                # Raccourcir intelligemment
+                if 'position' in subject.lower():
+                    subject = 'Test po.'
+                elif 'anglais' in subject.lower():
+                    subject = subject[:20]
+                else:
+                    subject = subject[:17] + '...'
+            
+            status_map = {'confirmed': 'Conf.', 'rejected': 'Ref.', 'pending': 'Att.'}
+            status = status_map.get(session.get('status', 'pending'), 'Att.')
             
             session_data.append([
                 date_str,
-                session.get('subject', ''),
+                subject,
                 f"{session.get('start_time', '')} - {session.get('end_time', '')}",
                 f"{session.get('duration_hours', 0)}h",
                 status
             ])
         
-        session_table = Table(session_data, colWidths=[1.8*inch, 1.5*inch, 1.3*inch, 0.7*inch, 1*inch])
+        session_table = Table(session_data, colWidths=[0.9*inch, 2*inch, 1.5*inch, 0.6*inch, 0.6*inch])
         session_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a5f')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('FONTSIZE', (0, 1), (-1, -1), 8),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('LEFTPADDING', (0, 0), (-1, -1), 8),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-            ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('LEFTPADDING', (0, 0), (-1, -1), 4),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+            ('TOPPADDING', (0, 0), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
         ]))
         story.append(session_table)
