@@ -418,6 +418,17 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   </div>
                                   <div className="flex flex-col items-center gap-1">
                                     <Button 
+                                      onClick={() => handleEditSession(session)} 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="text-green-600 border-green-300 hover:bg-green-50"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                    <span className="text-[10px] text-gray-500 text-center">Modifier</span>
+                                  </div>
+                                  <div className="flex flex-col items-center gap-1">
+                                    <Button 
                                       onClick={() => handleDeleteSession(session.id)} 
                                       variant="outline" 
                                       size="sm" 
