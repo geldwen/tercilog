@@ -202,9 +202,10 @@ class TerciFormTester:
         """Create a session that just ended (5 minutes ago)"""
         self.log("=== STEP 3: Creating Test Session ===")
         
-        # Calculate times: session ended 5 minutes ago, lasted 1 hour
+        # Calculate times: session ended 30 minutes ago, lasted 1 hour
+        # Using a longer time gap to ensure the session is definitely in the past
         now = datetime.now(timezone.utc)
-        end_time = now - timedelta(minutes=5)
+        end_time = now - timedelta(minutes=30)
         start_time = end_time - timedelta(hours=1)
         
         session_data = {
@@ -220,6 +221,7 @@ class TerciFormTester:
         self.log(f"   Date: {session_data['date']}")
         self.log(f"   Start: {session_data['start_time']}")
         self.log(f"   End: {session_data['end_time']}")
+        self.log(f"   Current time: {now.strftime('%H:%M')}")
         
         response = self.make_request("POST", "/sessions", session_data, self.teacher_token)
         
