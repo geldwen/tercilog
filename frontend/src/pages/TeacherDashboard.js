@@ -408,21 +408,42 @@ export default function TeacherDashboard({ user, onLogout }) {
                                       <span className="font-medium text-gray-900">{session.subject}</span>
                                       <span className="text-gray-500">le {new Date(session.date).toLocaleDateString('fr-FR')}</span>
                                       <span className="font-semibold text-gray-700">{session.duration_hours}h</span>
+                                      {session.status === 'confirmed' && session.validated_at && (
+                                        <span className="text-xs text-green-700 font-medium">
+                                          Accepté le {formatDateWithDay(session.validated_at)}
+                                        </span>
+                                      )}
+                                      {session.status === 'rejected' && session.validated_at && (
+                                        <span className="text-xs text-red-700 font-medium">
+                                          Refusé le {formatDateWithDay(session.validated_at)}
+                                        </span>
+                                      )}
                                     </div>
                                     <div className="flex items-center gap-3">
-                                      {session.status === 'confirmed' && (
+                                      {session.signature && (
                                         <div className="flex items-center gap-2">
-                                          <div className="flex items-center gap-1"><CheckCircle className="w-4 h-4 text-green-600" /><span className="text-green-700 font-medium">Accepté</span></div>
-                                          {session.validated_at && <span className="text-xs text-gray-500">le {formatDateWithDay(session.validated_at)}</span>}
+                                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                                            ✓ Émargé
+                                          </span>
+                                          <img 
+                                            src={session.signature} 
+                                            alt="Signature" 
+                                            className="h-10 border-2 border-green-600 rounded bg-white p-1 cursor-pointer hover:scale-150 transition-transform"
+                                            title="Signature de l'élève"
+                                          />
                                         </div>
                                       )}
-                                      {session.status === 'rejected' && (
-                                        <div className="flex items-center gap-2">
-                                          <div className="flex items-center gap-1"><XCircle className="w-4 h-4 text-red-600" /><span className="text-red-700 font-medium">Refusé</span></div>
-                                          {session.validated_at && <span className="text-xs text-gray-500">le {formatDateWithDay(session.validated_at)}</span>}
+                                      {session.signature_status === "pending" && !session.signature && (
+                                        <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
+                                          ⏳ En attente d'émargement
+                                        </span>
+                                      )}
+                                      {session.status === 'pending' && (
+                                        <div className="flex items-center gap-1">
+                                          <AlertCircle className="w-4 h-4 text-yellow-600" />
+                                          <span className="text-yellow-700 font-medium">En attente</span>
                                         </div>
                                       )}
-                                      {session.status === 'pending' && <div className="flex items-center gap-1"><AlertCircle className="w-4 h-4 text-yellow-600" /><span className="text-yellow-700 font-medium">En attente</span></div>}
                                     </div>
                                   </div>
                                 ))}
