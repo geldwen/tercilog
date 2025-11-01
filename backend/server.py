@@ -188,9 +188,8 @@ def send_email(to_email: str, subject: str, html_body: str):
 
 def send_attendance_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str):
     """Envoyer l'email d'émargement après la fin de séance"""
-    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
     
-    # Email HTML ultra-simple avec lien qui MARCHE
+    # Email simple sans lien
     html_body = f"""<html>
 <body>
 <p>Bonjour {student_name},</p>
@@ -203,9 +202,7 @@ def send_attendance_email(to_email: str, student_name: str, subject: str, date: 
 <li>Horaires : {start_time} - {end_time}</li>
 </ul>
 
-<p><strong>Merci de vous connecter sur votre espace élève pour signer votre séance.</strong></p>
-
-<p><a href="{frontend_url}">CLIQUEZ ICI POUR ACCÉDER À VOTRE ESPACE ÉLÈVE</a></p>
+<p><strong>Veuillez vous connecter à votre espace pour effectuer l'émargement de la séance.</strong></p>
 
 <p style="color: red;"><strong>⚠️ ATTENTION : Vous avez 2 heures après la fin de la séance pour émarger.</strong></p>
 
