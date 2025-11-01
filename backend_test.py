@@ -1563,8 +1563,8 @@ class TerciFormTester:
             all_sessions = response.json()
             self.log(f"Found {len(all_sessions)} total sessions")
             
-            # Filter sessions for Ghizzo (Ghizzo.j@gmail.com)
-            ghizzo_email = "Ghizzo.j@gmail.com"
+            # Filter sessions for Ghizzo (ghizzo.j@gmail.com)
+            ghizzo_email = "ghizzo.j@gmail.com"
             ghizzo_sessions = [s for s in all_sessions if s.get("student_email") == ghizzo_email]
             
             self.log(f"Found {len(ghizzo_sessions)} sessions for Ghizzo ({ghizzo_email})")
