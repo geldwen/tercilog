@@ -143,10 +143,10 @@ class GhizzoTester:
         """Create a session that ended 5 minutes ago"""
         self.log("=== ÉTAPE 3: Création d'une séance terminée ===")
         
-        # Calculate times: session ended 5 minutes ago, lasted 1 hour
+        # Calculate times: session ended 5 minutes ago, lasted 3 hours
         now = datetime.now(timezone.utc)
         end_time = now - timedelta(minutes=5)
-        start_time = end_time - timedelta(hours=1)
+        start_time = end_time - timedelta(hours=3)
         
         session_data = {
             "subject": "Anglais professionnel",
