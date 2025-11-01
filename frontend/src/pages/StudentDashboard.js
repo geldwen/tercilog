@@ -454,6 +454,48 @@ export default function StudentDashboard({ user, onLogout }) {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Signature Dialog */}
+      <Dialog open={showSignatureDialog} onOpenChange={setShowSignatureDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Émargement de séance</DialogTitle>
+            <DialogDescription>
+              Veuillez signer avec votre souris dans le cadre ci-dessous pour valider votre présence
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white">
+              <canvas
+                ref={canvasRef}
+                width={600}
+                height={300}
+                className="cursor-crosshair w-full"
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+              />
+            </div>
+            <div className="flex gap-3">
+              <Button
+                onClick={clearSignature}
+                variant="outline"
+                className="flex-1"
+              >
+                Effacer
+              </Button>
+              <Button
+                onClick={saveSignature}
+                className="flex-1 text-white"
+                style={{ backgroundColor: TERCIFORM_BLUE }}
+              >
+                Valider la signature
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
