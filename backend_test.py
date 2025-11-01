@@ -585,6 +585,10 @@ class TerciFormTester:
             self.log(f"   Email: {islem_student['email']}")
             self.log(f"   Current Credit Hours: {islem_student['credit_hours']}")
             
+            # Get the actual password for this student
+            student_password = islem_student.get('plain_password', 'Test2024!')
+            self.log(f"   Password: {student_password}")
+            
             # Step 3: Create 1-hour session that ended 5 minutes ago
             self.log("=== STEP 3: Creating 1-hour Session (ended 5 minutes ago) ===")
             now = datetime.now(timezone.utc)
