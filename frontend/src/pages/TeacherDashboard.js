@@ -255,7 +255,7 @@ export default function TeacherDashboard({ user, onLogout }) {
 
           <TabsContent value="students" className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">Élèves du mois</h2>
+              <h2 className="text-xl font-bold text-gray-900">Liste des Élèves</h2>
               <Dialog open={showCreateStudent} onOpenChange={setShowCreateStudent}>
                 <DialogTrigger asChild>
                   <Button className="gap-2 text-white" style={{ backgroundColor: TERCIFORM_BLUE }}><Plus className="w-4 h-4" />Ajouter un élève</Button>
