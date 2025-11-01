@@ -1261,6 +1261,8 @@ def main():
             success = tester.test_zazou_visio_session()
         elif sys.argv[1] == "verify-zazou":
             success = tester.verify_zazou_existing_session()
+        elif sys.argv[1] == "islem-meet":
+            success = tester.test_add_google_meet_links_to_islem_sessions()
         else:
             success = tester.run_full_test()
     else:
