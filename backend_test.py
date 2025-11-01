@@ -1709,6 +1709,8 @@ def main():
     if len(sys.argv) > 1:
         if sys.argv[1] == "ghizzo":
             success = tester.test_ghizzo_credit_hours_correction()
+        elif sys.argv[1] == "ghizzo-urgent":
+            success = tester.test_ghizzo_signature_correction_urgent()
         elif sys.argv[1] == "islem":
             success = tester.test_islem_signature_session()
         elif sys.argv[1] == "zazou":
