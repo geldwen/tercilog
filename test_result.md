@@ -237,7 +237,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Digital Signature Attendance System Complete Flow"
+    - "Ghizzo Test Credit Hours Correction"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
