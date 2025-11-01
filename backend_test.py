@@ -1542,6 +1542,164 @@ class TerciFormTester:
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_ghizzo_signature_correction_urgent(self):
+        """URGENT: Correct Ghizzo's sessions for attendance signature (émargement)"""
+        self.log("🚨 URGENT - CORRECTION DES SÉANCES DE GHIZZO POUR ÉMARGEMENT")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Se connecter en tant que professeur ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Retrieve ALL sessions for Ghizzo (Ghizzo.j@gmail.com)
+            self.log("=== STEP 2: Récupérer TOUTES les séances de Ghizzo ===")
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions list", "ERROR")
+                return False
+            
+            all_sessions = response.json()
+            self.log(f"Found {len(all_sessions)} total sessions")
+            
+            # Filter sessions for Ghizzo (Ghizzo.j@gmail.com)
+            ghizzo_email = "Ghizzo.j@gmail.com"
+            ghizzo_sessions = [s for s in all_sessions if s.get("student_email") == ghizzo_email]
+            
+            self.log(f"Found {len(ghizzo_sessions)} sessions for Ghizzo ({ghizzo_email})")
+            
+            if len(ghizzo_sessions) == 0:
+                self.log("❌ No sessions found for Ghizzo", "ERROR")
+                self.log("Available student emails in sessions:")
+                unique_emails = set(s.get("student_email", "N/A") for s in all_sessions)
+                for email in sorted(unique_emails):
+                    self.log(f"   - {email}")
+                return False
+            
+            # Display ALL Ghizzo sessions with detailed info
+            self.log("=== DÉTAILS DE TOUTES LES SÉANCES DE GHIZZO ===")
+            sessions_to_correct = []
+            
+            for i, session in enumerate(ghizzo_sessions, 1):
+                self.log(f"Séance {i}:")
+                self.log(f"   ID: {session['id']}")
+                self.log(f"   Subject: {session['subject']}")
+                self.log(f"   Status: {session['status']}")
+                self.log(f"   signature_status: {session.get('signature_status', 'N/A')}")
+                self.log(f"   signature: {'Présente' if session.get('signature') else 'Absente'}")
+                self.log(f"   attendance_email_sent: {session.get('attendance_email_sent', False)}")
+                self.log(f"   Date: {session['date']}")
+                
+                # Check if this session needs correction
+                if (session['status'] == 'confirmed' and 
+                    not session.get('signature') and 
+                    session.get('signature_status') != 'pending'):
+                    sessions_to_correct.append(session)
+                    self.log(f"   ⚠️ NEEDS CORRECTION: Confirmed session without signature")
+                else:
+                    self.log(f"   ✅ OK: No correction needed")
+            
+            self.log(f"\n📊 RÉSUMÉ:")
+            self.log(f"   Total séances Ghizzo: {len(ghizzo_sessions)}")
+            self.log(f"   Séances à corriger: {len(sessions_to_correct)}")
+            
+            # Step 3: Correct Ghizzo's sessions
+            if len(sessions_to_correct) > 0:
+                self.log("=== STEP 3: CORRIGER les séances de Ghizzo ===")
+                corrected_session_ids = []
+                
+                for i, session in enumerate(sessions_to_correct, 1):
+                    session_id = session['id']
+                    self.log(f"Correcting session {i}/{len(sessions_to_correct)}: {session_id}")
+                    
+                    # Update with signature_status: "pending" and signature_deadline
+                    update_data = {
+                        "signature_status": "pending",
+                        "signature_deadline": "2025-11-02T23:59:59+00:00"
+                    }
+                    
+                    response = self.make_request("PUT", f"/sessions/{session_id}", update_data, self.teacher_token)
+                    
+                    if response and response.status_code == 200:
+                        updated_session = response.json()
+                        corrected_session_ids.append(session_id)
+                        self.log(f"✅ Session {session_id} corrected successfully")
+                        self.log(f"   New signature_status: {updated_session.get('signature_status', 'N/A')}")
+                        self.log(f"   New signature_deadline: {updated_session.get('signature_deadline', 'N/A')}")
+                    else:
+                        self.log(f"❌ Failed to correct session {session_id}", "ERROR")
+                        if response:
+                            self.log(f"   Response: {response.text}")
+                
+                self.log(f"\n✅ CORRECTION TERMINÉE:")
+                self.log(f"   Séances corrigées: {len(corrected_session_ids)}")
+                self.log(f"   IDs des séances corrigées: {corrected_session_ids}")
+            else:
+                self.log("✅ Aucune séance à corriger - toutes les séances sont déjà correctes")
+                corrected_session_ids = []
+            
+            # Step 4: Verify the correction
+            self.log("=== STEP 4: VÉRIFIER la correction ===")
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to re-fetch sessions for verification", "ERROR")
+                return False
+            
+            updated_all_sessions = response.json()
+            updated_ghizzo_sessions = [s for s in updated_all_sessions if s.get("student_email") == ghizzo_email]
+            
+            self.log(f"Re-fetched {len(updated_ghizzo_sessions)} sessions for Ghizzo")
+            
+            # Verify corrections
+            pending_sessions = 0
+            self.log("=== VÉRIFICATION DES CORRECTIONS ===")
+            
+            for i, session in enumerate(updated_ghizzo_sessions, 1):
+                signature_status = session.get('signature_status', 'N/A')
+                self.log(f"Séance {i}:")
+                self.log(f"   ID: {session['id']}")
+                self.log(f"   Subject: {session['subject']}")
+                self.log(f"   Status: {session['status']}")
+                self.log(f"   signature_status: {signature_status}")
+                
+                if signature_status == 'pending':
+                    pending_sessions += 1
+                    self.log(f"   ✅ CORRECT: signature_status = pending")
+                elif session['status'] == 'confirmed' and not session.get('signature'):
+                    self.log(f"   ❌ STILL NEEDS CORRECTION")
+                else:
+                    self.log(f"   ✅ OK: No correction needed")
+            
+            # Final summary
+            self.log("=== RÉSULTAT FINAL ===")
+            self.log(f"✅ Nombre de séances corrigées: {len(corrected_session_ids) if 'corrected_session_ids' in locals() else 0}")
+            self.log(f"✅ IDs des séances corrigées: {corrected_session_ids if 'corrected_session_ids' in locals() else []}")
+            self.log(f"✅ Séances avec signature_status = 'pending': {pending_sessions}")
+            self.log(f"✅ Confirmation que signature_status = 'pending': {'OUI' if pending_sessions > 0 else 'NON'}")
+            
+            self.log("\n🎯 OBJECTIF ATTEINT:")
+            self.log("Après cette correction, quand Ghizzo se connecte à son espace élève,")
+            self.log("il doit voir ses séances dans la section 'Séances à émarger'.")
+            
+            # Success criteria
+            success = True
+            if len(sessions_to_correct) > 0:
+                success = len(corrected_session_ids) == len(sessions_to_correct)
+            
+            if success:
+                self.log("🎉 CORRECTION DES SÉANCES DE GHIZZO TERMINÉE AVEC SUCCÈS!")
+            else:
+                self.log("❌ Certaines corrections ont échoué", "ERROR")
+            
+            return success
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
