@@ -103,6 +103,7 @@ class Session(BaseModel):
     signature_status: str = "not_required"  # not_required, pending, signed, expired
     signature_deadline: Optional[str] = None  # Délai de 2h après la fin de séance
     attendance_email_sent: bool = False  # Email d'émargement envoyé ou non
+    reminder_email_sent: bool = False  # Email de rappel 5 min avant envoyé ou non
     meeting_link: str = ""  # Lien Google Meet ou autre visio
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
