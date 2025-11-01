@@ -282,7 +282,7 @@ export default function TeacherDashboard({ user, onLogout }) {
 
             <div className="grid gap-4">
               {studentsWithSessionsThisMonth.length === 0 ? (
-                <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucun élève avec séances ce mois</CardContent></Card>
+                <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucun élève enregistré</CardContent></Card>
               ) : (
                 studentsWithSessionsThisMonth.map(student => {
                   const studentSessions = sessions.filter(s => s.student_id === student.id);
