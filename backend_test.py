@@ -630,7 +630,7 @@ class TerciFormTester:
             self.log("=== STEP 4: Login as Islem ===")
             islem_login_data = {
                 "email": islem_student["email"],  # Use the actual email found
-                "password": "Test2024!"
+                "password": student_password  # Use the actual password
             }
             
             response = self.make_request("POST", "/auth/login", islem_login_data)
