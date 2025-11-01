@@ -575,6 +575,10 @@ async def check_and_send_attendance_emails():
             session_datetime_str = f"{session_doc['date']}T{session_doc['end_time']}:00"
             session_end = datetime.fromisoformat(session_datetime_str)
             
+            # Make session_end timezone-aware (assume UTC if no timezone)
+            if session_end.tzinfo is None:
+                session_end = session_end.replace(tzinfo=timezone.utc)
+            
             # Si la séance est terminée (heure actuelle > heure de fin)
             if now > session_end:
                 # Calculer le délai de 2 heures
