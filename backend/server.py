@@ -219,7 +219,7 @@ TerciForm"""
         msg['To'] = to_email
         msg['Subject'] = "TerciForm - Émargement de séance"
         
-        server = smmtp.SMTP('smtp.gmail.com', 587)
+        server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(gmail_user, gmail_password)
         server.send_message(msg)
