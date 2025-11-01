@@ -94,6 +94,16 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  const handleResendAttendanceEmail = async (sessionId) => {
+    try {
+      await axios.post(`${API}/sessions/${sessionId}/resend-attendance-email`);
+      toast.success("Email d'émargement renvoyé !");
+    } catch (error) {
+      toast.error("Erreur envoi");
+    }
+  };
+
+
   const handleDeleteStudent = async (studentId, studentName) => {
     if (!window.confirm(`Supprimer ${studentName} ?`)) return;
     try {
