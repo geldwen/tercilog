@@ -374,12 +374,8 @@ async def validate_session(session_id: str, validation: SessionValidate, current
         {"$set": {"status": validation.status, "validated_at": validated_at}}
     )
     
-    # Update student credit hours if confirmed
-    if validation.status == "confirmed":
-        await db.users.update_one(
-            {"id": current_user.id},
-            {"$inc": {"credit_hours": -session_doc['duration_hours']}}
-        )
+    # Note: Credit hours are now deducted only when session is signed (attendance signature)
+    # Not when it's confirmed
     
     # Send email to teacher
     teacher = await db.users.find_one({"role": "teacher"}, {"_id": 0})
