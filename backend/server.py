@@ -371,6 +371,39 @@ async def delete_session(session_id: str, current_user: User = Depends(get_curre
     
     return {"message": "Session deleted"}
 
+@api_router.post("/sessions/{session_id}/sign")
+async def sign_session(session_id: str, signature_data: dict, current_user: User = Depends(get_current_user)):
+    """Enregistrer la signature d'un élève pour une séance"""
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer la séance
+    session_doc = await db.sessions.find_one({"id": session_id, "student_id": current_user.id}, {"_id": 0})
+    if not session_doc:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Vérifier le délai de 2 heures
+    if session_doc.get('signature_deadline'):
+        deadline = datetime.fromisoformat(session_doc['signature_deadline'])
+        if datetime.now(timezone.utc) > deadline:
+            await db.sessions.update_one({"id": session_id}, {"$set": {"signature_status": "expired"}})
+            raise HTTPException(status_code=400, detail="Signature deadline expired (2 hours after session end)")
+    
+    # Enregistrer la signature
+    signed_at = datetime.now(timezone.utc).isoformat()
+    await db.sessions.update_one(
+        {"id": session_id},
+        {"$set": {
+            "signature": signature_data.get("signature"),
+            "signed_at": signed_at,
+            "signature_status": "signed"
+        }}
+    )
+    
+    session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    return Session(**session_doc)
+
+
 @api_router.post("/sessions/{session_id}/resend-email")
 async def resend_session_email(session_id: str, current_user: User = Depends(get_current_user)):
     if current_user.role != "teacher":
