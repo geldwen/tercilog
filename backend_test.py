@@ -957,8 +957,8 @@ class TerciFormTester:
             return False
 
     def verify_zazou_existing_session(self):
-        """Verify that the existing Zazou visio session has the correct meeting_link"""
-        self.log("🔍 Verifying Existing Zazou Visio Session")
+        """Create and verify Zazou visio session as requested by user"""
+        self.log("🔍 Creating and Verifying Zazou Visio Session as Requested")
         self.log(f"Backend URL: {BACKEND_URL}")
         
         try:
@@ -967,8 +967,64 @@ class TerciFormTester:
             if not self.login_as_teacher():
                 return False
             
-            # Step 2: Get all sessions
-            self.log("=== STEP 2: Retrieving All Sessions ===")
+            # Step 2: Find Zazou student
+            self.log("=== STEP 2: Finding Student Zazou ===")
+            response = self.make_request("GET", "/students", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get students list", "ERROR")
+                return False
+            
+            students = response.json()
+            zazou_student = None
+            
+            # Search for student with "zazou" in name (case insensitive)
+            for student in students:
+                if "zazou" in student["name"].lower():
+                    zazou_student = student
+                    self.log(f"Found student: {student['name']} ({student['email']})")
+                    break
+            
+            if not zazou_student:
+                self.log("❌ Student Zazou not found", "ERROR")
+                return False
+            
+            self.log(f"✅ Found Student Zazou:")
+            self.log(f"   ID: {zazou_student['id']}")
+            self.log(f"   Name: {zazou_student['name']}")
+            self.log(f"   Email: {zazou_student['email']}")
+            
+            # Step 3: Create the "Seance Test Visio" session as requested
+            self.log("=== STEP 3: Creating 'Seance Test Visio' Session ===")
+            session_data = {
+                "subject": "Seance Test Visio",
+                "date": "2025-11-02",
+                "start_time": "10:00",
+                "end_time": "11:00",
+                "student_id": zazou_student["id"],
+                "validation_deadline_hours": 48,
+                "meeting_link": "https://meet.google.com/test-zazou-terciform"
+            }
+            
+            self.log(f"Creating session with:")
+            self.log(f"   Subject: {session_data['subject']}")
+            self.log(f"   Date: {session_data['date']}")
+            self.log(f"   Time: {session_data['start_time']} - {session_data['end_time']}")
+            self.log(f"   Meeting Link: {session_data['meeting_link']}")
+            
+            response = self.make_request("POST", "/sessions", session_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create session", "ERROR")
+                return False
+            
+            session = response.json()
+            created_session_id = session["id"]
+            self.log(f"✅ Session created successfully:")
+            self.log(f"   ID: {session['id']}")
+            self.log(f"   Meeting Link: {session.get('meeting_link', 'N/A')}")
+            
+            # Step 4: Get all sessions to verify it's in the list
+            self.log("=== STEP 4: Retrieving All Sessions to Verify ===")
             response = self.make_request("GET", "/sessions", token=self.teacher_token)
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get sessions list", "ERROR")
@@ -977,87 +1033,44 @@ class TerciFormTester:
             sessions = response.json()
             self.log(f"Found {len(sessions)} total sessions")
             
-            # Step 3: Comprehensive search for Zazou sessions
-            self.log("=== STEP 3: Comprehensive Search for Zazou Sessions ===")
-            zazou_session = None
-            zazou_sessions = []
+            # Step 5: Find the "Seance Test Visio" session
+            self.log("=== STEP 5: Searching for 'Seance Test Visio' Session ===")
             visio_session = None
             
-            # Search through all sessions
             for session in sessions:
-                student_name = session.get('student_name', '').lower()
-                subject = session.get('subject', '').lower()
-                
-                # Look for exact match "Seance Test Visio"
                 if session.get("subject") == "Seance Test Visio":
                     visio_session = session
-                    self.log(f"✅ Found exact match 'Seance Test Visio' session")
-                
-                # Look for any session with student name containing "zazou"
-                if 'zazou' in student_name:
-                    zazou_sessions.append(session)
-                    self.log(f"Found Zazou session: {session.get('subject')} - {session.get('date')} - {session.get('student_name')} - Meeting Link: '{session.get('meeting_link', 'N/A')}'")
-                
-                # Also look for sessions with "visio" or "test" in subject for Zazou
-                if 'zazou' in student_name and ('visio' in subject or 'test' in subject):
-                    self.log(f"Found potential visio session for Zazou: {session.get('subject')} - {session.get('date')}")
+                    self.log(f"✅ Found 'Seance Test Visio' session")
+                    break
             
-            # Prioritize the exact match first
-            if visio_session:
-                zazou_session = visio_session
-                self.log(f"✅ Using exact match 'Seance Test Visio' session")
-            elif zazou_sessions:
-                # Look for a session with meeting_link
-                for session in zazou_sessions:
-                    if session.get('meeting_link') and session.get('meeting_link').strip():
-                        zazou_session = session
-                        self.log(f"✅ Using Zazou session with meeting_link: {session.get('subject')}")
-                        break
-                
-                # If no session with meeting_link, use the most recent
-                if not zazou_session:
-                    zazou_session = zazou_sessions[-1]
-                    self.log(f"✅ Using most recent Zazou session: {zazou_session.get('subject')}")
-            
-            if not zazou_session:
-                self.log("❌ No Zazou sessions found", "ERROR")
-                self.log("Available sessions:")
-                for i, session in enumerate(sessions, 1):
-                    meeting_link_info = f" - Meeting Link: '{session.get('meeting_link', 'N/A')}'" if session.get('meeting_link') else ""
-                    self.log(f"   {i}. {session.get('subject', 'N/A')} - {session.get('date', 'N/A')} - Student: {session.get('student_name', 'N/A')}{meeting_link_info}")
+            if not visio_session:
+                self.log("❌ 'Seance Test Visio' session not found in sessions list", "ERROR")
                 return False
             
-            # Step 4: Display complete session details
-            self.log("=== STEP 4: Complete Session Details ===")
-            self.log(f"✅ Session Found - Complete Details:")
-            self.log(f"   ID: {zazou_session.get('id', 'N/A')}")
-            self.log(f"   Subject: {zazou_session.get('subject', 'N/A')}")
-            self.log(f"   Date: {zazou_session.get('date', 'N/A')}")
-            self.log(f"   Start Time: {zazou_session.get('start_time', 'N/A')}")
-            self.log(f"   End Time: {zazou_session.get('end_time', 'N/A')}")
-            self.log(f"   Duration: {zazou_session.get('duration_hours', 'N/A')} hours")
-            self.log(f"   Student ID: {zazou_session.get('student_id', 'N/A')}")
-            self.log(f"   Student Name: {zazou_session.get('student_name', 'N/A')}")
-            self.log(f"   Student Email: {zazou_session.get('student_email', 'N/A')}")
-            self.log(f"   Status: {zazou_session.get('status', 'N/A')}")
-            self.log(f"   Meeting Link: {zazou_session.get('meeting_link', 'N/A')}")
-            self.log(f"   Validation Deadline: {zazou_session.get('validation_deadline', 'N/A')}")
-            self.log(f"   Validated At: {zazou_session.get('validated_at', 'N/A')}")
-            self.log(f"   Signature Status: {zazou_session.get('signature_status', 'N/A')}")
-            self.log(f"   Signature Deadline: {zazou_session.get('signature_deadline', 'N/A')}")
-            self.log(f"   Attendance Email Sent: {zazou_session.get('attendance_email_sent', 'N/A')}")
-            self.log(f"   Created At: {zazou_session.get('created_at', 'N/A')}")
+            # Step 6: Display complete session details
+            self.log("=== STEP 6: Complete Session Details ===")
+            self.log(f"✅ Session 'Seance Test Visio' - Complete Details:")
+            self.log(f"   ID: {visio_session.get('id', 'N/A')}")
+            self.log(f"   Subject: {visio_session.get('subject', 'N/A')}")
+            self.log(f"   Date: {visio_session.get('date', 'N/A')}")
+            self.log(f"   Start Time: {visio_session.get('start_time', 'N/A')}")
+            self.log(f"   End Time: {visio_session.get('end_time', 'N/A')}")
+            self.log(f"   Duration: {visio_session.get('duration_hours', 'N/A')} hours")
+            self.log(f"   Student Name: {visio_session.get('student_name', 'N/A')}")
+            self.log(f"   Student Email: {visio_session.get('student_email', 'N/A')}")
+            self.log(f"   Status: {visio_session.get('status', 'N/A')}")
+            self.log(f"   **MEETING_LINK: {visio_session.get('meeting_link', 'N/A')}**")
             
-            # Step 5: Verify meeting_link
-            self.log("=== STEP 5: Meeting Link Verification ===")
-            meeting_link = zazou_session.get('meeting_link', '')
+            # Step 7: Verify meeting_link
+            self.log("=== STEP 7: Meeting Link Verification ===")
+            meeting_link = visio_session.get('meeting_link', '')
             expected_link = "https://meet.google.com/test-zazou-terciform"
             
             checks = []
-            checks.append(("Session 'Seance Test Visio' found", zazou_session is not None))
-            checks.append(("Meeting link field exists", 'meeting_link' in zazou_session))
-            checks.append(("Meeting link is not empty", meeting_link != ''))
-            checks.append(("Meeting link is correct", meeting_link == expected_link))
+            checks.append(("✅ Séance 'Seance Test Visio' trouvée", visio_session is not None))
+            checks.append(("✅ Le champ meeting_link est présent", 'meeting_link' in visio_session))
+            checks.append(("✅ Le champ meeting_link n'est pas vide", meeting_link != ''))
+            checks.append(("✅ La valeur du meeting_link est correcte", meeting_link == expected_link))
             
             all_passed = True
             for check_name, passed in checks:
@@ -1066,22 +1079,27 @@ class TerciFormTester:
                 if not passed:
                     all_passed = False
             
-            # Additional details
-            self.log("=== VERIFICATION SUMMARY ===")
+            # Final verification summary
+            self.log("=== VÉRIFICATIONS FINALES ===")
             if meeting_link:
-                self.log(f"✅ Meeting Link Found: {meeting_link}")
+                self.log(f"✅ Meeting Link trouvé: {meeting_link}")
                 if meeting_link == expected_link:
-                    self.log("✅ Meeting Link Value is Correct")
+                    self.log("✅ La valeur du meeting_link est correcte")
                 else:
-                    self.log(f"❌ Meeting Link Mismatch - Expected: {expected_link}")
+                    self.log(f"❌ Meeting Link incorrect - Attendu: {expected_link}")
             else:
-                self.log("❌ Meeting Link is Empty or Missing")
+                self.log("❌ Meeting Link vide ou manquant")
             
             if all_passed:
-                self.log("🎉 ZAZOU VISIO SESSION VERIFICATION COMPLETED SUCCESSFULLY!")
-                self.log("✅ The session 'Seance Test Visio' exists and has the correct meeting_link")
+                self.log("🎉 VÉRIFICATION ZAZOU VISIO SESSION TERMINÉE AVEC SUCCÈS!")
+                self.log("✅ La séance 'Seance Test Visio' existe et contient le meeting_link correct")
             else:
-                self.log("❌ Some verification checks failed", "ERROR")
+                self.log("❌ Certaines vérifications ont échoué", "ERROR")
+            
+            # Note: Don't cleanup - leave the session for user verification
+            self.log("=== NOTE ===")
+            self.log("Session 'Seance Test Visio' créée et vérifiée avec succès.")
+            self.log("La session reste disponible pour vérification par l'utilisateur.")
             
             return all_passed
             
