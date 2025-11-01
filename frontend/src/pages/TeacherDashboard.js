@@ -344,6 +344,19 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   )}
                                 </div>
                                 <div className="flex items-center gap-3">
+                                  {session.meeting_link && (
+                                    <div className="flex flex-col items-center gap-1">
+                                      <Button 
+                                        onClick={() => window.open(session.meeting_link, '_blank')}
+                                        className="text-white"
+                                        size="sm"
+                                        style={{ backgroundColor: TERCIFORM_BLUE }}
+                                      >
+                                        🎥 Rejoindre
+                                      </Button>
+                                      <span className="text-[10px] text-gray-500 text-center">Visio</span>
+                                    </div>
+                                  )}
                                   <div className="flex flex-col items-center gap-1">
                                     <Button 
                                       onClick={() => handleResendEmail(session.id)} 
