@@ -755,6 +755,207 @@ class TerciFormTester:
             self.log(f"Test failed with exception: {e}", "ERROR")
             return False
 
+    def test_zazou_visio_session(self):
+        """Test creating a visio session for student Zazou with Google Meet link"""
+        self.log("🎯 Testing Zazou Visio Session Creation")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Find Zazou student
+            self.log("=== STEP 2: Finding Student Zazou ===")
+            response = self.make_request("GET", "/students", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get students list", "ERROR")
+                return False
+            
+            students = response.json()
+            zazou_student = None
+            
+            # Search for student with "zazou" in name (case insensitive)
+            for student in students:
+                if "zazou" in student["name"].lower():
+                    zazou_student = student
+                    self.log(f"Found student by name match: {student['name']} ({student['email']})")
+                    break
+            
+            if not zazou_student:
+                self.log("❌ Student Zazou not found", "ERROR")
+                self.log("Available students:")
+                for student in students:
+                    self.log(f"   - {student['name']} ({student['email']})")
+                return False
+            
+            self.log(f"✅ Found Student Zazou:")
+            self.log(f"   ID: {zazou_student['id']}")
+            self.log(f"   Name: {zazou_student['name']}")
+            self.log(f"   Email: {zazou_student['email']}")
+            
+            # Get the actual password for this student
+            student_password = zazou_student.get('plain_password', 'Test2024!')
+            self.log(f"   Password: {student_password}")
+            
+            # Step 3: Create visio session for tomorrow
+            self.log("=== STEP 3: Creating Visio Session for Tomorrow ===")
+            tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
+            
+            session_data = {
+                "subject": "Seance Test Visio",
+                "date": "2025-11-02",  # Tomorrow as specified
+                "start_time": "10:00",
+                "end_time": "11:00",
+                "student_id": zazou_student["id"],
+                "validation_deadline_hours": 48,
+                "meeting_link": "https://meet.google.com/test-zazou-terciform"
+            }
+            
+            self.log(f"Session details:")
+            self.log(f"   Subject: {session_data['subject']}")
+            self.log(f"   Date: {session_data['date']} (tomorrow)")
+            self.log(f"   Start: {session_data['start_time']}")
+            self.log(f"   End: {session_data['end_time']}")
+            self.log(f"   Duration: 1 hour")
+            self.log(f"   Meeting Link: {session_data['meeting_link']}")
+            
+            response = self.make_request("POST", "/sessions", session_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create session", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            session = response.json()
+            created_session_id = session["id"]
+            self.log(f"✅ Session created successfully:")
+            self.log(f"   ID: {session['id']}")
+            self.log(f"   Subject: {session['subject']}")
+            self.log(f"   Status: {session['status']}")
+            self.log(f"   Duration: {session.get('duration_hours', 0)} hours")
+            self.log(f"   Meeting Link: {session.get('meeting_link', 'N/A')}")
+            
+            # Step 4: Login as Zazou
+            self.log("=== STEP 4: Login as Zazou ===")
+            zazou_login_data = {
+                "email": zazou_student["email"],
+                "password": student_password
+            }
+            
+            response = self.make_request("POST", "/auth/login", zazou_login_data)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Zazou login failed", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            data = response.json()
+            zazou_token = data["access_token"]
+            zazou_info = data["user"]
+            self.log(f"✅ Zazou login successful: {zazou_info['name']}")
+            
+            # Step 5: Confirm session as Zazou
+            self.log("=== STEP 5: Confirming Session as Zazou ===")
+            validation_data = {"status": "confirmed"}
+            
+            response = self.make_request(
+                "PATCH", 
+                f"/sessions/{created_session_id}/validate", 
+                validation_data, 
+                zazou_token
+            )
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to confirm session", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            confirmed_session = response.json()
+            self.log(f"✅ Session confirmed successfully:")
+            self.log(f"   Status: {confirmed_session['status']}")
+            self.log(f"   Validated at: {confirmed_session.get('validated_at', 'N/A')}")
+            
+            # Step 6: Verify final session state
+            self.log("=== STEP 6: Final Verification ===")
+            response = self.make_request("GET", "/sessions", token=zazou_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions for verification", "ERROR")
+                return False
+            
+            sessions = response.json()
+            final_session = None
+            
+            for session in sessions:
+                if session["id"] == created_session_id:
+                    final_session = session
+                    break
+            
+            if not final_session:
+                self.log("❌ Created session not found in verification", "ERROR")
+                return False
+            
+            self.log("✅ Final Session Details:")
+            self.log(f"   ID: {final_session['id']}")
+            self.log(f"   Subject: {final_session['subject']}")
+            self.log(f"   Date: {final_session['date']}")
+            self.log(f"   Time: {final_session['start_time']} - {final_session['end_time']}")
+            self.log(f"   Duration: {final_session.get('duration_hours', 0)} hours")
+            self.log(f"   Status: {final_session['status']}")
+            self.log(f"   Meeting Link: {final_session.get('meeting_link', 'N/A')}")
+            
+            # Verify all expected conditions
+            self.log("=== VERIFICATION CHECKS ===")
+            checks = []
+            checks.append(("Élève Zazou found", zazou_student is not None))
+            checks.append(("Session created with meeting_link", final_session.get('meeting_link') == "https://meet.google.com/test-zazou-terciform"))
+            checks.append(("Session confirmed by Zazou", final_session['status'] == 'confirmed'))
+            checks.append(("Session date = 2025-11-02", final_session['date'] == '2025-11-02'))
+            checks.append(("Session time = 10:00-11:00", final_session['start_time'] == '10:00' and final_session['end_time'] == '11:00'))
+            checks.append(("Session subject = Seance Test Visio", final_session['subject'] == 'Seance Test Visio'))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Show final results as requested
+            self.log("=== FINAL RESULTS ===")
+            self.log(f"Zazou Details:")
+            self.log(f"   ID: {zazou_student['id']}")
+            self.log(f"   Email: {zazou_student['email']}")
+            self.log(f"   Password: {student_password}")
+            self.log(f"Session Details:")
+            self.log(f"   ID: {final_session['id']}")
+            self.log(f"   Date: {final_session['date']}")
+            self.log(f"   Time: {final_session['start_time']} - {final_session['end_time']}")
+            self.log(f"   Meeting Link: {final_session.get('meeting_link', 'N/A')}")
+            
+            if all_passed:
+                self.log("🎉 ZAZOU VISIO SESSION TEST COMPLETED SUCCESSFULLY!")
+            else:
+                self.log("❌ Some verification checks failed", "ERROR")
+            
+            # Cleanup
+            self.log("=== CLEANUP ===")
+            self.log("Deleting test session...")
+            response = self.make_request("DELETE", f"/sessions/{created_session_id}", token=self.teacher_token)
+            if response and response.status_code == 200:
+                self.log("✅ Test session deleted")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            return False
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
