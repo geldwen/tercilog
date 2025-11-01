@@ -557,6 +557,8 @@ async def update_student(student_id: str, data: dict, current_user: User = Depen
         update_data["organism"] = data["organism"]
     if "support_type" in data:
         update_data["support_type"] = data["support_type"]
+    if "session_type" in data:
+        update_data["session_type"] = data["session_type"]
     if "start_date" in data:
         update_data["start_date"] = data["start_date"]
     if "end_date" in data:
