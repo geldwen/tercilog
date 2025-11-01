@@ -172,6 +172,53 @@ def send_email(to_email: str, subject: str, html_body: str):
         logger.error(f"Failed to send email: {e}")
         return False
 
+
+def send_attendance_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str):
+    """Envoyer l'email d'émargement après la fin de séance"""
+    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
+    
+    html_body = f"""
+    <html>
+      <head>
+        <style>
+          body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+          .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+          .header {{ background-color: #1e3a5f; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
+          .content {{ background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }}
+          .button {{ display: inline-block; background-color: #1e3a5f; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }}
+          .footer {{ text-align: center; margin-top: 20px; font-size: 12px; color: #666; }}
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>TerciForm - Émargement de séance</h2>
+          </div>
+          <div class="content">
+            <p>Bonjour {student_name},</p>
+            <p>Vous venez d'assister à la séance suivante :</p>
+            <ul>
+              <li><strong>Matière :</strong> {subject}</li>
+              <li><strong>Date :</strong> {date}</li>
+              <li><strong>Horaires :</strong> {start_time} - {end_time}</li>
+            </ul>
+            <p><strong>Merci d'effectuer l'émargement relatif à cette séance en cliquant sur le bouton ci-dessous.</strong></p>
+            <p style="color: #d9534f;"><strong>⚠️ Attention :</strong> Vous avez 2 heures après la fin de la séance pour émarger.</p>
+            <div style="text-align: center;">
+              <a href="{frontend_url}" class="button">Accéder à mon espace et émarger</a>
+            </div>
+          </div>
+          <div class="footer">
+            <p>Cet email a été envoyé automatiquement par TerciForm</p>
+          </div>
+        </div>
+      </body>
+    </html>
+    """
+    
+    return send_email(to_email, "TerciForm - Émargement de séance", html_body)
+
+
 # Routes
 @api_router.post("/auth/register", response_model=User)
 async def register(user_data: UserCreate):
