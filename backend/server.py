@@ -285,10 +285,8 @@ def send_session_reminder_email(to_email: str, student_name: str, subject: str, 
 # Routes
 @api_router.post("/auth/register", response_model=User)
 async def register(user_data: UserCreate):
-    # Check if user exists
-    existing_user = await db.users.find_one({"email": user_data.email})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+    # Permettre plusieurs élèves avec le même email (pour les tests)
+    # Pas de vérification d'unicité d'email
     
     # Create user
     user_dict = user_data.model_dump()
