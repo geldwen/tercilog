@@ -318,7 +318,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Attendance Email Button Link Verification"
+    - "URGENT - Correction séance 'teste de français KAKA' pour émargement"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
