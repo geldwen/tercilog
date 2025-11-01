@@ -628,13 +628,14 @@ export default function TeacherDashboard({ user, onLogout }) {
                     <div className="space-y-2">
                       <Label>À qui voulez-vous l'envoyer ?</Label>
                       <Input 
-                        type="email"
-                        placeholder="email@exemple.com" 
+                        type="text"
+                        placeholder="email1@exemple.com, email2@exemple.com" 
                         value={pdfEmail} 
                         onChange={(e) => setPdfEmail(e.target.value)} 
                         required 
                       />
-                      <p className="text-xs text-gray-500">Le PDF contiendra les séances du mois sélectionné avec les informations de présentation (sans émargement)</p>
+                      <p className="text-xs text-gray-500">💡 Séparez plusieurs emails par des virgules</p>
+                      <p className="text-xs text-gray-500">Le PDF contiendra les séances du mois avec les informations (sans émargement)</p>
                     </div>
                     <Button type="submit" className="w-full text-white" style={{ backgroundColor: '#DC143C' }}>
                       <FileText className="w-4 h-4 mr-2" />
