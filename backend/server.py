@@ -223,6 +223,64 @@ def send_attendance_email(to_email: str, student_name: str, subject: str, date: 
     return send_email(to_email, "TerciForm - Émargement de séance", html_body)
 
 
+
+def send_session_reminder_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str, meeting_link: str = ""):
+    """Envoyer l'email de rappel 5 minutes avant la séance"""
+    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
+    
+    meeting_section = ""
+    if meeting_link:
+        meeting_section = f"""
+        <div style="background-color: #e8f0f7; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <p style="margin: 0; font-weight: bold; color: #1e3a5f;">🎥 Visioconférence</p>
+          <p style="margin: 10px 0 0 0;">Vous pouvez rejoindre la séance depuis votre espace élève ou directement via ce lien :</p>
+          <div style="text-align: center; margin-top: 15px;">
+            <a href="{meeting_link}" class="button" style="background-color: #28a745;">Rejoindre la visioconférence</a>
+          </div>
+        </div>
+        """
+    
+    html_body = f"""
+    <html>
+      <head>
+        <style>
+          body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+          .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+          .header {{ background-color: #1e3a5f; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
+          .content {{ background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }}
+          .button {{ display: inline-block; background-color: #1e3a5f; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 10px; }}
+          .footer {{ text-align: center; margin-top: 20px; font-size: 12px; color: #666; }}
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>⏰ TerciForm - Rappel de séance</h2>
+          </div>
+          <div class="content">
+            <p>Bonjour {student_name},</p>
+            <p style="font-size: 18px; color: #1e3a5f; font-weight: bold;">Votre séance commence dans 5 minutes !</p>
+            <ul>
+              <li><strong>Matière :</strong> {subject}</li>
+              <li><strong>Date :</strong> {date}</li>
+              <li><strong>Horaires :</strong> {start_time} - {end_time}</li>
+            </ul>
+            {meeting_section}
+            <div style="text-align: center; margin-top: 20px;">
+              <a href="{frontend_url}" class="button">Accéder à mon espace élève</a>
+            </div>
+          </div>
+          <div class="footer">
+            <p>Cet email a été envoyé automatiquement par TerciForm</p>
+          </div>
+        </div>
+      </body>
+    </html>
+    """
+    
+    return send_email(to_email, "⏰ TerciForm - Votre séance commence dans 5 minutes", html_body)
+
+
 # Routes
 @api_router.post("/auth/register", response_model=User)
 async def register(user_data: UserCreate):
