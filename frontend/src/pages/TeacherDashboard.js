@@ -345,7 +345,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucune séance</CardContent></Card>
               ) : (
                 groupedSessionsList.map((group, idx) => (
-                  <Card key={idx} className="border-0 shadow-md card-hover">
+                  <Card key={idx} className="shadow-md card-hover border-2" style={{ borderColor: TERCIFORM_BLUE }}>
                     <CardContent className="pt-6">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
@@ -361,8 +361,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                           <p className="text-sm font-medium text-gray-700 mb-2">Élèves :</p>
                           <div className="space-y-2">
                             {group.sessions.map(session => (
-                              <div key={session.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
-                                <div className="flex items-center gap-3 flex-1 flex-wrap">
+                              <div key={session.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg border" style={{ borderColor: TERCIFORM_BLUE }}>
+                                <div className="flex items-center gap-3 flex-wrap">
                                   <span className="font-medium text-gray-900">{session.student_name}</span>
                                   {session.status === 'confirmed' && session.validated_at && (
                                     <span className="text-xs text-green-700 font-medium">
