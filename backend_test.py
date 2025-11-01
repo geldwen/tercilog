@@ -967,6 +967,8 @@ def main():
             success = tester.test_ghizzo_credit_hours_correction()
         elif sys.argv[1] == "islem":
             success = tester.test_islem_signature_session()
+        elif sys.argv[1] == "zazou":
+            success = tester.test_zazou_visio_session()
         else:
             success = tester.run_full_test()
     else:
