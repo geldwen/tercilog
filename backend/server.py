@@ -500,6 +500,31 @@ async def resend_session_email(session_id: str, current_user: User = Depends(get
     return {"message": "Email resent"}
 
 
+@api_router.post("/sessions/{session_id}/resend-attendance-email")
+async def resend_attendance_email(session_id: str, current_user: User = Depends(get_current_user)):
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session_doc:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Envoyer l'email d'émargement
+    email_sent = send_attendance_email(
+        session_doc['student_email'],
+        session_doc['student_name'],
+        session_doc['subject'],
+        session_doc['date'],
+        session_doc['start_time'],
+        session_doc['end_time']
+    )
+    
+    if not email_sent:
+        raise HTTPException(status_code=500, detail="Failed to send email")
+    
+    return {"message": "Attendance email resent"}
+
+
 @api_router.put("/students/{student_id}")
 async def update_student(student_id: str, data: dict, current_user: User = Depends(get_current_user)):
     if current_user.role != "teacher":
