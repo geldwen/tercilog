@@ -1561,6 +1561,8 @@ def main():
             success = tester.test_add_google_meet_links_to_islem_sessions()
         elif sys.argv[1] == "student-debug":
             success = tester.test_student_creation_debug()
+        elif sys.argv[1] == "attendance-email":
+            success = tester.test_attendance_email_verification()
         else:
             success = tester.run_full_test()
     else:
