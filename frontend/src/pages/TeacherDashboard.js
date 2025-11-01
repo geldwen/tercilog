@@ -188,6 +188,30 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+
+  const handleSendPdf = (student) => {
+    setPdfStudent(student);
+    setPdfEmail(student.email); // Pré-remplir avec l'email de l'élève
+    setShowSendPdfDialog(true);
+  };
+
+  const handleSendPdfSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/students/${pdfStudent.id}/send-planning-pdf`, {
+        month: selectedMonth,
+        recipient_email: pdfEmail
+      });
+      toast.success("Planning PDF envoyé avec succès !");
+      setShowSendPdfDialog(false);
+      setPdfStudent(null);
+      setPdfEmail('');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erreur lors de l'envoi du PDF");
+    }
+  };
+
+
   const getStatusBadge = (status) => {
     const cfg = { pending: { label: "En attente", icon: AlertCircle, className: "status-badge status-pending" }, confirmed: { label: "Confirmée", icon: CheckCircle, className: "status-badge status-confirmed" }, rejected: { label: "Refusée", icon: XCircle, className: "status-badge status-rejected" } };
     const c = cfg[status] || cfg.pending;
