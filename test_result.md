@@ -117,6 +117,18 @@ backend:
           agent: "testing"
           comment: "✅ Teacher login/register working correctly. Successfully created and authenticated teacher account."
 
+  - task: "Ghizzo Test Credit Hours Correction"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ Successfully corrected Ghizzo Test credit hours from -5h to 25h. Verified: Total hours = 30h, Signed sessions = 3 (5h total), Remaining credit = 25h. Math verification: 30h - 5h = 25h ✓. PUT /api/students/{id} endpoint working correctly for credit hours updates."
+
   - task: "Student Creation API"
     implemented: true
     working: true
