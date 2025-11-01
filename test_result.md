@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Corriger les heures de l'élève Ghizzo Test qui affiche -5h au lieu de 25h restantes"
+user_problem_statement: "URGENT - Correction de la séance 'teste de français KAKA' - L'email est envoyé mais la séance n'apparaît pas dans l'espace élève pour émargement"
 
 backend:
   - task: "Teacher Authentication System"
