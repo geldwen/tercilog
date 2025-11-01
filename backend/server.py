@@ -748,6 +748,62 @@ async def get_stats(current_user: User = Depends(get_current_user), month: Optio
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
+
+
+@api_router.post("/sessions/check-session-reminders")
+async def check_and_send_session_reminders():
+    """Vérifier les séances qui commencent dans 5 minutes et envoyer les rappels"""
+    now = datetime.now(timezone.utc)
+    
+    # Récupérer toutes les séances confirmées qui n'ont pas encore commencé
+    sessions = await db.sessions.find({
+        "status": "confirmed",
+        "reminder_email_sent": {"$ne": True}
+    }, {"_id": 0}).to_list(1000)
+    
+    emails_sent = 0
+    for session_doc in sessions:
+        try:
+            # Construire la date et heure de début de séance
+            session_datetime_str = f"{session_doc['date']}T{session_doc['start_time']}:00"
+            session_start = datetime.fromisoformat(session_datetime_str)
+            
+            # Make session_start timezone-aware (assume UTC if no timezone)
+            if session_start.tzinfo is None:
+                session_start = session_start.replace(tzinfo=timezone.utc)
+            
+            # Calculer le temps restant avant le début
+            time_until_start = (session_start - now).total_seconds() / 60  # en minutes
+            
+            # Si la séance commence dans moins de 5 minutes et plus de 0 minutes
+            if 0 < time_until_start <= 5:
+                logger.info(f"Session {session_doc['id']} starts in {time_until_start:.1f} minutes. Sending reminder...")
+                
+                # Envoyer l'email de rappel
+                email_sent = send_session_reminder_email(
+                    session_doc['student_email'],
+                    session_doc['student_name'],
+                    session_doc['subject'],
+                    session_doc['date'],
+                    session_doc['start_time'],
+                    session_doc['end_time'],
+                    session_doc.get('meeting_link', '')
+                )
+                
+                if email_sent:
+                    # Marquer l'email comme envoyé
+                    await db.sessions.update_one(
+                        {"id": session_doc['id']},
+                        {"$set": {"reminder_email_sent": True}}
+                    )
+                    emails_sent += 1
+                    logger.info(f"Reminder email sent for session {session_doc['id']}")
+        except Exception as e:
+            logger.error(f"Error processing session {session_doc.get('id')}: {e}")
+            continue
+    
+    return {"message": f"{emails_sent} reminder emails sent"}
+
     # Get current month if not specified
     if not month:
         now = datetime.now(timezone.utc)
