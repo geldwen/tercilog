@@ -53,6 +53,11 @@ class User(BaseModel):
     credit_hours: float = 0.0
     total_hours: float = 0.0
     plain_password: str = ""  # Mot de passe en clair pour l'email
+    phone: str = ""
+    organism: str = ""
+    support_type: str = ""
+    start_date: str = ""
+    end_date: str = ""
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserCreate(BaseModel):
@@ -62,6 +67,11 @@ class UserCreate(BaseModel):
     role: str
     credit_hours: float = 0.0
     total_hours: float = 0.0
+    phone: str = ""
+    organism: str = ""
+    support_type: str = ""
+    start_date: str = ""
+    end_date: str = ""
 
 class UserLogin(BaseModel):
     email: EmailStr
