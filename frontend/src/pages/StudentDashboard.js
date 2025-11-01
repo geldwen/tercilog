@@ -308,6 +308,18 @@ export default function StudentDashboard({ user, onLogout }) {
                         </div>
                       </div>
 
+                      {session.meeting_link && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <Button
+                            onClick={() => window.open(session.meeting_link, '_blank')}
+                            className="w-full text-white h-12 font-medium"
+                            style={{ backgroundColor: TERCIFORM_BLUE }}
+                          >
+                            🎥 Rejoindre la séance (Visioconférence)
+                          </Button>
+                        </div>
+                      )}
+
                       <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                         <p className="text-sm text-red-800 font-medium">
                           ⚠️ Important : En cas d'absence d'une séance validée, les heures de formation seront perdues.
