@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Créer un élève de test et une séance pour tester le système d'émargement par signature numérique"
+user_problem_statement: "Corriger les heures de l'élève Ghizzo Test qui affiche -5h au lieu de 25h restantes"
 
 backend:
   - task: "Teacher Authentication System"
