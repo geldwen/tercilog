@@ -438,7 +438,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                       {session.signature && session.signed_at && (
                                         <div className="flex items-center gap-2">
                                           <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
-                                            ✓ Émargé le {formatDateWithDay(session.signed_at)}
+                                            ✓ Émargé le {formatDateTimeWithDay(session.signed_at)}
                                           </span>
                                           <img 
                                             src={session.signature} 
