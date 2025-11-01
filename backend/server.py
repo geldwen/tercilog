@@ -198,7 +198,7 @@ def send_attendance_email(to_email: str, student_name: str, subject: str, date: 
           .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
           .header {{ background-color: #1e3a5f; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
           .content {{ background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }}
-          .button {{ display: inline-block; background-color: #1e3a5f; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }}
+          .button {{ display: inline-block; background-color: #1e3a5f; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }}
           .footer {{ text-align: center; margin-top: 20px; font-size: 12px; color: #666; }}
         </style>
       </head>
@@ -218,7 +218,7 @@ def send_attendance_email(to_email: str, student_name: str, subject: str, date: 
             <p><strong>Merci d'effectuer l'émargement relatif à cette séance en cliquant sur le bouton ci-dessous.</strong></p>
             <p style="color: #d9534f;"><strong>⚠️ Attention :</strong> Vous avez 2 heures après la fin de la séance pour émarger.</p>
             <div style="text-align: center;">
-              <a href="{frontend_url}" class="button">Accéder à mon espace et émarger</a>
+              <a href="{frontend_url}" class="button" style="color: white; text-decoration: none;">Accéder à mon espace et émarger</a>
             </div>
           </div>
           <div class="footer">
