@@ -190,44 +190,63 @@ def send_attendance_email(to_email: str, student_name: str, subject: str, date: 
     """Envoyer l'email d'émargement après la fin de séance"""
     frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
     
-    html_body = f"""
-    <html>
-      <head>
-        <style>
-          body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-          .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-          .header {{ background-color: #1e3a5f; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
-          .content {{ background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }}
-          .button {{ display: inline-block; background-color: #1e3a5f; color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }}
-          .footer {{ text-align: center; margin-top: 20px; font-size: 12px; color: #666; }}
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h2>TerciForm - Émargement de séance</h2>
-          </div>
-          <div class="content">
-            <p>Bonjour {student_name},</p>
-            <p>Vous venez d'assister à la séance suivante :</p>
-            <ul>
-              <li><strong>Matière :</strong> {subject}</li>
-              <li><strong>Date :</strong> {date}</li>
-              <li><strong>Horaires :</strong> {start_time} - {end_time}</li>
-            </ul>
-            <p><strong>Merci d'effectuer l'émargement relatif à cette séance en cliquant sur le bouton ci-dessous.</strong></p>
-            <p style="color: #d9534f;"><strong>⚠️ Attention :</strong> Vous avez 2 heures après la fin de la séance pour émarger.</p>
-            <div style="text-align: center;">
-              <a href="{frontend_url}" class="button" style="color: white; text-decoration: none;">Accéder à mon espace et émarger</a>
-            </div>
-          </div>
-          <div class="footer">
-            <p>Cet email a été envoyé automatiquement par TerciForm</p>
-          </div>
-        </div>
-      </body>
-    </html>
-    """
+    html_body = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4; padding: 20px;">
+<tr>
+<td align="center">
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+<!-- Header -->
+<tr>
+<td style="background-color: #1e3a5f; color: #ffffff; padding: 30px; text-align: center;">
+<h2 style="margin: 0; font-size: 24px;">TerciForm - Émargement de séance</h2>
+</td>
+</tr>
+<!-- Content -->
+<tr>
+<td style="padding: 40px 30px;">
+<p style="margin: 0 0 20px 0; font-size: 16px;">Bonjour {student_name},</p>
+<p style="margin: 0 0 20px 0; font-size: 16px;">Vous venez d'assister à la séance suivante :</p>
+<ul style="margin: 0 0 20px 0; padding-left: 20px;">
+<li style="margin-bottom: 10px;"><strong>Matière :</strong> {subject}</li>
+<li style="margin-bottom: 10px;"><strong>Date :</strong> {date}</li>
+<li style="margin-bottom: 10px;"><strong>Horaires :</strong> {start_time} - {end_time}</li>
+</ul>
+<p style="margin: 0 0 20px 0; font-size: 16px;"><strong>Merci d'effectuer l'émargement relatif à cette séance en cliquant sur le bouton ci-dessous.</strong></p>
+<p style="margin: 0 0 30px 0; font-size: 14px; color: #d9534f;"><strong>⚠️ Attention :</strong> Vous avez 2 heures après la fin de la séance pour émarger.</p>
+<!-- Button -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td align="center" style="padding: 20px 0;">
+<table cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td align="center" style="background-color: #1e3a5f; border-radius: 5px;">
+<a href="{frontend_url}" target="_blank" style="display: inline-block; padding: 15px 40px; font-size: 16px; color: #ffffff; text-decoration: none; font-weight: bold;">Accéder à mon espace et émarger</a>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<!-- Footer -->
+<tr>
+<td style="background-color: #f9f9f9; padding: 20px; text-align: center;">
+<p style="margin: 0; font-size: 12px; color: #666;">Cet email a été envoyé automatiquement par TerciForm</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>"""
     
     return send_email(to_email, "TerciForm - Émargement de séance", html_body)
 
