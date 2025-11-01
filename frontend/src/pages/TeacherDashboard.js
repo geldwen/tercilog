@@ -152,6 +152,15 @@ export default function TeacherDashboard({ user, onLogout }) {
     return `${dayName} ${formatted}`;
   };
 
+  const formatDateTimeWithDay = (dateString) => {
+    const date = new Date(dateString);
+    const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    const dayName = days[date.getDay()];
+    const formatted = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return `${dayName} ${formatted} à ${time}`;
+  };
+
   const filteredSessions = sessions.filter(s => s.date.startsWith(selectedMonth));
 
   // Grouper par date + matière + horaire
