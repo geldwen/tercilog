@@ -613,6 +613,37 @@ export default function TeacherDashboard({ user, onLogout }) {
                   </form>
                 </DialogContent>
               </Dialog>
+
+
+              {/* Send PDF Dialog */}
+              <Dialog open={showSendPdfDialog} onOpenChange={setShowSendPdfDialog}>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Envoyer le planning en PDF</DialogTitle>
+                    <DialogDescription>
+                      {pdfStudent && `Planning de ${pdfStudent.name} pour le mois sélectionné`}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleSendPdfSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>À qui voulez-vous l'envoyer ?</Label>
+                      <Input 
+                        type="email"
+                        placeholder="email@exemple.com" 
+                        value={pdfEmail} 
+                        onChange={(e) => setPdfEmail(e.target.value)} 
+                        required 
+                      />
+                      <p className="text-xs text-gray-500">Le PDF contiendra les séances du mois sélectionné avec les informations de présentation (sans émargement)</p>
+                    </div>
+                    <Button type="submit" className="w-full text-white" style={{ backgroundColor: '#DC143C' }}>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Envoyer le PDF
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
             </div>
 
             <div className="grid gap-4">
