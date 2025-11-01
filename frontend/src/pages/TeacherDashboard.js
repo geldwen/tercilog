@@ -457,7 +457,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucun élève avec séances ce mois</CardContent></Card>
               ) : (
                 studentsWithSessionsThisMonth.map(student => {
-                  const studentSessions = sessions.filter(s => s.student_id === student.id);
+                  const studentSessions = sessions.filter(s => s.student_id === student.id && s.date.startsWith(selectedMonth));
                   return (
                     <Card key={student.id} className="border-0 shadow-md card-hover">
                       <CardContent className="pt-6">
