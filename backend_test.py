@@ -1416,6 +1416,8 @@ def main():
             success = tester.verify_zazou_existing_session()
         elif sys.argv[1] == "islem-meet":
             success = tester.test_add_google_meet_links_to_islem_sessions()
+        elif sys.argv[1] == "student-debug":
+            success = tester.test_student_creation_debug()
         else:
             success = tester.run_full_test()
     else:
