@@ -656,6 +656,18 @@ export default function TeacherDashboard({ user, onLogout }) {
                             <div className="flex items-center gap-3">
                               <div className="flex flex-col items-center gap-1">
                                 <Button 
+                                  onClick={() => handleSendPdf(student)} 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-white border-red-600 hover:bg-red-50"
+                                  style={{ backgroundColor: '#DC143C' }}
+                                >
+                                  <FileText className="w-4 h-4" />
+                                </Button>
+                                <span className="text-[10px] text-gray-500 text-center leading-tight">Envoyer<br/>en PDF</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-1">
+                                <Button 
                                   onClick={() => handleEditStudent(student)} 
                                   variant="outline" 
                                   size="sm" 
