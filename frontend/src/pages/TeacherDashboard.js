@@ -468,11 +468,16 @@ export default function TeacherDashboard({ user, onLogout }) {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
                                 <p><span className="font-medium">Email:</span> {student.email}</p>
                                 {student.phone && <p><span className="font-medium">Tél:</span> {student.phone}</p>}
-                                {student.start_date && <p><span className="font-medium">Date d'entrée:</span> {new Date(student.start_date).toLocaleDateString('fr-FR')}</p>}
-                                {student.end_date && <p><span className="font-medium">Date de sortie:</span> {new Date(student.end_date).toLocaleDateString('fr-FR')}</p>}
                                 {student.organism && <p><span className="font-medium">Organisme:</span> {student.organism}</p>}
                                 {student.support_type && <p><span className="font-medium">Prise en charge:</span> {student.support_type}</p>}
                                 {student.session_type && <p><span className="font-medium">Type de séance:</span> <span className="capitalize">{student.session_type}</span></p>}
+                                {(student.start_date || student.end_date) && (
+                                  <p>
+                                    {student.start_date && <><span className="font-medium">Entrée:</span> {new Date(student.start_date).toLocaleDateString('fr-FR')}</>}
+                                    {student.start_date && student.end_date && <span> - </span>}
+                                    {student.end_date && <><span className="font-medium">Sortie:</span> {new Date(student.end_date).toLocaleDateString('fr-FR')}</>}
+                                  </p>
+                                )}
                               </div>
                               <div className="flex items-center gap-3 mt-3">
                                 <div className="px-4 py-2 rounded-lg text-white" style={{ backgroundColor: TERCIFORM_BLUE }}>
