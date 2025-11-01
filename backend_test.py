@@ -1919,6 +1919,8 @@ def main():
             success = tester.test_student_creation_debug()
         elif sys.argv[1] == "attendance-email":
             success = tester.test_attendance_email_verification()
+        elif sys.argv[1] == "kaka-urgent":
+            success = tester.test_urgent_kaka_session_correction()
         else:
             success = tester.run_full_test()
     else:
