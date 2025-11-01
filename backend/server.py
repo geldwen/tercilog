@@ -465,6 +465,38 @@ async def sign_session(session_id: str, signature_data: dict, current_user: User
     return Session(**session_doc)
 
 
+@api_router.put("/sessions/{session_id}")
+async def update_session(session_id: str, data: dict, current_user: User = Depends(get_current_user)):
+    """Mettre à jour une séance (ex: ajouter un lien visio)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Vérifier que la séance existe
+    session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session_doc:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Préparer les données de mise à jour
+    update_data = {}
+    if "meeting_link" in data:
+        update_data["meeting_link"] = data["meeting_link"]
+    if "subject" in data:
+        update_data["subject"] = data["subject"]
+    if "date" in data:
+        update_data["date"] = data["date"]
+    if "start_time" in data:
+        update_data["start_time"] = data["start_time"]
+    if "end_time" in data:
+        update_data["end_time"] = data["end_time"]
+    
+    # Mettre à jour la séance
+    await db.sessions.update_one({"id": session_id}, {"$set": update_data})
+    
+    # Récupérer la séance mise à jour
+    updated_session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    return Session(**updated_session)
+
+
 @api_router.post("/sessions/{session_id}/resend-email")
 async def resend_session_email(session_id: str, current_user: User = Depends(get_current_user)):
     if current_user.role != "teacher":
