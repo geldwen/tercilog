@@ -52,6 +52,80 @@ export default function StudentDashboard({ user, onLogout }) {
     }
   };
 
+
+  const openSignatureDialog = (session) => {
+    setCurrentSessionToSign(session);
+    setShowSignatureDialog(true);
+    setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    }, 100);
+  };
+
+  const startDrawing = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e) => {
+    if (!isDrawing) return;
+    
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clearSignature = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const saveSignature = async () => {
+    const canvas = canvasRef.current;
+    const signatureImage = canvas.toDataURL('image/png');
+    
+    try {
+      await axios.post(`${API}/sessions/${currentSessionToSign.id}/sign`, {
+        signature: signatureImage
+      });
+      
+      toast.success("Merci pour votre émargement, votre signature a été validée !");
+      setShowSignatureDialog(false);
+      setCurrentSessionToSign(null);
+      loadSessions();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erreur lors de l'enregistrement de la signature");
+    }
+  };
+
+  const sessionsToSign = sessions.filter(s => s.signature_status === "pending" && !s.signature);
+
+
   const pendingSessions = sessions.filter((s) => s.status === "pending");
   const confirmedSessions = sessions.filter((s) => s.status === "confirmed");
   const rejectedSessions = sessions.filter((s) => s.status === "rejected");
