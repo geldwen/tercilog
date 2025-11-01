@@ -625,7 +625,7 @@ class TerciFormTester:
             # Step 4: Login as Islem
             self.log("=== STEP 4: Login as Islem ===")
             islem_login_data = {
-                "email": "terciform@gmail.com",
+                "email": islem_student["email"],  # Use the actual email found
                 "password": "Test2024!"
             }
             
