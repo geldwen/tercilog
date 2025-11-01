@@ -977,37 +977,54 @@ class TerciFormTester:
             sessions = response.json()
             self.log(f"Found {len(sessions)} total sessions")
             
-            # Step 3: Find session with subject "Seance Test Visio" or any Zazou session
-            self.log("=== STEP 3: Searching for Zazou Sessions ===")
+            # Step 3: Comprehensive search for Zazou sessions
+            self.log("=== STEP 3: Comprehensive Search for Zazou Sessions ===")
             zazou_session = None
             zazou_sessions = []
+            visio_session = None
             
-            # First look for exact match "Seance Test Visio"
+            # Search through all sessions
             for session in sessions:
-                if session.get("subject") == "Seance Test Visio":
-                    zazou_session = session
-                    self.log(f"✅ Found exact match 'Seance Test Visio' session")
-                    break
-            
-            # If not found, look for any session with student name containing "zazou"
-            if not zazou_session:
-                self.log("'Seance Test Visio' not found, searching for any Zazou sessions...")
-                for session in sessions:
-                    student_name = session.get('student_name', '').lower()
-                    if 'zazou' in student_name:
-                        zazou_sessions.append(session)
-                        self.log(f"Found Zazou session: {session.get('subject')} - {session.get('date')} - {session.get('student_name')}")
+                student_name = session.get('student_name', '').lower()
+                subject = session.get('subject', '').lower()
                 
-                if zazou_sessions:
-                    # Use the most recent Zazou session
-                    zazou_session = zazou_sessions[-1]  # Get the last one (most recent)
+                # Look for exact match "Seance Test Visio"
+                if session.get("subject") == "Seance Test Visio":
+                    visio_session = session
+                    self.log(f"✅ Found exact match 'Seance Test Visio' session")
+                
+                # Look for any session with student name containing "zazou"
+                if 'zazou' in student_name:
+                    zazou_sessions.append(session)
+                    self.log(f"Found Zazou session: {session.get('subject')} - {session.get('date')} - {session.get('student_name')} - Meeting Link: '{session.get('meeting_link', 'N/A')}'")
+                
+                # Also look for sessions with "visio" or "test" in subject for Zazou
+                if 'zazou' in student_name and ('visio' in subject or 'test' in subject):
+                    self.log(f"Found potential visio session for Zazou: {session.get('subject')} - {session.get('date')}")
+            
+            # Prioritize the exact match first
+            if visio_session:
+                zazou_session = visio_session
+                self.log(f"✅ Using exact match 'Seance Test Visio' session")
+            elif zazou_sessions:
+                # Look for a session with meeting_link
+                for session in zazou_sessions:
+                    if session.get('meeting_link') and session.get('meeting_link').strip():
+                        zazou_session = session
+                        self.log(f"✅ Using Zazou session with meeting_link: {session.get('subject')}")
+                        break
+                
+                # If no session with meeting_link, use the most recent
+                if not zazou_session:
+                    zazou_session = zazou_sessions[-1]
                     self.log(f"✅ Using most recent Zazou session: {zazou_session.get('subject')}")
             
             if not zazou_session:
                 self.log("❌ No Zazou sessions found", "ERROR")
                 self.log("Available sessions:")
                 for i, session in enumerate(sessions, 1):
-                    self.log(f"   {i}. {session.get('subject', 'N/A')} - {session.get('date', 'N/A')} - Student: {session.get('student_name', 'N/A')}")
+                    meeting_link_info = f" - Meeting Link: '{session.get('meeting_link', 'N/A')}'" if session.get('meeting_link') else ""
+                    self.log(f"   {i}. {session.get('subject', 'N/A')} - {session.get('date', 'N/A')} - Student: {session.get('student_name', 'N/A')}{meeting_link_info}")
                 return False
             
             # Step 4: Display complete session details
