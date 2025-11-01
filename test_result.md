@@ -279,7 +279,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Ghizzo Test Credit Hours Correction"
+    - "Add Google Meet Links to Islem Sessions (No Email)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
