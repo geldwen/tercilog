@@ -235,7 +235,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 <div className="flex items-center gap-3 flex-1">
                                   <span className="font-medium text-gray-900">{session.student_name}</span>
                                   {getStatusBadge(session.status)}
-                                  {session.validated_at && <span className="text-xs text-gray-500">le {new Date(session.validated_at).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>}
+                                  {session.validated_at && <span className="text-xs text-gray-500">le {formatDateWithDay(session.validated_at)}</span>}
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Button onClick={() => handleResendEmail(session.id)} variant="outline" size="sm" className="text-blue-600 border-blue-300 hover:bg-blue-50"><Mail className="w-4 h-4" /></Button>
