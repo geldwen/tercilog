@@ -71,6 +71,7 @@ class UserCreate(BaseModel):
     phone: str = ""
     organism: str = ""
     support_type: str = ""
+    session_type: str = ""  # "distanciel" or "présentiel"
     start_date: str = ""
     end_date: str = ""
 
