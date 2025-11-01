@@ -234,6 +234,10 @@ async def register(user_data: UserCreate):
     user_dict['password_hash'] = hashed_password
     user_dict['plain_password'] = plain_password  # Stocker le mot de passe en clair
     
+    # Initialize credit_hours = total_hours for new students
+    if user_dict.get('role') == 'student' and 'total_hours' in user_dict:
+        user_dict['credit_hours'] = user_dict['total_hours']
+    
     user = User(**user_dict)
     doc = user.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
