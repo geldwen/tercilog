@@ -54,7 +54,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       await axios.post(`${API}/sessions`, sessionForm);
       toast.success("Séance créée et email envoyé !");
       setShowCreateSession(false);
-      setSessionForm({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48 });
+      setSessionForm({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48, meeting_link: "" });
       loadData(selectedMonth);
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur");
