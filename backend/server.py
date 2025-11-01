@@ -316,7 +316,8 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
         student_name=student['name'],
         student_email=student['email'],
         validation_deadline=deadline.isoformat(),
-        duration_hours=duration
+        duration_hours=duration,
+        meeting_link=session_data.meeting_link
     )
     
     doc = session.model_dump()
