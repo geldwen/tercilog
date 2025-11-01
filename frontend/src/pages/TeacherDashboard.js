@@ -275,9 +275,17 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   {getStatusBadge(session.status)}
                                   {session.validated_at && <span className="text-xs text-gray-500">le {formatDateWithDay(session.validated_at)}</span>}
                                   {session.signature && (
-                                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
-                                      ✓ Émargé
-                                    </span>
+                                    <>
+                                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                                        ✓ Émargé
+                                      </span>
+                                      <img 
+                                        src={session.signature} 
+                                        alt="Signature" 
+                                        className="h-10 border border-gray-300 rounded bg-white p-1 cursor-pointer hover:scale-150 transition-transform"
+                                        title="Signature de l'élève"
+                                      />
+                                    </>
                                   )}
                                   {session.signature_status === "pending" && !session.signature && (
                                     <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
@@ -291,14 +299,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   )}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  {session.signature && (
-                                    <img 
-                                      src={session.signature} 
-                                      alt="Signature" 
-                                      className="h-8 border border-gray-300 rounded cursor-pointer hover:scale-150 transition-transform"
-                                      title="Cliquez pour agrandir"
-                                    />
-                                  )}
                                   <Button onClick={() => handleResendEmail(session.id)} variant="outline" size="sm" className="text-blue-600 border-blue-300 hover:bg-blue-50"><Mail className="w-4 h-4" /></Button>
                                   <Button onClick={() => handleDeleteSession(session.id)} variant="outline" size="sm" className="text-red-600 border-red-300 hover:bg-red-50"><Trash2 className="w-4 h-4" /></Button>
                                 </div>
