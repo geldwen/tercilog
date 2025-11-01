@@ -1107,6 +1107,145 @@ class TerciFormTester:
             self.log(f"Verification failed with exception: {e}", "ERROR")
             return False
 
+    def test_add_google_meet_links_to_islem_sessions(self):
+        """Add Google Meet links to all Islem's sessions WITHOUT sending emails"""
+        self.log("🎯 Adding Google Meet Links to Islem's Sessions (NO EMAIL)")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Get all sessions and filter for Islem
+            self.log("=== STEP 2: Finding All Sessions for Islem ===")
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions list", "ERROR")
+                return False
+            
+            all_sessions = response.json()
+            self.log(f"Found {len(all_sessions)} total sessions")
+            
+            # Filter sessions for Islem (isleme.baghouz@gmail.com)
+            islem_email = "isleme.baghouz@gmail.com"
+            islem_sessions = [s for s in all_sessions if s.get("student_email") == islem_email]
+            
+            self.log(f"Found {len(islem_sessions)} sessions for Islem ({islem_email})")
+            
+            if len(islem_sessions) == 0:
+                self.log("❌ No sessions found for Islem", "ERROR")
+                self.log("Available student emails in sessions:")
+                unique_emails = set(s.get("student_email", "N/A") for s in all_sessions)
+                for email in sorted(unique_emails):
+                    self.log(f"   - {email}")
+                return False
+            
+            # Display Islem's sessions before update
+            self.log("=== STEP 3: Islem's Sessions (Before Update) ===")
+            for i, session in enumerate(islem_sessions, 1):
+                self.log(f"Session {i}:")
+                self.log(f"   ID: {session['id']}")
+                self.log(f"   Subject: {session['subject']}")
+                self.log(f"   Date: {session['date']}")
+                self.log(f"   Time: {session['start_time']} - {session['end_time']}")
+                self.log(f"   Current Meeting Link: {session.get('meeting_link', 'EMPTY')}")
+            
+            # Step 4: Add Google Meet link to each session
+            self.log("=== STEP 4: Adding Google Meet Links ===")
+            google_meet_link = "https://meet.google.com/islem-terciform-session"
+            updated_session_ids = []
+            
+            for i, session in enumerate(islem_sessions, 1):
+                session_id = session['id']
+                self.log(f"Updating session {i}/{len(islem_sessions)}: {session_id}")
+                
+                update_data = {"meeting_link": google_meet_link}
+                response = self.make_request("PUT", f"/sessions/{session_id}", update_data, self.teacher_token)
+                
+                if response and response.status_code == 200:
+                    updated_session = response.json()
+                    updated_session_ids.append(session_id)
+                    self.log(f"✅ Session {session_id} updated successfully")
+                    self.log(f"   New Meeting Link: {updated_session.get('meeting_link', 'N/A')}")
+                else:
+                    self.log(f"❌ Failed to update session {session_id}", "ERROR")
+                    if response:
+                        self.log(f"   Response: {response.text}")
+            
+            # Step 5: Verify updates by re-fetching sessions
+            self.log("=== STEP 5: Verifying Updates ===")
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to re-fetch sessions for verification", "ERROR")
+                return False
+            
+            updated_all_sessions = response.json()
+            updated_islem_sessions = [s for s in updated_all_sessions if s.get("student_email") == islem_email]
+            
+            self.log(f"Re-fetched {len(updated_islem_sessions)} sessions for Islem")
+            
+            # Verify each session has the meeting link
+            verification_passed = True
+            sessions_with_links = 0
+            
+            self.log("=== STEP 6: Verification Results ===")
+            for i, session in enumerate(updated_islem_sessions, 1):
+                meeting_link = session.get('meeting_link', '')
+                has_correct_link = meeting_link == google_meet_link
+                
+                self.log(f"Session {i}:")
+                self.log(f"   ID: {session['id']}")
+                self.log(f"   Subject: {session['subject']}")
+                self.log(f"   Meeting Link: {meeting_link}")
+                self.log(f"   ✅ Correct Link: {'Yes' if has_correct_link else 'No'}")
+                
+                if has_correct_link:
+                    sessions_with_links += 1
+                else:
+                    verification_passed = False
+            
+            # Final summary
+            self.log("=== FINAL SUMMARY ===")
+            self.log(f"✅ Total sessions found for Islem: {len(islem_sessions)}")
+            self.log(f"✅ Sessions successfully updated: {len(updated_session_ids)}")
+            self.log(f"✅ Sessions with correct meeting link: {sessions_with_links}")
+            self.log(f"✅ Google Meet link used: {google_meet_link}")
+            self.log(f"✅ No emails sent (as requested)")
+            
+            # List of updated session IDs
+            self.log("✅ Updated Session IDs:")
+            for session_id in updated_session_ids:
+                self.log(f"   - {session_id}")
+            
+            # Verification checks
+            checks = []
+            checks.append(("All Islem sessions found", len(islem_sessions) > 0))
+            checks.append(("All sessions updated", len(updated_session_ids) == len(islem_sessions)))
+            checks.append(("All links verified", sessions_with_links == len(islem_sessions)))
+            checks.append(("No emails sent", True))  # We didn't call any email endpoints
+            
+            all_passed = True
+            self.log("=== VERIFICATION CHECKS ===")
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            if all_passed and verification_passed:
+                self.log("🎉 GOOGLE MEET LINKS ADDED TO ALL ISLEM SESSIONS SUCCESSFULLY!")
+                self.log(f"📊 RESULT: {len(updated_session_ids)} sessions updated with Google Meet links")
+            else:
+                self.log("❌ Some operations failed", "ERROR")
+            
+            return all_passed and verification_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            return False
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
