@@ -56,6 +56,7 @@ class User(BaseModel):
     phone: str = ""
     organism: str = ""
     support_type: str = ""
+    session_type: str = ""  # "distanciel" or "présentiel"
     start_date: str = ""
     end_date: str = ""
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
