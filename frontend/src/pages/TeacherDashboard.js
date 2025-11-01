@@ -459,7 +459,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 studentsWithSessionsThisMonth.map(student => {
                   const studentSessions = sessions.filter(s => s.student_id === student.id && s.date.startsWith(selectedMonth));
                   return (
-                    <Card key={student.id} className="border-0 shadow-md card-hover">
+                    <Card key={student.id} className="shadow-md card-hover border-2" style={{ borderColor: TERCIFORM_BLUE }}>
                       <CardContent className="pt-6">
                         <div className="space-y-4">
                           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
