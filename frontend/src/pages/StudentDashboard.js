@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LogOut, BookOpen, MessageSquare, Download, FileText, TrendingUp, PenTool, CheckCircle } from "lucide-react";
+import { LogOut, BookOpen, MessageSquare, Download, FileText, TrendingUp, CheckCircle } from "lucide-react";
+import SignaturePad from "@/components/SignaturePad";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
