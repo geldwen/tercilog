@@ -194,6 +194,31 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="User not found")
     return User(**user)
 
+def format_fr_date(date_str: str) -> str:
+    """Format date to French format with full day name: mardi 04/11/2025"""
+    days_fr = {
+        'Monday': 'lundi', 'Tuesday': 'mardi', 'Wednesday': 'mercredi',
+        'Thursday': 'jeudi', 'Friday': 'vendredi', 'Saturday': 'samedi', 'Sunday': 'dimanche'
+    }
+    try:
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        day_name = days_fr.get(date_obj.strftime('%A'), date_obj.strftime('%A').lower())
+        return f"{day_name} {date_obj.strftime('%d/%m/%Y')}"
+    except:
+        return date_str
+
+def format_fr_datetime(dt: datetime) -> str:
+    """Format datetime to French format: mardi 04/11/2025 14:30"""
+    days_fr = {
+        'Monday': 'lundi', 'Tuesday': 'mardi', 'Wednesday': 'mercredi',
+        'Thursday': 'jeudi', 'Friday': 'vendredi', 'Saturday': 'samedi', 'Sunday': 'dimanche'
+    }
+    try:
+        day_name = days_fr.get(dt.strftime('%A'), dt.strftime('%A').lower())
+        return f"{day_name} {dt.strftime('%d/%m/%Y %H:%M')}"
+    except:
+        return str(dt)
+
 def send_email(to_email: str, subject: str, html_body: str):
     """Send email using Gmail SMTP"""
     try:
