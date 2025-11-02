@@ -352,16 +352,8 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
     # Calculate deadline
     deadline = datetime.now(timezone.utc) + timedelta(hours=session_data.validation_deadline_hours)
     
-    # Calculate session end time and signature deadline (2 hours after session end)
-    try:
-        session_datetime_str = f"{session_data.date}T{session_data.end_time}:00"
-        session_end = datetime.fromisoformat(session_datetime_str)
-        signature_deadline = session_end + timedelta(hours=2)
-    except:
-        # Default to 2 hours from now if date parsing fails
-        signature_deadline = datetime.now(timezone.utc) + timedelta(hours=2)
-    
-    # Create session with signature_status set to "pending" by default
+    # Create session - signature_status remains "not_required" until session ends
+    # The automatic script will set it to "pending" after session end time
     session = Session(
         subject=session_data.subject,
         date=session_data.date,
@@ -372,9 +364,7 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
         student_email=student['email'],
         validation_deadline=deadline.isoformat(),
         duration_hours=duration,
-        meeting_link=session_data.meeting_link,
-        signature_status="pending",
-        signature_deadline=signature_deadline.isoformat()
+        meeting_link=session_data.meeting_link
     )
     
     doc = session.model_dump()
