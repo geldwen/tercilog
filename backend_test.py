@@ -2797,15 +2797,24 @@ class TerciFormTester:
             
             students = response.json()
             
-            # Look for Islem or Eloise
+            # Look for Islem or Eloise (prioritize Islem)
             target_student = None
             target_emails = ["isleme.baghouz@gmail.com", "eloise.ruiz.rodriguez@gmail.com"]
             
+            # First try to find Islem
             for student in students:
-                if student["email"] in target_emails:
+                if student["email"] == "isleme.baghouz@gmail.com":
                     target_student = student
                     self.log(f"✅ Found target student: {student['name']} ({student['email']})")
                     break
+            
+            # If Islem not found, try Eloise
+            if not target_student:
+                for student in students:
+                    if student["email"] == "eloise.ruiz.rodriguez@gmail.com":
+                        target_student = student
+                        self.log(f"✅ Found target student: {student['name']} ({student['email']})")
+                        break
             
             if not target_student:
                 self.log("❌ Neither Islem nor Eloise found", "ERROR")
