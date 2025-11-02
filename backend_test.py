@@ -1896,6 +1896,246 @@ class TerciFormTester:
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_signature_status_correction_system(self):
+        """Test the corrected signature status system - comprehensive test for all 4 scenarios"""
+        self.log("🚨 Testing Corrected Signature Status System - All Scenarios")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Find existing student (use Ghizzo as specified in review)
+            self.log("=== STEP 2: Finding Existing Student ===")
+            response = self.make_request("GET", "/students", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get students list", "ERROR")
+                return False
+            
+            students = response.json()
+            test_student = None
+            
+            # Look for Ghizzo or any existing student
+            for student in students:
+                if "ghizzo" in student["email"].lower() or "ghizzo" in student["name"].lower():
+                    test_student = student
+                    break
+            
+            if not test_student and students:
+                # Use first available student
+                test_student = students[0]
+                self.log(f"Using first available student: {test_student['name']}")
+            
+            if not test_student:
+                self.log("❌ No students found in database", "ERROR")
+                return False
+            
+            self.log(f"✅ Using student:")
+            self.log(f"   ID: {test_student['id']}")
+            self.log(f"   Name: {test_student['name']}")
+            self.log(f"   Email: {test_student['email']}")
+            
+            # TEST 1: Session creation with signature_status="pending" by default
+            self.log("=== TEST 1: Session Creation with signature_status='pending' ===")
+            now = datetime.now(timezone.utc)
+            session_data = {
+                "subject": "Test Émargement Auto",
+                "date": "2025-11-02",  # Today as specified
+                "start_time": "13:00",
+                "end_time": "14:00",
+                "student_id": test_student["id"],
+                "validation_deadline_hours": 48
+            }
+            
+            self.log(f"Creating session:")
+            self.log(f"   Subject: {session_data['subject']}")
+            self.log(f"   Date: {session_data['date']}")
+            self.log(f"   Time: {session_data['start_time']} - {session_data['end_time']}")
+            
+            response = self.make_request("POST", "/sessions", session_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create session", "ERROR")
+                return False
+            
+            created_session = response.json()
+            session_id = created_session["id"]
+            
+            # Verify TEST 1 results
+            test1_checks = []
+            test1_checks.append(("signature_status = 'pending'", created_session.get('signature_status') == 'pending'))
+            test1_checks.append(("signature_deadline defined", created_session.get('signature_deadline') is not None))
+            
+            self.log("TEST 1 Results:")
+            test1_passed = True
+            for check_name, passed in test1_checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    test1_passed = False
+            
+            # TEST 2: Session validation and signature_status update
+            self.log("=== TEST 2: Session Validation (status='confirmed') ===")
+            
+            # Login as student first
+            student_password = test_student.get('plain_password', 'ghi1234')  # Default for Ghizzo
+            student_login_data = {
+                "email": test_student["email"],
+                "password": student_password
+            }
+            
+            response = self.make_request("POST", "/auth/login", student_login_data)
+            if not response or response.status_code != 200:
+                self.log("❌ Student login failed", "ERROR")
+                return False
+            
+            student_token = response.json()["access_token"]
+            self.log(f"✅ Student logged in successfully")
+            
+            # Confirm session
+            validation_data = {"status": "confirmed"}
+            response = self.make_request(
+                "PATCH", 
+                f"/sessions/{session_id}/validate", 
+                validation_data, 
+                student_token
+            )
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to confirm session", "ERROR")
+                return False
+            
+            confirmed_session = response.json()
+            
+            # Verify TEST 2 results
+            test2_checks = []
+            test2_checks.append(("status = 'confirmed'", confirmed_session.get('status') == 'confirmed'))
+            test2_checks.append(("signature_status = 'pending'", confirmed_session.get('signature_status') == 'pending'))
+            test2_checks.append(("signature_deadline defined", confirmed_session.get('signature_deadline') is not None))
+            
+            self.log("TEST 2 Results:")
+            test2_passed = True
+            for check_name, passed in test2_checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    test2_passed = False
+            
+            # TEST 3: Student space visibility (sessions with signature_status="pending")
+            self.log("=== TEST 3: Student Space Visibility ===")
+            
+            response = self.make_request("GET", "/sessions", token=student_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get student sessions", "ERROR")
+                return False
+            
+            student_sessions = response.json()
+            pending_sessions = [s for s in student_sessions if s.get('signature_status') == 'pending']
+            
+            test3_checks = []
+            test3_checks.append(("Sessions with signature_status='pending' present", len(pending_sessions) > 0))
+            test3_checks.append(("Created session visible to student", any(s['id'] == session_id for s in pending_sessions)))
+            
+            self.log("TEST 3 Results:")
+            self.log(f"   Found {len(pending_sessions)} sessions with signature_status='pending'")
+            test3_passed = True
+            for check_name, passed in test3_checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    test3_passed = False
+            
+            # TEST 4: Manual resend attendance email
+            self.log("=== TEST 4: Manual Resend Attendance Email ===")
+            
+            response = self.make_request(
+                "POST", 
+                f"/sessions/{session_id}/resend-attendance-email", 
+                token=self.teacher_token
+            )
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to resend attendance email", "ERROR")
+                return False
+            
+            # Verify session state after resend
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions after resend", "ERROR")
+                return False
+            
+            all_sessions = response.json()
+            updated_session = None
+            for session in all_sessions:
+                if session['id'] == session_id:
+                    updated_session = session
+                    break
+            
+            if not updated_session:
+                self.log("❌ Session not found after resend", "ERROR")
+                return False
+            
+            test4_checks = []
+            test4_checks.append(("signature_status = 'pending'", updated_session.get('signature_status') == 'pending'))
+            test4_checks.append(("attendance_email_sent = True", updated_session.get('attendance_email_sent') == True))
+            test4_checks.append(("signature_deadline defined", updated_session.get('signature_deadline') is not None))
+            
+            self.log("TEST 4 Results:")
+            test4_passed = True
+            for check_name, passed in test4_checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    test4_passed = False
+            
+            # Final verification summary
+            self.log("=== FINAL VERIFICATION SUMMARY ===")
+            all_tests_passed = test1_passed and test2_passed and test3_passed and test4_passed
+            
+            final_checks = []
+            final_checks.append(("TEST 1: Session creation with signature_status='pending'", test1_passed))
+            final_checks.append(("TEST 2: Session validation maintains signature_status='pending'", test2_passed))
+            final_checks.append(("TEST 3: Sessions visible in student space", test3_passed))
+            final_checks.append(("TEST 4: Manual resend updates signature_status", test4_passed))
+            
+            for check_name, passed in final_checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+            
+            # Show final session state
+            self.log("=== FINAL SESSION STATE ===")
+            self.log(f"Session ID: {updated_session['id']}")
+            self.log(f"Subject: {updated_session['subject']}")
+            self.log(f"Status: {updated_session['status']}")
+            self.log(f"Signature Status: {updated_session.get('signature_status', 'N/A')}")
+            self.log(f"Signature Deadline: {updated_session.get('signature_deadline', 'N/A')}")
+            self.log(f"Attendance Email Sent: {updated_session.get('attendance_email_sent', False)}")
+            
+            # Cleanup
+            self.log("=== CLEANUP ===")
+            response = self.make_request("DELETE", f"/sessions/{session_id}", token=self.teacher_token)
+            if response and response.status_code == 200:
+                self.log("✅ Test session deleted")
+            
+            if all_tests_passed:
+                self.log("🎉 ALL SIGNATURE STATUS CORRECTION TESTS PASSED!")
+                self.log("✅ Toute nouvelle séance créée a signature_status='pending'")
+                self.log("✅ Toute séance confirmée garde signature_status='pending'")
+                self.log("✅ Le renvoi manuel actualise signature_status='pending'")
+                self.log("✅ Les séances apparaissent dans l'espace élève pour émargement")
+            else:
+                self.log("❌ Some signature status correction tests failed", "ERROR")
+            
+            return all_tests_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
