@@ -976,61 +976,6 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
     doc.build(story)
     buffer.seek(0)
     return buffer
-        
-        # Table des séances (compacte)
-        session_data = [['Date', 'Matière', 'Horaires', 'Durée', 'Statut']]
-        
-        for session in sorted(sessions, key=lambda x: x.get('date', '')):
-            date_obj = datetime.fromisoformat(session['date'])
-            days_fr = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-            day_name = days_fr[date_obj.weekday()]
-            date_str = f"{day_name} {date_obj.strftime('%d/%m')}"
-            
-            # Raccourcir les noms de matières longs
-            subject = session.get('subject', '')
-            if len(subject) > 20:
-                # Raccourcir intelligemment
-                if 'position' in subject.lower():
-                    subject = 'Test po.'
-                elif 'anglais' in subject.lower():
-                    subject = subject[:20]
-                else:
-                    subject = subject[:17] + '...'
-            
-            status_map = {'confirmed': 'Conf.', 'rejected': 'Ref.', 'pending': 'Att.'}
-            status = status_map.get(session.get('status', 'pending'), 'Att.')
-            
-            session_data.append([
-                date_str,
-                subject,
-                f"{session.get('start_time', '')} - {session.get('end_time', '')}",
-                f"{session.get('duration_hours', 0)}h",
-                status
-            ])
-        
-        session_table = Table(session_data, colWidths=[0.9*inch, 2*inch, 1.5*inch, 0.6*inch, 0.6*inch])
-        session_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a5f')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 9),
-            ('FONTSIZE', (0, 1), (-1, -1), 8),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('LEFTPADDING', (0, 0), (-1, -1), 4),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
-            ('TOPPADDING', (0, 0), (-1, -1), 3),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
-        ]))
-        story.append(session_table)
-    else:
-        story.append(Paragraph("Aucune séance programmée pour ce mois.", styles['Normal']))
-    
-    # Build PDF
-    doc.build(story)
-    buffer.seek(0)
-    return buffer
 
 
 def generate_attendance_pdf_single_session(session: dict) -> io.BytesIO:
