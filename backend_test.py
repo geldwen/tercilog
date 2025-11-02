@@ -3367,10 +3367,13 @@ class TerciFormTester:
             response = self.make_request("PATCH", f"/sessions/{session_id}/confirm-presence", {}, student_token)
             
             # Check if we got the expected error message for double confirmation
-            self.log(f"   DEBUG: response.text = {response.text if response else 'None'}")
-            self.log(f"   DEBUG: checking for 'Présence déjà confirmée' in response.text")
+            stored_text = getattr(response, '_stored_text', None) if response else None
+            stored_status = getattr(response, '_stored_status_code', None) if response else None
             
-            if response and "Présence déjà confirmée" in response.text:
+            self.log(f"   DEBUG: stored_text = {stored_text}")
+            self.log(f"   DEBUG: stored_status = {stored_status}")
+            
+            if response and stored_status == 400 and stored_text and "Présence déjà confirmée" in stored_text:
                 self.log("✅ Double confirmation correctly prevented (400 error)")
                 try:
                     error_detail = response.json().get('detail', 'No detail')
