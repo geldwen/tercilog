@@ -107,6 +107,8 @@ class Session(BaseModel):
     validation_deadline: Optional[str] = None
     validated_at: Optional[str] = None
     duration_hours: float = 0.0
+    confirmation_status: str = "pending"  # none, pending, confirmed
+    confirmation_at: Optional[str] = None  # Horodatage de la confirmation de présence
     signature: Optional[str] = None  # Base64 image de la signature élève
     signed_at: Optional[str] = None  # Horodatage de l'émargement élève
     signature_status: str = "not_required"  # not_required, pending, signed, expired
