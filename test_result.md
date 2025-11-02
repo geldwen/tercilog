@@ -335,6 +335,18 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ TEACHER SIGNATURE SYSTEM COMPREHENSIVE TEST COMPLETED: Successfully tested all 6 scenarios from review request. TEST 1 - Session creation: ✅ teacher_signature_status='scheduled' by default. TEST 2 - Automatic script processing: ✅ Both signature_status='pending' and teacher_signature_status='pending' after session end. TEST 3 - Manual resend: ✅ Both signatures set to 'pending' correctly. TEST 4 - Teacher signature: ✅ PATCH /api/sessions/{id}/teacher-sign endpoint working - creates teacher_signature, teacher_signed_at, and sets teacher_signature_status='signed'. TEST 5 - Double signature prevention: ✅ Returns 400 'Teacher already signed this session' when attempting to sign twice. TEST 6 - Complete session: ✅ Both student and teacher signatures present with both signature statuses = 'signed'. BACKEND FIX APPLIED: Fixed /api/sessions/check-attendance-emails endpoint to set teacher_signature_status='pending' (was missing). All teacher signature functionality working correctly - ready for production use."
+  
+  - task: "PDF Generation Layout Refinements"
+    implemented: true
+    working: "unknown"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "PDF GENERATION COMPREHENSIVE REFINEMENTS APPLIED: Fixed all layout and formatting issues as per detailed specifications. CHANGES: 1) HEADER: Verified Flowable Table header with logo (~140px) + title (16pt bold right-aligned) + Spacer(0,12) already implemented correctly, 2) NO HTML TAGS: Removed all raw HTML tags (<b>, <i>) from all three PDF functions - now using Paragraph with proper styles (fontName='Helvetica-Bold', fontName='Helvetica-Oblique'), 3) FIXED COLUMNS: Verified correct percentages - Planning (Date 18% | Matière 38% | Horaires 14% | Durée 10% | Statut 20%), Parcours émargé (Date 18% | Matière 38% | Durée 10% | Élève 17% | Formateur 17%), 4) WORD-WRAP: Added wordWrap='CJK' to cell_style for proper text wrapping in Matière and Statut columns, 5) FR DATE FORMAT: Ensured consistent 'Sam 01/11/2025' format and full status text ('Confirmée', 'En attente', 'Refusée'), 6) PLANNING TOTALS: Added TOTAUX row at bottom of Planning table showing total hours and session count (no 'heures restantes'), 7) SIGNATURE TIMESTAMPS: Verified format 'Émargé le DD/MM/YYYY HH:mm' for both student and teacher signatures in Parcours émargé with base64 images (max 100×30px), 8) PAGE NUMBERS: Added footer with 'Page X' centered at bottom (30pt from bottom), 9) MARGINS: Verified A4 margins L/R 36pt, Top 72pt, Bottom 54pt, 10) REPEATROWS(1): Already implemented for table headers on multi-page PDFs, 11) SORT: Ensured all sessions sorted by ascending date. PDF generation functions: generate_student_planning_pdf (Planning), generate_attendance_pdf_month (Parcours émargé), generate_attendance_pdf_single_session (single justificatif). Ready for user validation."
     implemented: true
     working: "NA"
     file: "N/A"
