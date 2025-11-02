@@ -2994,6 +2994,8 @@ def main():
             success = tester.test_new_signature_status_system()
         elif sys.argv[1] == "teacher-signature":
             success = tester.test_teacher_signature_system()
+        elif sys.argv[1] == "pdf-generation":
+            success = tester.test_pdf_generation_comprehensive()
         else:
             success = tester.run_full_test()
     else:
