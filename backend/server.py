@@ -1137,7 +1137,7 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
     styles = getSampleStyleSheet()
     normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=9)
     bold_style = ParagraphStyle('Bold', parent=styles['Normal'], fontSize=10, fontName='Helvetica-Bold')
-    cell_style = ParagraphStyle('CellStyle', parent=styles['Normal'], fontSize=9, leading=11)
+    cell_style = ParagraphStyle('CellStyle', parent=styles['Normal'], fontSize=9, leading=11, wordWrap='CJK')
     small_style = ParagraphStyle('SmallStyle', parent=styles['Normal'], fontSize=7, textColor=colors.grey)
     
     story = []
@@ -1146,7 +1146,7 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
     story.append(build_header(f"Parcours émargé — {student['name']}"))
     story.append(Spacer(0, 12))
     
-    # Filtre + tri
+    # Filtre + tri par date croissante
     if not include_unsigned:
         sessions = [s for s in sessions if s.get('signature_status') == 'signed' or s.get('teacher_signature_status') == 'signed']
     
@@ -1166,7 +1166,7 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
         # Mapping
         days_fr = {'Mon': 'Lun', 'Tue': 'Mar', 'Wed': 'Mer', 'Thu': 'Jeu', 'Fri': 'Ven', 'Sat': 'Sam', 'Sun': 'Dim'}
         
-        # Colonnes
+        # Colonnes - Parcours émargé: Date 18% | Matière 38% | Durée 10% | Élève 17% | Formateur 17%
         col_widths = [
             0.18 * doc.width,
             0.38 * doc.width,
@@ -1186,7 +1186,7 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
         ]]
         
         for session in sessions_sorted:
-            # Date FR
+            # Date FR - format: Sam 01/11/2025
             try:
                 date_obj = datetime.strptime(session.get('date', ''), '%Y-%m-%d')
                 day_abbr_fr = days_fr.get(date_obj.strftime('%a'), date_obj.strftime('%a'))
@@ -1194,10 +1194,10 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
             except:
                 date_formatted = session.get('date', '')
             
-            # Matière
+            # Matière avec Paragraph pour wrap
             matiere = Paragraph(session.get('subject', ''), cell_style)
             
-            # Signature élève
+            # Signature élève - images base64 avec timestamp
             if session.get('signature') and session.get('signed_at'):
                 try:
                     sig_data = session['signature'].split(',')[1] if ',' in session['signature'] else session['signature']
@@ -1207,16 +1207,18 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
                     temp_sig_path = f"/tmp/sig_e_{session.get('id', 'x')[:8]}.png"
                     sig_img.save(temp_sig_path)
                     
+                    # Image signature max ~100×30 px avec ratio
                     sig_rl = Image(temp_sig_path, width=100, height=30, kind='proportional')
+                    # Format: Émargé le DD/MM/YYYY HH:mm
                     signed_date = datetime.fromisoformat(session['signed_at']).strftime('%d/%m/%Y %H:%M')
                     
                     eleve_cell = [sig_rl, Paragraph(f"Émargé le {signed_date}", small_style)]
-                except:
+                except Exception as e:
                     eleve_cell = Paragraph("Non signé", ParagraphStyle('Red', parent=cell_style, textColor=colors.red))
             else:
                 eleve_cell = Paragraph("Non signé", ParagraphStyle('Red', parent=cell_style, textColor=colors.red))
             
-            # Signature formateur
+            # Signature formateur - images base64 avec timestamp
             if session.get('teacher_signature') and session.get('teacher_signed_at'):
                 try:
                     sig_data = session['teacher_signature'].split(',')[1] if ',' in session['teacher_signature'] else session['teacher_signature']
@@ -1226,11 +1228,13 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
                     temp_sig_path = f"/tmp/sig_f_{session.get('id', 'x')[:8]}.png"
                     sig_img.save(temp_sig_path)
                     
+                    # Image signature max ~100×30 px avec ratio
                     sig_rl = Image(temp_sig_path, width=100, height=30, kind='proportional')
+                    # Format: Émargé le DD/MM/YYYY HH:mm
                     signed_date = datetime.fromisoformat(session['teacher_signed_at']).strftime('%d/%m/%Y %H:%M')
                     
                     formateur_cell = [sig_rl, Paragraph(f"Émargé le {signed_date}", small_style)]
-                except:
+                except Exception as e:
                     formateur_cell = Paragraph("Non signé", ParagraphStyle('Red', parent=cell_style, textColor=colors.red))
             else:
                 formateur_cell = Paragraph("Non signé", ParagraphStyle('Red', parent=cell_style, textColor=colors.red))
@@ -1259,11 +1263,16 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
         ]))
         story.append(sessions_table)
     
-    story.append(Spacer(0, 12))
-    generation_time = datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M')
-    story.append(Paragraph(f"Document généré le {generation_time} (UTC)", ParagraphStyle('Footer', parent=styles['Normal'], fontSize=7, textColor=colors.grey, alignment=2)))
+    # Footer avec numéro de page
+    def add_page_number(canvas, doc):
+        canvas.saveState()
+        page_num = canvas.getPageNumber()
+        canvas.setFont('Helvetica', 8)
+        canvas.setFillColor(colors.grey)
+        canvas.drawCentredString(A4[0]/2, 30, f"Page {page_num}")
+        canvas.restoreState()
     
-    doc.build(story)
+    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
     buffer.seek(0)
     return buffer
 
