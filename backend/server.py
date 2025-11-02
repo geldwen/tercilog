@@ -1406,11 +1406,11 @@ async def get_session_attendance_pdf(session_id: str, current_user: User = Depen
 @api_router.post("/students/{student_id}/attendance-pdf")
 async def get_student_attendance_pdf_month(
     student_id: str, 
-    month: str,
+    month: str = "",
     include_unsigned: bool = False,
     current_user: User = Depends(get_current_user)
 ):
-    """Récupérer le PDF de justificatifs d'émargement pour un mois complet"""
+    """Récupérer le PDF de justificatifs d'émargement pour TOUT le parcours"""
     from fastapi.responses import StreamingResponse
     
     if current_user.role != "teacher":
@@ -1421,16 +1421,15 @@ async def get_student_attendance_pdf_month(
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     
-    # Récupérer les séances du mois
+    # Récupérer TOUTES les séances du parcours (pas de filtre par mois)
     sessions = await db.sessions.find({
-        "student_id": student_id,
-        "date": {"$regex": f"^{month}"}
-    }, {"_id": 0}).to_list(100)
+        "student_id": student_id
+    }, {"_id": 0}).to_list(1000)
     
     # Générer le PDF
     pdf_buffer = generate_attendance_pdf_month(student, sessions, month, include_unsigned)
     
-    filename = f"parcours_emarge_{student.get('name', 'student')}_{month}.pdf"
+    filename = f"parcours_emarge_{student.get('name', 'student')}.pdf"
     
     return StreamingResponse(
         pdf_buffer,
