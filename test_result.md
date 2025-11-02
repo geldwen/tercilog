@@ -383,8 +383,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Student Dashboard Enhancement - 3 Tabs Navigation"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
