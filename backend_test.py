@@ -3363,13 +3363,18 @@ class TerciFormTester:
             
             if response and response.status_code == 400:
                 self.log("✅ Double confirmation correctly prevented (400 error)")
-                self.log(f"   Error message: {response.json().get('detail', 'No detail')}")
+                try:
+                    error_detail = response.json().get('detail', 'No detail')
+                    self.log(f"   Error message: {error_detail}")
+                except:
+                    self.log(f"   Error response: {response.text}")
+                double_confirmation_prevented = True
             else:
                 self.log("❌ Double confirmation should have been prevented", "ERROR")
                 if response:
                     self.log(f"   Unexpected status: {response.status_code}")
                     self.log(f"   Response: {response.text}")
-                return False
+                double_confirmation_prevented = False
             
             # Step 7: Verify session model updates
             self.log("=== STEP 7: Verifying Session Model Updates ===")
