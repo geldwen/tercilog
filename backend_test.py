@@ -2161,10 +2161,13 @@ def main():
             success = tester.test_attendance_email_verification()
         elif sys.argv[1] == "kaka-urgent":
             success = tester.test_urgent_kaka_session_correction()
+        elif sys.argv[1] == "signature-correction":
+            success = tester.test_signature_status_correction_system()
         else:
             success = tester.run_full_test()
     else:
-        success = tester.run_full_test()
+        # Run signature correction test by default (as per review request)
+        success = tester.test_signature_status_correction_system()
     
     if success:
         print("\n" + "="*50)
