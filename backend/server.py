@@ -425,32 +425,10 @@ async def validate_session(session_id: str, validation: SessionValidate, current
     
     validated_at = datetime.now(timezone.utc).isoformat()
     
-    # Prepare update data
-    update_data = {
-        "status": validation.status,
-        "validated_at": validated_at
-    }
-    
-    # If session is confirmed, ensure signature_status is "pending" and deadline is set
-    if validation.status == "confirmed":
-        # Calculate session end time and signature deadline if not already set
-        if not session_doc.get('signature_deadline'):
-            try:
-                session_datetime_str = f"{session_doc['date']}T{session_doc['end_time']}:00"
-                session_end = datetime.fromisoformat(session_datetime_str)
-                signature_deadline = session_end + timedelta(hours=2)
-                update_data["signature_deadline"] = signature_deadline.isoformat()
-            except:
-                # Default to 2 hours from now if date parsing fails
-                signature_deadline = datetime.now(timezone.utc) + timedelta(hours=2)
-                update_data["signature_deadline"] = signature_deadline.isoformat()
-        
-        # Ensure signature_status is "pending" for confirmed sessions
-        update_data["signature_status"] = "pending"
-    
+    # Update session status - signature_status will be set by automatic script after session ends
     await db.sessions.update_one(
         {"id": session_id},
-        {"$set": update_data}
+        {"$set": {"status": validation.status, "validated_at": validated_at}}
     )
     
     # Note: Credit hours are now deducted only when session is signed (attendance signature)
