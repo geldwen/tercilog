@@ -340,13 +340,18 @@ export default function StudentDashboard({ user, onLogout }) {
     if (session.teacher_signature_status === 'signed' && session.teacher_signature) {
       const signDate = session.teacher_signed_at ? formatFrDateTime(session.teacher_signed_at) : '';
       return (
-        <div className="flex flex-col items-start gap-1">
-          <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-purple-100 text-purple-800">
-            ✓ Signé
-          </span>
-          {session.teacher_signature && (
-            <img src={session.teacher_signature} alt="Signature formateur" className="h-6 max-w-[100px]" />
-          )}
+        <div className="flex flex-col gap-1">
+          <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-800 border border-purple-300 text-sm px-3 py-1 rounded-md">
+            <CheckCircle size={16} />
+            <span>Signé</span>
+            {session.teacher_signature && (
+              <img 
+                src={session.teacher_signature} 
+                alt="Signature formateur" 
+                style={{ maxHeight: '24px', objectFit: 'contain', marginLeft: '8px' }}
+              />
+            )}
+          </div>
           <span className="text-xs text-gray-600">Émargé le {signDate} — par le formateur</span>
         </div>
       );
