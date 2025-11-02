@@ -883,6 +883,53 @@ export default function TeacherDashboard({ user, onLogout }) {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Dialog de signature formateur */}
+      <Dialog open={showTeacherSignatureDialog} onOpenChange={setShowTeacherSignatureDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Émargement Formateur</DialogTitle>
+            <DialogDescription>
+              Veuillez signer avec votre souris ou votre doigt dans le cadre ci-dessous
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white">
+              <canvas
+                ref={canvasRef}
+                width={600}
+                height={200}
+                className="cursor-crosshair w-full"
+                style={{ touchAction: 'none' }}
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+                onTouchEnd={stopDrawing}
+                onTouchCancel={stopDrawing}
+              />
+            </div>
+            <div className="flex gap-3">
+              <Button
+                onClick={clearTeacherSignature}
+                variant="outline"
+                className="flex-1"
+              >
+                Effacer
+              </Button>
+              <Button
+                onClick={saveTeacherSignature}
+                className="flex-1 text-white"
+                style={{ backgroundColor: '#6B2E6F' }}
+              >
+                Valider la signature
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
