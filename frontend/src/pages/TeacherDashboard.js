@@ -594,7 +594,19 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     >
                                       <PenTool className="w-4 h-4" />
                                     </Button>
-                                    <span className="text-[10px] text-gray-500 text-center leading-tight">Renvoyer<br/>émargement</span>
+                                    <span className="text-[10px] text-gray-500 text-center leading-tight">Renvoyer<br/>émargement élève</span>
+                                  </div>
+                                  <div className="flex flex-col items-center gap-1">
+                                    <Button 
+                                      onClick={() => openTeacherSignatureDialog(session)} 
+                                      variant="outline" 
+                                      size="sm" 
+                                      style={{ color: '#6B2E6F', borderColor: '#d1a7d4' }}
+                                      className="hover:bg-purple-50"
+                                    >
+                                      <PenTool className="w-4 h-4 rotate-180" />
+                                    </Button>
+                                    <span className="text-[10px] text-gray-500 text-center leading-tight">Émargement<br/>professeur</span>
                                   </div>
                                   <div className="flex flex-col items-center gap-1">
                                     <Button 
