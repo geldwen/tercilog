@@ -599,7 +599,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     onClick={() => handleResendAttendanceEmail(session.id)} 
                                     variant="outline" 
                                     size="sm" 
-                                    className="w-full flex items-center justify-center gap-2 text-orange-600 border-orange-300 hover:bg-orange-50 rounded-lg py-2"
+                                    className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-orange-600 border-orange-300 hover:bg-orange-50"
                                   >
                                     <PenTool className="w-4 h-4" />
                                     Renvoyer émargement élève
@@ -609,7 +609,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     variant="outline" 
                                     size="sm" 
                                     style={{ color: '#6B2E6F', borderColor: '#d1a7d4' }}
-                                    className="w-full flex items-center justify-center gap-2 hover:bg-purple-50 rounded-lg py-2"
+                                    className="w-full py-2 rounded-md flex items-center justify-center gap-2 hover:bg-purple-50"
                                   >
                                     <PenTool className="w-4 h-4 rotate-180" />
                                     Émargement professeur
@@ -618,7 +618,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     onClick={() => handleEditSession(session)} 
                                     variant="outline" 
                                     size="sm" 
-                                    className="w-full flex items-center justify-center gap-2 text-green-600 border-green-300 hover:bg-green-50 rounded-lg py-2"
+                                    className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-green-600 border-green-300 hover:bg-green-50"
                                   >
                                     <Edit className="w-4 h-4" />
                                     Modifier
@@ -627,7 +627,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     onClick={() => handleDeleteSession(session.id)} 
                                     variant="outline" 
                                     size="sm" 
-                                    className="w-full flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50 rounded-lg py-2"
+                                    className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                     Supprimer
