@@ -309,8 +309,17 @@ backend:
           agent: "testing"
           comment: "✅ NEW SIGNATURE STATUS SYSTEM FULLY TESTED AND WORKING: Successfully tested all 5 scenarios according to the corrected requirements. TEST 1 - Session Creation: ✅ signature_status='not_required' by default ✅ signature_deadline not defined ✅ attendance_email_sent=False. TEST 2 - Session Validation: ✅ status='confirmed' ✅ signature_status stays 'not_required' (unchanged) ✅ No email sent at confirmation stage. TEST 3 - Past Session Processing: ✅ Automatic script processes sessions after end_time ✅ signature_status changes to 'pending' ONLY after session ends ✅ attendance_email_sent=True ✅ signature_deadline defined (end_time + 2h). TEST 4 - Manual Resend: ✅ Works anytime (even for future sessions) ✅ Forces signature_status='pending' ✅ attendance_email_sent=True ✅ signature_deadline defined. TEST 5 - Student Space Visibility: ✅ ONLY sessions with signature_status='pending' appear for attendance ✅ Sessions with signature_status='not_required' do NOT appear for signing. ATTENDANCE SERVICE: ✅ Running continuously every 2 minutes (PID 850, uptime 24+ minutes) ✅ Processes past sessions correctly. SYSTEM WORKING AS DESIGNED: Email d'émargement envoyé SEULEMENT après la fin de séance, signature_status='pending' SEULEMENT après end_time OU renvoi manuel, renvoi manuel fonctionne à tout moment, espace élève affiche SEULEMENT les séances avec signature_status='pending'."
 
-frontend:
-  - task: "Frontend Integration Testing"
+  - task: "Teacher Signature System"
+    implemented: true
+    working: "unknown"
+    file: "server.py, TeacherDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "TEACHER SIGNATURE SYSTEM IMPLEMENTED: Added complete teacher signature functionality alongside existing student signature. BACKEND: 1) Added teacher_signature, teacher_signed_at, teacher_signature_status fields to Session model, 2) Created PATCH /api/sessions/{id}/teacher-sign endpoint for teacher signature, 3) Updated check_attendance.py to set teacher_signature_status='pending' after session end, 4) Updated resend-attendance-email endpoint to set both signatures to pending. FRONTEND: 1) Added signature canvas dialog for teachers (reuses student signature component logic), 2) Touch support for mobile (touchAction: none + touch events), 3) Compact display of student signature line: '✓ Émargé le {date} — par l'élève', 4) Purple/prune display for teacher signature: '✓ Émargé le {date} — par le formateur' (#6B2E6F), 5) Renamed button 'Renvoyer émargement' to 'Renvoyer émargement élève', 6) Added new button 'Émargement professeur' with purple styling and flipped PenTool icon. LOGIC: teacher_signature_status transitions: scheduled → pending (after session end) → signed (after teacher signs). Session complete when both student and teacher have signed."
     implemented: true
     working: "NA"
     file: "N/A"
