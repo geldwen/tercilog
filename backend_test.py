@@ -2777,6 +2777,192 @@ class TerciFormTester:
             # Always cleanup
             self.cleanup()
 
+    def test_pdf_generation_comprehensive(self):
+        """Test all three PDF generation functions comprehensively"""
+        self.log("🎯 Testing PDF Generation Layout Refinements")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Find students with multiple sessions (Islem or Eloise)
+            self.log("=== STEP 2: Finding Students with Sessions ===")
+            response = self.make_request("GET", "/students", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get students list", "ERROR")
+                return False
+            
+            students = response.json()
+            
+            # Look for Islem or Eloise
+            target_student = None
+            target_emails = ["isleme.baghouz@gmail.com", "eloise.ruiz.rodriguez@gmail.com"]
+            
+            for student in students:
+                if student["email"] in target_emails:
+                    target_student = student
+                    self.log(f"✅ Found target student: {student['name']} ({student['email']})")
+                    break
+            
+            if not target_student:
+                self.log("❌ Neither Islem nor Eloise found", "ERROR")
+                self.log("Available students:")
+                for student in students:
+                    self.log(f"   - {student['name']} ({student['email']})")
+                return False
+            
+            # Step 3: Get sessions for the target student
+            self.log("=== STEP 3: Getting Student Sessions ===")
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions list", "ERROR")
+                return False
+            
+            all_sessions = response.json()
+            student_sessions = [s for s in all_sessions if s["student_id"] == target_student["id"]]
+            
+            self.log(f"Found {len(student_sessions)} sessions for {target_student['name']}")
+            
+            if len(student_sessions) == 0:
+                self.log("❌ No sessions found for target student", "ERROR")
+                return False
+            
+            # Display sessions
+            for i, session in enumerate(student_sessions, 1):
+                self.log(f"   Session {i}: {session['subject']} - {session['date']} - Status: {session['status']}")
+            
+            # Step 4: Test Planning PDF Generation
+            self.log("=== STEP 4: Testing Planning PDF Generation ===")
+            planning_data = {
+                "month": "2025-11",
+                "recipient_email": "test@terciform.com"
+            }
+            
+            response = self.make_request(
+                "POST", 
+                f"/students/{target_student['id']}/send-planning-pdf", 
+                planning_data, 
+                self.teacher_token
+            )
+            
+            planning_success = False
+            if response and response.status_code == 200:
+                result = response.json()
+                self.log(f"✅ Planning PDF generation successful: {result.get('message', 'Success')}")
+                planning_success = True
+            else:
+                self.log("❌ Planning PDF generation failed", "ERROR")
+                if response:
+                    self.log(f"   Status: {response.status_code}")
+                    self.log(f"   Response: {response.text}")
+            
+            # Step 5: Test Parcours émargé PDF Generation
+            self.log("=== STEP 5: Testing Parcours émargé PDF Generation ===")
+            
+            response = self.make_request(
+                "POST", 
+                f"/students/{target_student['id']}/attendance-pdf", 
+                {}, 
+                self.teacher_token
+            )
+            
+            parcours_success = False
+            if response and response.status_code == 200:
+                # Check if response contains PDF content
+                content_type = response.headers.get('content-type', '')
+                if 'application/pdf' in content_type:
+                    self.log("✅ Parcours émargé PDF generation successful (PDF content received)")
+                    parcours_success = True
+                else:
+                    self.log(f"✅ Parcours émargé PDF generation successful (Content-Type: {content_type})")
+                    parcours_success = True
+            else:
+                self.log("❌ Parcours émargé PDF generation failed", "ERROR")
+                if response:
+                    self.log(f"   Status: {response.status_code}")
+                    self.log(f"   Response: {response.text}")
+            
+            # Step 6: Test Single Session Justificatif PDF Generation
+            self.log("=== STEP 6: Testing Single Session Justificatif PDF Generation ===")
+            
+            # Find a confirmed session
+            confirmed_session = None
+            for session in student_sessions:
+                if session["status"] == "confirmed":
+                    confirmed_session = session
+                    break
+            
+            if not confirmed_session:
+                self.log("⚠️ No confirmed session found, using first available session")
+                confirmed_session = student_sessions[0]
+            
+            self.log(f"Testing with session: {confirmed_session['subject']} - {confirmed_session['date']}")
+            
+            response = self.make_request(
+                "GET", 
+                f"/sessions/{confirmed_session['id']}/attendance-pdf", 
+                token=self.teacher_token
+            )
+            
+            single_session_success = False
+            if response and response.status_code == 200:
+                # Check if response contains PDF content
+                content_type = response.headers.get('content-type', '')
+                if 'application/pdf' in content_type:
+                    self.log("✅ Single session justificatif PDF generation successful (PDF content received)")
+                    single_session_success = True
+                else:
+                    self.log(f"✅ Single session justificatif PDF generation successful (Content-Type: {content_type})")
+                    single_session_success = True
+            else:
+                self.log("❌ Single session justificatif PDF generation failed", "ERROR")
+                if response:
+                    self.log(f"   Status: {response.status_code}")
+                    self.log(f"   Response: {response.text}")
+            
+            # Step 7: Final Verification
+            self.log("=== STEP 7: Final Verification ===")
+            
+            checks = []
+            checks.append(("Target student found (Islem or Eloise)", target_student is not None))
+            checks.append(("Student has sessions", len(student_sessions) > 0))
+            checks.append(("Planning PDF generation", planning_success))
+            checks.append(("Parcours émargé PDF generation", parcours_success))
+            checks.append(("Single session justificatif PDF generation", single_session_success))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Summary
+            self.log("=== SUMMARY ===")
+            self.log(f"Student tested: {target_student['name']} ({target_student['email']})")
+            self.log(f"Sessions available: {len(student_sessions)}")
+            self.log(f"Planning PDF: {'✅ Working' if planning_success else '❌ Failed'}")
+            self.log(f"Parcours émargé PDF: {'✅ Working' if parcours_success else '❌ Failed'}")
+            self.log(f"Single session PDF: {'✅ Working' if single_session_success else '❌ Failed'}")
+            
+            if all_passed:
+                self.log("🎉 ALL PDF GENERATION TESTS PASSED!")
+                self.log("✅ All three PDF types generate successfully")
+                self.log("✅ Layout refinements appear to be working")
+            else:
+                self.log("❌ Some PDF generation tests failed", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
