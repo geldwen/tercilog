@@ -291,11 +291,14 @@ backend:
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: true
           agent: "testing"
           comment: "🚨 URGENT CORRECTION COMPLETED: Successfully corrected the session 'français kaka' for attendance signature (émargement). Found session ID: 93f6412d-e72c-42d6-b6d4-5e4fd8410eef, Subject: 'français kaka', Student: kaka (ghizzo.j@gmail.com), Date: 2025-11-01, Time: 12:30-13:30, Status: confirmed. PROBLEM IDENTIFIED: signature_status was 'not_required' instead of 'pending'. CORRECTION APPLIED: Updated signature_status from 'not_required' to 'pending' and set signature_deadline to '2025-11-02T23:59:59+00:00' using PUT /api/sessions/{session_id} endpoint. VERIFICATION PASSED: ✅ Session found ✅ signature_status = 'pending' ✅ signature_deadline defined. The session 'teste de français KAKA' should now appear in the student space for attendance signature. Issue resolved - when teacher clicks 'Renvoyer émargement', the session will now be visible to the student for signing."
+        - working: "unknown"
+          agent: "main"
+          comment: "User reported: sessions no longer send automatically nor on demand, and they don't appear in student space anymore. ROOT CAUSE FIX: Fixed signature_status default value - was 'not_required' by default, now set to 'pending' at session creation. Updated: 1) POST /api/sessions to set signature_status='pending' and signature_deadline at creation, 2) PATCH /api/sessions/{id}/validate to ensure signature_status='pending' when status='confirmed', 3) POST /api/sessions/{id}/resend-attendance-email to update signature_status when resending, 4) check_attendance.py to handle dates without timezone properly, 5) Converted check_attendance.py to a continuous service running every 2 minutes."
 
 frontend:
   - task: "Frontend Integration Testing"
