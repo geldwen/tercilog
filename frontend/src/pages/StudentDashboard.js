@@ -22,8 +22,6 @@ export default function StudentDashboard({ user, onLogout }) {
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [showSignatureDialog, setShowSignatureDialog] = useState(false);
   const [currentSessionToSign, setCurrentSessionToSign] = useState(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const canvasRef = useRef(null);
 
   // Training Needs state
   const [trainingNeeds, setTrainingNeeds] = useState({
