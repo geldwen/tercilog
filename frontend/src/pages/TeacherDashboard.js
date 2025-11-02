@@ -202,6 +202,78 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  // Fonctions pour l'envoi de parcours émargé
+  const handleOpenSendAttendance = (student) => {
+    setAttendanceStudent(student);
+    setAttendanceMonth(selectedMonth);
+    setAttendanceMode('month');
+    setAttendanceSession(null);
+    setAttendanceRecipients({
+      student: true,
+      teacher: false,
+      enterprise: false,
+      others: ''
+    });
+    setAttendanceEmailSubject(`Justificatif d'émargement - ${student.name}`);
+    setAttendanceEmailBody(`Bonjour,\n\nVeuillez trouver ci-joint le justificatif d'émargement pour ${student.name}.\n\nCordialement,\nTerciform`);
+    setShowSendAttendanceDialog(true);
+  };
+
+  const handleSendAttendance = async (e) => {
+    e.preventDefault();
+    
+    try {
+      // Construire la liste des destinataires
+      const recipients = [];
+      if (attendanceRecipients.student && attendanceStudent) {
+        recipients.push(attendanceStudent.email);
+      }
+      if (attendanceRecipients.teacher && user) {
+        recipients.push(user.email);
+      }
+      // Ajouter autres emails
+      if (attendanceRecipients.others) {
+        const otherEmails = attendanceRecipients.others.split(',').map(e => e.trim()).filter(e => e);
+        recipients.push(...otherEmails);
+      }
+      
+      if (recipients.length === 0) {
+        toast.error("Veuillez sélectionner au moins un destinataire");
+        return;
+      }
+      
+      const payload = {
+        mode: attendanceMode,
+        to: recipients,
+        subject: attendanceEmailSubject,
+        body: attendanceEmailBody
+      };
+      
+      if (attendanceMode === 'session') {
+        if (!attendanceSession) {
+          toast.error("Veuillez sélectionner une séance");
+          return;
+        }
+        payload.session_id = attendanceSession.id;
+      } else {
+        if (!attendanceMonth) {
+          toast.error("Veuillez sélectionner un mois");
+          return;
+        }
+        payload.student_id = attendanceStudent.id;
+        payload.month = attendanceMonth;
+      }
+      
+      const response = await axios.post(`${API}/send-attendance`, payload);
+      
+      toast.success(response.data.info || `Justificatif envoyé à ${recipients.length} destinataire(s)`);
+      setShowSendAttendanceDialog(false);
+      
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erreur lors de l'envoi du justificatif");
+    }
+  };
+
 
   const handleEditSession = (session) => {
     setEditingSession(session);
