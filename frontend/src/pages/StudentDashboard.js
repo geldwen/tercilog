@@ -303,10 +303,6 @@ export default function StudentDashboard({ user, onLogout }) {
   const getSignatureEleveCell = (session) => {
     const ended = isSessionEnded(session);
 
-    if (!ended) {
-      return <span className="text-gray-500 text-xs">À signer après la séance</span>;
-    }
-
     if (session.signature_status === 'signed' && session.signature) {
       const signDate = session.signed_at ? formatFrDateTime(session.signed_at) : '';
       return (
@@ -325,15 +321,17 @@ export default function StudentDashboard({ user, onLogout }) {
     if (session.signature_status === 'pending') {
       return (
         <Button
-          size="sm"
           onClick={() => openSignatureDialog(session)}
-          className="text-xs"
-          style={{ backgroundColor: TERCIFORM_BLUE }}
+          className="w-full py-2 rounded-md text-sm font-medium"
+          style={{ backgroundColor: '#ff9800', color: 'white' }}
         >
-          <PenTool size={14} className="mr-1" />
-          Émarger
+          Vous pouvez émarger votre séance
         </Button>
       );
+    }
+
+    if (!ended) {
+      return <span className="text-gray-500 text-xs">À signer après la séance</span>;
     }
 
     return <span className="text-gray-500 text-xs">-</span>;
