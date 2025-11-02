@@ -130,6 +130,38 @@ class SessionCreate(BaseModel):
 class SessionValidate(BaseModel):
     status: str  # "confirmed" or "rejected"
 
+class TrainingNeeds(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    student_id: str
+    expectations: str = ""  # Qu'attendez-vous de cette formation ?
+    strengths: str = ""  # Quelles sont vos forces actuelles ?
+    improvements: str = ""  # Qu'aimeriez-vous améliorer ?
+    availability: str = ""  # Quelles sont vos disponibilités ?
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class TrainingNeedsCreate(BaseModel):
+    expectations: str = ""
+    strengths: str = ""
+    improvements: str = ""
+    availability: str = ""
+
+class StudentFeedback(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    student_id: str
+    student_name: str
+    quality_rating: str = ""  # Comment évaluez-vous la qualité de la formation ?
+    teacher_support: str = ""  # Le formateur vous a-t-il accompagné efficacement ?
+    recommendation: str = ""  # Recommanderiez-vous cette formation ?
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class StudentFeedbackCreate(BaseModel):
+    quality_rating: str
+    teacher_support: str
+    recommendation: str
+
 # Helper functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
