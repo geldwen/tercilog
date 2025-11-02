@@ -51,7 +51,16 @@ async def check_and_send_emails():
             try:
                 # Construire la date et heure de fin de séance
                 session_datetime_str = f"{session_doc['date']}T{session_doc['end_time']}:00"
-                session_end = datetime.fromisoformat(session_datetime_str)
+                
+                # Parse la date (peut être sans timezone)
+                try:
+                    session_end = datetime.fromisoformat(session_datetime_str)
+                    # Si pas de timezone, on assume UTC
+                    if session_end.tzinfo is None:
+                        session_end = session_end.replace(tzinfo=timezone.utc)
+                except ValueError:
+                    logger.error(f"Invalid date format for session {session_doc.get('id')}: {session_datetime_str}")
+                    continue
                 
                 # Si la séance est terminée (heure actuelle > heure de fin)
                 if now > session_end:
