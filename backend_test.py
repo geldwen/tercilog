@@ -2667,8 +2667,13 @@ class TerciFormTester:
             # Try to sign the same session again
             response = self.make_request("PATCH", f"/sessions/{past_session_id}/teacher-sign", signature_data, self.teacher_token)
             
-            test5_passed = (response and response.status_code == 400)
+            test5_passed = (response is not None and response.status_code == 400)
             self.log(f"   {'✅' if test5_passed else '❌'} Double signature prevented (400 error): {test5_passed}")
+            
+            if response:
+                self.log(f"   Response status code: {response.status_code}")
+            else:
+                self.log(f"   No response received")
             
             if response and response.status_code == 400:
                 try:
