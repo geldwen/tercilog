@@ -431,11 +431,15 @@ export default function StudentDashboard({ user, onLogout }) {
               confirmedSessions.map((session) => (
                 <Card key={session.id} className="border-0 shadow-md card-hover" data-testid={`confirmed-session-card-${session.id}`}>
                   <CardContent className="pt-6">
-                    <div className="flex flex-col gap-2">
-                      {/* En-tête: Sujet + Badge statut */}
+                    <div className="flex flex-col gap-3">
+                      {/* Ligne d'en-tête: Sujet + Confirmée le */}
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="text-lg font-semibold text-gray-900" data-testid={`confirmed-session-subject-${session.id}`}>{session.subject}</h3>
-                        {getStatusBadge(session.status)}
+                        {session.validated_at && (
+                          <span className="text-sm text-green-700 font-medium italic" data-testid={`confirmed-session-validated-at-${session.id}`}>
+                            Confirmée le {new Date(session.validated_at).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}
+                          </span>
+                        )}
                       </div>
                       
                       {/* Date et horaire */}
@@ -450,48 +454,36 @@ export default function StudentDashboard({ user, onLogout }) {
                         </span>
                       </div>
                       
-                      {session.validated_at && (
-                        <p className="text-xs text-gray-500" data-testid={`confirmed-session-validated-at-${session.id}`}>
-                          Confirmé le {new Date(session.validated_at).toLocaleString('fr-FR')}
-                        </p>
-                      )}
-                      
-                      {/* Bloc Signatures - compact et responsive */}
+                      {/* Ligne Signatures - badges harmonisés (mêmes styles que TeacherDashboard) */}
                       {(session.signature || session.teacher_signature) && (
-                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           {/* Badge signature élève */}
                           {session.signature && session.signed_at && (
-                            <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">
+                            <span className="inline-flex items-center gap-2 bg-green-100 text-green-800 border border-green-300 text-base px-4 py-2 rounded-md font-medium">
                               ✓ Émargé le {formatCompactDateTime(session.signed_at)} — par l'élève
+                              {session.signature && (
+                                <img 
+                                  src={session.signature} 
+                                  alt="Signature élève" 
+                                  className="max-h-6 object-contain hidden sm:inline"
+                                />
+                              )}
                             </span>
                           )}
                           
                           {/* Badge signature formateur */}
                           {session.teacher_signature && session.teacher_signed_at && session.teacher_signature_status === "signed" && (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-sm font-medium" style={{ backgroundColor: '#e9d5f5', color: '#6B2E6F' }}>
+                            <span className="inline-flex items-center gap-2 bg-purple-100 text-purple-800 border border-purple-300 text-base px-4 py-2 rounded-md font-medium">
                               ✓ Émargé le {formatCompactDateTime(session.teacher_signed_at)} — par le formateur
+                              {session.teacher_signature && (
+                                <img 
+                                  src={session.teacher_signature} 
+                                  alt="Signature formateur" 
+                                  className="max-h-6 object-contain hidden sm:inline"
+                                />
+                              )}
                             </span>
                           )}
-                          
-                          {/* Miniatures signatures - optionnelles, cachées sur petit écran */}
-                          <div className="hidden sm:flex items-center gap-2 ml-auto">
-                            {session.signature && (
-                              <img 
-                                src={session.signature} 
-                                alt="Signature élève" 
-                                className="max-h-6 object-contain border border-gray-300 rounded"
-                                style={{ maxWidth: '100px' }}
-                              />
-                            )}
-                            {session.teacher_signature && (
-                              <img 
-                                src={session.teacher_signature} 
-                                alt="Signature formateur" 
-                                className="max-h-6 object-contain border border-purple-300 rounded"
-                                style={{ maxWidth: '100px' }}
-                              />
-                            )}
-                          </div>
                         </div>
                       )}
                       
