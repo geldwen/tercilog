@@ -1024,6 +1024,163 @@ export default function TeacherDashboard({ user, onLogout }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog d'envoi de parcours émargé */}
+      <Dialog open={showSendAttendanceDialog} onOpenChange={setShowSendAttendanceDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Envoyer un parcours émargé</DialogTitle>
+            <DialogDescription>
+              {attendanceStudent && `Justificatifs d'émargement pour ${attendanceStudent.name}`}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSendAttendance} className="space-y-4">
+            {/* Type d'envoi */}
+            <div className="space-y-2">
+              <Label className="font-semibold">Type d'envoi</Label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="attendanceMode" 
+                    value="session"
+                    checked={attendanceMode === 'session'}
+                    onChange={(e) => setAttendanceMode(e.target.value)}
+                    className="w-4 h-4"
+                  />
+                  <span>Séance unique</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="attendanceMode" 
+                    value="month"
+                    checked={attendanceMode === 'month'}
+                    onChange={(e) => setAttendanceMode(e.target.value)}
+                    className="w-4 h-4"
+                  />
+                  <span>Mois complet</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Sélection séance ou mois */}
+            {attendanceMode === 'session' ? (
+              <div className="space-y-2">
+                <Label>Sélectionner une séance</Label>
+                <select 
+                  className="w-full px-3 py-2 border rounded-md"
+                  value={attendanceSession?.id || ''}
+                  onChange={(e) => {
+                    const session = sessions.find(s => s.id === e.target.value && s.student_id === attendanceStudent?.id);
+                    setAttendanceSession(session);
+                  }}
+                  required
+                >
+                  <option value="">-- Choisir une séance --</option>
+                  {attendanceStudent && sessions
+                    .filter(s => s.student_id === attendanceStudent.id)
+                    .map(session => (
+                      <option key={session.id} value={session.id}>
+                        {session.subject} - {session.date} ({session.start_time}-{session.end_time})
+                      </option>
+                    ))}
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>Sélectionner un mois</Label>
+                <select 
+                  className="w-full px-3 py-2 border rounded-md"
+                  value={attendanceMonth}
+                  onChange={(e) => setAttendanceMonth(e.target.value)}
+                  required
+                >
+                  {monthsList.map(m => (
+                    <option key={m.key} value={m.key}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Destinataires */}
+            <div className="space-y-2">
+              <Label className="font-semibold">Destinataires</Label>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={attendanceRecipients.student}
+                    onChange={(e) => setAttendanceRecipients({...attendanceRecipients, student: e.target.checked})}
+                    className="w-4 h-4"
+                  />
+                  <span>Élève ({attendanceStudent?.email})</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={attendanceRecipients.teacher}
+                    onChange={(e) => setAttendanceRecipients({...attendanceRecipients, teacher: e.target.checked})}
+                    className="w-4 h-4"
+                  />
+                  <span>Formateur (moi)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={attendanceRecipients.enterprise}
+                    onChange={(e) => setAttendanceRecipients({...attendanceRecipients, enterprise: e.target.checked})}
+                    className="w-4 h-4"
+                  />
+                  <span>Entreprise/Client</span>
+                </label>
+              </div>
+              <div className="mt-2">
+                <Label>Autres emails (séparés par des virgules)</Label>
+                <Input 
+                  type="text"
+                  placeholder="email1@exemple.com, email2@exemple.com"
+                  value={attendanceRecipients.others}
+                  onChange={(e) => setAttendanceRecipients({...attendanceRecipients, others: e.target.value})}
+                />
+              </div>
+            </div>
+
+            {/* Modèle d'email */}
+            <div className="space-y-2">
+              <Label className="font-semibold">Modèle d'e-mail</Label>
+              <div>
+                <Label>Objet</Label>
+                <Input 
+                  type="text"
+                  value={attendanceEmailSubject}
+                  onChange={(e) => setAttendanceEmailSubject(e.target.value)}
+                  placeholder="Objet de l'email"
+                  required
+                />
+              </div>
+              <div>
+                <Label>Message</Label>
+                <textarea 
+                  className="w-full px-3 py-2 border rounded-md min-h-[100px]"
+                  value={attendanceEmailBody}
+                  onChange={(e) => setAttendanceEmailBody(e.target.value)}
+                  placeholder="Corps du message..."
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Variables disponibles: {'{eleve}'}, {'{mois}'}, {'{heures_total}'}, {'{heures_signees}'}
+                </p>
+              </div>
+            </div>
+
+            <Button type="submit" className="w-full text-white py-2" style={{ backgroundColor: '#6B2E6F' }}>
+              <FileCheck className="w-4 h-4 mr-2" />
+              Envoyer le justificatif
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
