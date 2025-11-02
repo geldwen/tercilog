@@ -952,15 +952,34 @@ async def check_and_send_session_reminders():
 
 def build_header(title: str):
     """Construire l'en-tête avec logo + titre (Flowable Table)"""
+    from PIL import Image as PILImage
+    
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle('TitleStyle', parent=styles['Normal'], fontSize=16, fontName='Helvetica-Bold', alignment=2)
     
     logo_path = ROOT_DIR / 'assets' / 'logo_terciform.png'
     
     if logo_path.exists():
-        logo = Image(str(logo_path), width=140)
+        # Charger l'image pour obtenir ses dimensions
+        pil_img = PILImage.open(str(logo_path))
+        original_width, original_height = pil_img.size
+        
+        # Contraintes: maxWidth=140px, maxHeight=60px, préserver ratio
+        max_width = 140
+        max_height = 60
+        
+        # Calculer le ratio de redimensionnement
+        ratio_width = max_width / original_width
+        ratio_height = max_height / original_height
+        ratio = min(ratio_width, ratio_height)
+        
+        # Nouvelles dimensions
+        new_width = original_width * ratio
+        new_height = original_height * ratio
+        
+        logo = Image(str(logo_path), width=new_width, height=new_height)
     else:
-        logo = Paragraph("<b>TERCIFORM</b>", ParagraphStyle('LogoText', parent=styles['Normal'], fontSize=20, fontName='Helvetica-Bold', textColor=colors.HexColor('#223B67')))
+        logo = Paragraph("TERCIFORM", ParagraphStyle('LogoText', parent=styles['Normal'], fontSize=20, fontName='Helvetica-Bold', textColor=colors.HexColor('#223B67')))
     
     title_paragraph = Paragraph(title, title_style)
     
@@ -968,6 +987,7 @@ def build_header(title: str):
     header_table = Table(header_data, colWidths=[3*inch, 3*inch])
     header_table.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ALIGN', (0, 0), (0, 0), 'LEFT'),
         ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
     ]))
     
