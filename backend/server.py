@@ -1639,6 +1639,118 @@ async def send_attendance_pdf(data: dict, current_user: User = Depends(get_curre
         
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 
+
+# Training Needs Endpoints
+@api_router.post("/students/{student_id}/training-needs", response_model=TrainingNeeds)
+async def save_training_needs(student_id: str, needs: TrainingNeedsCreate, current_user: User = Depends(get_current_user)):
+    """Sauvegarder les besoins en formation d'un élève"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Vérifier si l'élève existe
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Vérifier si les besoins existent déjà
+    existing = await db.training_needs.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if existing:
+        # Mettre à jour
+        update_data = needs.dict()
+        update_data["updated_at"] = datetime.now(timezone.utc)
+        
+        await db.training_needs.update_one(
+            {"student_id": student_id},
+            {"$set": update_data}
+        )
+        
+        updated = await db.training_needs.find_one({"student_id": student_id}, {"_id": 0})
+        return TrainingNeeds(**updated)
+    else:
+        # Créer
+        needs_dict = needs.dict()
+        needs_dict["id"] = str(uuid.uuid4())
+        needs_dict["student_id"] = student_id
+        needs_dict["created_at"] = datetime.now(timezone.utc)
+        needs_dict["updated_at"] = datetime.now(timezone.utc)
+        
+        await db.training_needs.insert_one(needs_dict)
+        return TrainingNeeds(**needs_dict)
+
+
+@api_router.get("/students/{student_id}/training-needs", response_model=TrainingNeeds)
+async def get_training_needs(student_id: str, current_user: User = Depends(get_current_user)):
+    """Récupérer les besoins en formation d'un élève"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    needs = await db.training_needs.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if not needs:
+        # Retourner des besoins vides
+        return TrainingNeeds(
+            id=str(uuid.uuid4()),
+            student_id=student_id,
+            expectations="",
+            strengths="",
+            improvements="",
+            availability=""
+        )
+    
+    return TrainingNeeds(**needs)
+
+
+# Student Feedback Endpoints
+@api_router.post("/students/{student_id}/feedback")
+async def save_student_feedback(student_id: str, feedback: StudentFeedbackCreate, current_user: User = Depends(get_current_user)):
+    """Sauvegarder l'avis de l'élève et générer le PDF"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Créer l'avis
+    feedback_dict = feedback.dict()
+    feedback_dict["id"] = str(uuid.uuid4())
+    feedback_dict["student_id"] = student_id
+    feedback_dict["student_name"] = student.get('name', '')
+    feedback_dict["created_at"] = datetime.now(timezone.utc)
+    
+    await db.student_feedback.insert_one(feedback_dict)
+    
+    # Générer le PDF
+    try:
+        pdf_buffer = generate_feedback_pdf(student, feedback_dict)
+        
+        # TODO: Sauvegarder le PDF quelque part (pour l'instant, on le retourne)
+        # On pourrait l'envoyer par email ou le sauvegarder dans un système de fichiers
+        
+        return {
+            "saved": True,
+            "message": "Avis sauvegardé avec succès",
+            "feedback_id": feedback_dict["id"]
+        }
+    except Exception as e:
+        logger.error(f"Failed to generate feedback PDF: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
+
+
+@api_router.get("/students/{student_id}/feedback", response_model=List[StudentFeedback])
+async def get_student_feedback(student_id: str, current_user: User = Depends(get_current_user)):
+    """Récupérer les avis d'un élève"""
+    if current_user.role != "student" or current_user.id != student_id:
+        # Les formateurs peuvent aussi voir les avis
+        if current_user.role != "teacher":
+            raise HTTPException(status_code=403, detail="Access denied")
+    
+    feedbacks = await db.student_feedback.find({"student_id": student_id}, {"_id": 0}).to_list(100)
+    return [StudentFeedback(**f) for f in feedbacks]
+
+
 # Include router
 app.include_router(api_router)
 
