@@ -2670,11 +2670,6 @@ class TerciFormTester:
             test5_passed = (response is not None and response.status_code == 400)
             self.log(f"   {'✅' if test5_passed else '❌'} Double signature prevented (400 error): {test5_passed}")
             
-            if response:
-                self.log(f"   Response status code: {response.status_code}")
-            else:
-                self.log(f"   No response received")
-            
             if response and response.status_code == 400:
                 try:
                     error_data = response.json()
