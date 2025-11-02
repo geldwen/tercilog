@@ -3294,6 +3294,8 @@ def main():
             success = tester.test_teacher_signature_system()
         elif sys.argv[1] == "pdf-generation":
             success = tester.test_pdf_generation_comprehensive()
+        elif sys.argv[1] == "dashboard-endpoints":
+            success = tester.test_student_dashboard_endpoints()
         else:
             success = tester.run_full_test()
     else:
