@@ -562,24 +562,24 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     
                                     {/* Statuts en attente */}
                                     {session.signature_status === "pending" && !session.signature && (
-                                      <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
+                                      <span className="px-3 py-1.5 bg-orange-100 text-orange-700 border border-orange-300 rounded-md text-sm font-medium">
                                         ⏳ En attente d'émargement élève
                                       </span>
                                     )}
                                     {session.signature_status === "expired" && (
-                                      <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
+                                      <span className="px-3 py-1.5 bg-red-100 text-red-700 border border-red-300 rounded-md text-sm font-medium">
                                         ⚠️ Émargement élève expiré
                                       </span>
                                     )}
                                   </div>
                                 )}
                                 
-                                {/* Ligne 3: Boutons en grille 2 colonnes */}
-                                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                                {/* Boutons d'action en grille 2 colonnes */}
+                                <div className="grid grid-cols-2 gap-3 mt-3">
                                   {session.meeting_link && (
                                     <Button 
                                       onClick={() => window.open(session.meeting_link, '_blank')}
-                                      className="w-full flex items-center justify-center gap-2 text-white rounded-lg py-2"
+                                      className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-white"
                                       size="sm"
                                       style={{ backgroundColor: TERCIFORM_BLUE }}
                                     >
@@ -590,7 +590,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     onClick={() => handleResendEmail(session.id)} 
                                     variant="outline" 
                                     size="sm"
-                                    className="w-full flex items-center justify-center gap-2 text-blue-600 border-blue-300 hover:bg-blue-50 rounded-lg py-2"
+                                    className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-blue-600 border-blue-300 hover:bg-blue-50"
                                   >
                                     <Mail className="w-4 h-4" />
                                     Renvoyer confirmation
