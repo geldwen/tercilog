@@ -3370,12 +3370,14 @@ class TerciFormTester:
                 except:
                     self.log(f"   Error response: {response.text}")
                 double_confirmation_prevented = True
+                self.log(f"   DEBUG: double_confirmation_prevented set to {double_confirmation_prevented}")
             else:
                 self.log("❌ Double confirmation should have been prevented", "ERROR")
                 if response:
                     self.log(f"   Unexpected status: {response.status_code}")
                     self.log(f"   Response: {response.text}")
                 double_confirmation_prevented = False
+                self.log(f"   DEBUG: double_confirmation_prevented set to {double_confirmation_prevented}")
             
             # Step 7: Verify session model updates
             self.log("=== STEP 7: Verifying Session Model Updates ===")
