@@ -112,6 +112,81 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  // Fonctions de signature formateur
+  const openTeacherSignatureDialog = (session) => {
+    setCurrentSessionToSign(session);
+    setShowTeacherSignatureDialog(true);
+    setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    }, 100);
+  };
+
+  const getCoordinates = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    if (e.touches && e.touches.length > 0) {
+      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+    }
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  };
+
+  const startDrawing = (e) => {
+    e.preventDefault();
+    const coords = getCoordinates(e);
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.beginPath();
+    ctx.moveTo(coords.x, coords.y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e) => {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const coords = getCoordinates(e);
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.lineTo(coords.x, coords.y);
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clearTeacherSignature = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const saveTeacherSignature = async () => {
+    const canvas = canvasRef.current;
+    const signatureImage = canvas.toDataURL('image/png');
+    
+    try {
+      await axios.patch(`${API}/sessions/${currentSessionToSign.id}/teacher-sign`, {
+        signature: signatureImage
+      });
+      
+      toast.success("Signature formateur enregistrée !");
+      setShowTeacherSignatureDialog(false);
+      setCurrentSessionToSign(null);
+      loadData(selectedMonth);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erreur lors de l'enregistrement de la signature");
+    }
+  };
+
 
   const handleEditSession = (session) => {
     setEditingSession(session);
