@@ -867,7 +867,7 @@ def build_header(title: str):
     logo_path = ROOT_DIR / 'assets' / 'logo_terciform.png'
     
     if logo_path.exists():
-        logo = Image(str(logo_path), width=140, preserveAspectRatio=True, hAlign='LEFT')
+        logo = Image(str(logo_path), width=140)
     else:
         logo = Paragraph("<b>TERCIFORM</b>", ParagraphStyle('LogoText', parent=styles['Normal'], fontSize=20, fontName='Helvetica-Bold', textColor=colors.HexColor('#223B67')))
     
