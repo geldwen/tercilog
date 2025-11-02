@@ -1257,7 +1257,7 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
 
 @api_router.post("/students/{student_id}/send-planning-pdf")
 async def send_student_planning_pdf(student_id: str, data: dict, current_user: User = Depends(get_current_user)):
-    """Envoyer le planning d'un élève en PDF par email"""
+    """Envoyer le planning d'un élève en PDF par email (TOUTES les séances du parcours)"""
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
@@ -1266,12 +1266,12 @@ async def send_student_planning_pdf(student_id: str, data: dict, current_user: U
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     
-    # Récupérer le mois et les emails destinataires
-    month = data.get('month')
+    # Récupérer le mois (pour compatibilité) et les emails destinataires
+    month = data.get('month', '')
     recipient_emails = data.get('recipient_email', '')
     
-    if not month or not recipient_emails:
-        raise HTTPException(status_code=400, detail="Month and recipient_email required")
+    if not recipient_emails:
+        raise HTTPException(status_code=400, detail="recipient_email required")
     
     # Séparer les emails (virgule ou point-virgule)
     email_list = [email.strip() for email in recipient_emails.replace(';', ',').split(',') if email.strip()]
@@ -1279,13 +1279,12 @@ async def send_student_planning_pdf(student_id: str, data: dict, current_user: U
     if not email_list:
         raise HTTPException(status_code=400, detail="At least one valid email required")
     
-    # Récupérer les séances du mois
+    # Récupérer TOUTES les séances du parcours (pas de filtre par mois)
     sessions = await db.sessions.find({
-        "student_id": student_id,
-        "date": {"$regex": f"^{month}"}
-    }, {"_id": 0}).to_list(100)
+        "student_id": student_id
+    }, {"_id": 0}).to_list(1000)
     
-    # Convertir le mois en label
+    # Month label (non utilisé mais gardé pour compatibilité)
     month_labels = {
         '2025-10': 'octobre 2025', '2025-11': 'novembre 2025', '2025-12': 'décembre 2025',
         '2026-01': 'janvier 2026', '2026-02': 'février 2026'
