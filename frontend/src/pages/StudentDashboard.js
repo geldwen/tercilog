@@ -644,32 +644,10 @@ export default function StudentDashboard({ user, onLogout }) {
               )}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
-              <canvas
-                ref={canvasRef}
-                width={600}
-                height={200}
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
-                onMouseUp={stopDrawing}
-                onMouseLeave={stopDrawing}
-                onTouchStart={startDrawing}
-                onTouchMove={draw}
-                onTouchEnd={stopDrawing}
-                className="w-full cursor-crosshair"
-                style={{ touchAction: 'none' }}
-              />
-            </div>
-            <p className="text-sm text-gray-500 mt-2 text-center">
-              Signez dans la zone ci-dessus (utilisez votre souris ou votre doigt)
-            </p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={clearSignature}>Effacer</Button>
-            <Button variant="outline" onClick={() => setShowSignatureDialog(false)}>Annuler</Button>
-            <Button onClick={saveSignature} style={{backgroundColor: TERCIFORM_BLUE}}>Valider la signature</Button>
-          </DialogFooter>
+          <SignaturePad 
+            onSave={saveSignature}
+            onCancel={() => setShowSignatureDialog(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>
