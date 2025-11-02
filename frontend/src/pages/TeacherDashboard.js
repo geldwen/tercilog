@@ -507,62 +507,57 @@ export default function TeacherDashboard({ user, onLogout }) {
                           <p className="text-sm font-medium text-gray-700 mb-2">Élèves :</p>
                           <div className="space-y-3">
                             {group.sessions.map(session => (
-                              <div key={session.id} className="flex flex-col gap-2 py-3 px-3 bg-gray-50 rounded-lg border" style={{ borderColor: TERCIFORM_BLUE }}>
-                                {/* Ligne 1: Nom de l'élève seul */}
-                                <div className="flex items-center justify-between">
-                                  <span className="font-medium text-gray-900">{session.student_name}</span>
+                              <div key={session.id} className="flex flex-col gap-3 py-3 px-3 bg-gray-50 rounded-lg border" style={{ borderColor: TERCIFORM_BLUE }}>
+                                {/* Ligne d'en-tête: Nom + Statut confirmation */}
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="font-semibold text-gray-900">{session.student_name}</span>
                                   {session.status === 'confirmed' && session.validated_at && (
-                                    <span className="text-xs text-green-700 font-medium">
+                                    <span className="text-sm text-green-700 font-medium italic">
                                       Confirmée le {formatDateWithDay(session.validated_at)}
                                     </span>
                                   )}
                                   {session.status === 'rejected' && session.validated_at && (
-                                    <span className="text-xs text-red-700 font-medium">
+                                    <span className="text-sm text-red-700 font-medium italic">
                                       Refusée le {formatDateWithDay(session.validated_at)}
                                     </span>
                                   )}
                                   {session.status === 'pending' && (
-                                    <span className="text-xs text-yellow-700 font-medium flex items-center gap-1">
+                                    <span className="text-sm text-yellow-700 font-medium flex items-center gap-1">
                                       <AlertCircle className="w-4 h-4" />
                                       En attente de validation
                                     </span>
                                   )}
                                 </div>
                                 
-                                {/* Ligne 2: Badges de signature sur la même ligne */}
+                                {/* Ligne Signatures - badges plus grands et visibles */}
                                 {(session.signature || session.teacher_signature || session.signature_status === "pending" || session.signature_status === "expired") && (
                                   <div className="flex flex-wrap items-center gap-2">
                                     {/* Badge signature élève */}
                                     {session.signature && session.signed_at && (
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
-                                          ✓ Émargé le {formatDateTimeWithDay(session.signed_at)} — par l'élève
-                                        </span>
+                                      <span className="inline-flex items-center gap-2 bg-green-100 text-green-800 border border-green-300 text-base px-4 py-2 rounded-md font-medium">
+                                        ✓ Émargé le {formatDateTimeWithDay(session.signed_at)} — par l'élève
                                         {session.signature && (
                                           <img 
                                             src={session.signature} 
                                             alt="Signature élève" 
-                                            className="max-h-6 object-contain border border-gray-300 rounded"
+                                            className="max-h-6 object-contain"
                                           />
                                         )}
-                                      </div>
+                                      </span>
                                     )}
                                     
                                     {/* Badge signature formateur */}
                                     {session.teacher_signature && session.teacher_signed_at && (
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-xs px-2 py-1 rounded font-medium" style={{ backgroundColor: '#e9d5f5', color: '#6B2E6F' }}>
-                                          ✓ Émargé le {formatDateTimeWithDay(session.teacher_signed_at)} — par le formateur
-                                        </span>
+                                      <span className="inline-flex items-center gap-2 bg-purple-100 text-purple-800 border border-purple-300 text-base px-4 py-2 rounded-md font-medium">
+                                        ✓ Émargé le {formatDateTimeWithDay(session.teacher_signed_at)} — par le formateur
                                         {session.teacher_signature && (
                                           <img 
                                             src={session.teacher_signature} 
                                             alt="Signature formateur" 
-                                            className="max-h-6 object-contain border rounded"
-                                            style={{ borderColor: '#d1a7d4' }}
+                                            className="max-h-6 object-contain"
                                           />
                                         )}
-                                      </div>
+                                      </span>
                                     )}
                                     
                                     {/* Statuts en attente */}
