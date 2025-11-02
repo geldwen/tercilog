@@ -2481,11 +2481,13 @@ def main():
             success = tester.test_urgent_kaka_session_correction()
         elif sys.argv[1] == "signature-correction":
             success = tester.test_signature_status_correction_system()
+        elif sys.argv[1] == "new-signature-system":
+            success = tester.test_new_signature_status_system()
         else:
             success = tester.run_full_test()
     else:
-        # Run signature correction test by default (as per review request)
-        success = tester.test_signature_status_correction_system()
+        # Run new signature system test by default (as per review request)
+        success = tester.test_new_signature_status_system()
     
     if success:
         print("\n" + "="*50)
