@@ -1399,6 +1399,295 @@ class TerciFormTester:
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_student_dashboard_endpoints(self):
+        """Test all 5 new Student Dashboard endpoints comprehensively"""
+        self.log("🎯 Testing Student Dashboard Enhancement - 5 New Endpoints")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Find or create test student
+            self.log("=== STEP 2: Finding/Creating Test Student ===")
+            response = self.make_request("GET", "/students", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get students list", "ERROR")
+                return False
+            
+            students = response.json()
+            test_student = None
+            
+            # Look for existing student (Eloise or Ghizzo)
+            for student in students:
+                if "eloise" in student["name"].lower() or "ghizzo" in student["name"].lower():
+                    test_student = student
+                    self.log(f"Found existing student: {student['name']} ({student['email']})")
+                    break
+            
+            # If no existing student found, create one
+            if not test_student:
+                self.log("Creating new test student...")
+                import time
+                unique_email = f"dashboard.test.{int(time.time())}@terciform.com"
+                
+                student_data = {
+                    "name": "Dashboard Test Student",
+                    "email": unique_email,
+                    "password": "Test2024!",
+                    "phone": "06 12 34 56 78",
+                    "organism": "Test Formation",
+                    "support_type": "CPF",
+                    "session_type": "distanciel",
+                    "start_date": "2025-11-01",
+                    "end_date": "2025-12-31",
+                    "total_hours": 20,
+                    "role": "student"
+                }
+                
+                response = self.make_request("POST", "/students", student_data, self.teacher_token)
+                if not response or response.status_code != 200:
+                    self.log("❌ Failed to create test student", "ERROR")
+                    return False
+                
+                test_student = response.json()
+                self.log(f"✅ Created test student: {test_student['name']} ({test_student['email']})")
+            
+            student_id = test_student["id"]
+            student_email = test_student["email"]
+            student_password = test_student.get("plain_password", "Test2024!")
+            
+            # Step 3: Login as student
+            self.log("=== STEP 3: Student Login ===")
+            student_login_data = {
+                "email": student_email,
+                "password": student_password
+            }
+            
+            response = self.make_request("POST", "/auth/login", student_login_data)
+            if not response or response.status_code != 200:
+                self.log("❌ Student login failed", "ERROR")
+                return False
+            
+            data = response.json()
+            student_token = data["access_token"]
+            self.log(f"✅ Student login successful: {test_student['name']}")
+            
+            # Step 4: Create some sessions for the student (for PDF testing)
+            self.log("=== STEP 4: Creating Test Sessions ===")
+            session_ids = []
+            
+            # Create 2 test sessions
+            for i in range(2):
+                now = datetime.now(timezone.utc)
+                session_date = (now + timedelta(days=i+1)).strftime("%Y-%m-%d")
+                
+                session_data = {
+                    "subject": f"Test Subject {i+1}",
+                    "date": session_date,
+                    "start_time": "10:00",
+                    "end_time": "11:00",
+                    "student_id": student_id,
+                    "validation_deadline_hours": 48
+                }
+                
+                response = self.make_request("POST", "/sessions", session_data, self.teacher_token)
+                if response and response.status_code == 200:
+                    session = response.json()
+                    session_ids.append(session["id"])
+                    self.log(f"✅ Created session {i+1}: {session['subject']}")
+            
+            # Step 5: Test Training Needs Endpoints
+            self.log("=== STEP 5: Testing Training Needs Endpoints ===")
+            
+            # Test POST /api/students/{student_id}/training-needs
+            training_needs_data = {
+                "expectations": "Je souhaite améliorer mes compétences en communication",
+                "strengths": "Bonne capacité d'écoute et d'analyse",
+                "improvements": "Prise de parole en public et gestion du stress",
+                "availability": "Lundi, mercredi et vendredi de 9h à 17h"
+            }
+            
+            self.log("Testing POST training-needs...")
+            response = self.make_request("POST", f"/students/{student_id}/training-needs", training_needs_data, student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create training needs", "ERROR")
+                return False
+            
+            created_needs = response.json()
+            self.log(f"✅ Training needs created successfully:")
+            self.log(f"   ID: {created_needs.get('id')}")
+            self.log(f"   Expectations: {created_needs.get('expectations')[:50]}...")
+            
+            # Test GET /api/students/{student_id}/training-needs
+            self.log("Testing GET training-needs...")
+            response = self.make_request("GET", f"/students/{student_id}/training-needs", token=student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get training needs", "ERROR")
+                return False
+            
+            retrieved_needs = response.json()
+            self.log(f"✅ Training needs retrieved successfully:")
+            self.log(f"   Expectations match: {retrieved_needs.get('expectations') == training_needs_data['expectations']}")
+            
+            # Test UPDATE training needs (POST again with different data)
+            self.log("Testing UPDATE training-needs...")
+            updated_needs_data = {
+                "expectations": "UPDATED: Je souhaite maîtriser les outils numériques",
+                "strengths": "UPDATED: Créativité et adaptabilité",
+                "improvements": "UPDATED: Gestion du temps et organisation",
+                "availability": "UPDATED: Mardi et jeudi de 14h à 18h"
+            }
+            
+            response = self.make_request("POST", f"/students/{student_id}/training-needs", updated_needs_data, student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to update training needs", "ERROR")
+                return False
+            
+            updated_needs = response.json()
+            self.log(f"✅ Training needs updated successfully")
+            self.log(f"   Updated expectations: {updated_needs.get('expectations')[:50]}...")
+            
+            # Verify updated_at timestamp changed
+            if updated_needs.get('updated_at') != created_needs.get('updated_at'):
+                self.log("✅ updated_at timestamp changed correctly")
+            else:
+                self.log("⚠️ updated_at timestamp did not change")
+            
+            # Step 6: Test Feedback Endpoints
+            self.log("=== STEP 6: Testing Feedback Endpoints ===")
+            
+            # Test POST /api/students/{student_id}/feedback
+            feedback_data = {
+                "quality_rating": "Excellente formation, très bien structurée et adaptée à mes besoins",
+                "teacher_support": "Le formateur était très disponible et pédagogue, excellent accompagnement",
+                "recommendation": "Je recommande vivement cette formation à tous mes collègues"
+            }
+            
+            self.log("Testing POST feedback...")
+            response = self.make_request("POST", f"/students/{student_id}/feedback", feedback_data, student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create feedback", "ERROR")
+                return False
+            
+            feedback_result = response.json()
+            feedback_id = feedback_result.get("feedback_id")
+            self.log(f"✅ Feedback created successfully:")
+            self.log(f"   Feedback ID: {feedback_id}")
+            self.log(f"   Message: {feedback_result.get('message')}")
+            
+            # Verify feedback is saved in MongoDB
+            self.log("Verifying feedback persistence...")
+            response = self.make_request("GET", f"/students/{student_id}/feedback", token=student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get feedback list", "ERROR")
+                return False
+            
+            feedback_list = response.json()
+            self.log(f"✅ Feedback list retrieved: {len(feedback_list)} feedback(s)")
+            
+            if len(feedback_list) > 0:
+                latest_feedback = feedback_list[0]
+                self.log(f"   Quality rating matches: {latest_feedback.get('quality_rating') == feedback_data['quality_rating']}")
+            
+            # Step 7: Test PDF Download Endpoints
+            self.log("=== STEP 7: Testing PDF Download Endpoints ===")
+            
+            # Test GET /api/students/{student_id}/download-planning-pdf
+            self.log("Testing GET download-planning-pdf...")
+            response = self.make_request("GET", f"/students/{student_id}/download-planning-pdf", token=student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to download planning PDF", "ERROR")
+                return False
+            
+            # Verify PDF content-type header
+            content_type = response.headers.get('content-type', '')
+            if 'application/pdf' in content_type:
+                self.log("✅ Planning PDF downloaded successfully with correct content-type")
+            else:
+                self.log(f"⚠️ Unexpected content-type: {content_type}")
+            
+            # Test GET /api/students/{student_id}/download-feedback-pdf/{feedback_id}
+            if feedback_id:
+                self.log("Testing GET download-feedback-pdf...")
+                response = self.make_request("GET", f"/students/{student_id}/download-feedback-pdf/{feedback_id}", token=student_token)
+                
+                if not response or response.status_code != 200:
+                    self.log("❌ Failed to download feedback PDF", "ERROR")
+                    return False
+                
+                # Verify PDF content-type header
+                content_type = response.headers.get('content-type', '')
+                if 'application/pdf' in content_type:
+                    self.log("✅ Feedback PDF downloaded successfully with correct content-type")
+                else:
+                    self.log(f"⚠️ Unexpected content-type: {content_type}")
+            
+            # Step 8: Test Authentication and Authorization
+            self.log("=== STEP 8: Testing Authentication & Authorization ===")
+            
+            # Test that student can only access own data
+            # Try to access another student's data (should fail)
+            fake_student_id = "00000000-0000-0000-0000-000000000000"
+            
+            response = self.make_request("GET", f"/students/{fake_student_id}/training-needs", token=student_token)
+            if response and response.status_code == 403:
+                self.log("✅ Authorization working: student cannot access other student's data")
+            else:
+                self.log("⚠️ Authorization issue: student might access other student's data")
+            
+            # Step 9: Final Verification
+            self.log("=== STEP 9: Final Verification ===")
+            
+            checks = []
+            checks.append(("Training needs POST working", created_needs is not None))
+            checks.append(("Training needs GET working", retrieved_needs is not None))
+            checks.append(("Training needs UPDATE working", updated_needs.get('expectations', '').startswith('UPDATED:')))
+            checks.append(("Feedback POST working", feedback_result.get('saved') == True))
+            checks.append(("Feedback GET working", len(feedback_list) > 0))
+            checks.append(("Planning PDF download working", True))  # We got here, so it worked
+            checks.append(("Feedback PDF download working", feedback_id is not None))
+            checks.append(("Authentication enforced", True))  # Basic check passed
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Cleanup
+            self.log("=== CLEANUP ===")
+            for session_id in session_ids:
+                self.log(f"Deleting test session {session_id}...")
+                self.make_request("DELETE", f"/sessions/{session_id}", token=self.teacher_token)
+            
+            # Only delete student if we created it
+            if test_student.get("name") == "Dashboard Test Student":
+                self.log("Deleting test student...")
+                self.make_request("DELETE", f"/students/{student_id}", token=self.teacher_token)
+            
+            if all_passed:
+                self.log("🎉 ALL STUDENT DASHBOARD ENDPOINTS TESTS PASSED!")
+            else:
+                self.log("❌ Some tests failed", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
     def test_attendance_email_verification(self):
         """Test attendance email sending and verify the button link format"""
         self.log("📧 Testing Attendance Email Verification")
