@@ -25,6 +25,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [showEditSession, setShowEditSession] = useState(false);
   const [showSendPdfDialog, setShowSendPdfDialog] = useState(false);
   const [showTeacherSignatureDialog, setShowTeacherSignatureDialog] = useState(false);
+  const [showSendAttendanceDialog, setShowSendAttendanceDialog] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [editingStudent, setEditingStudent] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
@@ -33,6 +34,20 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [pdfEmail, setPdfEmail] = useState('');
   const [isDrawing, setIsDrawing] = useState(false);
   const canvasRef = useRef(null);
+
+  // États pour le modal d'envoi de justificatifs signés
+  const [attendanceStudent, setAttendanceStudent] = useState(null);
+  const [attendanceMode, setAttendanceMode] = useState('month'); // 'session' ou 'month'
+  const [attendanceSession, setAttendanceSession] = useState(null);
+  const [attendanceMonth, setAttendanceMonth] = useState('');
+  const [attendanceRecipients, setAttendanceRecipients] = useState({
+    student: true,
+    teacher: false,
+    enterprise: false,
+    others: ''
+  });
+  const [attendanceEmailSubject, setAttendanceEmailSubject] = useState('');
+  const [attendanceEmailBody, setAttendanceEmailBody] = useState('');
 
   const [sessionForm, setSessionForm] = useState({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48, meeting_link: "" });
   const [studentForm, setStudentForm] = useState({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0 });
