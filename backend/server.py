@@ -665,13 +665,14 @@ async def resend_attendance_email(session_id: str, current_user: User = Depends(
         # Default to 2 hours from now if date parsing fails
         signature_deadline = datetime.now(timezone.utc) + timedelta(hours=2)
     
-    # Update session to mark email as sent and set signature status to pending
+    # Update session to mark email as sent and set signature status to pending (élève + formateur)
     await db.sessions.update_one(
         {"id": session_id},
         {"$set": {
             "attendance_email_sent": True,
             "signature_status": "pending",
-            "signature_deadline": signature_deadline.isoformat()
+            "signature_deadline": signature_deadline.isoformat(),
+            "teacher_signature_status": "pending"
         }}
     )
     
