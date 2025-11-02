@@ -3539,6 +3539,8 @@ def main():
             success = tester.test_pdf_generation_comprehensive()
         elif sys.argv[1] == "dashboard-endpoints":
             success = tester.test_student_dashboard_endpoints()
+        elif sys.argv[1] == "confirmation":
+            success = tester.test_confirmation_flow_and_date_formatting()
         else:
             success = tester.run_full_test()
     else:
