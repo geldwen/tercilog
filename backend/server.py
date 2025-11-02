@@ -863,22 +863,22 @@ def draw_terciform_header(canvas, doc, title_text):
     """Dessiner l'en-tête avec logo Terciform et titre"""
     canvas.saveState()
     
-    # Logo Terciform (si disponible)
+    # Logo Terciform centré
     try:
         logo_path = ROOT_DIR / 'assets' / 'logo_terciform.png'
         if logo_path.exists():
-            # Logo centré en haut
-            canvas.drawImage(str(logo_path), 2.5*inch, doc.height + 0.5*inch, width=1.5*inch, height=0.6*inch, preserveAspectRatio=True)
-    except:
+            canvas.drawImage(str(logo_path), 1.5*inch, doc.height + 0.4*inch, width=2*inch, height=0.7*inch, preserveAspectRatio=True, mask='auto')
+    except Exception as e:
+        logger.error(f"Error loading logo: {e}")
         # Fallback texte
-        canvas.setFont('Helvetica-Bold', 20)
+        canvas.setFont('Helvetica-Bold', 18)
         canvas.setFillColor(colors.HexColor('#223B67'))
         canvas.drawCentredString(doc.width/2 + doc.leftMargin, doc.height + 0.6*inch, "TERCIFORM")
     
     # Titre à droite
-    canvas.setFont('Helvetica-Bold', 14)
+    canvas.setFont('Helvetica-Bold', 12)
     canvas.setFillColor(colors.HexColor('#223B67'))
-    canvas.drawRightString(doc.width + doc.leftMargin, doc.height + 0.5*inch, title_text)
+    canvas.drawRightString(doc.width + doc.leftMargin, doc.height + 0.65*inch, title_text)
     
     canvas.restoreState()
 
@@ -894,112 +894,118 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
     doc = SimpleDocTemplate(
         buffer, 
         pagesize=A4, 
-        rightMargin=24*2.83465,  # 24mm en points
-        leftMargin=24*2.83465, 
-        topMargin=1.2*inch,  # Plus d'espace pour le header
-        bottomMargin=24*2.83465
+        rightMargin=20*2.83465,
+        leftMargin=20*2.83465, 
+        topMargin=1.3*inch,
+        bottomMargin=20*2.83465
     )
     
     # Styles
     styles = getSampleStyleSheet()
+    compact_style = ParagraphStyle('Compact', parent=styles['Normal'], fontSize=9, leading=10)
     
     story = []
     
-    # Informations élève (compactes)
+    # Informations élève (ultra-compactes)
+    info_style = ParagraphStyle('InfoStyle', parent=styles['Normal'], fontSize=9, leading=11)
     info_data = [
-        ['Nom:', student.get('name', '')],
-        ['Email:', student.get('email', '')],
-        ['Tél:', student.get('phone', 'Non rens.')],
-        ['Organisme:', Paragraph(student.get('organism', 'Non rens.')[:50], styles['Normal'])],
-        ['Type:', student.get('session_type', 'Non rens.').capitalize()],
-        ['Période:', f"{student.get('start_date', 'N/A')} → {student.get('end_date', 'N/A')}"],
-        ['H. totales:', f"{student.get('total_hours', 0)}h"],
-        ['H. restantes:', f"{student.get('credit_hours', 0)}h"],
+        ['<b>Nom:</b>', Paragraph(student.get('name', ''), info_style)],
+        ['<b>Email:</b>', Paragraph(student.get('email', ''), info_style)],
+        ['<b>Tél:</b>', student.get('phone', 'N/A')],
+        ['<b>Période:</b>', f"{student.get('start_date', 'N/A')} → {student.get('end_date', 'N/A')}"],
+        ['<b>H.totales:</b>', f"{student.get('total_hours', 0)}h"],
+        ['<b>H.restantes:</b>', f"{student.get('credit_hours', 0)}h"],
     ]
     
-    col_widths = [1.5*inch, 4*inch]
-    info_table = Table(info_data, colWidths=col_widths)
+    info_table = Table(info_data, colWidths=[1.2*inch, 3.8*inch])
     info_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#e8f0f7')),
         ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#223B67')),
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('LEFTPADDING', (0, 0), (-1, -1), 6),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 4),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
     ]))
     story.append(info_table)
-    story.append(Spacer(1, 0.3*inch))
+    story.append(Spacer(1, 0.2*inch))
     
-    # Séances - TRI PAR DATE
+    # Séances
     if sessions:
         sessions_sorted = sorted(sessions, key=lambda s: s.get('date', ''))
-        
         total_hours = sum(s.get('duration_hours', 0) for s in sessions_sorted)
-        story.append(Paragraph(f"<b>Séances du parcours complet : {len(sessions_sorted)} séance(s) - Total : {total_hours}h</b>", 
-                               ParagraphStyle('Bold', parent=styles['Normal'], fontSize=11, spaceAfter=10)))
         
-        # Mapping jours en français
+        story.append(Paragraph(f"<b>Parcours complet : {len(sessions_sorted)} séance(s) — {total_hours}h</b>", 
+                               ParagraphStyle('Bold', parent=styles['Normal'], fontSize=10, spaceAfter=8)))
+        
+        # Mapping jours FR
         days_fr = {'Mon': 'Lun', 'Tue': 'Mar', 'Wed': 'Mer', 'Thu': 'Jeu', 'Fri': 'Ven', 'Sat': 'Sam', 'Sun': 'Dim'}
         status_fr = {'pending': 'En attente', 'confirmed': 'Confirmée', 'rejected': 'Refusée'}
         
-        # Table des séances - colonnes proportionnées
+        # Colonnes optimisées pour A4 (largeur utilisable ~470 points)
         page_width = doc.width
         col_widths = [
-            page_width * 0.18,  # Date
-            page_width * 0.38,  # Matière
-            page_width * 0.14,  # Horaires
-            page_width * 0.10,  # Durée
-            page_width * 0.20   # Statut
+            0.85*inch,  # Date
+            2.1*inch,   # Matière
+            0.9*inch,   # Horaires
+            0.45*inch,  # Durée
+            0.8*inch    # Statut
         ]
         
-        table_data = [['Date', 'Matière', 'Horaires', 'Durée', 'Statut']]
+        table_data = [[
+            Paragraph('<b>Date</b>', ParagraphStyle('HeaderStyle', parent=styles['Normal'], fontSize=9, textColor=colors.whitesmoke)),
+            Paragraph('<b>Matière</b>', ParagraphStyle('HeaderStyle', parent=styles['Normal'], fontSize=9, textColor=colors.whitesmoke)),
+            Paragraph('<b>Horaires</b>', ParagraphStyle('HeaderStyle', parent=styles['Normal'], fontSize=9, textColor=colors.whitesmoke)),
+            Paragraph('<b>Dur.</b>', ParagraphStyle('HeaderStyle', parent=styles['Normal'], fontSize=9, textColor=colors.whitesmoke)),
+            Paragraph('<b>Statut</b>', ParagraphStyle('HeaderStyle', parent=styles['Normal'], fontSize=9, textColor=colors.whitesmoke))
+        ]]
+        
+        cell_style = ParagraphStyle('CellStyle', parent=styles['Normal'], fontSize=8, leading=10)
         
         for session in sessions_sorted:
-            # Format date FR: Sam 01/11/2025
+            # Date FR compacte
             try:
                 date_obj = datetime.strptime(session.get('date', ''), '%Y-%m-%d')
-                day_abbr_en = date_obj.strftime('%a')
-                day_abbr_fr = days_fr.get(day_abbr_en, day_abbr_en)
-                date_formatted = f"{day_abbr_fr} {date_obj.strftime('%d/%m/%Y')}"
+                day_abbr_fr = days_fr.get(date_obj.strftime('%a'), date_obj.strftime('%a'))
+                date_formatted = f"{day_abbr_fr}<br/>{date_obj.strftime('%d/%m/%y')}"
             except:
                 date_formatted = session.get('date', '')
             
-            # Matière avec Paragraph pour gérer le wrap
-            matiere = Paragraph(session.get('subject', '')[:50], styles['Normal'])
+            # Matière avec wordwrap
+            matiere = Paragraph(session.get('subject', ''), cell_style)
             
-            horaires = f"{session.get('start_time', '')} - {session.get('end_time', '')}"
-            duree = f"{session.get('duration_hours', 0)}h"
-            statut = status_fr.get(session.get('status', ''), session.get('status', ''))
+            # Horaires compacts
+            horaires = f"{session.get('start_time', '')}<br/>{session.get('end_time', '')}"
+            
+            # Statut
+            statut_text = status_fr.get(session.get('status', ''), session.get('status', ''))
             
             table_data.append([
-                date_formatted,
+                Paragraph(date_formatted, cell_style),
                 matiere,
-                horaires,
-                duree,
-                statut
+                Paragraph(horaires, cell_style),
+                Paragraph(f"{session.get('duration_hours', 0)}h", cell_style),
+                Paragraph(statut_text, ParagraphStyle('StatusStyle', parent=cell_style, fontSize=8))
             ])
         
-        sessions_table = Table(table_data, colWidths=col_widths)
+        sessions_table = Table(table_data, colWidths=col_widths, repeatRows=1)
         sessions_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#223B67')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('LEFTPADDING', (0, 0), (-1, -1), 6),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-            ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 4),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
+            ('WORDWRAP', (0, 0), (-1, -1), True),
         ]))
         story.append(sessions_table)
     else:
-        story.append(Paragraph("Aucune séance programmée", styles['Normal']))
+        story.append(Paragraph("Aucune séance programmée", compact_style))
     
     doc.build(story, onFirstPage=add_page_header, onLaterPages=add_page_header)
     buffer.seek(0)
