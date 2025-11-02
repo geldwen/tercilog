@@ -3475,7 +3475,7 @@ class TerciFormTester:
             checks = [
                 ("Student confirming presence", confirmed_session.get('confirmation_status') == 'confirmed'),
                 ("Confirmation timestamp set", confirmed_session.get('confirmation_at') is not None),
-                ("Double confirmation prevented", True),  # We verified this above
+                ("Double confirmation prevented", double_confirmation_prevented),
                 ("Session model has confirmation fields", 
                  'confirmation_status' in test_session and 'confirmation_at' in test_session),
                 ("Date formatting tests", date_format_tests_passed == total_date_tests),
