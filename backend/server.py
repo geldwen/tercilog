@@ -1253,6 +1253,198 @@ TerciForm
     
     return stats
 
+
+# Nouveaux endpoints pour justificatifs signés
+@api_router.get("/sessions/{session_id}/attendance-pdf")
+async def get_session_attendance_pdf(session_id: str, current_user: User = Depends(get_current_user)):
+    """Récupérer le PDF de justificatif d'émargement pour une séance"""
+    from fastapi.responses import StreamingResponse
+    
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer la séance
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Générer le PDF
+    pdf_buffer = generate_attendance_pdf_single_session(session)
+    
+    filename = f"emargement_{session.get('subject', 'session')}_{session.get('date', '')}.pdf"
+    
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@api_router.post("/students/{student_id}/attendance-pdf")
+async def get_student_attendance_pdf_month(
+    student_id: str, 
+    month: str,
+    include_unsigned: bool = False,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer le PDF de justificatifs d'émargement pour un mois complet"""
+    from fastapi.responses import StreamingResponse
+    
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Récupérer les séances du mois
+    sessions = await db.sessions.find({
+        "student_id": student_id,
+        "date": {"$regex": f"^{month}"}
+    }, {"_id": 0}).to_list(100)
+    
+    # Générer le PDF
+    pdf_buffer = generate_attendance_pdf_month(student, sessions, month, include_unsigned)
+    
+    filename = f"parcours_emarge_{student.get('name', 'student')}_{month}.pdf"
+    
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@api_router.post("/send-attendance")
+async def send_attendance_pdf(data: dict, current_user: User = Depends(get_current_user)):
+    """Envoyer le justificatif d'émargement par email"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    mode = data.get('mode')  # "session" or "month"
+    to_emails = data.get('to', [])
+    subject = data.get('subject', 'Justificatif d\'émargement')
+    body = data.get('body', '')
+    
+    if not mode or not to_emails:
+        raise HTTPException(status_code=400, detail="mode and to required")
+    
+    pdf_buffer = None
+    filename = "justificatif_emargement.pdf"
+    student_name = ""
+    
+    if mode == "session":
+        session_id = data.get('session_id')
+        if not session_id:
+            raise HTTPException(status_code=400, detail="session_id required for mode=session")
+        
+        # Récupérer la séance
+        session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        # Générer le PDF
+        pdf_buffer = generate_attendance_pdf_single_session(session)
+        filename = f"emargement_{session.get('subject', 'session')}_{session.get('date', '')}.pdf"
+        student_name = session.get('student_name', '')
+        
+    elif mode == "month":
+        student_id = data.get('student_id')
+        month = data.get('month')
+        include_unsigned = data.get('include_unsigned', False)
+        
+        if not student_id or not month:
+            raise HTTPException(status_code=400, detail="student_id and month required for mode=month")
+        
+        # Récupérer l'élève
+        student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+        if not student:
+            raise HTTPException(status_code=404, detail="Student not found")
+        
+        student_name = student.get('name', '')
+        
+        # Récupérer les séances du mois
+        sessions = await db.sessions.find({
+            "student_id": student_id,
+            "date": {"$regex": f"^{month}"}
+        }, {"_id": 0}).to_list(100)
+        
+        # Filtrer les séances signées si nécessaire
+        if not include_unsigned:
+            signed_sessions = [s for s in sessions if s.get('signature_status') == 'signed' or s.get('teacher_signature_status') == 'signed']
+            if not signed_sessions:
+                raise HTTPException(status_code=400, detail="Aucune séance émargée pour cette période")
+            sessions = signed_sessions
+        
+        # Générer le PDF
+        pdf_buffer = generate_attendance_pdf_month(student, sessions, month, include_unsigned)
+        filename = f"parcours_emarge_{student_name}_{month}.pdf"
+    
+    else:
+        raise HTTPException(status_code=400, detail="mode must be 'session' or 'month'")
+    
+    # Envoyer l'email avec le PDF
+    try:
+        gmail_user = os.environ['GMAIL_USER']
+        gmail_password = os.environ['GMAIL_PASSWORD']
+        
+        msg = MIMEMultipart()
+        msg['From'] = gmail_user
+        msg['To'] = ', '.join(to_emails)
+        msg['Subject'] = subject
+        
+        # Corps du message
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Attacher le PDF
+        pdf_buffer.seek(0)
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload(pdf_buffer.read())
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', f'attachment; filename={filename}')
+        msg.attach(part)
+        
+        # Envoyer
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(gmail_user, gmail_password)
+            server.send_message(msg)
+        
+        # Logger dans audit_logs
+        await db.audit_logs.insert_one({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "actor": "teacher",
+            "teacher_id": current_user.id,
+            "action": "send_attendance_pdf",
+            "scope": mode,
+            "session_id": data.get('session_id') if mode == "session" else None,
+            "student_id": data.get('student_id') if mode == "month" else None,
+            "student_name": student_name,
+            "recipients": to_emails,
+            "result": "ok"
+        })
+        
+        return {"sent": True, "info": f"Justificatif envoyé à {len(to_emails)} destinataire(s)"}
+    
+    except Exception as e:
+        logger.error(f"Failed to send attendance PDF: {e}")
+        
+        # Logger l'échec
+        await db.audit_logs.insert_one({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "actor": "teacher",
+            "teacher_id": current_user.id,
+            "action": "send_attendance_pdf",
+            "scope": mode,
+            "session_id": data.get('session_id') if mode == "session" else None,
+            "student_id": data.get('student_id') if mode == "month" else None,
+            "recipients": to_emails,
+            "result": "fail",
+            "error": str(e)
+        })
+        
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+
 # Include router
 app.include_router(api_router)
 
