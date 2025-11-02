@@ -1473,11 +1473,11 @@ async def send_attendance_pdf(data: dict, current_user: User = Depends(get_curre
         
     elif mode == "month":
         student_id = data.get('student_id')
-        month = data.get('month')
+        month = data.get('month', '')
         include_unsigned = data.get('include_unsigned', False)
         
-        if not student_id or not month:
-            raise HTTPException(status_code=400, detail="student_id and month required for mode=month")
+        if not student_id:
+            raise HTTPException(status_code=400, detail="student_id required for mode=month")
         
         # Récupérer l'élève
         student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
@@ -1486,22 +1486,21 @@ async def send_attendance_pdf(data: dict, current_user: User = Depends(get_curre
         
         student_name = student.get('name', '')
         
-        # Récupérer les séances du mois
+        # Récupérer TOUTES les séances du parcours (pas de filtre par mois)
         sessions = await db.sessions.find({
-            "student_id": student_id,
-            "date": {"$regex": f"^{month}"}
-        }, {"_id": 0}).to_list(100)
+            "student_id": student_id
+        }, {"_id": 0}).to_list(1000)
         
         # Filtrer les séances signées si nécessaire
         if not include_unsigned:
             signed_sessions = [s for s in sessions if s.get('signature_status') == 'signed' or s.get('teacher_signature_status') == 'signed']
             if not signed_sessions:
-                raise HTTPException(status_code=400, detail="Aucune séance émargée pour cette période")
+                raise HTTPException(status_code=400, detail="Aucune séance émargée pour le parcours")
             sessions = signed_sessions
         
         # Générer le PDF
         pdf_buffer = generate_attendance_pdf_month(student, sessions, month, include_unsigned)
-        filename = f"parcours_emarge_{student_name}_{month}.pdf"
+        filename = f"parcours_emarge_{student_name}.pdf"
     
     else:
         raise HTTPException(status_code=400, detail="mode must be 'session' or 'month'")
