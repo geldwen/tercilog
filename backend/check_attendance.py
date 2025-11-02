@@ -82,16 +82,18 @@ async def check_and_send_emails():
                     
                     if email_sent:
                         # Marquer l'email comme envoyé et mettre à jour le statut de signature
+                        # Élève: pending, Formateur: pending aussi
                         await db.sessions.update_one(
                             {"id": session_doc['id']},
                             {"$set": {
                                 "attendance_email_sent": True,
                                 "signature_status": "pending",
-                                "signature_deadline": signature_deadline.isoformat()
+                                "signature_deadline": signature_deadline.isoformat(),
+                                "teacher_signature_status": "pending"
                             }}
                         )
                         emails_sent += 1
-                        logger.info(f"Attendance email sent for session {session_doc['id']}")
+                        logger.info(f"Attendance email sent for session {session_doc['id']}, both signatures set to pending")
             except Exception as e:
                 logger.error(f"Error processing session {session_doc.get('id')}: {e}")
                 continue
