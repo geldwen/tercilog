@@ -527,32 +527,40 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     </span>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-3">
-                                  {session.signature && session.signed_at && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
-                                        ✓ Émargé le {formatDateTimeWithDay(session.signed_at)}
-                                      </span>
-                                      <img 
-                                        src={session.signature} 
-                                        alt="Signature" 
-                                        className="h-10 border border-gray-300 rounded bg-white p-1 cursor-pointer hover:scale-150 transition-transform"
-                                        title="Signature de l'élève"
-                                      />
-                                    </div>
-                                  )}
+                                
+                                {/* Ligne d'émargement élève - compacte */}
+                                {session.signature && session.signed_at && (
+                                  <div className="mt-1">
+                                    <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
+                                      ✓ Émargé le {formatDateTimeWithDay(session.signed_at)} — par l'élève
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {/* Ligne d'émargement formateur - compacte */}
+                                {session.teacher_signature && session.teacher_signed_at && (
+                                  <div className="mt-1">
+                                    <span className="text-xs px-2 py-1 rounded font-medium" style={{ backgroundColor: '#e9d5f5', color: '#6B2E6F' }}>
+                                      ✓ Émargé le {formatDateTimeWithDay(session.teacher_signed_at)} — par le formateur
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {/* Statuts en attente */}
+                                <div className="flex items-center gap-3 mt-2">
                                   {session.signature_status === "pending" && !session.signature && (
                                     <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
-                                      ⏳ En attente d'émargement
+                                      ⏳ En attente d'émargement élève
                                     </span>
                                   )}
                                   {session.signature_status === "expired" && (
                                     <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
-                                      ⚠️ Émargement expiré
+                                      ⚠️ Émargement élève expiré
                                     </span>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-3">
+                                
+                                <div className="flex items-center gap-3 mt-3">
                                   {session.meeting_link && (
                                     <div className="flex flex-col items-center gap-1">
                                       <Button 
