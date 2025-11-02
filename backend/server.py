@@ -1808,6 +1808,65 @@ async def get_student_feedback(student_id: str, current_user: User = Depends(get
     return [StudentFeedback(**f) for f in feedbacks]
 
 
+@api_router.get("/students/{student_id}/download-planning-pdf")
+async def download_planning_pdf(student_id: str, current_user: User = Depends(get_current_user)):
+    """Télécharger le planning PDF pour l'élève"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Récupérer toutes les séances
+    sessions = await db.sessions.find({"student_id": student_id}, {"_id": 0}).to_list(1000)
+    
+    if not sessions:
+        raise HTTPException(status_code=404, detail="Aucune séance trouvée")
+    
+    # Générer le PDF
+    pdf_buffer = generate_student_planning_pdf(student, sessions, "", "")
+    
+    # Retourner le PDF
+    return Response(
+        content=pdf_buffer.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=planning_{student.get('name', 'eleve')}.pdf"
+        }
+    )
+
+
+@api_router.get("/students/{student_id}/download-feedback-pdf/{feedback_id}")
+async def download_feedback_pdf(student_id: str, feedback_id: str, current_user: User = Depends(get_current_user)):
+    """Télécharger le PDF d'avis"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Récupérer le feedback
+    feedback = await db.student_feedback.find_one({"id": feedback_id, "student_id": student_id}, {"_id": 0})
+    if not feedback:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+    
+    # Générer le PDF
+    pdf_buffer = generate_feedback_pdf(student, feedback)
+    
+    # Retourner le PDF
+    return Response(
+        content=pdf_buffer.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=avis_{student.get('name', 'eleve')}.pdf"
+        }
+    )
+
+
 # Include router
 app.include_router(api_router)
 
