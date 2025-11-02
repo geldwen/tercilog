@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,13 +6,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LogOut, BookOpen, MessageSquare, Download, FileText, TrendingUp, PenTool } from "lucide-react";
+import { LogOut, BookOpen, MessageSquare, Download, FileText, TrendingUp, PenTool, CheckCircle } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const TERCIFORM_BLUE = '#0D2040';
-const TERCIFORM_BLUE_HOVER = '#152a47';
 
 export default function StudentDashboard({ user, onLogout }) {
   const [activeTab, setActiveTab] = useState('formation');
@@ -94,7 +93,6 @@ export default function StudentDashboard({ user, onLogout }) {
       setShowFeedbackDialog(false);
       setFeedback({ quality_rating: '', teacher_support: '', recommendation: '' });
       
-      // Download PDF
       if (response.data.feedback_id) {
         downloadFeedbackPDF(response.data.feedback_id);
       }
@@ -135,6 +133,16 @@ export default function StudentDashboard({ user, onLogout }) {
       link.remove();
     } catch (error) {
       toast.error("Erreur lors du téléchargement du PDF");
+    }
+  };
+
+  const confirmPresence = async (sessionId) => {
+    try {
+      await axios.patch(`${API}/sessions/${sessionId}/confirm-presence`);
+      toast.success("Présence confirmée !");
+      loadSessions();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erreur lors de la confirmation");
     }
   };
 
@@ -216,37 +224,143 @@ export default function StudentDashboard({ user, onLogout }) {
     }
   };
 
-  const formatDate = (dateStr) => {
+  const formatFrDate = (dateStr) => {
+    const daysFr = {
+      'Monday': 'lundi', 'Tuesday': 'mardi', 'Wednesday': 'mercredi',
+      'Thursday': 'jeudi', 'Friday': 'vendredi', 'Saturday': 'samedi', 'Sunday': 'dimanche'
+    };
     try {
-      const [year, month, day] = dateStr.split('-');
-      return `${day}/${month}/${year}`;
+      const date = new Date(dateStr);
+      const dayName = daysFr[date.toLocaleDateString('en-US', { weekday: 'long' })] || date.toLocaleDateString('fr-FR', { weekday: 'long' });
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${dayName} ${day}/${month}/${year}`;
     } catch {
       return dateStr;
     }
   };
 
-  const formatDateTime = (dateStr, timeStr) => {
-    const date = formatDate(dateStr);
-    return `${date} ${timeStr}`;
+  const formatFrDateTime = (dateTimeStr) => {
+    try {
+      const dt = new Date(dateTimeStr);
+      return formatFrDate(dt.toISOString().split('T')[0]) + ' ' + dt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return dateTimeStr;
+    }
   };
 
-  const getStatusBadge = (status) => {
-    const badges = {
-      pending: { text: 'En attente', color: 'bg-yellow-100 text-yellow-800' },
-      confirmed: { text: 'Confirmée', color: 'bg-green-100 text-green-800' },
-      rejected: { text: 'Refusée', color: 'bg-red-100 text-red-800' }
-    };
-    const badge = badges[status] || badges.pending;
-    return <span className={`px-2 py-1 rounded text-xs ${badge.color}`}>{badge.text}</span>;
+  const isSessionStarted = (session) => {
+    const now = new Date();
+    const sessionDateTime = new Date(`${session.date}T${session.start_time}`);
+    return now >= sessionDateTime;
+  };
+
+  const isSessionEnded = (session) => {
+    const now = new Date();
+    const sessionDateTime = new Date(`${session.date}T${session.end_time}`);
+    return now >= sessionDateTime;
+  };
+
+  const getConfirmationCell = (session) => {
+    const started = isSessionStarted(session);
+    const ended = isSessionEnded(session);
+
+    if (session.confirmation_status === 'confirmed') {
+      const confirmDate = session.confirmation_at ? formatFrDateTime(session.confirmation_at) : '';
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800">
+          <CheckCircle size={14} className="mr-1" />
+          Présence confirmée le {confirmDate}
+        </span>
+      );
+    }
+
+    if (!started && session.confirmation_status !== 'confirmed') {
+      return (
+        <Button
+          size="sm"
+          onClick={() => confirmPresence(session.id)}
+          className="text-xs"
+          style={{ backgroundColor: TERCIFORM_BLUE }}
+        >
+          Confirmer ma présence
+        </Button>
+      );
+    }
+
+    if (ended && session.confirmation_status !== 'confirmed') {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-orange-100 text-orange-800">
+          Non confirmé
+        </span>
+      );
+    }
+
+    return <span className="text-gray-500 text-xs">-</span>;
+  };
+
+  const getSignatureEleveCell = (session) => {
+    const ended = isSessionEnded(session);
+
+    if (!ended) {
+      return <span className="text-gray-500 text-xs">À signer après la séance</span>;
+    }
+
+    if (session.signature_status === 'signed' && session.signature) {
+      const signDate = session.signed_at ? formatFrDateTime(session.signed_at) : '';
+      return (
+        <div className="flex flex-col items-start gap-1">
+          <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800">
+            ✓ Signé
+          </span>
+          {session.signature && (
+            <img src={session.signature} alt="Signature" className="h-6 max-w-[100px]" />
+          )}
+          <span className="text-xs text-gray-600">Émargé le {signDate}</span>
+        </div>
+      );
+    }
+
+    if (session.signature_status === 'pending') {
+      return (
+        <Button
+          size="sm"
+          onClick={() => openSignatureDialog(session)}
+          className="text-xs"
+          style={{ backgroundColor: TERCIFORM_BLUE }}
+        >
+          <PenTool size={14} className="mr-1" />
+          Émarger
+        </Button>
+      );
+    }
+
+    return <span className="text-gray-500 text-xs">-</span>;
+  };
+
+  const getSignatureFormateurCell = (session) => {
+    if (session.teacher_signature_status === 'signed' && session.teacher_signature) {
+      const signDate = session.teacher_signed_at ? formatFrDateTime(session.teacher_signed_at) : '';
+      return (
+        <div className="flex flex-col items-start gap-1">
+          <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-purple-100 text-purple-800">
+            ✓ Signé
+          </span>
+          {session.teacher_signature && (
+            <img src={session.teacher_signature} alt="Signature formateur" className="h-6 max-w-[100px]" />
+          )}
+          <span className="text-xs text-gray-600">Émargé le {signDate}</span>
+        </div>
+      );
+    }
+
+    return <span className="text-gray-500 text-xs">Non signé</span>;
   };
 
   // Calculate stats
   const totalHours = user.total_hours || 0;
   const remainingHours = user.credit_hours || 0;
-  const completedHours = totalHours - remainingHours;
-
-  // Filter sessions to sign
-  const sessionsToSign = sessions.filter(s => s.signature_status === 'pending');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -273,13 +387,8 @@ export default function StudentDashboard({ user, onLogout }) {
               <p className="font-semibold" style={{color: TERCIFORM_BLUE}}>{user.name}</p>
               <p className="text-sm text-gray-600">Espace Élève</p>
             </div>
-            <Button
-              variant="outline"
-              onClick={onLogout}
-              className="flex items-center gap-2"
-            >
-              <LogOut size={16} />
-              Déconnexion
+            <Button variant="outline" onClick={onLogout} className="flex items-center gap-2">
+              <LogOut size={16} /> Déconnexion
             </Button>
           </div>
         </div>
@@ -287,51 +396,54 @@ export default function StudentDashboard({ user, onLogout }) {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {/* Tab Navigation - Large Cards */}
+        {/* Tab Navigation - Large Colored Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <button
             onClick={() => setActiveTab('formation')}
             className={`p-6 rounded-lg shadow-md transition-all duration-200 text-left ${
               activeTab === 'formation'
-                ? 'ring-2 ring-blue-500 bg-blue-50'
-                : 'bg-white hover:shadow-lg'
+                ? 'ring-2 ring-blue-500'
+                : 'hover:shadow-lg'
             }`}
+            style={{ backgroundColor: '#E6F0FF' }}
           >
             <div className="flex items-center gap-3 mb-2">
               <BookOpen size={28} style={{color: TERCIFORM_BLUE}} />
               <h2 className="text-xl font-bold" style={{color: TERCIFORM_BLUE}}>Ma formation</h2>
             </div>
-            <p className="text-sm text-gray-600">Consultez votre parcours complet</p>
+            <p className="text-sm" style={{color: TERCIFORM_BLUE}}>Consultez votre parcours complet</p>
           </button>
 
           <button
             onClick={() => setActiveTab('parcours')}
             className={`p-6 rounded-lg shadow-md transition-all duration-200 text-left ${
               activeTab === 'parcours'
-                ? 'ring-2 ring-blue-500 bg-blue-50'
-                : 'bg-white hover:shadow-lg'
+                ? 'ring-2 ring-green-500'
+                : 'hover:shadow-lg'
             }`}
+            style={{ backgroundColor: '#E9F8EF' }}
           >
             <div className="flex items-center gap-3 mb-2">
               <TrendingUp size={28} style={{color: TERCIFORM_BLUE}} />
               <h2 className="text-xl font-bold" style={{color: TERCIFORM_BLUE}}>Mon parcours</h2>
             </div>
-            <p className="text-sm text-gray-600">Livret et besoins en formation</p>
+            <p className="text-sm" style={{color: TERCIFORM_BLUE}}>Livret et besoins en formation</p>
           </button>
 
           <button
             onClick={() => setActiveTab('avis')}
             className={`p-6 rounded-lg shadow-md transition-all duration-200 text-left ${
               activeTab === 'avis'
-                ? 'ring-2 ring-blue-500 bg-blue-50'
-                : 'bg-white hover:shadow-lg'
+                ? 'ring-2 ring-pink-500'
+                : 'hover:shadow-lg'
             }`}
+            style={{ backgroundColor: '#FDE7F3' }}
           >
             <div className="flex items-center gap-3 mb-2">
               <MessageSquare size={28} style={{color: TERCIFORM_BLUE}} />
               <h2 className="text-xl font-bold" style={{color: TERCIFORM_BLUE}}>Mes avis</h2>
             </div>
-            <p className="text-sm text-gray-600">Partagez votre expérience</p>
+            <p className="text-sm" style={{color: TERCIFORM_BLUE}}>Partagez votre expérience</p>
           </button>
         </div>
 
@@ -355,7 +467,6 @@ export default function StudentDashboard({ user, onLogout }) {
                 </CardHeader>
                 <CardContent>
                   <p className="text-4xl font-bold text-green-600">{remainingHours}h</p>
-                  <p className="text-sm text-gray-600 mt-2">{completedHours}h complétées</p>
                 </CardContent>
               </Card>
             </div>
@@ -372,25 +483,27 @@ export default function StudentDashboard({ user, onLogout }) {
                   <p className="text-center py-8 text-gray-500">Aucune séance programmée</p>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b">
                           <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Date</th>
                           <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Horaire</th>
                           <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Matière</th>
-                          <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Formateur</th>
-                          <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Statut</th>
+                          <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Confirmation</th>
+                          <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Signature élève</th>
+                          <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Signature formateur</th>
                           <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Durée</th>
                         </tr>
                       </thead>
                       <tbody>
                         {sessions.sort((a, b) => new Date(a.date) - new Date(b.date)).map((session) => (
                           <tr key={session.id} className="border-b hover:bg-gray-50">
-                            <td className="p-3">{formatDate(session.date)}</td>
+                            <td className="p-3">{formatFrDate(session.date)}</td>
                             <td className="p-3">{session.start_time} - {session.end_time}</td>
                             <td className="p-3">{session.subject}</td>
-                            <td className="p-3 text-gray-600">-</td>
-                            <td className="p-3">{getStatusBadge(session.status)}</td>
+                            <td className="p-3">{getConfirmationCell(session)}</td>
+                            <td className="p-3">{getSignatureEleveCell(session)}</td>
+                            <td className="p-3">{getSignatureFormateurCell(session)}</td>
                             <td className="p-3">{session.duration_hours}h</td>
                           </tr>
                         ))}
@@ -411,42 +524,11 @@ export default function StudentDashboard({ user, onLogout }) {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Séances à émarger */}
-            {sessionsToSign.length > 0 && (
-              <Card className="shadow-lg border-2 border-blue-200">
-                <CardHeader>
-                  <CardTitle style={{color: TERCIFORM_BLUE}}>Séances à émarger</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {sessionsToSign.map((session) => (
-                      <div key={session.id} className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-                        <div>
-                          <p className="font-semibold">{session.subject}</p>
-                          <p className="text-sm text-gray-600">
-                            {formatDateTime(session.date, session.start_time)}
-                          </p>
-                        </div>
-                        <Button
-                          onClick={() => openSignatureDialog(session)}
-                          style={{backgroundColor: TERCIFORM_BLUE}}
-                        >
-                          <PenTool size={16} className="mr-2" />
-                          Signer
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
         )}
 
         {activeTab === 'parcours' && (
           <div className="space-y-6">
-            {/* Livret d'accueil */}
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle style={{color: TERCIFORM_BLUE}}>Mon livret d'accueil</CardTitle>
@@ -466,25 +548,18 @@ export default function StudentDashboard({ user, onLogout }) {
               </CardContent>
             </Card>
 
-            {/* Besoins en formation */}
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle style={{color: TERCIFORM_BLUE}}>Mes besoins en formation</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 mb-4">
-                  Partagez vos attentes et objectifs de formation
-                </p>
-                <Button
-                  onClick={() => setShowNeedsDialog(true)}
-                  style={{backgroundColor: TERCIFORM_BLUE}}
-                >
+                <p className="text-gray-600 mb-4">Partagez vos attentes et objectifs de formation</p>
+                <Button onClick={() => setShowNeedsDialog(true)} style={{backgroundColor: TERCIFORM_BLUE}}>
                   Remplir le questionnaire
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Placeholder progression */}
             <Card className="shadow-lg border-dashed border-2">
               <CardHeader>
                 <CardTitle className="text-gray-500">Progression du parcours</CardTitle>
@@ -502,19 +577,13 @@ export default function StudentDashboard({ user, onLogout }) {
 
         {activeTab === 'avis' && (
           <div className="space-y-6">
-            {/* Formulaire d'avis */}
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle style={{color: TERCIFORM_BLUE}}>Mon avis sur la formation</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 mb-4">
-                  Votre retour est précieux pour améliorer nos formations
-                </p>
-                <Button
-                  onClick={() => setShowFeedbackDialog(true)}
-                  style={{backgroundColor: TERCIFORM_BLUE}}
-                >
+                <p className="text-gray-600 mb-4">Votre retour est précieux pour améliorer nos formations</p>
+                <Button onClick={() => setShowFeedbackDialog(true)} style={{backgroundColor: TERCIFORM_BLUE}}>
                   <MessageSquare size={16} className="mr-2" />
                   Donner mon avis
                 </Button>
@@ -529,9 +598,7 @@ export default function StudentDashboard({ user, onLogout }) {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Mes besoins en formation</DialogTitle>
-            <DialogDescription>
-              Partagez vos attentes pour personnaliser votre parcours
-            </DialogDescription>
+            <DialogDescription>Partagez vos attentes pour personnaliser votre parcours</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -572,12 +639,8 @@ export default function StudentDashboard({ user, onLogout }) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNeedsDialog(false)}>
-              Annuler
-            </Button>
-            <Button onClick={saveTrainingNeeds} style={{backgroundColor: TERCIFORM_BLUE}}>
-              Sauvegarder
-            </Button>
+            <Button variant="outline" onClick={() => setShowNeedsDialog(false)}>Annuler</Button>
+            <Button onClick={saveTrainingNeeds} style={{backgroundColor: TERCIFORM_BLUE}}>Sauvegarder</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -587,9 +650,7 @@ export default function StudentDashboard({ user, onLogout }) {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Mon avis sur la formation</DialogTitle>
-            <DialogDescription>
-              Votre retour nous aide à améliorer nos formations
-            </DialogDescription>
+            <DialogDescription>Votre retour nous aide à améliorer nos formations</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -624,12 +685,8 @@ export default function StudentDashboard({ user, onLogout }) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowFeedbackDialog(false)}>
-              Annuler
-            </Button>
-            <Button onClick={submitFeedback} style={{backgroundColor: TERCIFORM_BLUE}}>
-              Soumettre mon avis
-            </Button>
+            <Button variant="outline" onClick={() => setShowFeedbackDialog(false)}>Annuler</Button>
+            <Button onClick={submitFeedback} style={{backgroundColor: TERCIFORM_BLUE}}>Soumettre mon avis</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -641,9 +698,7 @@ export default function StudentDashboard({ user, onLogout }) {
             <DialogTitle>Signature de présence</DialogTitle>
             <DialogDescription>
               {currentSessionToSign && (
-                <span>
-                  {currentSessionToSign.subject} - {formatDateTime(currentSessionToSign.date, currentSessionToSign.start_time)}
-                </span>
+                <span>{currentSessionToSign.subject} - {formatFrDate(currentSessionToSign.date)}</span>
               )}
             </DialogDescription>
           </DialogHeader>
@@ -669,15 +724,9 @@ export default function StudentDashboard({ user, onLogout }) {
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={clearSignature}>
-              Effacer
-            </Button>
-            <Button variant="outline" onClick={() => setShowSignatureDialog(false)}>
-              Annuler
-            </Button>
-            <Button onClick={saveSignature} style={{backgroundColor: TERCIFORM_BLUE}}>
-              Valider la signature
-            </Button>
+            <Button variant="outline" onClick={clearSignature}>Effacer</Button>
+            <Button variant="outline" onClick={() => setShowSignatureDialog(false)}>Annuler</Button>
+            <Button onClick={saveSignature} style={{backgroundColor: TERCIFORM_BLUE}}>Valider la signature</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
