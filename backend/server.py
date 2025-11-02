@@ -509,6 +509,37 @@ async def delete_session(session_id: str, current_user: User = Depends(get_curre
     
     return {"message": "Session deleted"}
 
+@api_router.patch("/sessions/{session_id}/confirm-presence")
+async def confirm_presence(session_id: str, current_user: User = Depends(get_current_user)):
+    """Confirmer sa présence à une séance (élève)"""
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer la séance
+    session_doc = await db.sessions.find_one({"id": session_id, "student_id": current_user.id}, {"_id": 0})
+    if not session_doc:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Vérifier si déjà confirmé
+    if session_doc.get('confirmation_status') == 'confirmed':
+        raise HTTPException(status_code=400, detail="Présence déjà confirmée")
+    
+    # Confirmer la présence
+    confirmation_at = datetime.now(timezone.utc).isoformat()
+    await db.sessions.update_one(
+        {"id": session_id},
+        {"$set": {
+            "confirmation_status": "confirmed",
+            "confirmation_at": confirmation_at
+        }}
+    )
+    
+    logger.info(f"Student {current_user.id} confirmed presence for session {session_id}")
+    
+    session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    return Session(**session_doc)
+
+
 @api_router.post("/sessions/{session_id}/sign")
 async def sign_session(session_id: str, signature_data: dict, current_user: User = Depends(get_current_user)):
     """Enregistrer la signature d'un élève pour une séance"""
