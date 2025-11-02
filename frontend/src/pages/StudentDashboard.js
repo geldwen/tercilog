@@ -348,7 +348,7 @@ export default function StudentDashboard({ user, onLogout }) {
           {session.teacher_signature && (
             <img src={session.teacher_signature} alt="Signature formateur" className="h-6 max-w-[100px]" />
           )}
-          <span className="text-xs text-gray-600">Émargé le {signDate}</span>
+          <span className="text-xs text-gray-600">Émargé le {signDate} — par le formateur</span>
         </div>
       );
     }
