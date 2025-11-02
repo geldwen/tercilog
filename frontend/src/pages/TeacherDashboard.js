@@ -873,41 +873,46 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <div className="flex flex-col items-center gap-1">
-                                <Button 
-                                  onClick={() => handleSendPdf(student)} 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="text-white border-red-600 hover:bg-red-50"
-                                  style={{ backgroundColor: '#DC143C' }}
-                                >
-                                  <FileText className="w-4 h-4" />
-                                </Button>
-                                <span className="text-[10px] text-gray-500 text-center leading-tight">Envoyer<br/>en PDF</span>
-                              </div>
-                              <div className="flex flex-col items-center gap-1">
-                                <Button 
-                                  onClick={() => handleEditStudent(student)} 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <span className="text-[10px] text-gray-500 text-center leading-tight">Modifier la<br/>fiche élève</span>
-                              </div>
-                              <div className="flex flex-col items-center gap-1">
-                                <Button 
-                                  onClick={() => handleDeleteStudent(student.id, student.name)} 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="text-red-600 border-red-300 hover:bg-red-50"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                                <span className="text-[10px] text-gray-500 text-center">Supprimer</span>
-                              </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <Button 
+                                onClick={() => handleSendPdf(student)} 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-white border-red-600"
+                                style={{ backgroundColor: '#DC143C' }}
+                              >
+                                <FileText className="w-4 h-4" />
+                                Planning de formation
+                              </Button>
+                              <Button 
+                                onClick={() => handleOpenSendAttendance(student)} 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full py-2 rounded-md border border-purple-300 text-purple-700 flex items-center justify-center gap-2 hover:bg-purple-50"
+                              >
+                                <FileCheck className="w-4 h-4" />
+                                Parcours émargé
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 mt-2">
+                              <Button 
+                                onClick={() => handleEditStudent(student)} 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+                              >
+                                <Edit className="w-4 h-4" />
+                                Modifier la fiche
+                              </Button>
+                              <Button 
+                                onClick={() => handleDeleteStudent(student.id, student.name)} 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Supprimer
+                              </Button>
                             </div>
                           </div>
                           {studentSessions.length > 0 && (
