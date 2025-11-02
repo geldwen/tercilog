@@ -31,6 +31,8 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [currentSessionToSign, setCurrentSessionToSign] = useState(null);
   const [pdfStudent, setPdfStudent] = useState(null);
   const [pdfEmail, setPdfEmail] = useState('');
+  const [isDrawing, setIsDrawing] = useState(false);
+  const canvasRef = useRef(null);
 
   const [sessionForm, setSessionForm] = useState({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48, meeting_link: "" });
   const [studentForm, setStudentForm] = useState({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0 });
