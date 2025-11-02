@@ -519,6 +519,38 @@ async def sign_session(session_id: str, signature_data: dict, current_user: User
     session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
     return Session(**session_doc)
 
+@api_router.patch("/sessions/{session_id}/teacher-sign")
+async def teacher_sign_session(session_id: str, signature_data: dict, current_user: User = Depends(get_current_user)):
+    """Enregistrer la signature du formateur pour une séance"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer la séance
+    session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session_doc:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Vérifier si déjà signé
+    if session_doc.get('teacher_signature_status') == 'signed':
+        raise HTTPException(status_code=400, detail="Teacher already signed this session")
+    
+    # Enregistrer la signature formateur
+    teacher_signed_at = datetime.now(timezone.utc).isoformat()
+    await db.sessions.update_one(
+        {"id": session_id},
+        {"$set": {
+            "teacher_signature": signature_data.get("signature"),
+            "teacher_signed_at": teacher_signed_at,
+            "teacher_signature_status": "signed"
+        }}
+    )
+    
+    logger.info(f"Teacher {current_user.id} signed session {session_id}")
+    
+    session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    return Session(**session_doc)
+
+
 
 @api_router.put("/sessions/{session_id}")
 async def update_session(session_id: str, data: dict, current_user: User = Depends(get_current_user)):
