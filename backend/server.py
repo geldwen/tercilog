@@ -964,18 +964,13 @@ def build_header(title: str):
         pil_img = PILImage.open(str(logo_path))
         original_width, original_height = pil_img.size
         
-        # Contraintes: maxWidth=140px, maxHeight=60px, préserver ratio
-        max_width = 140
-        max_height = 60
+        # Contraintes: max-height=50px, conserver ratio
+        max_height = 50
         
         # Calculer le ratio de redimensionnement
-        ratio_width = max_width / original_width
-        ratio_height = max_height / original_height
-        ratio = min(ratio_width, ratio_height)
-        
-        # Nouvelles dimensions
+        ratio = max_height / original_height
         new_width = original_width * ratio
-        new_height = original_height * ratio
+        new_height = max_height
         
         logo = Image(str(logo_path), width=new_width, height=new_height)
     else:
@@ -989,6 +984,8 @@ def build_header(title: str):
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('ALIGN', (0, 0), (0, 0), 'LEFT'),
         ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+        ('LEFTPADDING', (0, 0), (0, 0), 0),
+        ('RIGHTPADDING', (1, 0), (1, 0), 0),
     ]))
     
     return header_table
