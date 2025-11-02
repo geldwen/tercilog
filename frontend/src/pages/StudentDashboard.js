@@ -145,6 +145,22 @@ export default function StudentDashboard({ user, onLogout }) {
 
   const sessionsToSign = sessions.filter(s => s.signature_status === "pending" && !s.signature);
 
+  // Helper pour formater la date/heure de manière compacte
+  const formatCompactDateTime = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    const options = { 
+      weekday: 'short', 
+      day: '2-digit', 
+      month: 'short', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    const formatted = date.toLocaleDateString('fr-FR', options);
+    // Format: "sam. 02 nov. 2025 à 17:51"
+    return formatted.replace(',', ' à');
+  };
 
   const pendingSessions = sessions.filter((s) => s.status === "pending");
   const confirmedSessions = sessions.filter((s) => s.status === "confirmed");
