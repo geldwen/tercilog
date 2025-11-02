@@ -106,13 +106,16 @@ class Session(BaseModel):
     validation_deadline: Optional[str] = None
     validated_at: Optional[str] = None
     duration_hours: float = 0.0
-    signature: Optional[str] = None  # Base64 image de la signature
-    signed_at: Optional[str] = None  # Horodatage de l'émargement
+    signature: Optional[str] = None  # Base64 image de la signature élève
+    signed_at: Optional[str] = None  # Horodatage de l'émargement élève
     signature_status: str = "not_required"  # not_required, pending, signed, expired
     signature_deadline: Optional[str] = None  # Délai de 2h après la fin de séance
     attendance_email_sent: bool = False  # Email d'émargement envoyé ou non
     reminder_email_sent: bool = False  # Email de rappel 5 min avant envoyé ou non
     meeting_link: str = ""  # Lien Google Meet ou autre visio
+    teacher_signature: Optional[str] = None  # Base64 image de la signature formateur
+    teacher_signed_at: Optional[str] = None  # Horodatage de l'émargement formateur
+    teacher_signature_status: str = "scheduled"  # scheduled, pending, signed
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class SessionCreate(BaseModel):
