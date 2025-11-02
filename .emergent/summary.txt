@@ -1,0 +1,45 @@
+<analysis>
+Développement d’une application de planification pour étudiants et formateurs (Terciform / TerciLog). 
+Les étudiants reçoivent des séances, valident leur présence (“oui/non”) et signent après la fin du cours. 
+Les formateurs gèrent les étudiants, les séances, les statistiques et les rappels automatiques par e-mail. 
+Le projet repose sur FastAPI + React + MongoDB, avec un design Terciform (bleu marine).
+
+</analysis>
+<product_requirements>
+Application TerciLog : gestion des séances, signatures et suivi des étudiants. 
+Les étudiants valident leur présence, signent électroniquement et peuvent rejoindre les cours via Google Meet. 
+Les formateurs suivent les signatures, heures réalisées, crédits restants et reçoivent des rapports PDF.
+
+</product_requirements>
+<key_technical_concepts>
+- FastAPI : backend en Python  
+- React : interface utilisateur  
+- MongoDB : base de données  
+- JWT : authentification par jeton  
+- Gmail SMTP : envoi d’e-mails automatiques  
+- ReportLab : génération de PDF  
+- Tailwind CSS / Shadcn UI : interface front-end moderne
+
+</key_technical_concepts>
+<code_architecture>
+Backend (FastAPI) pour les API, la gestion des utilisateurs et l’envoi d’e-mails.
+Frontend (React) pour les tableaux de bord enseignants et étudiants.
+Scripts automatisés : check_attendance.py (émargement après séance) et check_reminders.py (rappels avant séance).
+
+</code_architecture>
+<pending_tasks>
+Corriger le bug empêchant l’envoi automatique des e-mails d’émargement.  
+Vérifier que les séances apparaissent bien dans l’espace élève.  
+Assurer que signature_status = pending à la création des séances.
+
+</pending_tasks>
+<current_work>
+Correction du système d’émargement : automatisation de l’envoi d’e-mails et affichage des séances à signer.
+Le champ signature_status doit être corrigé pour chaque nouvelle séance créée.
+
+</current_work>
+<optional_next_step>
+Automatiser totalement l’envoi d’émargement après la fin de chaque séance.
+Exemple : si une séance se termine à 12h13, un e-mail d’émargement est envoyé immédiatement aux étudiants concernés.
+
+</optional_next_step>
