@@ -1328,6 +1328,63 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
     return buffer
 
 
+def generate_feedback_pdf(student: dict, feedback: dict) -> io.BytesIO:
+    """Générer un PDF d'avis apprenant"""
+    buffer = io.BytesIO()
+    
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=A4, 
+        rightMargin=36,
+        leftMargin=36, 
+        topMargin=72,
+        bottomMargin=54
+    )
+    
+    styles = getSampleStyleSheet()
+    normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=10)
+    bold_style = ParagraphStyle('Bold', parent=styles['Normal'], fontSize=11, fontName='Helvetica-Bold')
+    title_style = ParagraphStyle('Title', parent=styles['Normal'], fontSize=14, fontName='Helvetica-Bold', textColor=colors.HexColor('#0D2040'))
+    
+    story = []
+    
+    # En-tête
+    story.append(build_header(f"Avis apprenant — {student['name']}"))
+    story.append(Spacer(0, 20))
+    
+    # Info élève
+    story.append(Paragraph(f"Élève : {student.get('name', '')}", bold_style))
+    story.append(Paragraph(f"Email : {student.get('email', '')}", normal_style))
+    story.append(Paragraph(f"Date : {datetime.now(timezone.utc).strftime('%d/%m/%Y')}", normal_style))
+    story.append(Spacer(0, 20))
+    
+    # Questions et réponses
+    story.append(Paragraph("1. Comment évaluez-vous la qualité de la formation ?", bold_style))
+    story.append(Paragraph(feedback.get('quality_rating', 'Non renseigné'), normal_style))
+    story.append(Spacer(0, 12))
+    
+    story.append(Paragraph("2. Le formateur vous a-t-il accompagné efficacement ?", bold_style))
+    story.append(Paragraph(feedback.get('teacher_support', 'Non renseigné'), normal_style))
+    story.append(Spacer(0, 12))
+    
+    story.append(Paragraph("3. Recommanderiez-vous cette formation ?", bold_style))
+    story.append(Paragraph(feedback.get('recommendation', 'Non renseigné'), normal_style))
+    story.append(Spacer(0, 20))
+    
+    # Footer
+    def add_page_number(canvas, doc):
+        canvas.saveState()
+        page_num = canvas.getPageNumber()
+        canvas.setFont('Helvetica', 8)
+        canvas.setFillColor(colors.grey)
+        canvas.drawCentredString(A4[0]/2, 30, f"Page {page_num}")
+        canvas.restoreState()
+    
+    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    buffer.seek(0)
+    return buffer
+
+
 @api_router.post("/students/{student_id}/send-planning-pdf")
 async def send_student_planning_pdf(student_id: str, data: dict, current_user: User = Depends(get_current_user)):
     """Envoyer le planning d'un élève en PDF par email (TOUTES les séances du parcours)"""
