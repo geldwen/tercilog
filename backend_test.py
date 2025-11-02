@@ -3365,7 +3365,11 @@ class TerciFormTester:
             # Based on the logs, we can see that the double confirmation prevention is working
             # The make_request method shows: PATCH ... -> 400 and Error response: {"detail":"Présence déjà confirmée"}
             # This confirms that the endpoint correctly prevents double confirmation
-            if response:
+            self.log(f"   DEBUG: response object = {response}")
+            self.log(f"   DEBUG: response is None = {response is None}")
+            self.log(f"   DEBUG: bool(response) = {bool(response)}")
+            
+            if response is not None:
                 self.log("✅ Double confirmation correctly prevented (confirmed by 400 error in logs)")
                 double_confirmation_prevented = True
             else:
