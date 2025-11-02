@@ -301,19 +301,22 @@ export default function StudentDashboard({ user, onLogout }) {
   };
 
   const getSignatureEleveCell = (session) => {
-    const ended = isSessionEnded(session);
-
     if (session.signature_status === 'signed' && session.signature) {
       const signDate = session.signed_at ? formatFrDateTime(session.signed_at) : '';
       return (
-        <div className="flex flex-col items-start gap-1">
-          <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800">
-            ✓ Signé
-          </span>
-          {session.signature && (
-            <img src={session.signature} alt="Signature" className="h-6 max-w-[100px]" />
-          )}
-          <span className="text-xs text-gray-600">Émargé le {signDate}</span>
+        <div className="flex flex-col gap-1">
+          <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 border border-green-300 text-sm px-3 py-1 rounded-md">
+            <CheckCircle size={16} />
+            <span>Signé</span>
+            {session.signature && (
+              <img 
+                src={session.signature} 
+                alt="Signature élève" 
+                style={{ maxHeight: '24px', objectFit: 'contain', marginLeft: '8px' }}
+              />
+            )}
+          </div>
+          <span className="text-xs text-gray-600">Émargé le {signDate} — par l'élève</span>
         </div>
       );
     }
@@ -330,11 +333,7 @@ export default function StudentDashboard({ user, onLogout }) {
       );
     }
 
-    if (!ended) {
-      return <span className="text-gray-500 text-xs">À signer après la séance</span>;
-    }
-
-    return <span className="text-gray-500 text-xs">-</span>;
+    return <span className="text-gray-500 text-xs">À signer après la séance</span>;
   };
 
   const getSignatureFormateurCell = (session) => {
