@@ -2454,6 +2454,329 @@ class TerciFormTester:
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_teacher_signature_system(self):
+        """Test the complete teacher signature system as per review request"""
+        self.log("🎯 Testing Teacher Signature System")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Create test student
+            self.log("=== STEP 2: Creating Test Student ===")
+            if not self.create_test_student():
+                return False
+            
+            # TEST 1 - Session creation: Check teacher_signature_status = "scheduled" by default
+            self.log("=== TEST 1: Session Creation - Default teacher_signature_status ===")
+            
+            # Create a future session
+            now = datetime.now(timezone.utc)
+            future_time = now + timedelta(hours=2)
+            start_time = future_time
+            end_time = future_time + timedelta(hours=1)
+            
+            session_data = {
+                "subject": "Test Signature Formateur",
+                "date": start_time.strftime("%Y-%m-%d"),
+                "start_time": start_time.strftime("%H:%M"),
+                "end_time": end_time.strftime("%H:%M"),
+                "student_id": self.created_student_id,
+                "validation_deadline_hours": 48
+            }
+            
+            response = self.make_request("POST", "/sessions", session_data, self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create session", "ERROR")
+                return False
+            
+            session = response.json()
+            test_session_id = session["id"]
+            
+            # Verify teacher_signature_status = "scheduled"
+            teacher_sig_status = session.get('teacher_signature_status', 'N/A')
+            self.log(f"✅ TEST 1 - Session created:")
+            self.log(f"   teacher_signature_status: {teacher_sig_status}")
+            
+            test1_passed = teacher_sig_status == "scheduled"
+            self.log(f"   {'✅' if test1_passed else '❌'} teacher_signature_status = 'scheduled': {test1_passed}")
+            
+            # TEST 2 - Create a past session and test automatic script
+            self.log("=== TEST 2: Past Session Processing by Automatic Script ===")
+            
+            # Create session that ended 10 minutes ago
+            past_end = now - timedelta(minutes=10)
+            past_start = past_end - timedelta(hours=1)
+            
+            past_session_data = {
+                "subject": "Test Signature Passée",
+                "date": past_end.strftime("%Y-%m-%d"),
+                "start_time": past_start.strftime("%H:%M"),
+                "end_time": past_end.strftime("%H:%M"),
+                "student_id": self.created_student_id,
+                "validation_deadline_hours": 48
+            }
+            
+            response = self.make_request("POST", "/sessions", past_session_data, self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create past session", "ERROR")
+                return False
+            
+            past_session = response.json()
+            past_session_id = past_session["id"]
+            
+            # Confirm the session first (as student)
+            if not self.login_as_student():
+                return False
+            
+            validation_data = {"status": "confirmed"}
+            response = self.make_request("PATCH", f"/sessions/{past_session_id}/validate", validation_data, self.student_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to confirm past session", "ERROR")
+                return False
+            
+            # Switch back to teacher
+            if not self.login_as_teacher():
+                return False
+            
+            # Run the attendance check script
+            self.log("Running attendance email script...")
+            response = self.make_request("POST", "/sessions/check-attendance-emails")
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to run attendance script", "ERROR")
+                return False
+            
+            # Check the session status after script
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions", "ERROR")
+                return False
+            
+            sessions = response.json()
+            processed_session = None
+            for s in sessions:
+                if s["id"] == past_session_id:
+                    processed_session = s
+                    break
+            
+            if not processed_session:
+                self.log("❌ Past session not found", "ERROR")
+                return False
+            
+            student_sig_status = processed_session.get('signature_status', 'N/A')
+            teacher_sig_status = processed_session.get('teacher_signature_status', 'N/A')
+            
+            self.log(f"✅ TEST 2 - After automatic script:")
+            self.log(f"   signature_status (élève): {student_sig_status}")
+            self.log(f"   teacher_signature_status (formateur): {teacher_sig_status}")
+            
+            test2_passed = (student_sig_status == "pending" and teacher_sig_status == "pending")
+            self.log(f"   {'✅' if test2_passed else '❌'} Both signatures set to 'pending': {test2_passed}")
+            
+            # TEST 3 - Manual resend
+            self.log("=== TEST 3: Manual Resend Email ===")
+            
+            # Create another session for manual resend test
+            manual_session_data = {
+                "subject": "Test Renvoi Manuel",
+                "date": now.strftime("%Y-%m-%d"),
+                "start_time": (now - timedelta(hours=1)).strftime("%H:%M"),
+                "end_time": now.strftime("%H:%M"),
+                "student_id": self.created_student_id,
+                "validation_deadline_hours": 48
+            }
+            
+            response = self.make_request("POST", "/sessions", manual_session_data, self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create manual resend session", "ERROR")
+                return False
+            
+            manual_session = response.json()
+            manual_session_id = manual_session["id"]
+            
+            # Use manual resend endpoint
+            response = self.make_request("POST", f"/sessions/{manual_session_id}/resend-attendance-email", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to resend attendance email", "ERROR")
+                return False
+            
+            # Check session status after manual resend
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions after manual resend", "ERROR")
+                return False
+            
+            sessions = response.json()
+            manual_resend_session = None
+            for s in sessions:
+                if s["id"] == manual_session_id:
+                    manual_resend_session = s
+                    break
+            
+            if not manual_resend_session:
+                self.log("❌ Manual resend session not found", "ERROR")
+                return False
+            
+            student_sig_status = manual_resend_session.get('signature_status', 'N/A')
+            teacher_sig_status = manual_resend_session.get('teacher_signature_status', 'N/A')
+            
+            self.log(f"✅ TEST 3 - After manual resend:")
+            self.log(f"   signature_status (élève): {student_sig_status}")
+            self.log(f"   teacher_signature_status (formateur): {teacher_sig_status}")
+            
+            test3_passed = (student_sig_status == "pending" and teacher_sig_status == "pending")
+            self.log(f"   {'✅' if test3_passed else '❌'} Both signatures set to 'pending': {test3_passed}")
+            
+            # TEST 4 - Teacher signature
+            self.log("=== TEST 4: Teacher Signature ===")
+            
+            # Create a test signature (base64 PNG)
+            test_signature = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+            
+            signature_data = {"signature": test_signature}
+            response = self.make_request("PATCH", f"/sessions/{past_session_id}/teacher-sign", signature_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to sign session as teacher", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            signed_session = response.json()
+            
+            teacher_signature = signed_session.get('teacher_signature', 'N/A')
+            teacher_signed_at = signed_session.get('teacher_signed_at', 'N/A')
+            teacher_sig_status = signed_session.get('teacher_signature_status', 'N/A')
+            
+            self.log(f"✅ TEST 4 - Teacher signature:")
+            self.log(f"   teacher_signature: {'Present' if teacher_signature != 'N/A' else 'Missing'}")
+            self.log(f"   teacher_signed_at: {teacher_signed_at}")
+            self.log(f"   teacher_signature_status: {teacher_sig_status}")
+            
+            test4_passed = (teacher_signature != 'N/A' and 
+                           teacher_signed_at != 'N/A' and 
+                           teacher_sig_status == "signed")
+            self.log(f"   {'✅' if test4_passed else '❌'} Teacher signature complete: {test4_passed}")
+            
+            # TEST 5 - Double signature prevention
+            self.log("=== TEST 5: Double Signature Prevention ===")
+            
+            # Try to sign the same session again
+            response = self.make_request("PATCH", f"/sessions/{past_session_id}/teacher-sign", signature_data, self.teacher_token)
+            
+            test5_passed = (response and response.status_code == 400)
+            self.log(f"   {'✅' if test5_passed else '❌'} Double signature prevented (400 error): {test5_passed}")
+            
+            if response and response.status_code == 400:
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get('detail', 'No detail')
+                    self.log(f"   Error message: {error_detail}")
+                except:
+                    self.log(f"   Error response: {response.text}")
+            
+            # TEST 6 - Complete session (both signatures)
+            self.log("=== TEST 6: Complete Session Verification ===")
+            
+            # First, let's sign the session as student
+            if not self.login_as_student():
+                return False
+            
+            student_signature_data = {"signature": test_signature}
+            response = self.make_request("POST", f"/sessions/{past_session_id}/sign", student_signature_data, self.student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to sign session as student", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            # Switch back to teacher and get final session state
+            if not self.login_as_teacher():
+                return False
+            
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get final sessions", "ERROR")
+                return False
+            
+            sessions = response.json()
+            complete_session = None
+            for s in sessions:
+                if s["id"] == past_session_id:
+                    complete_session = s
+                    break
+            
+            if not complete_session:
+                self.log("❌ Complete session not found", "ERROR")
+                return False
+            
+            student_sig_status = complete_session.get('signature_status', 'N/A')
+            teacher_sig_status = complete_session.get('teacher_signature_status', 'N/A')
+            student_signature = complete_session.get('signature', 'N/A')
+            teacher_signature = complete_session.get('teacher_signature', 'N/A')
+            
+            self.log(f"✅ TEST 6 - Complete session:")
+            self.log(f"   signature_status (élève): {student_sig_status}")
+            self.log(f"   teacher_signature_status (formateur): {teacher_sig_status}")
+            self.log(f"   Student signature: {'Present' if student_signature != 'N/A' else 'Missing'}")
+            self.log(f"   Teacher signature: {'Present' if teacher_signature != 'N/A' else 'Missing'}")
+            
+            test6_passed = (student_sig_status == "signed" and 
+                           teacher_sig_status == "signed" and
+                           student_signature != 'N/A' and 
+                           teacher_signature != 'N/A')
+            self.log(f"   {'✅' if test6_passed else '❌'} Both signatures complete: {test6_passed}")
+            
+            # Final summary
+            self.log("=== FINAL SUMMARY ===")
+            all_tests = [
+                ("TEST 1 - Session creation default status", test1_passed),
+                ("TEST 2 - Automatic script processing", test2_passed),
+                ("TEST 3 - Manual resend", test3_passed),
+                ("TEST 4 - Teacher signature", test4_passed),
+                ("TEST 5 - Double signature prevention", test5_passed),
+                ("TEST 6 - Complete session", test6_passed)
+            ]
+            
+            passed_count = sum(1 for _, passed in all_tests if passed)
+            total_count = len(all_tests)
+            
+            for test_name, passed in all_tests:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {test_name}")
+            
+            self.log(f"📊 Results: {passed_count}/{total_count} tests passed")
+            
+            # Cleanup
+            self.log("=== CLEANUP ===")
+            for session_id in [test_session_id, past_session_id, manual_session_id]:
+                if session_id:
+                    response = self.make_request("DELETE", f"/sessions/{session_id}", token=self.teacher_token)
+                    if response and response.status_code == 200:
+                        self.log(f"✅ Session {session_id} deleted")
+            
+            all_passed = passed_count == total_count
+            
+            if all_passed:
+                self.log("🎉 TEACHER SIGNATURE SYSTEM TEST COMPLETED SUCCESSFULLY!")
+            else:
+                self.log("❌ Some tests failed", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+        finally:
+            # Always cleanup
+            self.cleanup()
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
