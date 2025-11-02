@@ -779,12 +779,14 @@ async def check_and_send_attendance_emails():
                 
                 if email_sent:
                     # Marquer l'email comme envoyé et mettre à jour le statut de signature
+                    # Élève: pending, Formateur: pending aussi
                     await db.sessions.update_one(
                         {"id": session_doc['id']},
                         {"$set": {
                             "attendance_email_sent": True,
                             "signature_status": "pending",
-                            "signature_deadline": signature_deadline.isoformat()
+                            "signature_deadline": signature_deadline.isoformat(),
+                            "teacher_signature_status": "pending"
                         }}
                     )
                     emails_sent += 1
