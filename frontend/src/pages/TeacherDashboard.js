@@ -634,58 +634,9 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     size="sm" 
                                     className="w-full flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50 rounded-lg py-2"
                                   >
-                                      size="sm" 
-                                      className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                                    >
-                                      <Mail className="w-4 h-4" />
-                                    </Button>
-                                    <span className="text-[10px] text-gray-500 text-center leading-tight">Renvoyer<br/>confirmation</span>
-                                  </div>
-                                  <div className="flex flex-col items-center gap-1">
-                                    <Button 
-                                      onClick={() => handleResendAttendanceEmail(session.id)} 
-                                      variant="outline" 
-                                      size="sm" 
-                                      className="text-orange-600 border-orange-300 hover:bg-orange-50"
-                                    >
-                                      <PenTool className="w-4 h-4" />
-                                    </Button>
-                                    <span className="text-[10px] text-gray-500 text-center leading-tight">Renvoyer<br/>émargement élève</span>
-                                  </div>
-                                  <div className="flex flex-col items-center gap-1">
-                                    <Button 
-                                      onClick={() => openTeacherSignatureDialog(session)} 
-                                      variant="outline" 
-                                      size="sm" 
-                                      style={{ color: '#6B2E6F', borderColor: '#d1a7d4' }}
-                                      className="hover:bg-purple-50"
-                                    >
-                                      <PenTool className="w-4 h-4 rotate-180" />
-                                    </Button>
-                                    <span className="text-[10px] text-gray-500 text-center leading-tight">Émargement<br/>professeur</span>
-                                  </div>
-                                  <div className="flex flex-col items-center gap-1">
-                                    <Button 
-                                      onClick={() => handleEditSession(session)} 
-                                      variant="outline" 
-                                      size="sm" 
-                                      className="text-green-600 border-green-300 hover:bg-green-50"
-                                    >
-                                      <Edit className="w-4 h-4" />
-                                    </Button>
-                                    <span className="text-[10px] text-gray-500 text-center">Modifier</span>
-                                  </div>
-                                  <div className="flex flex-col items-center gap-1">
-                                    <Button 
-                                      onClick={() => handleDeleteSession(session.id)} 
-                                      variant="outline" 
-                                      size="sm" 
-                                      className="text-red-600 border-red-300 hover:bg-red-50"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                    <span className="text-[10px] text-gray-500 text-center">Supprimer</span>
-                                  </div>
+                                    <Trash2 className="w-4 h-4" />
+                                    Supprimer
+                                  </Button>
                                 </div>
                               </div>
                             ))}
