@@ -860,33 +860,39 @@ async def check_and_send_session_reminders():
 
 
 def generate_student_planning_pdf(student: dict, sessions: list, month: str, month_label: str):
-    """Générer un PDF du planning de l'élève pour le mois"""
+    """Générer un PDF du planning de l'élève pour TOUT le parcours"""
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=0.5*inch, leftMargin=0.5*inch, topMargin=0.5*inch, bottomMargin=0.5*inch)
     
     # Styles
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#1e3a5f'), spaceAfter=10, alignment=1)
-    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#666666'), spaceAfter=10, alignment=1)
     
     # Contenu
     story = []
     
-    # Logo / Titre Terciform
-    story.append(Paragraph("<b>TERCIFORM</b>", ParagraphStyle('Logo', parent=styles['Heading1'], fontSize=24, textColor=colors.HexColor('#1e3a5f'), spaceAfter=5, alignment=1)))
-    story.append(Spacer(1, 0.1*inch))
+    # Logo Terciform (si disponible)
+    try:
+        logo_path = ROOT_DIR / 'assets' / 'logo_terciform.png'
+        if logo_path.exists():
+            logo = Image(str(logo_path), width=2*inch, height=0.8*inch)
+            logo.hAlign = 'CENTER'
+            story.append(logo)
+            story.append(Spacer(1, 0.2*inch))
+    except:
+        story.append(Paragraph("<b>TERCIFORM</b>", ParagraphStyle('Logo', parent=styles['Heading1'], fontSize=24, textColor=colors.HexColor('#1e3a5f'), spaceAfter=5, alignment=1)))
+        story.append(Spacer(1, 0.2*inch))
     
     # Titre du planning
-    story.append(Paragraph(f"Planning de {student['name']}", title_style))
-    story.append(Paragraph(month_label.capitalize(), subtitle_style))
-    story.append(Spacer(1, 0.1*inch))
+    story.append(Paragraph(f"<b>Planning de {student['name']}</b>", title_style))
+    story.append(Spacer(1, 0.2*inch))
     
     # Informations élève (compactes)
     info_data = [
         ['Nom:', student.get('name', '')],
         ['Email:', student.get('email', '')],
         ['Tél:', student.get('phone', 'Non rens.')],
-        ['Organisme:', student.get('organism', 'Non rens.')[:30]],  # Limité à 30 caractères
+        ['Organisme:', student.get('organism', 'Non rens.')[:30]],
         ['Type:', student.get('session_type', 'Non rens.').capitalize()],
         ['Entrée:', student.get('start_date', 'N/A')],
         ['Sortie:', student.get('end_date', 'N/A')],
@@ -910,13 +916,66 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
     story.append(info_table)
     story.append(Spacer(1, 0.2*inch))
     
-    # Séances
+    # Séances - TRI PAR DATE
     if sessions:
-        story.append(Paragraph(f"<b>Séances du mois ({len(sessions)} séance(s))</b>", ParagraphStyle('Heading2', parent=styles['Heading2'], fontSize=12, spaceAfter=5)))
+        # Tri par date croissante
+        sessions_sorted = sorted(sessions, key=lambda s: s.get('date', ''))
         
-        # Total heures du mois
-        total_hours = sum(s.get('duration_hours', 0) for s in sessions)
+        story.append(Paragraph(f"<b>Séances du parcours ({len(sessions_sorted)} séance(s))</b>", ParagraphStyle('Heading2', parent=styles['Heading2'], fontSize=12, spaceAfter=5)))
+        
+        # Total heures
+        total_hours = sum(s.get('duration_hours', 0) for s in sessions_sorted)
         story.append(Paragraph(f"<b>Total : {total_hours}h</b>", ParagraphStyle('Bold', parent=styles['Normal'], fontSize=10, spaceAfter=8)))
+        
+        # Mapping jours en français
+        days_fr = {'Mon': 'Lun', 'Tue': 'Mar', 'Wed': 'Mer', 'Thu': 'Jeu', 'Fri': 'Ven', 'Sat': 'Sam', 'Sun': 'Dim'}
+        status_fr = {'pending': 'En attente', 'confirmed': 'Confirmée', 'rejected': 'Refusée'}
+        
+        # Table des séances
+        table_data = [['Date', 'Matière', 'Horaires', 'Durée', 'Statut']]
+        for session in sessions_sorted:
+            # Format date FR: Sam 01/11/2025
+            try:
+                date_obj = datetime.strptime(session.get('date', ''), '%Y-%m-%d')
+                day_abbr_en = date_obj.strftime('%a')
+                day_abbr_fr = days_fr.get(day_abbr_en, day_abbr_en)
+                date_formatted = f"{day_abbr_fr} {date_obj.strftime('%d/%m/%Y')}"
+            except:
+                date_formatted = session.get('date', '')
+            
+            horaires = f"{session.get('start_time', '')} - {session.get('end_time', '')}"
+            duree = f"{session.get('duration_hours', 0)}h"
+            statut = status_fr.get(session.get('status', ''), session.get('status', ''))
+            
+            table_data.append([
+                date_formatted,
+                session.get('subject', '')[:30],
+                horaires,
+                duree,
+                statut
+            ])
+        
+        sessions_table = Table(table_data, colWidths=[1.3*inch, 2.2*inch, 1.2*inch, 0.6*inch, 1*inch])
+        sessions_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a5f')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 5),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
+        ]))
+        story.append(sessions_table)
+    else:
+        story.append(Paragraph("Aucune séance programmée", ParagraphStyle('Normal', parent=styles['Normal'], fontSize=10)))
+    
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
         
         # Table des séances (compacte)
         session_data = [['Date', 'Matière', 'Horaires', 'Durée', 'Statut']]
