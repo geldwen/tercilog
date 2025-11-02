@@ -900,7 +900,7 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
     styles = getSampleStyleSheet()
     normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=9)
     bold_style = ParagraphStyle('Bold', parent=styles['Normal'], fontSize=10, fontName='Helvetica-Bold')
-    cell_style = ParagraphStyle('CellStyle', parent=styles['Normal'], fontSize=9, leading=11)
+    cell_style = ParagraphStyle('CellStyle', parent=styles['Normal'], fontSize=9, leading=11, wordWrap='CJK')
     
     story = []
     
@@ -946,7 +946,7 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
         days_fr = {'Mon': 'Lun', 'Tue': 'Mar', 'Wed': 'Mer', 'Thu': 'Jeu', 'Fri': 'Ven', 'Sat': 'Sam', 'Sun': 'Dim'}
         status_fr = {'pending': 'En attente', 'confirmed': 'Confirmée', 'rejected': 'Refusée'}
         
-        # Colonnes proportionnelles
+        # Colonnes proportionnelles - Planning: Date 18% | Matière 38% | Horaires 14% | Durée 10% | Statut 20%
         col_widths = [
             0.18 * doc.width,
             0.38 * doc.width,
@@ -966,7 +966,7 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
         ]]
         
         for session in sessions_sorted:
-            # Date FR
+            # Date FR - format: Sam 01/11/2025
             try:
                 date_obj = datetime.strptime(session.get('date', ''), '%Y-%m-%d')
                 day_abbr_fr = days_fr.get(date_obj.strftime('%a'), date_obj.strftime('%a'))
@@ -977,17 +977,31 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
             # Matière avec Paragraph pour wrap
             matiere = Paragraph(session.get('subject', ''), cell_style)
             
+            # Horaires format: 14:00 - 16:00
             horaires = f"{session.get('start_time', '')} - {session.get('end_time', '')}"
             duree = f"{session.get('duration_hours', 0)}h"
+            
+            # Statut en toutes lettres
             statut = status_fr.get(session.get('status', ''), session.get('status', ''))
+            statut_paragraph = Paragraph(statut, cell_style)
             
             table_data.append([
                 Paragraph(date_formatted, cell_style),
                 matiere,
                 Paragraph(horaires, cell_style),
                 Paragraph(duree, cell_style),
-                Paragraph(statut, cell_style)
+                statut_paragraph
             ])
+        
+        # Ligne Totaux
+        totals_style = ParagraphStyle('TotalsStyle', parent=styles['Normal'], fontSize=9, fontName='Helvetica-Bold')
+        table_data.append([
+            Paragraph('TOTAUX', totals_style),
+            '',
+            '',
+            Paragraph(f'{total_hours}h', totals_style),
+            Paragraph(f'{len(sessions_sorted)} séance(s)', totals_style)
+        ])
         
         sessions_table = Table(table_data, colWidths=col_widths, repeatRows=1)
         sessions_table.setStyle(TableStyle([
@@ -1001,13 +1015,25 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
             ('RIGHTPADDING', (0, 0), (-1, -1), 6),
             ('TOPPADDING', (0, 0), (-1, -1), 6),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.HexColor('#f9f9f9')]),
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e8f0f7')),
         ]))
         story.append(sessions_table)
     else:
         story.append(Paragraph("Aucune séance programmée", normal_style))
     
-    doc.build(story)
+    # Footer avec numéro de page
+    def add_page_number(canvas, doc):
+        canvas.saveState()
+        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey, alignment=1)
+        page_num = canvas.getPageNumber()
+        text = f"Page {page_num}"
+        canvas.setFont('Helvetica', 8)
+        canvas.setFillColor(colors.grey)
+        canvas.drawCentredString(A4[0]/2, 30, text)
+        canvas.restoreState()
+    
+    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
     buffer.seek(0)
     return buffer
 
