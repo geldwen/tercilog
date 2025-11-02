@@ -291,7 +291,7 @@ backend:
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: true
           agent: "testing"
@@ -302,6 +302,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ COMPREHENSIVE SIGNATURE STATUS CORRECTION SYSTEM TESTED: Successfully tested all 4 scenarios from review request. TEST 1 - Session creation: ✅ signature_status='pending' by default ✅ signature_deadline defined (end_time + 2h). TEST 2 - Session validation: ✅ status='confirmed' ✅ signature_status remains 'pending' ✅ signature_deadline preserved. TEST 3 - Student space visibility: ✅ Found 2 sessions with signature_status='pending' ✅ Created session visible to student for attendance signature. TEST 4 - Manual resend: ✅ signature_status='pending' ✅ attendance_email_sent=True ✅ signature_deadline updated. ATTENDANCE SERVICE: ✅ Running continuously every 2 minutes ✅ Email system functional (emails sent to ghizzo.j@gmail.com). ALL CORRECTION REQUIREMENTS MET: Toute nouvelle séance créée a signature_status='pending', séances confirmées gardent signature_status='pending', renvoi manuel actualise signature_status, séances apparaissent dans l'espace élève pour émargement."
+        - working: "unknown"
+          agent: "main"
+          comment: "REVERTED PREVIOUS FIX based on new user requirements: Email should be sent ONLY after session end, not at creation or confirmation. CHANGES: 1) POST /api/sessions - reverted to NOT set signature_status='pending' at creation (stays 'not_required'), 2) PATCH /api/sessions/{id}/validate - reverted to NOT set signature_status='pending' at confirmation, 3) check_attendance.py - KEPT as is (sends email and sets signature_status='pending' AFTER session end), 4) POST /api/sessions/{id}/resend-attendance-email - KEPT as is (allows manual resend anytime), 5) StudentDashboard.js - ADDED touch support for mobile signature (touchAction: none, touch events handlers). NEW LOGIC: signature_status='pending' ONLY after session ends OR manual resend."
 
 frontend:
   - task: "Frontend Integration Testing"
