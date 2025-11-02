@@ -505,7 +505,7 @@ export default function StudentDashboard({ user, onLogout }) {
           <DialogHeader>
             <DialogTitle>Émargement de séance</DialogTitle>
             <DialogDescription>
-              Veuillez signer avec votre souris dans le cadre ci-dessous pour valider votre présence
+              Veuillez signer avec votre souris ou votre doigt dans le cadre ci-dessous pour valider votre présence
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -515,10 +515,15 @@ export default function StudentDashboard({ user, onLogout }) {
                 width={600}
                 height={300}
                 className="cursor-crosshair w-full"
+                style={{ touchAction: 'none' }}
                 onMouseDown={startDrawing}
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}
                 onMouseLeave={stopDrawing}
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+                onTouchEnd={stopDrawing}
+                onTouchCancel={stopDrawing}
               />
             </div>
             <div className="flex gap-3">
