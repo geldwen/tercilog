@@ -1099,68 +1099,64 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
     
     buffer = io.BytesIO()
     
-    # Custom page template avec header
+    # Custom page template
     def add_page_header(canvas, doc):
         draw_terciform_header(canvas, doc, f"Parcours émargé — {student['name']}")
     
     doc = SimpleDocTemplate(
         buffer, 
         pagesize=A4, 
-        rightMargin=24*2.83465,
-        leftMargin=24*2.83465, 
-        topMargin=1.2*inch,
-        bottomMargin=24*2.83465
+        rightMargin=20*2.83465,
+        leftMargin=20*2.83465, 
+        topMargin=1.3*inch,
+        bottomMargin=20*2.83465
     )
     
-    # Styles
     styles = getSampleStyleSheet()
+    cell_style = ParagraphStyle('CellStyle', parent=styles['Normal'], fontSize=8, leading=9)
     
     story = []
     
-    # Filtre des séances signées et tri par date
+    # Filtre + tri
     if not include_unsigned:
         sessions = [s for s in sessions if s.get('signature_status') == 'signed' or s.get('teacher_signature_status') == 'signed']
     
     sessions_sorted = sorted(sessions, key=lambda s: s.get('date', ''))
     
     if not sessions_sorted:
-        story.append(Paragraph("Aucune séance émargée pour ce parcours.", styles['Normal']))
+        story.append(Paragraph("Aucune séance émargée.", cell_style))
     else:
         total_hours = sum(s.get('duration_hours', 0) for s in sessions_sorted)
         signed_hours = sum(s.get('duration_hours', 0) for s in sessions_sorted if s.get('signature_status') == 'signed')
         
-        story.append(Paragraph(f"<b>Parcours complet : {len(sessions_sorted)} séance(s) émargée(s)</b>", 
-                               ParagraphStyle('Bold', parent=styles['Normal'], fontSize=11, spaceAfter=5)))
-        story.append(Paragraph(f"Heures totales : {total_hours}h | Heures signées élève : {signed_hours}h", 
-                               ParagraphStyle('Normal', parent=styles['Normal'], fontSize=10, spaceAfter=15)))
+        story.append(Paragraph(f"<b>{len(sessions_sorted)} séance(s) — Total: {total_hours}h | Signées: {signed_hours}h</b>", 
+                               ParagraphStyle('Bold', parent=styles['Normal'], fontSize=10, spaceAfter=10)))
         
-        # Mapping jours FR
+        # Mapping jours
         days_fr = {'Mon': 'Lun', 'Tue': 'Mar', 'Wed': 'Mer', 'Thu': 'Jeu', 'Fri': 'Ven', 'Sat': 'Sam', 'Sun': 'Dim'}
         
-        # Table des séances avec signatures - colonnes proportionnées
-        page_width = doc.width
-        col_widths = [
-            page_width * 0.18,  # Date
-            page_width * 0.38,  # Matière
-            page_width * 0.10,  # Durée
-            page_width * 0.17,  # Sig Élève
-            page_width * 0.17   # Sig Formateur
-        ]
+        # Colonnes optimisées
+        col_widths = [0.7*inch, 1.9*inch, 0.4*inch, 1.1*inch, 1.1*inch]
         
-        table_data = [['Date', 'Matière', 'Durée', 'Signature Élève', 'Signature Formateur']]
+        table_data = [[
+            Paragraph('<b>Date</b>', ParagraphStyle('H', parent=styles['Normal'], fontSize=8, textColor=colors.whitesmoke)),
+            Paragraph('<b>Matière</b>', ParagraphStyle('H', parent=styles['Normal'], fontSize=8, textColor=colors.whitesmoke)),
+            Paragraph('<b>Dur.</b>', ParagraphStyle('H', parent=styles['Normal'], fontSize=8, textColor=colors.whitesmoke)),
+            Paragraph('<b>Élève</b>', ParagraphStyle('H', parent=styles['Normal'], fontSize=8, textColor=colors.whitesmoke)),
+            Paragraph('<b>Formateur</b>', ParagraphStyle('H', parent=styles['Normal'], fontSize=8, textColor=colors.whitesmoke))
+        ]]
         
         for session in sessions_sorted:
             # Date FR
             try:
                 date_obj = datetime.strptime(session.get('date', ''), '%Y-%m-%d')
-                day_abbr_en = date_obj.strftime('%a')
-                day_abbr_fr = days_fr.get(day_abbr_en, day_abbr_en)
-                date_formatted = f"{day_abbr_fr}\n{date_obj.strftime('%d/%m/%Y')}"
+                day_abbr_fr = days_fr.get(date_obj.strftime('%a'), date_obj.strftime('%a'))
+                date_formatted = f"{day_abbr_fr}<br/>{date_obj.strftime('%d/%m')}"
             except:
-                date_formatted = session.get('date', '')
+                date_formatted = session.get('date', '')[:5]
             
-            # Matière avec Paragraph
-            matiere = Paragraph(session.get('subject', '')[:40], ParagraphStyle('Small', parent=styles['Normal'], fontSize=9))
+            # Matière compacte
+            matiere = Paragraph(session.get('subject', '')[:30], cell_style)
             
             # Signature élève
             if session.get('signature') and session.get('signed_at'):
@@ -1169,19 +1165,17 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
                     sig_bytes = base64.b64decode(sig_data)
                     sig_img = PILImage.open(io.BytesIO(sig_bytes))
                     
-                    temp_sig_path = f"/tmp/sig_eleve_{session.get('id')}.png"
+                    temp_sig_path = f"/tmp/sig_e_{session.get('id')[:8]}.png"
                     sig_img.save(temp_sig_path)
                     
-                    sig_reportlab = Image(temp_sig_path, width=0.8*inch, height=0.24*inch)
+                    sig_rl = Image(temp_sig_path, width=0.7*inch, height=0.2*inch)
+                    signed_date = datetime.fromisoformat(session['signed_at']).strftime('%d/%m %H:%M')
                     
-                    signed_date = datetime.fromisoformat(session['signed_at']).strftime('%d/%m/%Y\n%H:%M')
-                    
-                    eleve_cell = [sig_reportlab, Paragraph(f"<font size=7>Émargé le<br/>{signed_date}</font>", 
-                                                           ParagraphStyle('Tiny', parent=styles['Normal'], fontSize=7))]
-                except Exception as e:
-                    eleve_cell = Paragraph("Non signé", ParagraphStyle('SmallRed', parent=styles['Normal'], fontSize=8, textColor=colors.red))
+                    eleve_cell = [sig_rl, Paragraph(f"<font size=6>{signed_date}</font>", cell_style)]
+                except:
+                    eleve_cell = Paragraph("<font size=7 color='red'>Non signé</font>", cell_style)
             else:
-                eleve_cell = Paragraph("Non signé", ParagraphStyle('SmallRed', parent=styles['Normal'], fontSize=8, textColor=colors.red))
+                eleve_cell = Paragraph("<font size=7 color='red'>Non signé</font>", cell_style)
             
             # Signature formateur
             if session.get('teacher_signature') and session.get('teacher_signed_at'):
@@ -1190,50 +1184,45 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
                     sig_bytes = base64.b64decode(sig_data)
                     sig_img = PILImage.open(io.BytesIO(sig_bytes))
                     
-                    temp_sig_path = f"/tmp/sig_formateur_{session.get('id')}.png"
+                    temp_sig_path = f"/tmp/sig_f_{session.get('id')[:8]}.png"
                     sig_img.save(temp_sig_path)
                     
-                    sig_reportlab = Image(temp_sig_path, width=0.8*inch, height=0.24*inch)
+                    sig_rl = Image(temp_sig_path, width=0.7*inch, height=0.2*inch)
+                    signed_date = datetime.fromisoformat(session['teacher_signed_at']).strftime('%d/%m %H:%M')
                     
-                    signed_date = datetime.fromisoformat(session['teacher_signed_at']).strftime('%d/%m/%Y\n%H:%M')
-                    
-                    formateur_cell = [sig_reportlab, Paragraph(f"<font size=7>Émargé le<br/>{signed_date}</font>", 
-                                                                ParagraphStyle('Tiny', parent=styles['Normal'], fontSize=7))]
-                except Exception as e:
-                    formateur_cell = Paragraph("Non signé", ParagraphStyle('SmallRed', parent=styles['Normal'], fontSize=8, textColor=colors.red))
+                    formateur_cell = [sig_rl, Paragraph(f"<font size=6>{signed_date}</font>", cell_style)]
+                except:
+                    formateur_cell = Paragraph("<font size=7 color='red'>Non signé</font>", cell_style)
             else:
-                formateur_cell = Paragraph("Non signé", ParagraphStyle('SmallRed', parent=styles['Normal'], fontSize=8, textColor=colors.red))
+                formateur_cell = Paragraph("<font size=7 color='red'>Non signé</font>", cell_style)
             
             table_data.append([
-                date_formatted,
+                Paragraph(date_formatted, cell_style),
                 matiere,
-                f"{session.get('duration_hours', 0)}h",
+                Paragraph(f"{session.get('duration_hours', 0)}h", cell_style),
                 eleve_cell,
                 formateur_cell
             ])
         
-        sessions_table = Table(table_data, colWidths=col_widths)
+        sessions_table = Table(table_data, colWidths=col_widths, repeatRows=1)
         sessions_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#223B67')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('LEFTPADDING', (0, 0), (-1, -1), 6),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-            ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 3),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+            ('TOPPADDING', (0, 0), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f9f9')]),
+            ('WORDWRAP', (0, 0), (-1, -1), True),
         ]))
         story.append(sessions_table)
     
-    story.append(Spacer(1, 0.3*inch))
-    
-    # Pied de page
+    story.append(Spacer(1, 0.2*inch))
     generation_time = datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M')
     story.append(Paragraph(f"<i>Document généré le {generation_time} (UTC)</i>", 
-                           ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey, alignment=2)))
+                           ParagraphStyle('Footer', parent=styles['Normal'], fontSize=7, textColor=colors.grey, alignment=2)))
     
     doc.build(story, onFirstPage=add_page_header, onLaterPages=add_page_header)
     buffer.seek(0)
