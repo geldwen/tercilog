@@ -57,11 +57,15 @@ class TerciFormTester:
             self.log(f"{method} {url} -> {response.status_code}")
             
             # Store response text and status code as attributes for later access
-            response._stored_text = response.text
-            response._stored_status_code = response.status_code
+            text_content = response.text
+            status_code = response.status_code
+            response._stored_text = text_content
+            response._stored_status_code = status_code
+            
+            self.log(f"DEBUG make_request: storing text='{text_content}', status={status_code}")
             
             if response.status_code >= 400:
-                self.log(f"Error response: {response._stored_text}", "ERROR")
+                self.log(f"Error response: {text_content}", "ERROR")
                 
             return response
             
