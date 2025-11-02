@@ -24,9 +24,11 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [showEditStudent, setShowEditStudent] = useState(false);
   const [showEditSession, setShowEditSession] = useState(false);
   const [showSendPdfDialog, setShowSendPdfDialog] = useState(false);
+  const [showTeacherSignatureDialog, setShowTeacherSignatureDialog] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [editingStudent, setEditingStudent] = useState(null);
   const [editingSession, setEditingSession] = useState(null);
+  const [currentSessionToSign, setCurrentSessionToSign] = useState(null);
   const [pdfStudent, setPdfStudent] = useState(null);
   const [pdfEmail, setPdfEmail] = useState('');
 
