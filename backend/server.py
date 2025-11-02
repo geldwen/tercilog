@@ -1041,37 +1041,48 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
 def generate_attendance_pdf_single_session(session: dict) -> io.BytesIO:
     """Générer un PDF de justificatif d'émargement pour une séance unique"""
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=0.5*inch, leftMargin=0.5*inch, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=36, leftMargin=36, topMargin=72, bottomMargin=54)
     
     # Styles
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#1e3a5f'), spaceAfter=10, alignment=1)
-    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor('#666666'), spaceAfter=10)
+    title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#1e3a5f'), spaceAfter=10, alignment=1, fontName='Helvetica-Bold')
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor('#666666'), spaceAfter=10, fontName='Helvetica-Bold')
+    normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=10)
+    italic_style = ParagraphStyle('Italic', parent=styles['Normal'], fontSize=9, textColor=colors.grey, fontName='Helvetica-Oblique')
+    warning_style = ParagraphStyle('Warning', parent=styles['Normal'], textColor=colors.red)
     
     story = []
     
-    # Logo / Titre Terciform
-    story.append(Paragraph("<b>TERCIFORM</b>", ParagraphStyle('Logo', parent=styles['Heading1'], fontSize=24, textColor=colors.HexColor('#1e3a5f'), spaceAfter=5, alignment=1)))
-    story.append(Spacer(1, 0.1*inch))
-    
-    # Titre du document
-    story.append(Paragraph("<b>JUSTIFICATIF D'ÉMARGEMENT</b>", title_style))
-    story.append(Spacer(1, 0.2*inch))
+    # En-tête
+    story.append(build_header("JUSTIFICATIF D'ÉMARGEMENT"))
+    story.append(Spacer(0, 12))
     
     # Informations de la séance
+    days_fr = {'Mon': 'Lun', 'Tue': 'Mar', 'Wed': 'Mer', 'Thu': 'Jeu', 'Fri': 'Ven', 'Sat': 'Sam', 'Sun': 'Dim'}
+    
+    # Format date FR
+    date_formatted = session.get('date', 'N/A')
+    try:
+        date_obj = datetime.strptime(session.get('date', ''), '%Y-%m-%d')
+        day_abbr_fr = days_fr.get(date_obj.strftime('%a'), date_obj.strftime('%a'))
+        date_formatted = f"{day_abbr_fr} {date_obj.strftime('%d/%m/%Y')}"
+    except:
+        pass
+    
     session_data = [
-        ['<b>Matière:</b>', session.get('subject', 'N/A')],
-        ['<b>Date:</b>', session.get('date', 'N/A')],
-        ['<b>Horaires:</b>', f"{session.get('start_time', '')} - {session.get('end_time', '')}"],
-        ['<b>Durée:</b>', f"{session.get('duration_hours', 0)}h"],
-        ['<b>Élève:</b>', session.get('student_name', 'N/A')],
-        ['<b>Type:</b>', session.get('meeting_link', '') and 'Distanciel' or 'Présentiel'],
+        ['Matière:', session.get('subject', 'N/A')],
+        ['Date:', date_formatted],
+        ['Horaires:', f"{session.get('start_time', '')} - {session.get('end_time', '')}"],
+        ['Durée:', f"{session.get('duration_hours', 0)}h"],
+        ['Élève:', session.get('student_name', 'N/A')],
+        ['Type:', 'Distanciel' if session.get('meeting_link', '') else 'Présentiel'],
     ]
     
     session_table = Table(session_data, colWidths=[1.5*inch, 4.5*inch])
     session_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#e8f0f7')),
         ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#1e3a5f')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, -1), 10),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -1084,36 +1095,44 @@ def generate_attendance_pdf_single_session(session: dict) -> io.BytesIO:
     story.append(Spacer(1, 0.3*inch))
     
     # Bloc Signature Élève
-    story.append(Paragraph("<b>SIGNATURE ÉLÈVE</b>", subtitle_style))
+    story.append(Paragraph("SIGNATURE ÉLÈVE", subtitle_style))
     if session.get('signature') and session.get('signed_at'):
-        signed_date = datetime.fromisoformat(session['signed_at']).strftime('%d/%m/%Y à %H:%M')
-        story.append(Paragraph(f"✓ Émargé le {signed_date}", styles['Normal']))
+        signed_date = datetime.fromisoformat(session['signed_at']).strftime('%d/%m/%Y %H:%M')
+        story.append(Paragraph(f"✓ Émargé le {signed_date}", normal_style))
         story.append(Spacer(1, 0.1*inch))
-        # Note: On ne peut pas facilement inclure l'image base64 dans ReportLab sans conversion
-        # Pour simplifier, on indique juste "Signature numérique présente"
-        story.append(Paragraph("<i>Signature numérique présente (voir version électronique)</i>", ParagraphStyle('Italic', parent=styles['Normal'], fontSize=9, textColor=colors.grey)))
+        story.append(Paragraph("Signature numérique présente (voir version électronique)", italic_style))
     else:
-        story.append(Paragraph("⚠️ Non signé", ParagraphStyle('Warning', parent=styles['Normal'], textColor=colors.red)))
+        story.append(Paragraph("⚠️ Non signé", warning_style))
     
     story.append(Spacer(1, 0.2*inch))
     
     # Bloc Signature Formateur
-    story.append(Paragraph("<b>SIGNATURE FORMATEUR</b>", subtitle_style))
+    story.append(Paragraph("SIGNATURE FORMATEUR", subtitle_style))
     if session.get('teacher_signature') and session.get('teacher_signed_at'):
-        signed_date = datetime.fromisoformat(session['teacher_signed_at']).strftime('%d/%m/%Y à %H:%M')
-        story.append(Paragraph(f"✓ Émargé le {signed_date}", styles['Normal']))
+        signed_date = datetime.fromisoformat(session['teacher_signed_at']).strftime('%d/%m/%Y %H:%M')
+        story.append(Paragraph(f"✓ Émargé le {signed_date}", normal_style))
         story.append(Spacer(1, 0.1*inch))
-        story.append(Paragraph("<i>Signature numérique présente (voir version électronique)</i>", ParagraphStyle('Italic', parent=styles['Normal'], fontSize=9, textColor=colors.grey)))
+        story.append(Paragraph("Signature numérique présente (voir version électronique)", italic_style))
     else:
-        story.append(Paragraph("⚠️ Non signé", ParagraphStyle('Warning', parent=styles['Normal'], textColor=colors.red)))
+        story.append(Paragraph("⚠️ Non signé", warning_style))
     
     story.append(Spacer(1, 0.3*inch))
     
-    # Pied de page avec horodatage
-    generation_time = datetime.now(timezone.utc).strftime('%d/%m/%Y à %H:%M UTC')
-    story.append(Paragraph(f"<i>Document généré le {generation_time}</i>", ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey, alignment=2)))
+    # Footer avec numéro de page
+    def add_page_number(canvas, doc):
+        canvas.saveState()
+        # Generation time
+        generation_time = datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M')
+        canvas.setFont('Helvetica-Oblique', 8)
+        canvas.setFillColor(colors.grey)
+        canvas.drawRightString(A4[0] - 36, 30, f"Document généré le {generation_time} (UTC)")
+        # Page number
+        page_num = canvas.getPageNumber()
+        canvas.setFont('Helvetica', 8)
+        canvas.drawCentredString(A4[0]/2, 30, f"Page {page_num}")
+        canvas.restoreState()
     
-    doc.build(story)
+    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
     buffer.seek(0)
     return buffer
 
