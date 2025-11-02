@@ -1077,13 +1077,8 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
         ]]
         
         for session in sessions_sorted:
-            # Date FR - format: Sam 01/11/2025
-            try:
-                date_obj = datetime.strptime(session.get('date', ''), '%Y-%m-%d')
-                day_abbr_fr = days_fr.get(date_obj.strftime('%a'), date_obj.strftime('%a'))
-                date_formatted = f"{day_abbr_fr} {date_obj.strftime('%d/%m/%Y')}"
-            except:
-                date_formatted = session.get('date', '')
+            # Date FR - format complet: mardi 04/11/2025
+            date_formatted = format_fr_date(session.get('date', ''))
             
             # Matière avec Paragraph pour wrap
             matiere = Paragraph(session.get('subject', ''), cell_style)
