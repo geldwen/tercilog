@@ -859,28 +859,28 @@ async def check_and_send_session_reminders():
     return {"message": f"{emails_sent} reminder emails sent"}
 
 
-def draw_terciform_header(canvas, doc, title_text):
-    """Dessiner l'en-tête avec logo Terciform et titre"""
-    canvas.saveState()
+def build_header(title: str):
+    """Construire l'en-tête avec logo + titre (Flowable Table)"""
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('TitleStyle', parent=styles['Normal'], fontSize=16, fontName='Helvetica-Bold', alignment=2)
     
-    # Logo Terciform centré
-    try:
-        logo_path = ROOT_DIR / 'assets' / 'logo_terciform.png'
-        if logo_path.exists():
-            canvas.drawImage(str(logo_path), 1.5*inch, doc.height + 0.4*inch, width=2*inch, height=0.7*inch, preserveAspectRatio=True, mask='auto')
-    except Exception as e:
-        logger.error(f"Error loading logo: {e}")
-        # Fallback texte
-        canvas.setFont('Helvetica-Bold', 18)
-        canvas.setFillColor(colors.HexColor('#223B67'))
-        canvas.drawCentredString(doc.width/2 + doc.leftMargin, doc.height + 0.6*inch, "TERCIFORM")
+    logo_path = ROOT_DIR / 'assets' / 'logo_terciform.png'
     
-    # Titre à droite
-    canvas.setFont('Helvetica-Bold', 12)
-    canvas.setFillColor(colors.HexColor('#223B67'))
-    canvas.drawRightString(doc.width + doc.leftMargin, doc.height + 0.65*inch, title_text)
+    if logo_path.exists():
+        logo = Image(str(logo_path), width=140, preserveAspectRatio=True, hAlign='LEFT')
+    else:
+        logo = Paragraph("<b>TERCIFORM</b>", ParagraphStyle('LogoText', parent=styles['Normal'], fontSize=20, fontName='Helvetica-Bold', textColor=colors.HexColor('#223B67')))
     
-    canvas.restoreState()
+    title_paragraph = Paragraph(title, title_style)
+    
+    header_data = [[logo, title_paragraph]]
+    header_table = Table(header_data, colWidths=[3*inch, 3*inch])
+    header_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+    ]))
+    
+    return header_table
 
 
 def generate_student_planning_pdf(student: dict, sessions: list, month: str, month_label: str):
