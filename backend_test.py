@@ -2806,11 +2806,13 @@ def main():
             success = tester.test_signature_status_correction_system()
         elif sys.argv[1] == "new-signature-system":
             success = tester.test_new_signature_status_system()
+        elif sys.argv[1] == "teacher-signature":
+            success = tester.test_teacher_signature_system()
         else:
             success = tester.run_full_test()
     else:
-        # Run new signature system test by default (as per review request)
-        success = tester.test_new_signature_status_system()
+        # Run teacher signature system test by default (as per review request)
+        success = tester.test_teacher_signature_system()
     
     if success:
         print("\n" + "="*50)
