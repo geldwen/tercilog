@@ -3362,6 +3362,9 @@ class TerciFormTester:
             double_confirmation_prevented = False
             response = self.make_request("PATCH", f"/sessions/{session_id}/confirm-presence", {}, student_token)
             
+            self.log(f"   DEBUG: response = {response}")
+            self.log(f"   DEBUG: response.status_code = {response.status_code if response else 'None'}")
+            
             if response and response.status_code == 400:
                 self.log("✅ Double confirmation correctly prevented (400 error)")
                 try:
