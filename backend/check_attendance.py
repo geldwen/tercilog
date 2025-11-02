@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Script pour vérifier et envoyer les emails d'émargement automatiquement
-À exécuter périodiquement (toutes les 5 minutes) via cron ou supervisor
+Service pour vérifier et envoyer les emails d'émargement automatiquement
+Tourne en boucle et vérifie toutes les 2 minutes
 """
 import asyncio
 import sys
 import os
 from pathlib import Path
+import time
 
 # Ajouter le répertoire parent au path
 ROOT_DIR = Path(__file__).parent
@@ -102,5 +103,18 @@ async def check_and_send_emails():
         logger.error(f"Error in check_and_send_emails: {e}")
         raise
 
+async def run_service():
+    """Boucle principale du service"""
+    logger.info("Attendance email service started")
+    while True:
+        try:
+            await check_and_send_emails()
+        except Exception as e:
+            logger.error(f"Error in service loop: {e}")
+        
+        # Attendre 2 minutes avant la prochaine vérification
+        logger.info("Waiting 2 minutes before next check...")
+        await asyncio.sleep(120)  # 120 secondes = 2 minutes
+
 if __name__ == "__main__":
-    asyncio.run(check_and_send_emails())
+    asyncio.run(run_service())
