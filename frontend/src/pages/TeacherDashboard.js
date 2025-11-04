@@ -461,7 +461,7 @@ export default function TeacherDashboard({ user, onLogout }) {
         </div>
 
         {showPlanning ? (
-          <PlanningView sessions={sessions} />
+          <PlanningView sessions={sessions} onSessionsUpdate={loadSessions} />
         ) : (
           <>
             <div className="mb-6">
