@@ -446,12 +446,28 @@ export default function TeacherDashboard({ user, onLogout }) {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <h2 className="text-xl font-bold mb-4" style={{ color: TERCIFORM_BLUE }}>Séances par mois</h2>
-          <Tabs value={selectedMonth} onValueChange={setSelectedMonth} className="space-y-6">
-            <TabsList className="bg-white border border-gray-200 shadow-sm flex-wrap h-auto">
-              {monthsList.map(m => <TabsTrigger key={m.key} value={m.key} className="capitalize data-[state=active]:bg-gray-200" style={{ color: TERCIFORM_BLUE }}>{m.label}</TabsTrigger>)}
-            </TabsList>
+        {/* Barre d'actions avec bouton Planning */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>
+            {showPlanning ? 'Planning général' : 'Séances par mois'}
+          </h2>
+          <Button
+            onClick={() => setShowPlanning(!showPlanning)}
+            className="ml-auto inline-flex items-center gap-2 bg-blue-800 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md shadow-sm"
+          >
+            <CalendarDays className="w-5 h-5" />
+            {showPlanning ? 'Retour Séances' : 'Planning'}
+          </Button>
+        </div>
+
+        {showPlanning ? (
+          <PlanningView sessions={sessions} />
+        ) : (
+          <div className="mb-6">
+            <Tabs value={selectedMonth} onValueChange={setSelectedMonth} className="space-y-6">
+              <TabsList className="bg-white border border-gray-200 shadow-sm flex-wrap h-auto">
+                {monthsList.map(m => <TabsTrigger key={m.key} value={m.key} className="capitalize data-[state=active]:bg-gray-200" style={{ color: TERCIFORM_BLUE }}>{m.label}</TabsTrigger>)}
+              </TabsList>
 
             {monthsList.map(month => (
               <TabsContent key={month.key} value={month.key} className="space-y-6">
