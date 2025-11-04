@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv('/app/frontend/.env')
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://attendanceplus-1.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://student-manage.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class GhizzoTester:
