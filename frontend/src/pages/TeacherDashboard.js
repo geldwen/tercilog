@@ -994,6 +994,8 @@ export default function TeacherDashboard({ user, onLogout }) {
             </div>
           </TabsContent>
         </Tabs>
+        </div>
+        )}
       </main>
 
       {/* Dialog de signature formateur */}
