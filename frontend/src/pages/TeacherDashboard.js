@@ -992,7 +992,7 @@ export default function TeacherDashboard({ user, onLogout }) {
               )}
             </div>
           </TabsContent>
-        </Tabs>
+          </Tabs>
         </div>
         )}
       </main>
