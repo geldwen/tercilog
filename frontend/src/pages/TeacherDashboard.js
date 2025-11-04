@@ -463,7 +463,8 @@ export default function TeacherDashboard({ user, onLogout }) {
         {showPlanning ? (
           <PlanningView sessions={sessions} />
         ) : (
-          <div className="mb-6">
+          <>
+            <div className="mb-6">
             <Tabs value={selectedMonth} onValueChange={setSelectedMonth} className="space-y-6">
               <TabsList className="bg-white border border-gray-200 shadow-sm flex-wrap h-auto">
                 {monthsList.map(m => <TabsTrigger key={m.key} value={m.key} className="capitalize data-[state=active]:bg-gray-200" style={{ color: TERCIFORM_BLUE }}>{m.label}</TabsTrigger>)}
