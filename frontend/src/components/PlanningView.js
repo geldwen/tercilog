@@ -5,7 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { Trash2, Lock } from 'lucide-react';
+import axios from 'axios';
 import { getPlanningEvents, savePlanningEvent, deletePlanningEvent, getCenterColors, setCenterColor, getCenterColor, PREDEFINED_COLORS } from '@/utils/planningStore';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 const MONTHS = [
   { name: 'Octobre 2025', value: '2025-10', days: 31, startDay: 3 },
@@ -16,18 +21,21 @@ const MONTHS = [
 const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 8);
 
-export default function PlanningView({ sessions }) {
+export default function PlanningView({ sessions, onSessionsUpdate }) {
   const [activeMonth, setActiveMonth] = useState(MONTHS[1].value);
   const [planningEvents, setPlanningEvents] = useState([]);
   const [centerColors, setCenterColorsState] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null);
   const [modalData, setModalData] = useState({
     date: '',
     start_time: '',
     end_time: '',
     center: '',
     subject: '',
+    title: '',
     modality: 'distanciel',
     color: '#3B82F6'
   });
@@ -63,13 +71,14 @@ export default function PlanningView({ sessions }) {
   const allEvents = [
     ...sessions.filter(s => s.date && s.date.startsWith(activeMonth)).map(s => ({
       ...s,
-      type: 'session',
+      origin: 'emergent',
+      title: s.subject,
       center: s.organism || 'Séance',
       color: getCenterColor(s.organism || '')
     })),
     ...planningEvents.filter(e => e.date && e.date.startsWith(activeMonth)).map(e => ({
       ...e,
-      type: 'planning',
+      origin: 'local',
       student_name: e.center
     }))
   ];
@@ -94,11 +103,10 @@ export default function PlanningView({ sessions }) {
     const [startH, startM] = startTime.split(':').map(Number);
     const [endH, endM] = endTime.split(':').map(Number);
     
-    // Minutes depuis 8h
     const startMinutes = Math.max(0, (startH - 8) * 60 + startM);
-    const endMinutes = Math.min(13 * 60, (endH - 8) * 60 + endM); // Max 21h
+    const endMinutes = Math.min(13 * 60, (endH - 8) * 60 + endM);
     
-    const totalMinutes = 13 * 60; // 8h-21h
+    const totalMinutes = 13 * 60;
     
     const top = (startMinutes / totalMinutes) * 100;
     const height = ((endMinutes - startMinutes) / totalMinutes) * 100;
@@ -106,34 +114,45 @@ export default function PlanningView({ sessions }) {
     return { top: `${top}%`, height: `${Math.max(height, 5)}%` };
   };
 
-  // Gérer les chevauchements
-  const calculateOverlaps = (dateEvents) => {
-    const sorted = [...dateEvents].sort((a, b) => a.start_time.localeCompare(b.start_time));
-    const positions = [];
+  // Algorithme de lanes pour chevauchements (sweep line)
+  const calculateLanes = (dateEvents) => {
+    const sorted = [...dateEvents].sort((a, b) => {
+      const cmp = a.start_time.localeCompare(b.start_time);
+      return cmp !== 0 ? cmp : a.end_time.localeCompare(b.end_time);
+    });
     
-    sorted.forEach((event, index) => {
-      let offset = 0;
+    const lanes = [];
+    const eventLanes = [];
+    
+    sorted.forEach(event => {
       const [startH, startM] = event.start_time.split(':').map(Number);
-      const [endH, endM] = event.end_time.split(':').map(Number);
       const start = startH * 60 + startM;
-      const end = endH * 60 + endM;
       
-      for (let i = 0; i < index; i++) {
-        const prev = sorted[i];
-        const [prevStartH, prevStartM] = prev.start_time.split(':').map(Number);
-        const [prevEndH, prevEndM] = prev.end_time.split(':').map(Number);
-        const prevStart = prevStartH * 60 + prevStartM;
-        const prevEnd = prevEndH * 60 + prevEndM;
-        
-        if (start < prevEnd && end > prevStart) {
-          offset = Math.max(offset, positions[i].offset + 1);
+      // Trouver le premier lane disponible
+      let laneIndex = -1;
+      for (let i = 0; i < lanes.length; i++) {
+        if (lanes[i] <= start) {
+          laneIndex = i;
+          break;
         }
       }
       
-      positions.push({ event, offset });
+      // Si aucun lane disponible, créer un nouveau
+      if (laneIndex === -1) {
+        laneIndex = lanes.length;
+        lanes.push(0);
+      }
+      
+      // Mettre à jour la fin du lane
+      const [endH, endM] = event.end_time.split(':').map(Number);
+      const end = endH * 60 + endM;
+      lanes[laneIndex] = end;
+      
+      eventLanes.push({ event, laneIndex });
     });
     
-    return positions;
+    const maxLanes = lanes.length;
+    return { eventLanes, maxLanes };
   };
 
   // Ouvrir modal de création
@@ -144,6 +163,7 @@ export default function PlanningView({ sessions }) {
       end_time: `${String(hour + 1).padStart(2, '0')}:00`,
       center: '',
       subject: '',
+      title: '',
       modality: 'distanciel',
       color: '#3B82F6'
     });
@@ -152,12 +172,11 @@ export default function PlanningView({ sessions }) {
 
   // Sauvegarder événement
   const handleSaveEvent = () => {
-    if (!modalData.center || !modalData.subject) {
-      toast.error('Veuillez remplir tous les champs');
+    if (!modalData.center || !modalData.title) {
+      toast.error('Veuillez remplir les champs requis (Intitulé et Centre)');
       return;
     }
 
-    // Vérifier si le centre a une couleur
     if (!centerColors[modalData.center]) {
       setSelectedCenter(modalData.center);
       setShowColorPicker(true);
@@ -190,6 +209,40 @@ export default function PlanningView({ sessions }) {
     setShowColorPicker(false);
     setShowModal(false);
     toast.success('Bloc planning créé avec couleur !');
+  };
+
+  // Ouvrir dialogue de suppression
+  const handleDeleteClick = (event, e) => {
+    e.stopPropagation();
+    setEventToDelete(event);
+    setShowDeleteDialog(true);
+  };
+
+  // Confirmer suppression
+  const handleConfirmDelete = async () => {
+    if (!eventToDelete) return;
+
+    try {
+      if (eventToDelete.origin === 'local') {
+        // Supprimer du localStorage
+        deletePlanningEvent(eventToDelete.id);
+        setPlanningEvents(getPlanningEvents());
+        toast.success('Bloc planning supprimé !');
+      } else if (eventToDelete.origin === 'emergent') {
+        // Appeler l'API de suppression
+        await axios.delete(`${API}/sessions/${eventToDelete.id}`);
+        toast.success('Séance supprimée !');
+        // Recharger les sessions
+        if (onSessionsUpdate) {
+          onSessionsUpdate();
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de la suppression');
+    } finally {
+      setShowDeleteDialog(false);
+      setEventToDelete(null);
+    }
   };
 
   // Obtenir liste unique des centres
@@ -259,8 +312,7 @@ export default function PlanningView({ sessions }) {
             {/* Colonnes des jours */}
             {monthDays.map(({ day, date, dayName }) => {
               const dayEvents = eventsByDate[date] || [];
-              const eventsWithPositions = calculateOverlaps(dayEvents);
-              const maxOffset = Math.max(0, ...eventsWithPositions.map(e => e.offset));
+              const { eventLanes, maxLanes } = calculateLanes(dayEvents);
               
               return (
                 <div key={date} className="border-r" style={{ minWidth: '140px', width: '140px' }}>
@@ -282,28 +334,45 @@ export default function PlanningView({ sessions }) {
                       ></div>
                     ))}
 
-                    {/* Bandeaux d'événements */}
-                    {eventsWithPositions.map(({ event, offset }, idx) => {
+                    {/* Bandeaux d'événements avec lanes */}
+                    {eventLanes.map(({ event, laneIndex }, idx) => {
                       const pos = getEventPosition(event.start_time, event.end_time);
-                      const width = maxOffset > 0 ? 100 / (maxOffset + 1) : 100;
+                      const laneWidth = 100 / maxLanes;
+                      const textSize = maxLanes >= 3 ? 'text-xs' : 'text-sm md:text-base';
                       
                       return (
                         <div
                           key={event.id || idx}
-                          className="absolute rounded-md text-sm md:text-base font-medium leading-tight shadow-sm overflow-hidden px-2 py-1 md:px-3 md:py-2"
+                          className={`absolute rounded-md ${textSize} font-medium leading-tight shadow-sm overflow-hidden px-2 py-1 md:px-3 md:py-2 group`}
                           style={{
                             top: pos.top,
                             height: pos.height,
-                            left: `${offset * width}%`,
-                            width: `${width}%`,
+                            left: `calc(${laneIndex * laneWidth}% + 3px)`,
+                            width: `calc(${laneWidth}% - 6px)`,
                             minHeight: '40px',
                             backgroundColor: event.color || '#3B82F6',
                             color: 'white'
                           }}
-                          title={`${event.subject || event.subject} - ${event.student_name || event.center} (${event.start_time}-${event.end_time})`}
+                          title={`${event.title || event.subject} - ${event.student_name || event.center} (${event.start_time}-${event.end_time})`}
                         >
+                          {/* Icône suppression */}
+                          <button
+                            onClick={(e) => handleDeleteClick(event, e)}
+                            className="absolute top-1.5 right-1.5 z-10 p-1 rounded bg-black/30 hover:bg-black/50 text-white opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+
+                          {/* Icône verrou pour Emergent */}
+                          {event.origin === 'emergent' && (
+                            <div className="absolute top-1.5 left-1.5 z-10" title="Séance Emergent">
+                              <Lock size={12} className="text-white/70" />
+                            </div>
+                          )}
+
+                          {/* Contenu */}
                           <div className="font-semibold truncate overflow-hidden text-ellipsis whitespace-nowrap">
-                            {event.subject}
+                            {event.title || event.subject}
                           </div>
                           <div className="text-xs truncate overflow-hidden text-ellipsis whitespace-nowrap">
                             {event.student_name || event.center}
@@ -331,6 +400,14 @@ export default function PlanningView({ sessions }) {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
+              <Label>Intitulé / Formation *</Label>
+              <Input 
+                value={modalData.title} 
+                onChange={(e) => setModalData({...modalData, title: e.target.value})} 
+                placeholder="Anglais professionnel, Bureautique Excel..."
+              />
+            </div>
+            <div>
               <Label>Date</Label>
               <Input type="date" value={modalData.date} onChange={(e) => setModalData({...modalData, date: e.target.value})} />
             </div>
@@ -345,7 +422,7 @@ export default function PlanningView({ sessions }) {
               </div>
             </div>
             <div>
-              <Label>Organisme / Centre</Label>
+              <Label>Organisme / Centre *</Label>
               <Input 
                 value={modalData.center} 
                 onChange={(e) => setModalData({...modalData, center: e.target.value})} 
@@ -353,11 +430,11 @@ export default function PlanningView({ sessions }) {
               />
             </div>
             <div>
-              <Label>Matière / Intitulé</Label>
+              <Label>Matière</Label>
               <Input 
                 value={modalData.subject} 
                 onChange={(e) => setModalData({...modalData, subject: e.target.value})} 
-                placeholder="Ex: Anglais professionnel"
+                placeholder="Ex: Anglais, Bureautique..."
               />
             </div>
             <div>
@@ -400,6 +477,32 @@ export default function PlanningView({ sessions }) {
               ))}
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal confirmation suppression */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Supprimer cette séance ?</DialogTitle>
+            <DialogDescription>
+              {eventToDelete && (
+                <div className="mt-2 space-y-1 text-sm">
+                  <p><strong>Intitulé :</strong> {eventToDelete.title || eventToDelete.subject}</p>
+                  <p><strong>Date :</strong> {eventToDelete.date}</p>
+                  <p><strong>Créneau :</strong> {eventToDelete.start_time} - {eventToDelete.end_time}</p>
+                  <p><strong>Centre :</strong> {eventToDelete.center || eventToDelete.organism || '-'}</p>
+                  {eventToDelete.origin === 'emergent' && (
+                    <p className="text-orange-600 font-medium mt-2">⚠️ Attention : Cette séance Emergent sera supprimée définitivement !</p>
+                  )}
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>Annuler</Button>
+            <Button onClick={handleConfirmDelete} variant="destructive">Supprimer définitivement</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
