@@ -520,7 +520,7 @@ export default function TeacherDashboard({ user, onLogout }) {
             ))}
           </Tabs>
 
-        <Tabs defaultValue="sessions" className="space-y-6">
+          <Tabs defaultValue="sessions" className="space-y-6">
           <TabsList className="bg-white border border-gray-200 shadow-sm">
             <TabsTrigger value="sessions" className="data-[state=active]:text-white"><Calendar className="w-4 h-4 mr-2" />Séances</TabsTrigger>
             <TabsTrigger value="students" className="data-[state=active]:text-white"><Users className="w-4 h-4 mr-2" />Élèves</TabsTrigger>
