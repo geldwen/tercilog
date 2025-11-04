@@ -72,6 +72,20 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  // Fonction loadSessions pour recharger les sessions (utilisée par PlanningView)
+  const loadSessions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API}/sessions`);
+      setSessions(res.data);
+    } catch (error) {
+      console.error("loadSessions error:", error);
+      toast.error("Erreur chargement des séances");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const handleStudentChange = useCallback((value) => { setSessionForm(prev => ({ ...prev, student_id: value })); }, []);
 
   const handleCreateSession = async (e) => {
