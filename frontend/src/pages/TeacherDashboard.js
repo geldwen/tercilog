@@ -519,7 +519,6 @@ export default function TeacherDashboard({ user, onLogout }) {
               </TabsContent>
             ))}
           </Tabs>
-        </div>
 
         <Tabs defaultValue="sessions" className="space-y-6">
           <TabsList className="bg-white border border-gray-200 shadow-sm">
