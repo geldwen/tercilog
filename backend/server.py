@@ -1026,6 +1026,48 @@ async def resend_attendance_email(session_id: str, current_user: User = Depends(
     return {"message": "Attendance email resent"}
 
 
+@api_router.post("/sessions/normalize-hourly-rate")
+async def normalize_hourly_rate(month: str = None, current_user: User = Depends(get_current_user)):
+    """Normaliser les tarifs horaires pour les séances sans prix"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Filtrer par mois si fourni
+    query = {}
+    if month:
+        query["date"] = {"$regex": f"^{month}"}
+    
+    # Trouver les séances sans hourly_rate
+    sessions = await db.sessions.find({
+        **query,
+        "$or": [
+            {"hourly_rate": {"$exists": False}},
+            {"hourly_rate": None},
+            {"hourly_rate": 0}
+        ]
+    }).to_list(1000)
+    
+    count = 0
+    for session_doc in sessions:
+        # Calculer le tarif suggéré
+        hourly_rate = infer_hourly_rate(session_doc['subject'])
+        duration = session_doc.get('duration_hours', 0)
+        amount = round(duration * hourly_rate, 2)
+        
+        # Mettre à jour
+        await db.sessions.update_one(
+            {"id": session_doc['id']},
+            {"$set": {
+                "hourly_rate": hourly_rate,
+                "hourly_rate_source": "auto",
+                "amount": amount
+            }}
+        )
+        count += 1
+    
+    return {"message": f"{count} séance(s) normalisée(s)", "count": count}
+
+
 @api_router.put("/students/{student_id}")
 async def update_student(student_id: str, data: dict, current_user: User = Depends(get_current_user)):
     if current_user.role != "teacher":
