@@ -3,9 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Trash2, Lock } from 'lucide-react';
+import { Trash2, Lock, Users } from 'lucide-react';
 import axios from 'axios';
 import { getPlanningEvents, savePlanningEvent, deletePlanningEvent, getCenterColors, setCenterColor, getCenterColor, PREDEFINED_COLORS } from '@/utils/planningStore';
 
@@ -19,7 +18,9 @@ const MONTHS = [
 ];
 
 const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-const HOURS = Array.from({ length: 14 }, (_, i) => i + 8);
+const HOURS = Array.from({ length: 14 }, (_, i) => i + 8); // 8h à 21h
+const HOUR_HEIGHT_PX = 60; // Hauteur d'une ligne horaire en px
+const PX_PER_MIN = HOUR_HEIGHT_PX / 60; // pixels par minute : 1px/min
 
 export default function PlanningView({ sessions, onSessionsUpdate }) {
   const [activeMonth, setActiveMonth] = useState(MONTHS[1].value);
@@ -74,44 +75,73 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
       origin: 'emergent',
       title: s.subject,
       center: s.organism || 'Séance',
+      participant: s.student_name,
       color: getCenterColor(s.organism || '')
     })),
     ...planningEvents.filter(e => e.date && e.date.startsWith(activeMonth)).map(e => ({
       ...e,
       origin: 'local',
-      student_name: e.center
+      participant: e.center
     }))
   ];
 
-  // Grouper par date et dédupliquer
-  const eventsByDate = {};
-  const seen = new Set();
-  
-  allEvents.forEach(event => {
-    const key = `${event.id}_${event.date}_${event.start_time}`;
-    if (seen.has(key)) return;
-    seen.add(key);
+  // FUSION DES PARTICIPANTS : Grouper par clé unique
+  const groupEventsByKey = (events) => {
+    const groups = new Map();
     
+    events.forEach(event => {
+      // Clé = session_id (Emergent) ou date|start|end|subject|center
+      const groupKey = event.session_id || event.id || 
+        `${event.date}|${event.start_time}|${event.end_time}|${event.subject || event.title}|${event.center || ''}`;
+      
+      if (!groups.has(groupKey)) {
+        groups.set(groupKey, {
+          ...event,
+          participants: [],
+          groupKey
+        });
+      }
+      
+      const group = groups.get(groupKey);
+      if (event.participant) {
+        group.participants.push(event.participant);
+      }
+    });
+    
+    return Array.from(groups.values());
+  };
+
+  // Grouper par date et fusionner participants
+  const eventsByDate = {};
+  allEvents.forEach(event => {
     if (!eventsByDate[event.date]) {
       eventsByDate[event.date] = [];
     }
     eventsByDate[event.date].push(event);
   });
 
-  // Calculer position exacte (alignement parfait)
+  // Appliquer le grouping sur chaque jour
+  Object.keys(eventsByDate).forEach(date => {
+    eventsByDate[date] = groupEventsByKey(eventsByDate[date]);
+  });
+
+  // Calcul position PARFAIT avec PX_PER_MIN
   const getEventPosition = (startTime, endTime) => {
     const [startH, startM] = startTime.split(':').map(Number);
     const [endH, endM] = endTime.split(':').map(Number);
     
-    const startMinutes = Math.max(0, (startH - 8) * 60 + startM);
-    const endMinutes = Math.min(13 * 60, (endH - 8) * 60 + endM);
+    // Minutes depuis 08:00
+    const startMinutesSince08h = Math.max(0, (startH - 8) * 60 + startM);
+    const endMinutesSince08h = Math.min(13 * 60, (endH - 8) * 60 + endM);
     
-    const totalMinutes = 13 * 60;
+    // Calcul en pixels
+    const topPx = Math.round(startMinutesSince08h * PX_PER_MIN);
+    const heightPx = Math.round((endMinutesSince08h - startMinutesSince08h) * PX_PER_MIN);
     
-    const top = (startMinutes / totalMinutes) * 100;
-    const height = ((endMinutes - startMinutes) / totalMinutes) * 100;
-    
-    return { top: `${top}%`, height: `${Math.max(height, 5)}%` };
+    return { 
+      top: `${topPx}px`, 
+      height: `${Math.max(heightPx, 30)}px` // minimum 30px de hauteur
+    };
   };
 
   // Algorithme de lanes pour chevauchements (sweep line)
@@ -252,7 +282,7 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
   ])];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 planning-root">
       {/* Onglets mensuels */}
       <div className="flex gap-2 border-b pb-2">
         {MONTHS.map(month => (
@@ -302,7 +332,7 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                 <div
                   key={hour}
                   className="border-b text-xs text-gray-600 flex items-start justify-center pt-1 font-medium"
-                  style={{ height: '60px' }}
+                  style={{ height: `${HOUR_HEIGHT_PX}px` }}
                 >
                   {String(hour).padStart(2, '0')}:00
                 </div>
@@ -323,13 +353,13 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                   </div>
 
                   {/* Grille horaire */}
-                  <div className="relative" style={{ height: `${HOURS.length * 60}px` }}>
+                  <div className="relative" style={{ height: `${HOURS.length * HOUR_HEIGHT_PX}px`, position: 'relative' }}>
                     {/* Lignes horaires cliquables */}
                     {HOURS.map(hour => (
                       <div
                         key={hour}
                         className="absolute w-full border-b bg-green-50 hover:bg-green-100 cursor-pointer transition-colors"
-                        style={{ top: `${(hour - 8) * 60}px`, height: '60px' }}
+                        style={{ top: `${(hour - 8) * HOUR_HEIGHT_PX}px`, height: `${HOUR_HEIGHT_PX}px` }}
                         onClick={() => handleCellClick(date, hour)}
                       ></div>
                     ))}
@@ -340,9 +370,16 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                       const laneWidth = 100 / maxLanes;
                       const textSize = maxLanes >= 3 ? 'text-xs' : 'text-sm md:text-base';
                       
+                      // Affichage participants
+                      const participantsList = event.participants || [];
+                      const displayParticipants = participantsList.length > 0 
+                        ? participantsList.slice(0, 2).join(', ') + 
+                          (participantsList.length > 2 ? ` (+${participantsList.length - 2})` : '')
+                        : event.participant || event.student_name || event.center;
+                      
                       return (
                         <div
-                          key={event.id || idx}
+                          key={event.groupKey || event.id || idx}
                           className={`absolute rounded-md ${textSize} font-medium leading-tight shadow-sm overflow-hidden px-2 py-1 md:px-3 md:py-2 group`}
                           style={{
                             top: pos.top,
@@ -351,9 +388,10 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                             width: `calc(${laneWidth}% - 6px)`,
                             minHeight: '40px',
                             backgroundColor: event.color || '#3B82F6',
-                            color: 'white'
+                            color: 'white',
+                            position: 'absolute'
                           }}
-                          title={`${event.title || event.subject} - ${event.student_name || event.center} (${event.start_time}-${event.end_time})`}
+                          title={`${event.title || event.subject}\n${displayParticipants}\n${event.start_time}-${event.end_time}${participantsList.length > 0 ? '\n\nParticipants: ' + participantsList.join(', ') : ''}`}
                         >
                           {/* Icône suppression */}
                           <button
@@ -370,12 +408,19 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                             </div>
                           )}
 
+                          {/* Icône participants multiples */}
+                          {participantsList.length > 1 && (
+                            <div className="absolute top-1.5 left-7 z-10" title={`${participantsList.length} participants`}>
+                              <Users size={12} className="text-white/70" />
+                            </div>
+                          )}
+
                           {/* Contenu */}
                           <div className="font-semibold truncate overflow-hidden text-ellipsis whitespace-nowrap">
                             {event.title || event.subject}
                           </div>
                           <div className="text-xs truncate overflow-hidden text-ellipsis whitespace-nowrap">
-                            {event.student_name || event.center}
+                            {displayParticipants}
                           </div>
                           <div className="text-xs">
                             {event.start_time}–{event.end_time}
@@ -439,15 +484,14 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
             </div>
             <div>
               <Label>Type</Label>
-              <Select value={modalData.modality} onValueChange={(val) => setModalData({...modalData, modality: val})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="distanciel">Distanciel</SelectItem>
-                  <SelectItem value="presentiel">Présentiel</SelectItem>
-                </SelectContent>
-              </Select>
+              <select 
+                value={modalData.modality} 
+                onChange={(e) => setModalData({...modalData, modality: e.target.value})}
+                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md bg-white"
+              >
+                <option value="distanciel">Distanciel</option>
+                <option value="presentiel">Présentiel</option>
+              </select>
             </div>
           </div>
           <DialogFooter>
@@ -492,6 +536,9 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                   <p><strong>Date :</strong> {eventToDelete.date}</p>
                   <p><strong>Créneau :</strong> {eventToDelete.start_time} - {eventToDelete.end_time}</p>
                   <p><strong>Centre :</strong> {eventToDelete.center || eventToDelete.organism || '-'}</p>
+                  {eventToDelete.participants && eventToDelete.participants.length > 0 && (
+                    <p><strong>Participants :</strong> {eventToDelete.participants.join(', ')}</p>
+                  )}
                   {eventToDelete.origin === 'emergent' && (
                     <p className="text-orange-600 font-medium mt-2">⚠️ Attention : Cette séance Emergent sera supprimée définitivement !</p>
                   )}
@@ -501,7 +548,7 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>Annuler</Button>
-            <Button onClick={handleConfirmDelete} variant="destructive">Supprimer définitivement</Button>
+            <Button onClick={handleConfirmDelete} style={{backgroundColor: '#dc2626'}}>Supprimer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

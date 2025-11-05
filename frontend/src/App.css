@@ -11,7 +11,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: #f8fafc;
-  zoom: 0.9;
+  /* zoom: 0.9; DÉSACTIVÉ pour éviter le décalage dans le planning */
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -20,6 +20,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .App {
   min-height: 100vh;
+}
+
+/* Exception pour le planning - reset zoom */
+.planning-root {
+  zoom: 1 !important;
+  transform: none !important;
 }
 
 /* Terciform colors */
