@@ -589,9 +589,8 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
     else:
         # Calcul automatique
         subject_lower = session_data.subject.lower()
-        # Test de positionnement ou équivalence = TOUJOURS 20€/h (peu importe la durée)
-        is_special = ("test de positionnement" in subject_lower or 
-                     "positionnement" in subject_lower or
+        # "test" ou "équivalence" = TOUJOURS 20€/h (peu importe la durée)
+        is_special = ("test" in subject_lower or 
                      "équivalence" in subject_lower or 
                      "equivalence" in subject_lower)
         hourly_rate = 20.0 if is_special else 40.0
