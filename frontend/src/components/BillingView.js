@@ -119,7 +119,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
       s.hourly_rate,
       s.amount,
       s.signature_status === 'signed' ? 'Émargée' : s.status === 'confirmed' ? 'Confirmée' : 'En attente',
-      s.meeting_link ? 'Distanciel' : 'Présentiel'
+      s.modality === 'presentiel' ? 'Présentiel' : 'Distanciel'
     ]);
 
     const csvContent = [
@@ -135,6 +135,47 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
     link.download = `facturation_${activeMonth}.csv`;
     link.click();
     toast.success('Export CSV réussi !');
+  };
+
+  // Export PDF
+  const exportPDF = () => {
+    const doc = new jsPDF('landscape');
+    const monthName = MONTHS.find(m => m.value === activeMonth)?.name || activeMonth;
+    
+    // Titre
+    doc.setFontSize(18);
+    doc.text(`Facturation ${monthName}`, 14, 20);
+    
+    // Tableau
+    const headers = [['Date', 'Élève', 'Matière', 'Centre', 'Durée (h)', 'Coût/h (€)', 'Montant (€)', 'Statut', 'Type']];
+    const rows = monthSessions.map(s => [
+      formatDate(s.date),
+      s.student_name,
+      s.subject,
+      s.organism || '-',
+      s.duration_hours.toFixed(2),
+      s.hourly_rate.toFixed(2),
+      s.amount.toFixed(2),
+      s.signature_status === 'signed' ? 'Émargée' : s.status === 'confirmed' ? 'Confirmée' : 'En attente',
+      s.modality === 'presentiel' ? 'Présentiel' : 'Distanciel'
+    ]);
+    
+    doc.autoTable({
+      head: headers,
+      body: rows,
+      startY: 30,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [219, 39, 119], textColor: 255 }, // Rose
+      footStyles: { fillColor: [252, 231, 243], textColor: 0, fontStyle: 'bold' },
+      foot: [[
+        { content: `Total ${monthName}`, colSpan: 6, styles: { halign: 'right' } },
+        { content: monthTotal.toFixed(2) + ' €', styles: { halign: 'right', fontStyle: 'bold' } },
+        '', ''
+      ]]
+    });
+    
+    doc.save(`facturation_${activeMonth}.pdf`);
+    toast.success('Export PDF réussi !');
   };
 
   return (
