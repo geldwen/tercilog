@@ -597,7 +597,7 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
     await db.sessions.insert_one(doc)
     
     # Send email to student
-    frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+    portal_url = get_student_portal_url()
     student_password = student.get('plain_password', '***')
     
     email_body = f"""
@@ -609,7 +609,7 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
             <p><strong>Vous avez été affecté à la séance {session_data.subject} du {session_data.date} de {session_data.start_time} à {session_data.end_time}.</strong></p>
             <p>Veuillez confirmer votre présence en vous connectant à la plateforme :</p>
             <div style="margin: 30px 0;">
-                <a href="{frontend_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Accédez à TerciLog</a>
+                <a href="{portal_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Accédez à TerciLog</a>
             </div>
             <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
                 <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Rappel de vos identifiants :</p>
