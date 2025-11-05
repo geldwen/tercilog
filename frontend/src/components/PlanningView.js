@@ -4,7 +4,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Trash2, Lock, Users } from 'lucide-react';
+import { Trash2, Lock, Users, Copy, MoreVertical } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import axios from 'axios';
 import { getPlanningEvents, savePlanningEvent, deletePlanningEvent, getCenterColors, setCenterColor, getCenterColor, PREDEFINED_COLORS } from '@/utils/planningStore';
 
