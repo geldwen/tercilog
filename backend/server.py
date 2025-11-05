@@ -134,6 +134,8 @@ class SessionCreate(BaseModel):
     student_id: str
     validation_deadline_hours: int = 48
     meeting_link: str = ""  # Lien Google Meet ou autre visio
+    organism: str = ""  # Organisme/Centre de formation
+    hourly_rate: Optional[float] = None  # Coût horaire (optionnel, calculé auto si absent)
 
 class SessionValidate(BaseModel):
     status: str  # "confirmed" or "rejected"
