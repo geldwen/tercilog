@@ -207,21 +207,23 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
       return;
     }
 
-    if (!centerColors[modalData.center]) {
-      setSelectedCenter(modalData.center);
-      setShowColorPicker(true);
+    // Zepartner est toujours bleu, pas de sélection de couleur
+    if (modalData.center === 'Zepartner' || centerColors[modalData.center]) {
+      const event = {
+        ...modalData,
+        color: getCenterColor(modalData.center)
+      };
+      
+      savePlanningEvent(event);
+      setPlanningEvents(getPlanningEvents());
+      setShowModal(false);
+      toast.success('Bloc planning créé !');
       return;
     }
 
-    const event = {
-      ...modalData,
-      color: getCenterColor(modalData.center)
-    };
-    
-    savePlanningEvent(event);
-    setPlanningEvents(getPlanningEvents());
-    setShowModal(false);
-    toast.success('Bloc planning créé !');
+    // Demander une couleur pour un nouveau centre
+    setSelectedCenter(modalData.center);
+    setShowColorPicker(true);
   };
 
   // Choisir couleur pour un centre
