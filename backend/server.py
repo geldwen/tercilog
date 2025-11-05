@@ -382,6 +382,7 @@ async def register(user_data: UserCreate):
     hashed_password = get_password_hash(user_dict.pop('password'))
     user_dict['password_hash'] = hashed_password
     user_dict['plain_password'] = plain_password  # Stocker le mot de passe en clair
+    user_dict['welcome_email_sent'] = False  # Flag pour l'email de bienvenue
     
     # Initialize credit_hours = total_hours for new students
     if user_dict.get('role') == 'student' and 'total_hours' in user_dict:
@@ -392,8 +393,32 @@ async def register(user_data: UserCreate):
     doc['created_at'] = doc['created_at'].isoformat()
     doc['password_hash'] = hashed_password
     doc['plain_password'] = plain_password
+    doc['welcome_email_sent'] = False
     
     await db.users.insert_one(doc)
+    
+    # Envoyer l'email de bienvenue si c'est un élève
+    if user_dict.get('role') == 'student':
+        try:
+            email_sent = send_welcome_email(
+                user_dict['email'],
+                user_dict['name'],
+                user_dict['email'],
+                plain_password
+            )
+            if email_sent:
+                # Mettre à jour le flag d'envoi
+                await db.users.update_one(
+                    {"id": user.id},
+                    {"$set": {"welcome_email_sent": True}}
+                )
+                logger.info(f"Welcome email sent to {user_dict['email']}")
+            else:
+                logger.warning(f"Failed to send welcome email to {user_dict['email']}")
+        except Exception as e:
+            # Ne pas bloquer la création du compte en cas d'erreur email
+            logger.error(f"Error sending welcome email to {user_dict['email']}: {e}")
+    
     return user
 
 @api_router.post("/auth/login", response_model=Token)
