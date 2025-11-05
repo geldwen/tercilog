@@ -196,6 +196,42 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="User not found")
     return User(**user)
 
+def get_student_portal_url():
+    """
+    Get the student portal URL from environment variables with fallback cascade.
+    Priority order:
+    1. STUDENT_PORTAL_URL (recommended)
+    2. FRONTEND_URL
+    3. REACT_APP_FRONTEND_URL
+    4. REACT_APP_BACKEND_URL (removing /api suffix if present)
+    5. Fallback: https://student-manage.preview.emergentagent.com
+    """
+    url = (
+        os.getenv("STUDENT_PORTAL_URL")
+        or os.getenv("FRONTEND_URL")
+        or os.getenv("REACT_APP_FRONTEND_URL")
+        or os.getenv("REACT_APP_BACKEND_URL")
+        or "https://student-manage.preview.emergentagent.com"
+    )
+    
+    # Normalize URL
+    url = url.strip()
+    
+    # Remove /api suffix if present
+    if url.endswith("/api"):
+        url = url[:-4]
+    
+    # Remove trailing slash
+    if url.endswith("/"):
+        url = url[:-1]
+    
+    # Ensure https:// or http:// prefix
+    if not (url.startswith("http://") or url.startswith("https://")):
+        url = "https://" + url
+    
+    return url
+
+
 def format_fr_date(date_str: str) -> str:
     """Format date to French format with full day name: mardi 04/11/2025"""
     days_fr = {
