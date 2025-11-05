@@ -124,6 +124,7 @@ class Session(BaseModel):
     hourly_rate: float = 40.0  # Coût horaire en euros (défaut 40€/h)
     amount: float = 0.0  # Montant total calculé (durée × coût horaire)
     organism: str = ""  # Organisme/Centre de formation
+    modality: str = "distanciel"  # distanciel ou présentiel
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class SessionCreate(BaseModel):
