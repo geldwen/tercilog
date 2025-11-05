@@ -254,28 +254,25 @@ def send_email(to_email: str, subject: str, html_body: str):
 def send_attendance_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str):
     """Envoyer l'email d'émargement après la fin de séance"""
     
-    # Email simple sans lien
     html_body = f"""<html>
-<body>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 <p>Bonjour {student_name},</p>
 
-<p>Vous avez effectué une séance :</p>
+<p>Votre séance est terminée. Merci de vous connecter à votre espace TerciLog pour émarger votre séance.</p>
 
 <ul>
-<li>Matière : {subject}</li>
-<li>Date : {date}</li>
-<li>Horaires : {start_time} - {end_time}</li>
+<li><strong>Matière :</strong> {subject}</li>
+<li><strong>Date :</strong> {date}</li>
+<li><strong>Horaires :</strong> {start_time} - {end_time}</li>
 </ul>
 
-<p><strong>Veuillez vous connecter à votre espace pour effectuer l'émargement de la séance.</strong></p>
+<p><strong>Vous pouvez signer à n'importe quel moment.</strong></p>
 
-<p style="color: red;"><strong>⚠️ ATTENTION : Vous avez 2 heures après la fin de la séance pour émarger.</strong></p>
-
-<p>Cordialement,<br>TerciForm</p>
+<p>Bien cordialement,<br>L'équipe Terciform</p>
 </body>
 </html>"""
     
-    return send_email(to_email, "TerciForm - Émargement de séance", html_body)
+    return send_email(to_email, "Émargement disponible", html_body)
 
 
 
