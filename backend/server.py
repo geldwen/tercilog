@@ -637,15 +637,23 @@ async def sign_session(session_id: str, signature_data: dict, current_user: User
     if not session_doc:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    # Enregistrer la signature
+    # Auto-confirmer si pas encore confirmé
     signed_at = datetime.now(timezone.utc).isoformat()
+    update_fields = {
+        "signature": signature_data.get("signature"),
+        "signed_at": signed_at,
+        "signature_status": "signed"
+    }
+    
+    # Si l'élève signe sans avoir confirmé, on confirme automatiquement
+    if not session_doc.get('confirmed_by_student'):
+        update_fields["confirmed_by_student"] = True
+        update_fields["confirmed_by_student_at"] = signed_at
+        logger.info(f"Auto-confirming session {session_id} during signature")
+    
     await db.sessions.update_one(
         {"id": session_id},
-        {"$set": {
-            "signature": signature_data.get("signature"),
-            "signed_at": signed_at,
-            "signature_status": "signed"
-        }}
+        {"$set": update_fields}
     )
     
     # Déduire les heures du crédit de l'élève (maintenant que la séance est émargée)
