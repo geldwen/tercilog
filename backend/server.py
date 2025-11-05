@@ -290,21 +290,61 @@ def send_email(to_email: str, subject: str, html_body: str):
 def send_attendance_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str):
     """Envoyer l'email d'émargement après la fin de séance"""
     
+    portal_url = get_student_portal_url()
+    
     html_body = f"""<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-<p>Bonjour {student_name},</p>
-
-<p>Votre séance est terminée. Merci de vous connecter à votre espace TerciLog pour émarger votre séance.</p>
-
-<ul>
-<li><strong>Matière :</strong> {subject}</li>
-<li><strong>Date :</strong> {date}</li>
-<li><strong>Horaires :</strong> {start_time} - {end_time}</li>
-</ul>
-
-<p><strong>Vous pouvez signer à n'importe quel moment.</strong></p>
-
-<p>Bien cordialement,<br>L'équipe Terciform</p>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+<div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <div style="background-color: #ff9800; padding: 24px; text-align: center;">
+    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">✍️ Émargement disponible</h1>
+  </div>
+  
+  <div style="padding: 32px 24px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: Arial, Helvetica, sans-serif;">
+      <tr>
+        <td style="padding: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">
+          Bonjour {student_name},
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">
+          Votre séance est terminée. Merci de vous connecter à votre espace TerciLog pour émarger votre séance.
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 16px; background-color: #fff3e0; border-radius: 6px; border-left: 4px solid #ff9800;">
+          <p style="margin: 0 0 8px 0; font-size: 14px; color: #333333;"><strong>Matière :</strong> {subject}</p>
+          <p style="margin: 0 0 8px 0; font-size: 14px; color: #333333;"><strong>Date :</strong> {date}</p>
+          <p style="margin: 0; font-size: 14px; color: #333333;"><strong>Horaires :</strong> {start_time} - {end_time}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 24px 0 16px 0; text-align: center;">
+          <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: bold; color: #ff9800;">
+            Vous pouvez signer à n'importe quel moment.
+          </p>
+          <a href="{portal_url}" target="_blank" 
+             style="background: #ff9800; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 6px; display: inline-block; font-weight: bold; font-size: 16px;">
+            Émarger ma séance
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 16px 0 0 0; font-size: 12px; color: #6b7280; line-height: 1.5;">
+          Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br>
+          <a href="{portal_url}" style="color: #ff9800; text-decoration: underline;">{portal_url}</a>
+        </td>
+      </tr>
+    </table>
+  </div>
+  
+  <div style="background-color: #f9fafb; padding: 16px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+    <p style="margin: 0; font-size: 14px; color: #6b7280;">
+      Bien cordialement,<br>
+      <strong style="color: #333333;">L'équipe Terciform</strong>
+    </p>
+  </div>
+</div>
 </body>
 </html>"""
     
