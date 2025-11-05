@@ -457,7 +457,7 @@ def send_session_reminder_email(to_email: str, student_name: str, subject: str, 
             </ul>
             {meeting_section}
             <div style="text-align: center; margin-top: 20px;">
-              <a href="{frontend_url}" class="button">Accéder à mon espace élève</a>
+              <a href="{portal_url}" class="button">Accéder à mon espace élève</a>
             </div>
           </div>
           <div class="footer">
