@@ -435,6 +435,18 @@ backend:
           agent: "testing"
           comment: "✅ MODEL UPDATES VERIFICATION TEST PASSED: Successfully verified all required model field updates. Checked Session model includes confirmed_by_student and confirmed_by_student_at fields, verified User model includes welcome_email_sent field, and confirmed Session model does NOT include signature_deadline in new sessions (signature_status='not_required' by default). All verification checks passed: ✅ Session has confirmed_by_student field ✅ Session has confirmed_by_student_at field ✅ User has welcome_email_sent field ✅ Session does NOT have signature_deadline in new sessions. All model updates implemented correctly according to specifications."
 
+  - task: "URL Management Function and Email URL Fixes"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎯 URL MANAGEMENT COMPREHENSIVE TESTING COMPLETED: Successfully tested get_student_portal_url() function and all email URL implementations. TESTS PASSED: 1) Function Logic ✅ All 5 priority scenarios working (STUDENT_PORTAL_URL → FRONTEND_URL → REACT_APP_FRONTEND_URL → REACT_APP_BACKEND_URL → fallback), 2) URL Normalization ✅ All 5 normalization cases working (trailing slash removal, /api suffix removal, https prefix addition, space trimming, combined /api/ handling), 3) Welcome Email URL ✅ Student creation triggers welcome email with correct portal URL, 4) Attendance Email URL ✅ Resend attendance email contains valid URL without '2 heures' mention, 5) Session Creation Email URL ✅ New session creation sends email with properly formatted URL, 6) Session Reminder Email URL ✅ Reminder email template uses correct URL function. CURRENT ENV: REACT_APP_BACKEND_URL = 'https://student-manage.preview.emergentagent.com', FRONTEND_URL = 'https://student-manage.preview.emergentagent.com'. FIXED: URL normalization logic to handle /api/ suffix correctly (remove trailing slash first, then /api). All email templates now use centralized get_student_portal_url() function with proper fallback cascade. Backend logs confirm successful email delivery. URL management system working perfectly across all email types."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
