@@ -121,6 +121,9 @@ class Session(BaseModel):
     teacher_signature: Optional[str] = None  # Base64 image de la signature formateur
     teacher_signed_at: Optional[str] = None  # Horodatage de l'émargement formateur
     teacher_signature_status: str = "scheduled"  # scheduled, pending, signed
+    hourly_rate: float = 40.0  # Coût horaire en euros (défaut 40€/h)
+    amount: float = 0.0  # Montant total calculé (durée × coût horaire)
+    organism: str = ""  # Organisme/Centre de formation
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class SessionCreate(BaseModel):
