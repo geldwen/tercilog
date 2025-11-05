@@ -68,6 +68,7 @@ class User(BaseModel):
     session_type: str = ""  # "distanciel" or "présentiel"
     start_date: str = ""
     end_date: str = ""
+    welcome_email_sent: bool = False  # Email de bienvenue envoyé ou non
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserCreate(BaseModel):
