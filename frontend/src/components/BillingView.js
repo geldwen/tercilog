@@ -21,24 +21,17 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
   const [activeMonth, setActiveMonth] = useState(MONTHS[1].value);
   const [editingHourlyRate, setEditingHourlyRate] = useState({});
 
+  // Normaliser un sujet
+  const normalizeText = (text) => {
+    return (text || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\w\s]/g, ' ')
+      .toLowerCase();
+  };
+
   // Fonction pour déterminer le tarif automatiquement
-  const calculateHourlyRate = (session) => {
-    if (session.hourly_rate !== undefined && session.hourly_rate !== null && session.hourly_rate > 0) {
-      return session.hourly_rate;
-    }
-
-    // Normaliser le sujet (retirer accents, ponctuation, minuscules)
-    const normalizeText = (text) => {
-      return (text || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^\w\s]/g, ' ')
-        .toLowerCase();
-    };
-
-    const subject = normalizeText(session.subject);
-    
-    // Liste exhaustive des motifs pour 20€/h
+  const inferHourlyRate = (subject) => {
     const keywords20 = [
       'test de positionnement',
       'test positionnement',
@@ -49,8 +42,26 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
       'equivalence'
     ];
 
-    const isSpecial = keywords20.some(keyword => subject.includes(keyword));
+    const normalized = normalizeText(subject);
+    const isSpecial = keywords20.some(keyword => normalizeText(keyword).split(' ').every(word => normalized.includes(word)));
     return isSpecial ? 20 : 40;
+  };
+
+  // Appliquer la suggestion de tarif
+  const applySuggestedRate = async (sessionId, subject) => {
+    const suggestedRate = inferHourlyRate(subject);
+    try {
+      await axios.put(`${API}/sessions/${sessionId}`, {
+        hourly_rate: suggestedRate,
+        hourly_rate_source: 'auto'
+      });
+      toast.success(`Tarif appliqué : ${suggestedRate}€/h`);
+      if (onSessionsUpdate) {
+        onSessionsUpdate();
+      }
+    } catch (error) {
+      toast.error('Erreur lors de l\'application du tarif');
+    }
   };
 
   // Enrichir les sessions avec hourly_rate et amount
