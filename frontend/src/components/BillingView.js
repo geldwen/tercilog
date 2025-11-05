@@ -284,7 +284,20 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
                       {session.duration_hours.toFixed(2)}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                      {editingHourlyRate[session.id] !== undefined ? (
+                      {session.hourly_rate === null ? (
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Prix manquant
+                          </span>
+                          <Button
+                            size="sm"
+                            onClick={() => applySuggestedRate(session.id, session.subject)}
+                            className="text-xs h-7 bg-blue-600 hover:bg-blue-700"
+                          >
+                            Appliquer suggestion
+                          </Button>
+                        </div>
+                      ) : editingHourlyRate[session.id] !== undefined ? (
                         <div className="flex items-center gap-1">
                           <Input
                             type="number"
