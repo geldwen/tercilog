@@ -204,10 +204,24 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
           <p className="text-3xl font-bold text-pink-700">{formatCurrency(monthTotal)}</p>
           <p className="text-sm text-gray-500 mt-1">{monthSessions.length} séance(s)</p>
         </div>
-        <Button onClick={exportCSV} className="bg-pink-600 hover:bg-pink-700">
-          <Download size={16} className="mr-2" />
-          Exporter CSV
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="bg-pink-600 hover:bg-pink-700">
+              <Download size={16} className="mr-2" />
+              Exporter
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={exportCSV}>
+              <FileSpreadsheet size={16} className="mr-2" />
+              Export CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={exportPDF}>
+              <FileText size={16} className="mr-2" />
+              Export PDF
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Tableau */}
