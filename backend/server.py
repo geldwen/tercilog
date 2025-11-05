@@ -619,7 +619,8 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
         meeting_link=session_data.meeting_link,
         hourly_rate=hourly_rate,
         amount=amount,
-        organism=getattr(session_data, 'organism', '')
+        organism=getattr(session_data, 'organism', ''),
+        modality=session_data.modality
     )
     
     doc = session.model_dump()
