@@ -416,7 +416,7 @@ def send_welcome_email(to_email: str, student_name: str, student_email: str, tem
 
 def send_session_reminder_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str, meeting_link: str = ""):
     """Envoyer l'email de rappel 5 minutes avant la séance"""
-    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
+    portal_url = get_student_portal_url()
     
     meeting_section = ""
     if meeting_link:
