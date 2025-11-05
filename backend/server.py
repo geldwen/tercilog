@@ -314,34 +314,59 @@ def send_attendance_email(to_email: str, student_name: str, subject: str, date: 
 def send_welcome_email(to_email: str, student_name: str, student_email: str, temp_password: str):
     """Envoyer l'email de bienvenue lors de la création d'un nouvel élève"""
     
-    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
+    portal_url = get_student_portal_url()
     
     html_body = f"""<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-<h2 style="color: #1e3a5f;">Bienvenue dans votre espace TerciLog</h2>
-
-<p>Bonjour {student_name},</p>
-
-<p>Bienvenue dans votre espace TerciLog.</p>
-
-<p>Merci de vous connecter pour confirmer vos séances et accéder à votre parcours de formation.</p>
-
-<div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-<p style="margin: 5px 0;"><strong>Identifiant :</strong> {student_email}</p>
-<p style="margin: 5px 0;"><strong>Code secret (temporaire) :</strong> {temp_password}</p>
-<p style="margin: 10px 0 0 0; font-size: 0.9em; color: #666;">
-💡 Pour votre sécurité, nous vous recommandons de changer ce code temporaire lors de votre première connexion.
-</p>
-</div>
-
-<div style="text-align: center; margin: 30px 0;">
-<a href="{frontend_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-Accéder à mon espace TerciLog
-</a>
-</div>
-
-<p>Bien cordialement,<br>L'équipe Terciform</p>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+<div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <div style="background-color: #1f4acc; padding: 24px; text-align: center;">
+    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Bienvenue dans votre espace TerciLog</h1>
+  </div>
+  
+  <div style="padding: 32px 24px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: Arial, Helvetica, sans-serif;">
+      <tr>
+        <td style="padding: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">
+          Bonjour {student_name},
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">
+          Bienvenue dans votre espace TerciLog. Merci de vous connecter pour confirmer vos séances et accéder à votre parcours de formation.
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0 24px 0; text-align: center;">
+          <a href="{portal_url}" target="_blank" 
+             style="background: #1f4acc; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 6px; display: inline-block; font-weight: bold; font-size: 16px;">
+            Accéder à TerciLog
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 16px; background-color: #f9fafb; border-radius: 6px; border-left: 4px solid #1f4acc;">
+          <p style="margin: 0 0 8px 0; font-size: 14px; color: #333333;"><strong>Identifiant :</strong> {student_email}</p>
+          <p style="margin: 0 0 8px 0; font-size: 14px; color: #333333;"><strong>Code secret (temporaire) :</strong> {temp_password}</p>
+          <p style="margin: 8px 0 0 0; font-size: 12px; color: #6b7280;">
+            💡 Pour votre sécurité, nous vous recommandons de changer ce code temporaire lors de votre première connexion.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 16px 0 0 0; font-size: 12px; color: #6b7280; line-height: 1.5;">
+          Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br>
+          <a href="{portal_url}" style="color: #1f4acc; text-decoration: underline;">{portal_url}</a>
+        </td>
+      </tr>
+    </table>
+  </div>
+  
+  <div style="background-color: #f9fafb; padding: 16px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+    <p style="margin: 0; font-size: 14px; color: #6b7280;">
+      Bien cordialement,<br>
+      <strong style="color: #333333;">L'équipe Terciform</strong>
+    </p>
+  </div>
 </div>
 </body>
 </html>"""
