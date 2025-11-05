@@ -125,6 +125,16 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   }, []);
 
+  // Recalculer hourly_rate automatiquement si source=auto et sujet change
+  useEffect(() => {
+    if (sessionForm.hourly_rate_source === 'auto' && sessionForm.subject) {
+      const suggestedRate = inferHourlyRate(sessionForm.subject);
+      if (suggestedRate !== sessionForm.hourly_rate) {
+        setSessionForm(prev => ({ ...prev, hourly_rate: suggestedRate }));
+      }
+    }
+  }, [sessionForm.subject, sessionForm.hourly_rate_source]);
+
   const handleStudentChange = useCallback((value) => { setSessionForm(prev => ({ ...prev, student_id: value })); }, []);
 
   const handleCreateSession = async (e) => {
