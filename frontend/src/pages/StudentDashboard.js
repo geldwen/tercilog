@@ -137,8 +137,8 @@ export default function StudentDashboard({ user, onLogout }) {
 
   const confirmPresence = async (sessionId) => {
     try {
-      await axios.patch(`${API}/sessions/${sessionId}/confirm-presence`);
-      toast.success("Présence confirmée !");
+      await axios.patch(`${API}/sessions/${sessionId}/confirm-by-student`);
+      toast.success("Séance confirmée !");
       loadSessions();
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur lors de la confirmation");
