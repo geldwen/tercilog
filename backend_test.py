@@ -4059,11 +4059,13 @@ def main():
             success = tester.test_student_dashboard_endpoints()
         elif sys.argv[1] == "confirmation":
             success = tester.test_confirmation_flow_and_date_formatting()
+        elif sys.argv[1] == "tercilog-changes":
+            success = tester.run_tercilog_changes_test()
         else:
             success = tester.run_full_test()
     else:
-        # Run teacher signature system test by default (as per review request)
-        success = tester.test_teacher_signature_system()
+        # Run TerciLog changes test by default (as per review request)
+        success = tester.run_tercilog_changes_test()
     
     if success:
         print("\n" + "="*50)
