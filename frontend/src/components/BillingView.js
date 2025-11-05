@@ -156,43 +156,62 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
 
   // Export PDF
   const exportPDF = () => {
-    const doc = new jsPDF('landscape');
-    const monthName = MONTHS.find(m => m.value === activeMonth)?.name || activeMonth;
-    
-    // Titre
-    doc.setFontSize(18);
-    doc.text(`Facturation ${monthName}`, 14, 20);
-    
-    // Tableau
-    const headers = [['Date', 'Élève', 'Matière', 'Centre', 'Durée (h)', 'Coût/h (€)', 'Montant (€)', 'Statut', 'Type']];
-    const rows = monthSessions.map(s => [
-      formatDate(s.date),
-      s.student_name,
-      s.subject,
-      s.organism || '-',
-      s.duration_hours.toFixed(2),
-      s.hourly_rate.toFixed(2),
-      s.amount.toFixed(2),
-      s.signature_status === 'signed' ? 'Émargée' : s.status === 'confirmed' ? 'Confirmée' : 'En attente',
-      s.modality === 'presentiel' ? 'Présentiel' : 'Distanciel'
-    ]);
-    
-    doc.autoTable({
-      head: headers,
-      body: rows,
-      startY: 30,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [219, 39, 119], textColor: 255 }, // Rose
-      footStyles: { fillColor: [252, 231, 243], textColor: 0, fontStyle: 'bold' },
-      foot: [[
-        { content: `Total ${monthName}`, colSpan: 6, styles: { halign: 'right' } },
-        { content: monthTotal.toFixed(2) + ' €', styles: { halign: 'right', fontStyle: 'bold' } },
-        '', ''
-      ]]
-    });
-    
-    doc.save(`facturation_${activeMonth}.pdf`);
-    toast.success('Export PDF réussi !');
+    try {
+      const doc = new jsPDF('landscape');
+      const monthName = MONTHS.find(m => m.value === activeMonth)?.name || activeMonth;
+      
+      // Titre
+      doc.setFontSize(18);
+      doc.text(`Facturation ${monthName}`, 14, 20);
+      
+      // Tableau - filtrer seulement les sessions avec prix
+      const sessionsWithPrice = monthSessions.filter(s => s.hourly_rate !== null && s.hourly_rate > 0);
+      
+      const headers = [['Date', 'Élève', 'Matière', 'Centre', 'Durée (h)', 'Coût/h (€)', 'Montant (€)', 'Statut', 'Type']];
+      const rows = sessionsWithPrice.map(s => [
+        formatDate(s.date),
+        s.student_name || '-',
+        s.subject || '-',
+        s.organism || '-',
+        (s.duration_hours || 0).toFixed(2),
+        (s.hourly_rate || 0).toFixed(2),
+        (s.amount || 0).toFixed(2),
+        s.signature_status === 'signed' ? 'Émargée' : s.status === 'confirmed' ? 'Confirmée' : 'En attente',
+        s.modality === 'presentiel' ? 'Présentiel' : 'Distanciel'
+      ]);
+      
+      // Total seulement des sessions avec prix
+      const totalWithPrice = sessionsWithPrice.reduce((sum, s) => sum + (s.amount || 0), 0);
+      
+      doc.autoTable({
+        head: headers,
+        body: rows,
+        startY: 30,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [219, 39, 119], textColor: 255 }, // Rose
+        footStyles: { fillColor: [252, 231, 243], textColor: 0, fontStyle: 'bold' },
+        foot: [[
+          { content: `Total ${monthName}`, colSpan: 6, styles: { halign: 'right' } },
+          { content: totalWithPrice.toFixed(2) + ' €', styles: { halign: 'right', fontStyle: 'bold' } },
+          '', ''
+        ]]
+      });
+      
+      // Note si des sessions sans prix
+      const sessionsWithoutPrice = monthSessions.filter(s => !s.hourly_rate || s.hourly_rate === 0);
+      if (sessionsWithoutPrice.length > 0) {
+        const finalY = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(10);
+        doc.setTextColor(220, 38, 38); // Rouge
+        doc.text(`⚠️ ${sessionsWithoutPrice.length} séance(s) sans tarif non incluse(s)`, 14, finalY);
+      }
+      
+      doc.save(`facturation_${activeMonth}.pdf`);
+      toast.success('Export PDF réussi !');
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
+      toast.error('Erreur lors de l\'export PDF. Vérifiez que toutes les séances ont un tarif.');
+    }
   };
 
   return (
