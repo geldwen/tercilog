@@ -258,7 +258,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {session.meeting_link ? 'Distanciel' : 'Présentiel'}
+                      {session.modality === 'presentiel' ? 'Présentiel' : 'Distanciel'}
                     </td>
                   </tr>
                 ))
