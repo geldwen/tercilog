@@ -128,7 +128,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
             onClick={() => setActiveMonth(month.value)}
             className={`inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
               activeMonth === month.value
-                ? 'bg-violet-600 text-white'
+                ? 'bg-pink-600 text-white'
                 : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
             }`}
           >
@@ -138,13 +138,13 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
       </div>
 
       {/* Résumé et export */}
-      <div className="flex items-center justify-between bg-violet-50 p-4 rounded-lg border border-violet-200">
+      <div className="flex items-center justify-between bg-pink-50 p-4 rounded-lg border border-pink-200">
         <div>
           <p className="text-sm text-gray-600">Total {MONTHS.find(m => m.value === activeMonth)?.name}</p>
-          <p className="text-3xl font-bold text-violet-700">{formatCurrency(monthTotal)}</p>
+          <p className="text-3xl font-bold text-pink-700">{formatCurrency(monthTotal)}</p>
           <p className="text-sm text-gray-500 mt-1">{monthSessions.length} séance(s)</p>
         </div>
-        <Button onClick={exportCSV} className="bg-violet-600 hover:bg-violet-700">
+        <Button onClick={exportCSV} className="bg-pink-600 hover:bg-pink-700">
           <Download size={16} className="mr-2" />
           Exporter CSV
         </Button>
