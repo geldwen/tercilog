@@ -808,22 +808,12 @@ async def resend_attendance_email(session_id: str, current_user: User = Depends(
     if not email_sent:
         raise HTTPException(status_code=500, detail="Failed to send email")
     
-    # Calculate signature deadline (2 hours after session end)
-    try:
-        session_datetime_str = f"{session_doc['date']}T{session_doc['end_time']}:00"
-        session_end = datetime.fromisoformat(session_datetime_str)
-        signature_deadline = session_end + timedelta(hours=2)
-    except:
-        # Default to 2 hours from now if date parsing fails
-        signature_deadline = datetime.now(timezone.utc) + timedelta(hours=2)
-    
     # Update session to mark email as sent and set signature status to pending (élève + formateur)
     await db.sessions.update_one(
         {"id": session_id},
         {"$set": {
             "attendance_email_sent": True,
             "signature_status": "pending",
-            "signature_deadline": signature_deadline.isoformat(),
             "teacher_signature_status": "pending"
         }}
     )
