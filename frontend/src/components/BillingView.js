@@ -67,11 +67,17 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
   // Enrichir les sessions avec hourly_rate et amount
   const enrichedSessions = useMemo(() => {
     return sessions.map(s => {
-      const hourlyRate = calculateHourlyRate(s);
-      const amount = Math.round(s.duration_hours * hourlyRate * 100) / 100;
+      // Utiliser hourly_rate de l'API si présent, sinon null (affichera badge)
+      const hourlyRate = (s.hourly_rate !== undefined && s.hourly_rate !== null && s.hourly_rate > 0) 
+        ? s.hourly_rate 
+        : null;
+      
+      const amount = hourlyRate ? Math.round(s.duration_hours * hourlyRate * 100) / 100 : 0;
+      
       return {
         ...s,
         hourly_rate: hourlyRate,
+        hourly_rate_source: s.hourly_rate_source || 'auto',
         amount: amount
       };
     });
