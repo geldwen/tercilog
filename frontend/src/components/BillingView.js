@@ -262,7 +262,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
                   <td colSpan="6" className="px-4 py-3 text-right text-sm font-bold text-gray-900">
                     Total du mois
                   </td>
-                  <td className="px-4 py-3 text-right text-sm font-bold text-violet-700">
+                  <td className="px-4 py-3 text-right text-sm font-bold text-pink-700">
                     {formatCurrency(monthTotal)}
                   </td>
                   <td colSpan="2"></td>
