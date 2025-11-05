@@ -589,12 +589,17 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
         # Utiliser le tarif fourni
         hourly_rate = session_data.hourly_rate
     else:
-        # Calcul automatique
-        subject_lower = session_data.subject.lower()
-        # "test" ou "équivalence" = TOUJOURS 20€/h (peu importe la durée)
-        is_special = ("test" in subject_lower or 
-                     "équivalence" in subject_lower or 
-                     "equivalence" in subject_lower)
+        # Calcul automatique avec normalisation
+        import unicodedata
+        subject_normalized = unicodedata.normalize('NFD', session_data.subject.lower())
+        subject_normalized = ''.join(c for c in subject_normalized if unicodedata.category(c) != 'Mn')
+        
+        # "test" ou "positionnement" ou "équivalence" = TOUJOURS 20€/h
+        is_test = "test" in subject_normalized
+        is_positionnement = "positionnement" in subject_normalized
+        is_equivalence = "equivalence" in subject_normalized or "équivalence" in subject_normalized.replace("equivalence", "équivalence")
+        
+        is_special = is_test or is_positionnement or is_equivalence
         hourly_rate = 20.0 if is_special else 40.0
     
     amount = round(duration * hourly_rate, 2)
