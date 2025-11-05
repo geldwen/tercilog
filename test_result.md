@@ -455,7 +455,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "TerciLog Changes Testing Completed"
+    - "URL Management Function and Email URL Fixes Testing Completed"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
