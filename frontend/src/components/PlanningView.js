@@ -469,13 +469,32 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                           }}
                           title={`${event.title || event.subject}\n${displayParticipants}\n${event.start_time}-${event.end_time}${participantsList.length > 0 ? '\n\nParticipants: ' + participantsList.join(', ') : ''}`}
                         >
-                          {/* Icône suppression */}
-                          <button
-                            onClick={(e) => handleDeleteClick(event, e)}
-                            className="absolute top-1.5 right-1.5 z-10 p-1 rounded bg-black/30 hover:bg-black/50 text-white opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          {/* Menu contextuel */}
+                          <div className="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="p-1 rounded bg-black/30 hover:bg-black/50 text-white"
+                                >
+                                  <MoreVertical size={14} />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem onClick={(e) => handleDuplicateClick(event, e)}>
+                                  <Copy size={14} className="mr-2" />
+                                  Dupliquer
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={(e) => handleDeleteClick(event, e)}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 size={14} className="mr-2" />
+                                  Supprimer
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
 
                           {/* Icône verrou pour Emergent */}
                           {event.origin === 'emergent' && (
