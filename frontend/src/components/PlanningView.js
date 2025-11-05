@@ -647,6 +647,63 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal duplication */}
+      <Dialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Dupliquer la séance</DialogTitle>
+            <DialogDescription>
+              Choisissez la nouvelle date et horaire pour la copie
+            </DialogDescription>
+          </DialogHeader>
+          {eventToDuplicate && (
+            <div className="space-y-4 py-4">
+              <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
+                <p className="text-sm font-medium text-blue-900">{eventToDuplicate.title || eventToDuplicate.subject}</p>
+                <p className="text-xs text-blue-700 mt-1">
+                  Centre : {eventToDuplicate.center || eventToDuplicate.organism || '-'}
+                </p>
+              </div>
+              
+              <div>
+                <Label>Nouvelle date</Label>
+                <Input 
+                  type="date" 
+                  value={duplicateData.date} 
+                  onChange={(e) => setDuplicateData({...duplicateData, date: e.target.value})}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Heure début</Label>
+                  <Input 
+                    type="time" 
+                    value={duplicateData.start_time} 
+                    onChange={(e) => setDuplicateData({...duplicateData, start_time: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Heure fin</Label>
+                  <Input 
+                    type="time" 
+                    value={duplicateData.end_time} 
+                    onChange={(e) => setDuplicateData({...duplicateData, end_time: e.target.value})}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDuplicateDialog(false)}>Annuler</Button>
+            <Button onClick={handleConfirmDuplicate} className="bg-blue-600 hover:bg-blue-700">
+              <Copy size={16} className="mr-2" />
+              Créer la séance
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
