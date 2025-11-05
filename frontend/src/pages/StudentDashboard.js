@@ -203,41 +203,41 @@ export default function StudentDashboard({ user, onLogout }) {
   };
 
   const getConfirmationCell = (session) => {
-    const started = isSessionStarted(session);
-    const ended = isSessionEnded(session);
-
-    if (session.confirmation_status === 'confirmed') {
-      const confirmDate = session.confirmation_at ? formatFrDateTime(session.confirmation_at) : '';
+    // Si confirmé par l'élève, afficher badge vert avec date
+    if (session.confirmed_by_student && session.confirmed_by_student_at) {
+      const confirmDate = formatFrDateTime(session.confirmed_by_student_at);
       return (
-        <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-green-100 text-green-800">
-          <CheckCircle size={14} className="mr-1" />
-          Présence confirmée le {confirmDate}
+        <span className="inline-flex items-center px-3 py-1.5 rounded-md text-sm bg-green-100 text-green-800 border border-green-300">
+          <CheckCircle size={16} className="mr-1" />
+          Confirmée le {confirmDate}
         </span>
       );
     }
 
-    if (!started && session.confirmation_status !== 'confirmed') {
+    // Si déjà signé (donc auto-confirmé)
+    if (session.signature_status === 'signed') {
       return (
+        <span className="inline-flex items-center px-3 py-1.5 rounded-md text-sm bg-green-100 text-green-800 border border-green-300">
+          <CheckCircle size={16} className="mr-1" />
+          Confirmée (émargé)
+        </span>
+      );
+    }
+
+    // Sinon, afficher le bouton de confirmation
+    return (
+      <div className="flex flex-col gap-1">
         <Button
-          size="sm"
           onClick={() => confirmPresence(session.id)}
-          className="text-xs"
-          style={{ backgroundColor: TERCIFORM_BLUE }}
+          className="bg-blue-600 text-white w-full py-2 rounded-md font-medium hover:bg-blue-700"
         >
-          Confirmer ma présence
+          Confirmer la séance
         </Button>
-      );
-    }
-
-    if (ended && session.confirmation_status !== 'confirmed') {
-      return (
-        <span className="inline-flex items-center px-2 py-1 rounded text-xs bg-orange-100 text-orange-800">
-          Non confirmé
-        </span>
-      );
-    }
-
-    return <span className="text-gray-500 text-xs">-</span>;
+        <p className="mt-1 text-xs text-gray-500 text-center">
+          Clique ici pour indiquer ta présence
+        </p>
+      </div>
+    );
   };
 
   const getSignatureEleveCell = (session) => {
