@@ -639,6 +639,63 @@ export default function TeacherDashboard({ user, onLogout }) {
                       />
                       <p className="text-xs text-gray-500">Optionnel - Copiez le lien de votre visioconférence ici</p>
                     </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Modalité *</Label>
+                      <select 
+                        value={sessionForm.modality} 
+                        onChange={(e) => setSessionForm({ ...sessionForm, modality: e.target.value })}
+                        className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md bg-white"
+                      >
+                        <option value="distanciel">Distanciel</option>
+                        <option value="presentiel">Présentiel</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Coût horaire (€) *</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          step="1"
+                          min="0"
+                          value={sessionForm.hourly_rate}
+                          onChange={(e) => setSessionForm({
+                            ...sessionForm,
+                            hourly_rate: parseFloat(e.target.value) || 0,
+                            hourly_rate_source: 'manual'
+                          })}
+                          className="flex-1"
+                        />
+                        
+                        <button
+                          type="button"
+                          onClick={() => setSessionForm({
+                            ...sessionForm,
+                            hourly_rate: 20,
+                            hourly_rate_source: 'manual'
+                          })}
+                          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium transition-colors"
+                        >
+                          20€
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSessionForm({
+                            ...sessionForm,
+                            hourly_rate: 40,
+                            hourly_rate_source: 'manual'
+                          })}
+                          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium transition-colors"
+                        >
+                          40€
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Suggéré automatiquement selon la matière. Modifiez si besoin.
+                      </p>
+                    </div>
+                    
                     <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }} disabled={!sessionForm.student_id}>Créer et envoyer</Button>
                   </form>
                 </DialogContent>
