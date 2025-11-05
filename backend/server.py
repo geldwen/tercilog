@@ -597,7 +597,7 @@ async def delete_session(session_id: str, current_user: User = Depends(get_curre
 
 @api_router.patch("/sessions/{session_id}/confirm-presence")
 async def confirm_presence(session_id: str, current_user: User = Depends(get_current_user)):
-    """Confirmer sa présence à une séance (élève)"""
+    """Confirmer sa présence à une séance (élève) - ancien endpoint pour validation par prof"""
     if current_user.role != "student":
         raise HTTPException(status_code=403, detail="Access denied")
     
@@ -621,6 +621,38 @@ async def confirm_presence(session_id: str, current_user: User = Depends(get_cur
     )
     
     logger.info(f"Student {current_user.id} confirmed presence for session {session_id}")
+    
+    session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    return Session(**session_doc)
+
+
+@api_router.patch("/sessions/{session_id}/confirm-by-student")
+async def confirm_by_student(session_id: str, current_user: User = Depends(get_current_user)):
+    """Confirmer la séance par l'élève (avant émargement)"""
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer la séance
+    session_doc = await db.sessions.find_one({"id": session_id, "student_id": current_user.id}, {"_id": 0})
+    if not session_doc:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Vérifier si déjà confirmé
+    if session_doc.get('confirmed_by_student'):
+        raise HTTPException(status_code=400, detail="Séance déjà confirmée")
+    
+    # Confirmer la séance
+    confirmed_at = datetime.now(timezone.utc).isoformat()
+    await db.sessions.update_one(
+        {"id": session_id},
+        {"$set": {
+            "confirmed_by_student": True,
+            "confirmed_by_student_at": confirmed_at,
+            "status": "confirmed"  # Confirmer aussi le statut général
+        }}
+    )
+    
+    logger.info(f"Student {current_user.id} confirmed session {session_id}")
     
     session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
     return Session(**session_doc)
