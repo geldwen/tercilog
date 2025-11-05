@@ -589,17 +589,28 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
         # Utiliser le tarif fourni
         hourly_rate = session_data.hourly_rate
     else:
-        # Calcul automatique avec normalisation
+        # Calcul automatique avec normalisation complète
         import unicodedata
+        import re
+        
         subject_normalized = unicodedata.normalize('NFD', session_data.subject.lower())
         subject_normalized = ''.join(c for c in subject_normalized if unicodedata.category(c) != 'Mn')
+        # Retirer ponctuation
+        subject_normalized = re.sub(r'[^\w\s]', ' ', subject_normalized)
         
-        # "test" ou "positionnement" ou "équivalence" = TOUJOURS 20€/h
-        is_test = "test" in subject_normalized
-        is_positionnement = "positionnement" in subject_normalized
-        is_equivalence = "equivalence" in subject_normalized or "équivalence" in subject_normalized.replace("equivalence", "équivalence")
+        # Liste de tous les motifs possibles pour 20€/h
+        keywords_20 = [
+            "test de positionnement",
+            "test positionnement", 
+            "test position",
+            "test posi",
+            "positionnement initial",
+            "positionnement",
+            "equivalence",
+            "équivalence"  # au cas où normalisation échoue
+        ]
         
-        is_special = is_test or is_positionnement or is_equivalence
+        is_special = any(keyword in subject_normalized for keyword in keywords_20)
         hourly_rate = 20.0 if is_special else 40.0
     
     amount = round(duration * hourly_rate, 2)
