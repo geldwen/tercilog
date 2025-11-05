@@ -934,6 +934,8 @@ async def update_session(session_id: str, data: dict, current_user: User = Depen
         # Recalculer amount si hourly_rate change
         if session_doc.get('duration_hours'):
             update_data["amount"] = round(session_doc['duration_hours'] * data["hourly_rate"], 2)
+    if "hourly_rate_source" in data:
+        update_data["hourly_rate_source"] = data["hourly_rate_source"]
     if "modality" in data:
         update_data["modality"] = data["modality"]
     
