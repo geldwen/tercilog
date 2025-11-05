@@ -883,7 +883,7 @@ async def resend_session_email(session_id: str, current_user: User = Depends(get
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     
-    frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+    portal_url = get_student_portal_url()
     student_password = student.get('plain_password', '***')
     
     email_body = f"""
@@ -895,7 +895,7 @@ async def resend_session_email(session_id: str, current_user: User = Depends(get
             <p><strong>Vous avez été affecté à la séance {session_doc['subject']} du {session_doc['date']} de {session_doc['start_time']} à {session_doc['end_time']}.</strong></p>
             <p>Veuillez confirmer votre présence en vous connectant à la plateforme :</p>
             <div style="margin: 30px 0;">
-                <a href="{frontend_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Accédez à TerciLog</a>
+                <a href="{portal_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Accédez à TerciLog</a>
             </div>
             <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
                 <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Rappel de vos identifiants :</p>
