@@ -114,7 +114,7 @@ frontend:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "URGENT - Correction de la séance 'teste de français KAKA' - L'email est envoyé mais la séance n'apparaît pas dans l'espace élève pour émargement"
+user_problem_statement: "Test TerciLog application changes: Remove 2-hour signature deadline and add student confirmation flow before signing"
 
 backend:
   - task: "Teacher Authentication System"
