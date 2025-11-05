@@ -462,22 +462,39 @@ export default function TeacherDashboard({ user, onLogout }) {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Barre d'actions avec bouton Planning */}
+        {/* Barre d'actions avec boutons Planning et Facturation */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>
-            {showPlanning ? 'Planning général' : 'Séances par mois'}
+            {showPlanning ? 'Planning général' : showBilling ? 'Facturation' : 'Séances par mois'}
           </h2>
-          <Button
-            onClick={() => setShowPlanning(!showPlanning)}
-            className="ml-auto inline-flex items-center gap-2 bg-blue-800 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md shadow-sm"
-          >
-            <CalendarDays className="w-5 h-5" />
-            {showPlanning ? 'Retour Séances' : 'Planning'}
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              onClick={() => {
+                setShowPlanning(!showPlanning);
+                setShowBilling(false);
+              }}
+              className="inline-flex items-center gap-2 bg-blue-800 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md shadow-sm"
+            >
+              <CalendarDays className="w-5 h-5" />
+              {showPlanning ? 'Retour Séances' : 'Planning'}
+            </Button>
+            <Button
+              onClick={() => {
+                setShowBilling(!showBilling);
+                setShowPlanning(false);
+              }}
+              className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2 rounded-md shadow-sm"
+            >
+              <Euro className="w-5 h-5" />
+              {showBilling ? 'Retour Séances' : 'Facturation'}
+            </Button>
+          </div>
         </div>
 
         {showPlanning ? (
           <PlanningView sessions={sessions} onSessionsUpdate={loadSessions} />
+        ) : showBilling ? (
+          <BillingView sessions={sessions} onSessionsUpdate={loadSessions} />
         ) : (
           <>
             <div className="mb-6">
