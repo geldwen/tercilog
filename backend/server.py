@@ -121,7 +121,8 @@ class Session(BaseModel):
     teacher_signature: Optional[str] = None  # Base64 image de la signature formateur
     teacher_signed_at: Optional[str] = None  # Horodatage de l'émargement formateur
     teacher_signature_status: str = "scheduled"  # scheduled, pending, signed
-    hourly_rate: float = 40.0  # Coût horaire en euros (défaut 40€/h)
+    hourly_rate: Optional[float] = None  # Coût horaire en euros (peut être null)
+    hourly_rate_source: str = "auto"  # auto (calculé) ou manual (saisi par utilisateur)
     amount: float = 0.0  # Montant total calculé (durée × coût horaire)
     organism: str = ""  # Organisme/Centre de formation
     modality: str = "distanciel"  # distanciel ou présentiel
