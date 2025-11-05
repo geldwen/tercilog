@@ -16,6 +16,31 @@ const API = `${BACKEND_URL}/api`;
 const TERCIFORM_BLUE = '#1e3a5f';
 const TERCIFORM_BLUE_LIGHT = '#e8f0f7';
 
+// Fonction utilitaire pour calculer le tarif horaire suggéré
+const normalizeText = (text) => {
+  return (text || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\w\s]/g, ' ')
+    .toLowerCase();
+};
+
+const inferHourlyRate = (subject) => {
+  const keywords20 = [
+    'test de positionnement',
+    'test positionnement',
+    'test position',
+    'test posi',
+    'positionnement initial',
+    'positionnement',
+    'equivalence'
+  ];
+  
+  const normalized = normalizeText(subject);
+  const isSpecial = keywords20.some(keyword => normalizeText(keyword).split(' ').every(word => normalized.includes(word)));
+  return isSpecial ? 20 : 40;
+};
+
 export default function TeacherDashboard({ user, onLogout }) {
   const [sessions, setSessions] = useState([]);
   const [students, setStudents] = useState([]);
