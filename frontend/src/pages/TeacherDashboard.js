@@ -483,7 +483,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 setShowBilling(!showBilling);
                 setShowPlanning(false);
               }}
-              className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-4 py-2 rounded-md shadow-sm"
+              className="inline-flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold px-4 py-2 rounded-md shadow-sm"
             >
               <Euro className="w-5 h-5" />
               {showBilling ? 'Retour Séances' : 'Facturation'}
