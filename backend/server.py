@@ -205,6 +205,46 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="User not found")
     return User(**user)
 
+def normalize_subject(subject: str) -> str:
+    """Normaliser un sujet/intitulé pour détection de mots-clés"""
+    import unicodedata
+    import re
+    
+    # Retirer accents
+    normalized = unicodedata.normalize('NFD', subject.lower())
+    normalized = ''.join(c for c in normalized if unicodedata.category(c) != 'Mn')
+    
+    # Retirer ponctuation
+    normalized = re.sub(r'[^\w\s]', ' ', normalized)
+    
+    return normalized
+
+
+def infer_hourly_rate(subject: str, fallback: float = 40.0) -> float:
+    """
+    Déterminer le coût horaire basé sur le sujet.
+    20€/h pour test de positionnement/équivalence, sinon fallback (40€/h)
+    """
+    keywords_20 = [
+        "test de positionnement",
+        "test positionnement",
+        "test position",
+        "test posi",
+        "positionnement initial",
+        "positionnement",
+        "equivalence",
+        "équivalence"  # au cas où
+    ]
+    
+    normalized = normalize_subject(subject)
+    
+    for keyword in keywords_20:
+        if normalize_subject(keyword) in normalized:
+            return 20.0
+    
+    return fallback
+
+
 def get_student_portal_url():
     """
     Get the student portal URL from environment variables with fallback cascade.
