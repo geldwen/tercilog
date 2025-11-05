@@ -882,6 +882,13 @@ async def update_session(session_id: str, data: dict, current_user: User = Depen
         update_data["signature_status"] = data["signature_status"]
     if "attendance_email_sent" in data:
         update_data["attendance_email_sent"] = data["attendance_email_sent"]
+    if "organism" in data:
+        update_data["organism"] = data["organism"]
+    if "hourly_rate" in data:
+        update_data["hourly_rate"] = data["hourly_rate"]
+        # Recalculer amount si hourly_rate change
+        if session_doc.get('duration_hours'):
+            update_data["amount"] = round(session_doc['duration_hours'] * data["hourly_rate"], 2)
     
     # Mettre à jour la séance
     await db.sessions.update_one({"id": session_id}, {"$set": update_data})
