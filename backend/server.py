@@ -637,17 +637,6 @@ async def sign_session(session_id: str, signature_data: dict, current_user: User
     if not session_doc:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    # Vérifier le délai de 2 heures
-    if session_doc.get('signature_deadline'):
-        deadline = datetime.fromisoformat(session_doc['signature_deadline'])
-        # Ensure deadline has timezone info
-        if deadline.tzinfo is None:
-            deadline = deadline.replace(tzinfo=timezone.utc)
-        
-        if datetime.now(timezone.utc) > deadline:
-            await db.sessions.update_one({"id": session_id}, {"$set": {"signature_status": "expired"}})
-            raise HTTPException(status_code=400, detail="Signature deadline expired (2 hours after session end)")
-    
     # Enregistrer la signature
     signed_at = datetime.now(timezone.utc).isoformat()
     await db.sessions.update_one(
