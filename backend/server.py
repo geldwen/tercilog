@@ -628,32 +628,13 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
     
     # Calculate hourly_rate and amount (règles de tarification)
     if session_data.hourly_rate is not None:
-        # Utiliser le tarif fourni
+        # Utiliser le tarif fourni (manuel)
         hourly_rate = session_data.hourly_rate
+        hourly_rate_source = session_data.hourly_rate_source or "manual"
     else:
-        # Calcul automatique avec normalisation complète
-        import unicodedata
-        import re
-        
-        subject_normalized = unicodedata.normalize('NFD', session_data.subject.lower())
-        subject_normalized = ''.join(c for c in subject_normalized if unicodedata.category(c) != 'Mn')
-        # Retirer ponctuation
-        subject_normalized = re.sub(r'[^\w\s]', ' ', subject_normalized)
-        
-        # Liste de tous les motifs possibles pour 20€/h
-        keywords_20 = [
-            "test de positionnement",
-            "test positionnement", 
-            "test position",
-            "test posi",
-            "positionnement initial",
-            "positionnement",
-            "equivalence",
-            "équivalence"  # au cas où normalisation échoue
-        ]
-        
-        is_special = any(keyword in subject_normalized for keyword in keywords_20)
-        hourly_rate = 20.0 if is_special else 40.0
+        # Calcul automatique
+        hourly_rate = infer_hourly_rate(session_data.subject)
+        hourly_rate_source = "auto"
     
     amount = round(duration * hourly_rate, 2)
     
