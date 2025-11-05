@@ -3633,7 +3633,7 @@ class TerciFormTester:
                 self.student_token
             )
             
-            double_confirm_failed = response2 and response2.status_code == 400
+            double_confirm_failed = response2 is not None and response2.status_code == 400
             
             # Verification checks
             checks = []
