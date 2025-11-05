@@ -353,25 +353,6 @@ backend:
   
   - task: "Student Dashboard Enhancement - 3 Tabs Navigation"
     implemented: true
-    working: "unknown"
-    file: "StudentDashboard.js, server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-        - working: "unknown"
-          agent: "main"
-          comment: "STUDENT DASHBOARD ENHANCED WITH 3 TABS: Completely redesigned student interface with large navigation tabs. FRONTEND CHANGES (StudentDashboard.js): 1) TAB 1 - Ma formation: Display total hours and remaining hours in large cards, full training schedule table (Date | Horaire | Matière | Formateur | Statut | Durée), download planning PDF button, sessions to sign section with signature dialog, 2) TAB 2 - Mon parcours: 'Mon livret d'accueil' card (placeholder), 'Mes besoins en formation' card with modal (4 text fields: expectations, strengths, improvements, availability), placeholder for progress graph, 3) TAB 3 - Mes avis: 'Mon avis sur la formation' card with feedback modal (3 questions: quality rating, teacher support, recommendation), automatic PDF generation on submission. BACKEND CHANGES (server.py): Added 4 new models (TrainingNeeds, TrainingNeedsCreate, StudentFeedback, StudentFeedbackCreate), 5 new endpoints (POST/GET /api/students/{id}/training-needs, POST/GET /api/students/{id}/feedback, GET /api/students/{id}/download-planning-pdf, GET /api/students/{id}/download-feedback-pdf/{feedback_id}), new function generate_feedback_pdf for avis PDF. DESIGN: TerciForm branding (navy blue #0D2040), full logo with tagline, tabs as large rectangular cards with icons (BookOpen, TrendingUp, MessageSquare), responsive layout, rounded corners and shadows, European date format (DD/MM/YYYY). MongoDB collections: training_needs, student_feedback. Ready for testing."
-        - working: true
-          agent: "testing"
-          comment: "✅ COMPREHENSIVE STUDENT DASHBOARD ENDPOINTS TESTING COMPLETED: Successfully tested all 5 new backend endpoints for Student Dashboard Enhancement. TESTED ENDPOINTS: 1) POST /api/students/{id}/training-needs ✅ Working - Creates/updates training needs with 4 fields (expectations, strengths, improvements, availability), 2) GET /api/students/{id}/training-needs ✅ Working - Retrieves training needs data with proper persistence, 3) POST /api/students/{id}/feedback ✅ Working - Saves student feedback with 3 questions (quality_rating, teacher_support, recommendation) and generates PDF, 4) GET /api/students/{id}/feedback ✅ Working - Retrieves feedback list from MongoDB, 5) GET /api/students/{id}/download-planning-pdf ✅ Working - Downloads planning PDF with proper content-type headers, 6) GET /api/students/{id}/download-feedback-pdf/{feedback_id} ✅ Working - Downloads feedback PDF with proper content-type headers. VERIFICATION PASSED: ✅ Training needs CRUD operations working ✅ Feedback submission and retrieval working ✅ PDF generation working with correct headers ✅ Data persistence in MongoDB (training_needs, student_feedback collections) ✅ Authentication enforced (students can only access own data) ✅ Updated_at timestamp changes correctly on updates. All 5 new endpoints functioning correctly according to specifications. Backend implementation ready for production use."
-        - working: "unknown"
-          agent: "main"
-          comment: "MAJOR UI/UX OVERHAUL + CONFIRMATION FLOW IMPLEMENTED: Applied comprehensive design and functionality updates. ONGLETS AVEC COULEURS: Tabs redesigned with specific colors - Ma formation (#E6F0FF bleu ciel), Mon parcours (#E9F8EF vert), Mes avis (#FDE7F3 rose), all with navy text (#0D2040), icons, rounded corners, hover effects, responsive layout. PDF LOGO PROPORTIONNÉ: Modified build_header() to preserve logo ratio with constraints maxWidth=140px, maxHeight=60px, uses PIL to calculate proper dimensions, aligned LEFT. DATES FR COMPLÈTES: Created format_fr_date() and format_fr_datetime() utilities with full day names (lundi, mardi, etc.) + DD/MM/YYYY format, applied to all tables and PDFs. NOUVEAU FLUX CONFIRMATION: Added confirmation_status ('none', 'pending', 'confirmed') and confirmation_at to Session model. New endpoint PATCH /api/sessions/{id}/confirm-presence for student presence confirmation. COLONNES EXACTES: Redesigned table with 7 columns in precise order: Date | Horaire | Matière | Confirmation | Signature élève | Signature formateur | Durée. LOGIQUE AFFICHAGE: Before session start → 'Confirmer ma présence' button; After confirmation → green badge with date; After session end + pending → 'Émarger' button for student; Teacher signature read-only for students. MIGRATION SAFE: Created migrate_confirmation_status.py to add confirmation fields to existing sessions (confirmed if signed, pending otherwise). All changes applied to frontend (StudentDashboard.js) and backend (server.py, PDF functions). Ready for comprehensive testing."
-        - working: "unknown"
-          agent: "main"
-          comment: "SIGNATURE ÉLÈVE BUTTON ENHANCED: Updated signature élève column display logic. When teacher clicks 'Renvoyer émargement (élève)', backend sets signature_status='pending' and sends email. Frontend now displays LARGE ORANGE BUTTON 'Vous pouvez émarger votre séance' (full width, py-2, bg-orange-500 #ff9800) when signature_status='pending', regardless of session end time. This button appears immediately after teacher action without waiting for session to end. Button opens signature pad on click. Logic order changed: 1) If signed → green badge + thumbnail + date, 2) If pending → orange button (priority), 3) If not ended → gray text 'À signer après la séance'. Signature formateur column updated to show '— par le formateur' in timestamp text. Backend endpoint /api/sessions/{id}/resend-attendance-email already working correctly (sets signature_status='pending', signature_deadline, attendance_email_sent=true, sends email with 'Merci de vous connecter à votre espace pour émarger votre séance'). Ready for acceptance testing."
-    implemented: true
     working: "NA"
     file: "N/A"
     stuck_count: 0
@@ -381,6 +362,78 @@ backend:
         - working: "NA"
           agent: "testing"
           comment: "Frontend testing not performed as per system limitations - backend testing only."
+
+  - task: "Welcome Email on Student Creation"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ WELCOME EMAIL ON STUDENT CREATION TEST PASSED: Successfully tested welcome email functionality. Created test student 'Test Welcome Email' with unique email, verified welcome_email_sent flag is set to true in database, confirmed email was sent (check logs), and verified student credentials work for login. All verification checks passed: ✅ Student created successfully ✅ Welcome email sent flag set ✅ Student credentials work. Welcome email system working correctly according to specifications."
+
+  - task: "Student Confirmation Endpoint (confirm-by-student)"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ STUDENT CONFIRMATION ENDPOINT TEST PASSED: Successfully tested new PATCH /api/sessions/{id}/confirm-by-student endpoint. Created test session, confirmed by student, verified confirmed_by_student=true and confirmed_by_student_at is set, verified status changes to 'confirmed', and confirmed cannot confirm twice (returns 400 error). All verification checks passed: ✅ confirmed_by_student = true ✅ confirmed_by_student_at is set ✅ status changes to confirmed ✅ cannot confirm twice. New student confirmation flow working correctly."
+
+  - task: "Signature Without Time Limit"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ SIGNATURE WITHOUT TIME LIMIT TEST PASSED: Successfully tested signature functionality without 2-hour deadline restriction. Created session that ended more than 2 hours ago (3 hours), confirmed session, set signature_status to pending, and attempted to sign old session. Signature was accepted without deadline error and signature_status changed to 'signed'. All verification checks passed: ✅ Signature accepted (no deadline error) ✅ signature_status changes to signed. Time limit removal working correctly - students can sign anytime after session ends."
+
+  - task: "Auto-Confirmation on Signature"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ AUTO-CONFIRMATION ON SIGNATURE TEST PASSED: Successfully tested automatic confirmation when student signs without prior confirmation. Created session, set signature_status to pending, signed session without prior confirmation, and verified auto-confirmation behavior. All verification checks passed: ✅ confirmed_by_student auto-set to true ✅ confirmed_by_student_at is set ✅ signature_status = signed. Auto-confirmation flow working correctly - if student signs without confirming, system automatically sets confirmed_by_student=true."
+
+  - task: "Updated Attendance Email (No Time Limit)"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ UPDATED ATTENDANCE EMAIL TEST PASSED: Successfully tested resend attendance email functionality without 2-hour deadline. Created confirmed session, called POST /api/sessions/{id}/resend-attendance-email, verified email sent successfully, signature_status set to pending, and attendance_email_sent=true. All verification checks passed: ✅ Email sent successfully ✅ signature_status set to pending ✅ attendance_email_sent = true. Updated attendance email system working correctly without time restrictions."
+
+  - task: "Model Updates Verification"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ MODEL UPDATES VERIFICATION TEST PASSED: Successfully verified all required model field updates. Checked Session model includes confirmed_by_student and confirmed_by_student_at fields, verified User model includes welcome_email_sent field, and confirmed Session model does NOT include signature_deadline in new sessions (signature_status='not_required' by default). All verification checks passed: ✅ Session has confirmed_by_student field ✅ Session has confirmed_by_student_at field ✅ User has welcome_email_sent field ✅ Session does NOT have signature_deadline in new sessions. All model updates implemented correctly according to specifications."
 
 metadata:
   created_by: "testing_agent"
