@@ -275,6 +275,43 @@ def send_attendance_email(to_email: str, student_name: str, subject: str, date: 
     return send_email(to_email, "Émargement disponible", html_body)
 
 
+def send_welcome_email(to_email: str, student_name: str, student_email: str, temp_password: str):
+    """Envoyer l'email de bienvenue lors de la création d'un nouvel élève"""
+    
+    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
+    
+    html_body = f"""<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+<h2 style="color: #1e3a5f;">Bienvenue dans votre espace TerciLog</h2>
+
+<p>Bonjour {student_name},</p>
+
+<p>Bienvenue dans votre espace TerciLog.</p>
+
+<p>Merci de vous connecter pour confirmer vos séances et accéder à votre parcours de formation.</p>
+
+<div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+<p style="margin: 5px 0;"><strong>Identifiant :</strong> {student_email}</p>
+<p style="margin: 5px 0;"><strong>Code secret (temporaire) :</strong> {temp_password}</p>
+<p style="margin: 10px 0 0 0; font-size: 0.9em; color: #666;">
+💡 Pour votre sécurité, nous vous recommandons de changer ce code temporaire lors de votre première connexion.
+</p>
+</div>
+
+<div style="text-align: center; margin: 30px 0;">
+<a href="{frontend_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+Accéder à mon espace TerciLog
+</a>
+</div>
+
+<p>Bien cordialement,<br>L'équipe Terciform</p>
+</div>
+</body>
+</html>"""
+    
+    return send_email(to_email, "Bienvenue dans votre espace TerciLog", html_body)
+
 
 def send_session_reminder_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str, meeting_link: str = ""):
     """Envoyer l'email de rappel 5 minutes avant la séance"""
