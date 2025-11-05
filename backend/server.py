@@ -137,6 +137,7 @@ class SessionCreate(BaseModel):
     meeting_link: str = ""  # Lien Google Meet ou autre visio
     organism: str = ""  # Organisme/Centre de formation
     hourly_rate: Optional[float] = None  # Coût horaire (optionnel, calculé auto si absent)
+    modality: str = "distanciel"  # distanciel ou présentiel
 
 class SessionValidate(BaseModel):
     status: str  # "confirmed" or "rejected"
