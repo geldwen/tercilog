@@ -25,9 +25,8 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
     }
 
     const subject = (session.subject || '').toLowerCase();
-    // Test de positionnement ou équivalence = TOUJOURS 20€/h (peu importe la durée)
-    const isSpecial = subject.includes('test de positionnement') || 
-                     subject.includes('positionnement') ||
+    // "test" ou "équivalence" = TOUJOURS 20€/h (peu importe la durée)
+    const isSpecial = subject.includes('test') || 
                      subject.includes('équivalence') || 
                      subject.includes('equivalence');
 
