@@ -217,13 +217,13 @@ def get_student_portal_url():
     # Normalize URL
     url = url.strip()
     
-    # Remove /api suffix if present
-    if url.endswith("/api"):
-        url = url[:-4]
-    
-    # Remove trailing slash
+    # Remove trailing slash first
     if url.endswith("/"):
         url = url[:-1]
+    
+    # Remove /api suffix if present (after removing trailing slash)
+    if url.endswith("/api"):
+        url = url[:-4]
     
     # Ensure https:// or http:// prefix
     if not (url.startswith("http://") or url.startswith("https://")):
