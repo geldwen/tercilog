@@ -64,6 +64,11 @@ export const setCenterColor = (center, color) => {
 };
 
 export const getCenterColor = (center) => {
+  // Zepartner est toujours bleu (verrouillé)
+  if (center === 'Zepartner') {
+    return '#3B82F6';
+  }
+  
   const colors = getCenterColors();
   return colors[center] || '#3B82F6'; // Bleu par défaut
 };
