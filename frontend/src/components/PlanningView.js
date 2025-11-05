@@ -30,7 +30,14 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
   const [showModal, setShowModal] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
+  const [eventToDuplicate, setEventToDuplicate] = useState(null);
+  const [duplicateData, setDuplicateData] = useState({
+    date: '',
+    start_time: '',
+    end_time: ''
+  });
   const [modalData, setModalData] = useState({
     date: '',
     start_time: '',
