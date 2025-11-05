@@ -65,9 +65,6 @@ async def check_and_send_emails():
                 
                 # Si la séance est terminée (heure actuelle > heure de fin)
                 if now > session_end:
-                    # Calculer le délai de 2 heures
-                    signature_deadline = session_end + timedelta(hours=2)
-                    
                     logger.info(f"Session {session_doc['id']} ended. Sending attendance email...")
                     
                     # Envoyer l'email d'émargement
@@ -82,13 +79,12 @@ async def check_and_send_emails():
                     
                     if email_sent:
                         # Marquer l'email comme envoyé et mettre à jour le statut de signature
-                        # Élève: pending, Formateur: pending aussi
+                        # Élève: pending, Formateur: pending aussi (pas de délai)
                         await db.sessions.update_one(
                             {"id": session_doc['id']},
                             {"$set": {
                                 "attendance_email_sent": True,
                                 "signature_status": "pending",
-                                "signature_deadline": signature_deadline.isoformat(),
                                 "teacher_signature_status": "pending"
                             }}
                         )
