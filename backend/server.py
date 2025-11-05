@@ -108,12 +108,13 @@ class Session(BaseModel):
     validation_deadline: Optional[str] = None
     validated_at: Optional[str] = None
     duration_hours: float = 0.0
-    confirmation_status: str = "pending"  # none, pending, confirmed
+    confirmation_status: str = "pending"  # pending, confirmed
     confirmation_at: Optional[str] = None  # Horodatage de la confirmation de présence
+    confirmed_by_student: bool = False  # Confirmation par l'élève avant émargement
+    confirmed_by_student_at: Optional[str] = None  # Horodatage de la confirmation élève
     signature: Optional[str] = None  # Base64 image de la signature élève
     signed_at: Optional[str] = None  # Horodatage de l'émargement élève
-    signature_status: str = "not_required"  # not_required, pending, signed, expired
-    signature_deadline: Optional[str] = None  # Délai de 2h après la fin de séance
+    signature_status: str = "not_required"  # not_required, pending, signed
     attendance_email_sent: bool = False  # Email d'émargement envoyé ou non
     reminder_email_sent: bool = False  # Email de rappel 5 min avant envoyé ou non
     meeting_link: str = ""  # Lien Google Meet ou autre visio
