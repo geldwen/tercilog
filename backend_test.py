@@ -3502,6 +3502,526 @@ class TerciFormTester:
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_welcome_email_on_student_creation(self):
+        """Test 1: Welcome Email on Student Creation"""
+        self.log("🎯 TEST 1: Welcome Email on Student Creation")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Create a new student
+            self.log("=== Creating New Student ===")
+            import time
+            unique_email = f"welcome.test.{int(time.time())}@terciform.com"
+            
+            student_data = {
+                "name": "Test Welcome Email",
+                "email": unique_email,
+                "password": "Welcome2024!",
+                "phone": "06 12 34 56 78",
+                "organism": "Test Formation",
+                "support_type": "CPF",
+                "start_date": "2025-11-01",
+                "end_date": "2025-12-31",
+                "total_hours": 20,
+                "role": "student"
+            }
+            
+            response = self.make_request("POST", "/students", student_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create student", "ERROR")
+                return False
+            
+            student = response.json()
+            student_id = student["id"]
+            
+            self.log(f"✅ Student created: {student['name']} ({student['email']})")
+            
+            # Step 3: Verify welcome_email_sent flag
+            self.log("=== Verifying Welcome Email Flag ===")
+            response = self.make_request("GET", "/students", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                return False
+            
+            students = response.json()
+            created_student = None
+            for s in students:
+                if s["id"] == student_id:
+                    created_student = s
+                    break
+            
+            if not created_student:
+                self.log("❌ Created student not found", "ERROR")
+                return False
+            
+            # Step 4: Test student login with credentials
+            self.log("=== Testing Student Login ===")
+            login_data = {
+                "email": unique_email,
+                "password": "Welcome2024!"
+            }
+            
+            response = self.make_request("POST", "/auth/login", login_data)
+            login_success = response and response.status_code == 200
+            
+            # Verification checks
+            checks = []
+            checks.append(("Student created successfully", created_student is not None))
+            checks.append(("Welcome email sent flag set", created_student.get('welcome_email_sent') == True))
+            checks.append(("Student credentials work", login_success))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Cleanup
+            self.make_request("DELETE", f"/students/{student_id}", token=self.teacher_token)
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed: {e}", "ERROR")
+            return False
+
+    def test_student_confirmation_endpoint(self):
+        """Test 2: New Student Confirmation Endpoint"""
+        self.log("🎯 TEST 2: Student Confirmation Endpoint")
+        
+        try:
+            # Setup: Login and create test data
+            if not self.login_as_teacher():
+                return False
+            
+            if not self.create_test_student():
+                return False
+            
+            if not self.create_test_session():
+                return False
+            
+            if not self.login_as_student():
+                return False
+            
+            # Test the new confirmation endpoint
+            self.log("=== Testing Student Confirmation Endpoint ===")
+            
+            # First confirmation
+            response = self.make_request(
+                "PATCH", 
+                f"/sessions/{self.created_session_id}/confirm-by-student", 
+                {}, 
+                self.student_token
+            )
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to confirm session", "ERROR")
+                return False
+            
+            session = response.json()
+            
+            # Try to confirm again (should fail)
+            response2 = self.make_request(
+                "PATCH", 
+                f"/sessions/{self.created_session_id}/confirm-by-student", 
+                {}, 
+                self.student_token
+            )
+            
+            double_confirm_failed = response2 and response2.status_code == 400
+            
+            # Verification checks
+            checks = []
+            checks.append(("confirmed_by_student = true", session.get('confirmed_by_student') == True))
+            checks.append(("confirmed_by_student_at is set", session.get('confirmed_by_student_at') is not None))
+            checks.append(("status changes to confirmed", session.get('status') == 'confirmed'))
+            checks.append(("cannot confirm twice", double_confirm_failed))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            self.cleanup()
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed: {e}", "ERROR")
+            return False
+
+    def test_signature_without_time_limit(self):
+        """Test 3: Signature Without Time Limit"""
+        self.log("🎯 TEST 3: Signature Without Time Limit")
+        
+        try:
+            # Setup
+            if not self.login_as_teacher():
+                return False
+            
+            if not self.create_test_student():
+                return False
+            
+            # Create a session that ended more than 2 hours ago
+            self.log("=== Creating Old Session (>2h ago) ===")
+            now = datetime.now(timezone.utc)
+            end_time = now - timedelta(hours=3)  # 3 hours ago
+            start_time = end_time - timedelta(hours=1)
+            
+            session_data = {
+                "subject": "Test Old Signature",
+                "date": end_time.strftime("%Y-%m-%d"),
+                "start_time": start_time.strftime("%H:%M"),
+                "end_time": end_time.strftime("%H:%M"),
+                "student_id": self.created_student_id,
+                "validation_deadline_hours": 48
+            }
+            
+            response = self.make_request("POST", "/sessions", session_data, self.teacher_token)
+            if not response or response.status_code != 200:
+                return False
+            
+            session = response.json()
+            old_session_id = session["id"]
+            
+            # Login as student and confirm session
+            if not self.login_as_student():
+                return False
+            
+            # Confirm session
+            validation_data = {"status": "confirmed"}
+            response = self.make_request(
+                "PATCH", 
+                f"/sessions/{old_session_id}/validate", 
+                validation_data, 
+                self.student_token
+            )
+            
+            # Set signature status to pending manually (simulate attendance email)
+            update_data = {"signature_status": "pending"}
+            self.make_request("PUT", f"/sessions/{old_session_id}", update_data, self.teacher_token)
+            
+            # Try to sign the old session
+            self.log("=== Attempting to Sign Old Session ===")
+            signature_data = {"signature": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="}
+            
+            response = self.make_request(
+                "POST", 
+                f"/sessions/{old_session_id}/sign", 
+                signature_data, 
+                self.student_token
+            )
+            
+            signature_accepted = response and response.status_code == 200
+            
+            if signature_accepted:
+                signed_session = response.json()
+                signature_status = signed_session.get('signature_status')
+            else:
+                signature_status = None
+            
+            # Verification checks
+            checks = []
+            checks.append(("Signature accepted (no deadline error)", signature_accepted))
+            checks.append(("signature_status changes to signed", signature_status == 'signed'))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Cleanup
+            self.make_request("DELETE", f"/sessions/{old_session_id}", token=self.teacher_token)
+            self.cleanup()
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed: {e}", "ERROR")
+            return False
+
+    def test_auto_confirmation_on_signature(self):
+        """Test 4: Auto-Confirmation on Signature"""
+        self.log("🎯 TEST 4: Auto-Confirmation on Signature")
+        
+        try:
+            # Setup
+            if not self.login_as_teacher():
+                return False
+            
+            if not self.create_test_student():
+                return False
+            
+            if not self.create_test_session():
+                return False
+            
+            if not self.login_as_student():
+                return False
+            
+            # Don't confirm the session - go straight to signing
+            self.log("=== Signing Session Without Prior Confirmation ===")
+            
+            # Set signature status to pending
+            update_data = {"signature_status": "pending"}
+            self.make_request("PUT", f"/sessions/{self.created_session_id}", update_data, self.teacher_token)
+            
+            # Sign the session
+            signature_data = {"signature": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="}
+            
+            response = self.make_request(
+                "POST", 
+                f"/sessions/{self.created_session_id}/sign", 
+                signature_data, 
+                self.student_token
+            )
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to sign session", "ERROR")
+                return False
+            
+            signed_session = response.json()
+            
+            # Verification checks
+            checks = []
+            checks.append(("confirmed_by_student auto-set to true", signed_session.get('confirmed_by_student') == True))
+            checks.append(("confirmed_by_student_at is set", signed_session.get('confirmed_by_student_at') is not None))
+            checks.append(("signature_status = signed", signed_session.get('signature_status') == 'signed'))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            self.cleanup()
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed: {e}", "ERROR")
+            return False
+
+    def test_updated_attendance_email(self):
+        """Test 5: Updated Attendance Email"""
+        self.log("🎯 TEST 5: Updated Attendance Email")
+        
+        try:
+            # Setup
+            if not self.login_as_teacher():
+                return False
+            
+            if not self.create_test_student():
+                return False
+            
+            if not self.create_test_session():
+                return False
+            
+            if not self.login_as_student():
+                return False
+            
+            # Confirm session
+            validation_data = {"status": "confirmed"}
+            self.make_request(
+                "PATCH", 
+                f"/sessions/{self.created_session_id}/validate", 
+                validation_data, 
+                self.student_token
+            )
+            
+            # Test resend attendance email
+            self.log("=== Testing Resend Attendance Email ===")
+            response = self.make_request(
+                "POST", 
+                f"/sessions/{self.created_session_id}/resend-attendance-email", 
+                {}, 
+                self.teacher_token
+            )
+            
+            email_sent = response and response.status_code == 200
+            
+            if email_sent:
+                # Check session state after email
+                response = self.make_request("GET", "/sessions", token=self.student_token)
+                if response and response.status_code == 200:
+                    sessions = response.json()
+                    test_session = None
+                    for s in sessions:
+                        if s["id"] == self.created_session_id:
+                            test_session = s
+                            break
+                    
+                    if test_session:
+                        signature_status = test_session.get('signature_status')
+                        attendance_email_sent = test_session.get('attendance_email_sent')
+                        has_signature_deadline = 'signature_deadline' in test_session
+                    else:
+                        signature_status = None
+                        attendance_email_sent = False
+                        has_signature_deadline = False
+                else:
+                    signature_status = None
+                    attendance_email_sent = False
+                    has_signature_deadline = False
+            else:
+                signature_status = None
+                attendance_email_sent = False
+                has_signature_deadline = False
+            
+            # Verification checks
+            checks = []
+            checks.append(("Email sent successfully", email_sent))
+            checks.append(("signature_status set to pending", signature_status == 'pending'))
+            checks.append(("attendance_email_sent = true", attendance_email_sent == True))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            self.cleanup()
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed: {e}", "ERROR")
+            return False
+
+    def test_model_updates(self):
+        """Test 6: Verify Models Updated"""
+        self.log("🎯 TEST 6: Verify Models Updated")
+        
+        try:
+            # Setup
+            if not self.login_as_teacher():
+                return False
+            
+            if not self.create_test_student():
+                return False
+            
+            if not self.create_test_session():
+                return False
+            
+            # Get session to check model fields
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                return False
+            
+            sessions = response.json()
+            test_session = None
+            for s in sessions:
+                if s["id"] == self.created_session_id:
+                    test_session = s
+                    break
+            
+            if not test_session:
+                return False
+            
+            # Get student to check model fields
+            response = self.make_request("GET", "/students", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                return False
+            
+            students = response.json()
+            test_student = None
+            for s in students:
+                if s["id"] == self.created_student_id:
+                    test_student = s
+                    break
+            
+            if not test_student:
+                return False
+            
+            # Verification checks
+            checks = []
+            checks.append(("Session has confirmed_by_student field", 'confirmed_by_student' in test_session))
+            checks.append(("Session has confirmed_by_student_at field", 'confirmed_by_student_at' in test_session))
+            checks.append(("User has welcome_email_sent field", 'welcome_email_sent' in test_student))
+            checks.append(("Session does NOT have signature_deadline in new sessions", 
+                          test_session.get('signature_status') == 'not_required' and 'signature_deadline' not in test_session))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            self.cleanup()
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed: {e}", "ERROR")
+            return False
+
+    def run_tercilog_changes_test(self):
+        """Run all TerciLog changes tests"""
+        self.log("🚀 Starting TerciLog Changes Test Suite")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        tests = [
+            ("Welcome Email on Student Creation", self.test_welcome_email_on_student_creation),
+            ("Student Confirmation Endpoint", self.test_student_confirmation_endpoint),
+            ("Signature Without Time Limit", self.test_signature_without_time_limit),
+            ("Auto-Confirmation on Signature", self.test_auto_confirmation_on_signature),
+            ("Updated Attendance Email", self.test_updated_attendance_email),
+            ("Model Updates Verification", self.test_model_updates)
+        ]
+        
+        results = []
+        
+        for test_name, test_func in tests:
+            self.log(f"\n{'='*60}")
+            self.log(f"Running: {test_name}")
+            self.log(f"{'='*60}")
+            
+            try:
+                result = test_func()
+                results.append((test_name, result))
+                
+                if result:
+                    self.log(f"✅ {test_name}: PASSED")
+                else:
+                    self.log(f"❌ {test_name}: FAILED")
+                    
+            except Exception as e:
+                self.log(f"❌ {test_name}: EXCEPTION - {e}", "ERROR")
+                results.append((test_name, False))
+        
+        # Summary
+        self.log(f"\n{'='*60}")
+        self.log("TEST SUMMARY")
+        self.log(f"{'='*60}")
+        
+        passed = 0
+        failed = 0
+        
+        for test_name, result in results:
+            status = "✅ PASSED" if result else "❌ FAILED"
+            self.log(f"{status}: {test_name}")
+            if result:
+                passed += 1
+            else:
+                failed += 1
+        
+        self.log(f"\nTotal: {len(results)} tests")
+        self.log(f"Passed: {passed}")
+        self.log(f"Failed: {failed}")
+        
+        if failed == 0:
+            self.log("🎉 ALL TERCILOG CHANGES TESTS PASSED!")
+            return True
+        else:
+            self.log(f"❌ {failed} test(s) failed")
+            return False
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
