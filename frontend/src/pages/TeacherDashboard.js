@@ -342,6 +342,7 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   const handleEditSession = (session) => {
     setEditingSession(session);
+    const calculatedRate = session.hourly_rate || inferHourlyRate(session.subject || "");
     setSessionForm({
       subject: session.subject || "",
       date: session.date || "",
@@ -349,7 +350,11 @@ export default function TeacherDashboard({ user, onLogout }) {
       end_time: session.end_time || "",
       student_id: session.student_id || "",
       validation_deadline_hours: 48,
-      meeting_link: session.meeting_link || ""
+      meeting_link: session.meeting_link || "",
+      hourly_rate: calculatedRate,
+      hourly_rate_source: session.hourly_rate_source || "auto",
+      modality: session.modality || "distanciel",
+      organism: session.organism || ""
     });
     setShowEditSession(true);
   };
@@ -362,7 +367,11 @@ export default function TeacherDashboard({ user, onLogout }) {
         date: sessionForm.date,
         start_time: sessionForm.start_time,
         end_time: sessionForm.end_time,
-        meeting_link: sessionForm.meeting_link
+        meeting_link: sessionForm.meeting_link,
+        hourly_rate: sessionForm.hourly_rate,
+        hourly_rate_source: sessionForm.hourly_rate_source,
+        modality: sessionForm.modality,
+        organism: sessionForm.organism
       });
       toast.success("Séance modifiée !");
       setShowEditSession(false);
