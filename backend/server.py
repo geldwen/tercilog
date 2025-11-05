@@ -726,8 +726,6 @@ async def update_session(session_id: str, data: dict, current_user: User = Depen
         update_data["end_time"] = data["end_time"]
     if "signature_status" in data:
         update_data["signature_status"] = data["signature_status"]
-    if "signature_deadline" in data:
-        update_data["signature_deadline"] = data["signature_deadline"]
     if "attendance_email_sent" in data:
         update_data["attendance_email_sent"] = data["attendance_email_sent"]
     
