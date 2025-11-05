@@ -285,6 +285,72 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
     }
   };
 
+  // Ouvrir dialogue de duplication
+  const handleDuplicateClick = (event, e) => {
+    e.stopPropagation();
+    
+    // Calculer le jour suivant
+    const currentDate = new Date(event.date);
+    currentDate.setDate(currentDate.getDate() + 1);
+    const nextDay = currentDate.toISOString().split('T')[0];
+    
+    setEventToDuplicate(event);
+    setDuplicateData({
+      date: nextDay,
+      start_time: event.start_time,
+      end_time: event.end_time
+    });
+    setShowDuplicateDialog(true);
+  };
+
+  // Confirmer duplication
+  const handleConfirmDuplicate = async () => {
+    if (!eventToDuplicate) return;
+
+    try {
+      if (eventToDuplicate.origin === 'emergent') {
+        // Dupliquer via API
+        const sessionData = {
+          subject: eventToDuplicate.subject,
+          date: duplicateData.date,
+          start_time: duplicateData.start_time,
+          end_time: duplicateData.end_time,
+          student_id: eventToDuplicate.student_id,
+          validation_deadline_hours: 48,
+          meeting_link: eventToDuplicate.meeting_link || '',
+          organism: eventToDuplicate.organism || eventToDuplicate.center || '',
+          hourly_rate: eventToDuplicate.hourly_rate || 40,
+          modality: eventToDuplicate.modality || 'distanciel'
+        };
+        
+        await axios.post(`${API}/sessions`, sessionData);
+        toast.success('Séance dupliquée !');
+        
+        if (onSessionsUpdate) {
+          onSessionsUpdate();
+        }
+      } else {
+        // Dupliquer en local
+        const newEvent = {
+          ...eventToDuplicate,
+          id: `planning_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          date: duplicateData.date,
+          start_time: duplicateData.start_time,
+          end_time: duplicateData.end_time
+        };
+        
+        savePlanningEvent(newEvent);
+        setPlanningEvents(getPlanningEvents());
+        toast.success('Bloc planning dupliqué !');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de la duplication');
+    } finally {
+      setShowDuplicateDialog(false);
+      setEventToDuplicate(null);
+    }
+  };
+
   // Obtenir liste unique des centres
   const uniqueCenters = [...new Set([
     ...sessions.map(s => s.organism).filter(Boolean),
