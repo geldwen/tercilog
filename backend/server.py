@@ -583,11 +583,16 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
     deadline = datetime.now(timezone.utc) + timedelta(hours=session_data.validation_deadline_hours)
     
     # Calculate hourly_rate and amount (règles de tarification)
-    subject_lower = session_data.subject.lower()
-    is_special = ("test de positionnement" in subject_lower or "équivalence" in subject_lower or "equivalence" in subject_lower)
-    is_one_hour = abs(duration - 1.0) < 0.01  # Tolérance pour 1h
+    if session_data.hourly_rate is not None:
+        # Utiliser le tarif fourni
+        hourly_rate = session_data.hourly_rate
+    else:
+        # Calcul automatique
+        subject_lower = session_data.subject.lower()
+        is_special = ("test de positionnement" in subject_lower or "équivalence" in subject_lower or "equivalence" in subject_lower)
+        is_one_hour = abs(duration - 1.0) < 0.01  # Tolérance pour 1h
+        hourly_rate = 20.0 if (is_special and is_one_hour) else 40.0
     
-    hourly_rate = 20.0 if (is_special and is_one_hour) else 40.0
     amount = round(duration * hourly_rate, 2)
     
     # Create session - signature_status remains "not_required" until session ends
