@@ -64,8 +64,8 @@ export const setCenterColor = (center, color) => {
 };
 
 export const getCenterColor = (center) => {
-  // Zepartner est toujours bleu (verrouillé)
-  if (center === 'Zepartner') {
+  // Zepartner est toujours bleu (verrouillé) - insensible à la casse
+  if (center && center.trim().toLowerCase() === 'zepartner') {
     return '#3B82F6';
   }
   
