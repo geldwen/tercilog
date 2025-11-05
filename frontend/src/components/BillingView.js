@@ -25,13 +25,13 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
     }
 
     const subject = (session.subject || '').toLowerCase();
-    const duration = session.duration_hours || 0;
+    // Test de positionnement ou équivalence = TOUJOURS 20€/h (peu importe la durée)
     const isSpecial = subject.includes('test de positionnement') || 
+                     subject.includes('positionnement') ||
                      subject.includes('équivalence') || 
                      subject.includes('equivalence');
-    const isOneHour = Math.abs(duration - 1.0) < 0.01;
 
-    return (isSpecial && isOneHour) ? 20 : 40;
+    return isSpecial ? 20 : 40;
   };
 
   // Enrichir les sessions avec hourly_rate et amount
