@@ -24,12 +24,21 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
       return session.hourly_rate;
     }
 
-    const subject = (session.subject || '').toLowerCase();
-    // "test" ou "équivalence" = TOUJOURS 20€/h (peu importe la durée)
-    const isSpecial = subject.includes('test') || 
-                     subject.includes('équivalence') || 
-                     subject.includes('equivalence');
+    // Normaliser le sujet (retirer accents, minuscules)
+    const normalizeText = (text) => {
+      return (text || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+    };
 
+    const subject = normalizeText(session.subject);
+    // "test" ou "positionnement" ou "équivalence" = TOUJOURS 20€/h
+    const isTest = subject.includes('test');
+    const isPositionnement = subject.includes('positionnement');
+    const isEquivalence = subject.includes('equivalence');
+
+    const isSpecial = isTest || isPositionnement || isEquivalence;
     return isSpecial ? 20 : 40;
   };
 
