@@ -20,25 +20,33 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
 
   // Fonction pour déterminer le tarif automatiquement
   const calculateHourlyRate = (session) => {
-    if (session.hourly_rate !== undefined && session.hourly_rate !== null) {
+    if (session.hourly_rate !== undefined && session.hourly_rate !== null && session.hourly_rate > 0) {
       return session.hourly_rate;
     }
 
-    // Normaliser le sujet (retirer accents, minuscules)
+    // Normaliser le sujet (retirer accents, ponctuation, minuscules)
     const normalizeText = (text) => {
       return (text || '')
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\w\s]/g, ' ')
         .toLowerCase();
     };
 
     const subject = normalizeText(session.subject);
-    // "test" ou "positionnement" ou "équivalence" = TOUJOURS 20€/h
-    const isTest = subject.includes('test');
-    const isPositionnement = subject.includes('positionnement');
-    const isEquivalence = subject.includes('equivalence');
+    
+    // Liste exhaustive des motifs pour 20€/h
+    const keywords20 = [
+      'test de positionnement',
+      'test positionnement',
+      'test position',
+      'test posi',
+      'positionnement initial',
+      'positionnement',
+      'equivalence'
+    ];
 
-    const isSpecial = isTest || isPositionnement || isEquivalence;
+    const isSpecial = keywords20.some(keyword => subject.includes(keyword));
     return isSpecial ? 20 : 40;
   };
 
