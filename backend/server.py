@@ -689,7 +689,13 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
     </html>
     """
     
-    send_email(student['email'], f"Nouvelle séance TerciForm - {session_data.subject}", email_body)
+    # Envoyer l'email de confirmation à l'élève
+    email_sent = send_email(student['email'], f"Nouvelle séance TerciForm - {session_data.subject}", email_body)
+    
+    if email_sent:
+        logger.info(f"Email de confirmation envoyé à {student['email']} pour la séance {session.id}")
+    else:
+        logger.error(f"ÉCHEC envoi email de confirmation à {student['email']} pour la séance {session.id}")
     
     return session
 
