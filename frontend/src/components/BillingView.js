@@ -239,7 +239,9 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
         <div>
           <p className="text-sm text-gray-600">Total {MONTHS.find(m => m.value === activeMonth)?.name}</p>
           <p className="text-3xl font-bold text-pink-700">{formatCurrency(monthTotal)}</p>
-          <p className="text-sm text-gray-500 mt-1">{monthSessions.length} séance(s)</p>
+          <p className="text-sm text-gray-500 mt-1">
+            {monthSessions.length} séance(s) • {monthTotalHours.toFixed(2)}h
+          </p>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
