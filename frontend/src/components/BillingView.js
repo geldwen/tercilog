@@ -385,8 +385,14 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
             {monthSessions.length > 0 && (
               <tfoot className="bg-gray-50">
                 <tr>
-                  <td colSpan="6" className="px-4 py-3 text-right text-sm font-bold text-gray-900">
+                  <td colSpan="4" className="px-4 py-3 text-right text-sm font-bold text-gray-900">
                     Total du mois
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm font-bold text-pink-700">
+                    {monthTotalHours.toFixed(2)} h
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm font-bold text-gray-900">
+                    -
                   </td>
                   <td className="px-4 py-3 text-right text-sm font-bold text-pink-700">
                     {formatCurrency(monthTotal)}
