@@ -88,8 +88,9 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
     s.date && s.date.startsWith(activeMonth)
   );
 
-  // Calculer total du mois
+  // Calculer total du mois (montant et heures)
   const monthTotal = monthSessions.reduce((sum, s) => sum + (s.amount || 0), 0);
+  const monthTotalHours = monthSessions.reduce((sum, s) => sum + (s.duration_hours || 0), 0);
 
   // Formater devise
   const formatCurrency = (value) => {
