@@ -287,6 +287,12 @@ export default function TeacherDashboard({ user, onLogout }) {
     setShowSendAttendanceDialog(true);
   };
 
+  // Fonction pour ouvrir la modale "Parcours élève"
+  const handleOpenStudentDocuments = (student) => {
+    setDocumentsStudent(student);
+    setShowStudentDocumentsDialog(true);
+  };
+
   const handleSendAttendance = async (e) => {
     e.preventDefault();
     
