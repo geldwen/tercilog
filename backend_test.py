@@ -4061,11 +4061,13 @@ def main():
             success = tester.test_confirmation_flow_and_date_formatting()
         elif sys.argv[1] == "tercilog-changes":
             success = tester.run_tercilog_changes_test()
+        elif sys.argv[1] == "documents":
+            success = tester.test_student_documents_management()
         else:
             success = tester.run_full_test()
     else:
-        # Run TerciLog changes test by default (as per review request)
-        success = tester.run_tercilog_changes_test()
+        # Run student documents management test by default (as per review request)
+        success = tester.test_student_documents_management()
     
     if success:
         print("\n" + "="*50)
