@@ -1336,7 +1336,13 @@ export default function TeacherDashboard({ user, onLogout }) {
                   ))}
                 </select>
               </div>
-            )}
+            ) : attendanceMode === 'complete' ? (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-600">
+                  📋 Le parcours complet inclut toutes les séances signées de l'élève, tous mois confondus.
+                </p>
+              </div>
+            ) : null}
 
             {/* Destinataires */}
             <div className="space-y-2">
