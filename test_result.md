@@ -460,7 +460,34 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+frontend:
+  - task: "Parcours émargé Modal - 3 Radio Options"
+    implemented: true
+    working: "unknown"
+    file: "TeacherDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "PARCOURS ÉMARGÉ MODAL UPDATED: Modified the 'Parcours émargé' modal to include 3 radio options: 'Séance unique' (single session), 'Mois' (month selector - existing behavior), and 'Parcours complet' (all signed sessions, all months). Updated handleSendAttendance function to properly handle 'complete' mode by not requiring a month selection (payload.month = null). The modal UI structure was already correct with the 3 radio buttons and conditional rendering of session selector (for 'session' mode) and month selector (for 'month' mode). For 'complete' mode, displays informational message about including all signed sessions."
+
+  - task: "Student Documents Management - Parcours élève Button & Modal"
+    implemented: true
+    working: "unknown"
+    file: "TeacherDashboard.js, FileUploadSection.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "STUDENT DOCUMENTS MANAGEMENT IMPLEMENTED: Created comprehensive 'Parcours élève' feature with brown square button and 3-tab document management modal. CHANGES: 1) Created FileUploadSection.js component with multi-PDF upload, file listing (name, size, date), download, and delete functionality. Features drag-and-drop zone, file size validation (10MB max), PDF-only validation, progress indicators, and brown-themed styling (#8B5A2B gradient). 2) Added FolderOpen icon import to TeacherDashboard. 3) Added state: showStudentDocumentsDialog, documentsStudent. 4) Created handleOpenStudentDocuments handler. 5) Added square brown button (w-32 h-32) below 'Supprimer' button in student card with FolderOpen icon and 'Parcours élève' label. 6) Created 'Parcours élève' modal with 3 tabs: 'Test d'entrée (positionnement)' (category=test_entree), 'Supports de formation' (category=supports), 'Évaluations' (category=evaluations). 7) Integrated FileUploadSection in each tab with studentId and category props. Modal styled with brown theme (#8B5A2B for active tabs, #F4EAE3 for TabsList background). Backend API endpoints already exist: POST/GET/DELETE /api/students/{student_id}/documents. Ready for testing."
+
 agent_communication:
+    - agent: "main"
+      message: "IMPLEMENTATION COMPLETE: Successfully implemented both requested features: A) 'Parcours émargé' modal now properly handles 3 options (Séance unique, Mois, Parcours complet) with correct backend payload logic, B) 'Parcours élève' button and modal with 3-tab document management system (Test d'entrée, Supports de formation, Évaluations) with multi-PDF upload/download/delete functionality. Created FileUploadSection.js component with brown-themed UI. Backend document management endpoints already exist and are ready to use. Ready for backend and frontend testing."
     - agent: "testing"
       message: "🎉 TERCILOG CHANGES COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY: All 6 major TerciLog application changes have been tested and are working correctly. TESTS PASSED: 1) Welcome Email on Student Creation - welcome_email_sent flag working, emails sent, credentials functional, 2) Student Confirmation Endpoint - PATCH /api/sessions/{id}/confirm-by-student working with proper validation, 3) Signature Without Time Limit - students can sign sessions anytime after end (no 2-hour restriction), 4) Auto-Confirmation on Signature - automatic confirmed_by_student=true when signing without prior confirmation, 5) Updated Attendance Email - resend functionality working without time restrictions, 6) Model Updates Verification - all required fields (confirmed_by_student, confirmed_by_student_at, welcome_email_sent) present and working. ALL BACKEND APIS TESTED AND WORKING. The TerciLog application changes have been successfully implemented and tested. System ready for production use with new signature flow and removed time limitations."
     - agent: "testing"
