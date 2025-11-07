@@ -67,8 +67,10 @@ export default function FileUploadSection({ studentId, category, categoryLabel }
         formData.append('file', file);
         formData.append('category', category);
         
+        const token = localStorage.getItem('token');
         await axios.post(`${API}/students/${studentId}/documents`, formData, {
           headers: {
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
           }
         });
