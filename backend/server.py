@@ -2257,6 +2257,117 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ================================
+# DOCUMENTS PARCOURS ÉLÈVE
+# ================================
+
+@api_router.post("/students/{student_id}/documents/upload")
+async def upload_student_document(
+    student_id: str,
+    category: str,
+    file: UploadFile = FastAPIFile(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload un document pour un élève"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Vérifier que l'élève existe
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Créer le dossier étudiant si nécessaire
+    student_dir = Path(f"/app/backend/student_documents/{student_id}/{category}")
+    student_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Sauvegarder le fichier
+    filepath = student_dir / file.filename
+    with open(filepath, "wb") as f:
+        content = await file.read()
+        f.write(content)
+    
+    # Enregistrer en base
+    document = StudentDocument(
+        student_id=student_id,
+        category=category,
+        filename=file.filename,
+        filepath=str(filepath)
+    )
+    
+    doc_dict = document.model_dump()
+    doc_dict['uploaded_at'] = doc_dict['uploaded_at'].isoformat()
+    await db.student_documents.insert_one(doc_dict)
+    
+    logger.info(f"Document uploaded: {file.filename} for student {student_id} in category {category}")
+    return document
+
+
+@api_router.get("/students/{student_id}/documents/{category}", response_model=List[StudentDocument])
+async def get_student_documents(
+    student_id: str,
+    category: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer les documents d'un élève pour une catégorie"""
+    if current_user.role != "teacher" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    documents = await db.student_documents.find({
+        "student_id": student_id,
+        "category": category
+    }, {"_id": 0}).to_list(100)
+    
+    return [StudentDocument(**doc) for doc in documents]
+
+
+@api_router.get("/students/{student_id}/documents/download/{document_id}")
+async def download_student_document(
+    student_id: str,
+    document_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Télécharger un document"""
+    if current_user.role != "teacher" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    document = await db.student_documents.find_one({"id": document_id, "student_id": student_id}, {"_id": 0})
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    filepath = Path(document['filepath'])
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="File not found on disk")
+    
+    return FileResponse(filepath, filename=document['filename'])
+
+
+@api_router.delete("/students/{student_id}/documents/{document_id}")
+async def delete_student_document(
+    student_id: str,
+    document_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Supprimer un document"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    document = await db.student_documents.find_one({"id": document_id, "student_id": student_id}, {"_id": 0})
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    # Supprimer le fichier
+    filepath = Path(document['filepath'])
+    if filepath.exists():
+        filepath.unlink()
+    
+    # Supprimer de la base
+    await db.student_documents.delete_one({"id": document_id})
+    
+    logger.info(f"Document deleted: {document['filename']} for student {student_id}")
+    return {"message": "Document deleted"}
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
