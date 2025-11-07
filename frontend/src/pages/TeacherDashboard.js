@@ -1152,10 +1152,10 @@ export default function TeacherDashboard({ user, onLogout }) {
                             <div className="mt-3 flex justify-center">
                               <Button 
                                 onClick={() => handleOpenStudentDocuments(student)} 
-                                className="w-32 h-32 md:w-32 md:h-32 sm:w-28 sm:h-28 bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white rounded-xl shadow-md hover:brightness-110 active:scale-[0.99] flex flex-col items-center justify-center text-center font-semibold"
+                                className="w-24 h-24 bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white rounded-xl shadow-md hover:brightness-110 active:scale-[0.99] flex flex-col items-center justify-center text-center font-semibold"
                               >
-                                <FolderOpen className="w-8 h-8 mb-2" />
-                                <span className="text-sm">Parcours élève</span>
+                                <FolderOpen className="w-6 h-6 mb-1" />
+                                <span className="text-xs">Parcours élève</span>
                               </Button>
                             </div>
                           </div>
