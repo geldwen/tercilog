@@ -329,13 +329,17 @@ export default function TeacherDashboard({ user, onLogout }) {
           return;
         }
         payload.session_id = attendanceSession.id;
-      } else {
+      } else if (attendanceMode === 'month') {
         if (!attendanceMonth) {
           toast.error("Veuillez sélectionner un mois");
           return;
         }
         payload.student_id = attendanceStudent.id;
         payload.month = attendanceMonth;
+      } else if (attendanceMode === 'complete') {
+        // Parcours complet - toutes les séances signées de l'élève
+        payload.student_id = attendanceStudent.id;
+        payload.month = null; // Pas de filtre de mois
       }
       
       const response = await axios.post(`${API}/send-attendance`, payload);
