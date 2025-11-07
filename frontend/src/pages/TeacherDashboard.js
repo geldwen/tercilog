@@ -1322,7 +1322,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                     ))}
                 </select>
               </div>
-            ) : (
+            ) : attendanceMode === 'month' ? (
               <div className="space-y-2">
                 <Label>Sélectionner un mois</Label>
                 <select 
