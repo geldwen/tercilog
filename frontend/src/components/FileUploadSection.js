@@ -93,7 +93,10 @@ export default function FileUploadSection({ studentId, category, categoryLabel }
     try {
       const response = await axios.get(
         `${API}/students/${studentId}/documents/download/${documentId}`,
-        { responseType: 'blob' }
+        { 
+          responseType: 'blob',
+          headers: getAuthHeaders()
+        }
       );
       
       // Créer un lien de téléchargement
