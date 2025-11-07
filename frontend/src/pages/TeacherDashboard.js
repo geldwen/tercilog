@@ -1285,6 +1285,17 @@ export default function TeacherDashboard({ user, onLogout }) {
                   />
                   <span>Mois complet</span>
                 </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="attendanceMode" 
+                    value="complete"
+                    checked={attendanceMode === 'complete'}
+                    onChange={(e) => setAttendanceMode(e.target.value)}
+                    className="w-4 h-4"
+                  />
+                  <span>Parcours complet</span>
+                </label>
               </div>
             </div>
 
