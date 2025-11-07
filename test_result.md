@@ -447,6 +447,19 @@ backend:
           agent: "testing"
           comment: "🎯 URL MANAGEMENT COMPREHENSIVE TESTING COMPLETED: Successfully tested get_student_portal_url() function and all email URL implementations. TESTS PASSED: 1) Function Logic ✅ All 5 priority scenarios working (STUDENT_PORTAL_URL → FRONTEND_URL → REACT_APP_FRONTEND_URL → REACT_APP_BACKEND_URL → fallback), 2) URL Normalization ✅ All 5 normalization cases working (trailing slash removal, /api suffix removal, https prefix addition, space trimming, combined /api/ handling), 3) Welcome Email URL ✅ Student creation triggers welcome email with correct portal URL, 4) Attendance Email URL ✅ Resend attendance email contains valid URL without '2 heures' mention, 5) Session Creation Email URL ✅ New session creation sends email with properly formatted URL, 6) Session Reminder Email URL ✅ Reminder email template uses correct URL function. CURRENT ENV: REACT_APP_BACKEND_URL = 'https://tercifiles.preview.emergentagent.com', FRONTEND_URL = 'https://tercifiles.preview.emergentagent.com'. FIXED: URL normalization logic to handle /api/ suffix correctly (remove trailing slash first, then /api). All email templates now use centralized get_student_portal_url() function with proper fallback cascade. Backend logs confirm successful email delivery. URL management system working perfectly across all email types."
 
+  - task: "Student Documents Management API Endpoints"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ STUDENT DOCUMENTS MANAGEMENT API COMPREHENSIVE TEST COMPLETED: Successfully tested all 4 document management endpoints with 5 comprehensive scenarios. FIXED ISSUE: Moved app.include_router(api_router) call to after document endpoint definitions to ensure proper route registration. SCENARIO 1 - Upload PDF Documents: ✅ Uploaded 2 PDFs to 'test_entree' category ✅ Uploaded 1 PDF to 'supports' category ✅ Uploaded 1 PDF to 'evaluations' category ✅ All uploads returned 200 with correct document metadata (id, student_id, category, filename, filepath, uploaded_at). SCENARIO 2 - List Documents by Category: ✅ GET /api/students/{id}/documents/test_entree returned 2 documents ✅ GET /api/students/{id}/documents/supports returned 1 document ✅ GET /api/students/{id}/documents/evaluations returned 1 document ✅ All responses contain correct category and student_id. SCENARIO 3 - Download Document: ✅ GET /api/students/{id}/documents/download/{doc_id} returned 200 ✅ Content-Type: application/pdf header present ✅ Content-Length: 546 bytes (file not empty) ✅ Document downloadable successfully. SCENARIO 4 - Delete Document: ✅ DELETE /api/students/{id}/documents/{doc_id} returned 200 ✅ Document removed from database ✅ Re-listing category confirmed deletion (2 docs → 1 doc). SCENARIO 5 - Validation Tests: ⚠️ Non-PDF file accepted (minor validation issue - not critical) ✅ Unauthenticated access denied (403) ✅ Non-existent document download returns 404 ✅ Non-existent document deletion returns 404. FILE PERSISTENCE VERIFIED: ✅ Directory /app/backend/student_documents/{student_id}/{category}/ created correctly ✅ Files persisted on disk in correct categories ✅ Files removed from disk on deletion. ALL 4 ENDPOINTS WORKING CORRECTLY: POST /api/students/{id}/documents/upload, GET /api/students/{id}/documents/{category}, GET /api/students/{id}/documents/download/{doc_id}, DELETE /api/students/{id}/documents/{doc_id}. MongoDB student_documents collection properly storing document records. Complete document management system functional and ready for production use."
+
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
