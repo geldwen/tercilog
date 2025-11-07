@@ -2357,6 +2357,18 @@ async def delete_student_document(
     return {"message": "Document deleted"}
 
 
+# Include router
+app.include_router(api_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
