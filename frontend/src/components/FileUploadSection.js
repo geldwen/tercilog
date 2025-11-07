@@ -8,6 +8,14 @@ import axios from "axios";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Fonction utilitaire pour obtenir les headers avec token
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Authorization': `Bearer ${token}`
+  };
+};
+
 export default function FileUploadSection({ studentId, category, categoryLabel }) {
   const [documents, setDocuments] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -20,7 +28,9 @@ export default function FileUploadSection({ studentId, category, categoryLabel }
   const loadDocuments = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/students/${studentId}/documents/${category}`);
+      const response = await axios.get(`${API}/students/${studentId}/documents/${category}`, {
+        headers: getAuthHeaders()
+      });
       setDocuments(response.data);
     } catch (error) {
       console.error("Error loading documents:", error);
