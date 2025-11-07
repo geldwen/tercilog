@@ -120,7 +120,9 @@ export default function FileUploadSection({ studentId, category, categoryLabel }
     if (!window.confirm(`Supprimer "${filename}" ?`)) return;
     
     try {
-      await axios.delete(`${API}/students/${studentId}/documents/${documentId}`);
+      await axios.delete(`${API}/students/${studentId}/documents/${documentId}`, {
+        headers: getAuthHeaders()
+      });
       toast.success("Document supprimé");
       loadDocuments(); // Recharger la liste
     } catch (error) {
