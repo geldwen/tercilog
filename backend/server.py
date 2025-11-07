@@ -2246,17 +2246,6 @@ async def download_feedback_pdf(student_id: str, feedback_id: str, current_user:
     )
 
 
-# Include router
-app.include_router(api_router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # ================================
 # DOCUMENTS PARCOURS ÉLÈVE
 # ================================
