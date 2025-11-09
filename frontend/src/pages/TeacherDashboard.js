@@ -336,10 +336,11 @@ export default function TeacherDashboard({ user, onLogout }) {
         }
         payload.student_id = attendanceStudent.id;
         payload.month = attendanceMonth;
-      } else if (attendanceMode === 'complete') {
+      } else if (attendanceMode === 'complete' || attendanceMode === 'full') {
         // Parcours complet - toutes les séances signées de l'élève
+        payload.mode = 'full';  // Forcer le mode 'full' pour le backend
         payload.student_id = attendanceStudent.id;
-        payload.month = null; // Pas de filtre de mois
+        // Pas de month pour le parcours complet
       }
       
       const response = await axios.post(`${API}/send-attendance`, payload);
