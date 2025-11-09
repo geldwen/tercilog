@@ -474,10 +474,10 @@ test_plan:
   test_priority: "high_first"
 
 frontend:
-  - task: "Parcours émargé Modal - 3 Radio Options"
+  - task: "Parcours émargé Modal - 3 Radio Options with FULL mode"
     implemented: true
     working: "unknown"
-    file: "TeacherDashboard.js"
+    file: "TeacherDashboard.js, server.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
@@ -485,6 +485,9 @@ frontend:
         - working: "unknown"
           agent: "main"
           comment: "PARCOURS ÉMARGÉ MODAL UPDATED: Modified the 'Parcours émargé' modal to include 3 radio options: 'Séance unique' (single session), 'Mois' (month selector - existing behavior), and 'Parcours complet' (all signed sessions, all months). Updated handleSendAttendance function to properly handle 'complete' mode by not requiring a month selection (payload.month = null). The modal UI structure was already correct with the 3 radio buttons and conditional rendering of session selector (for 'session' mode) and month selector (for 'month' mode). For 'complete' mode, displays informational message about including all signed sessions."
+        - working: "unknown"
+          agent: "main"
+          comment: "HOTFIX APPLIED - MODE 'FULL' IMPLEMENTED END-TO-END: Fixed error 'mode must be session or month' for Parcours complet. BACKEND: 1) Added mode='full' to validation in POST /api/send-attendance endpoint, 2) Implemented logic to fetch ALL signed sessions across all months (no date filter), 3) Sort sessions by date ascending, 4) Updated generate_attendance_pdf_month to handle month=None for full period with subtitle 'PARCOURS COMPLET — Toutes périodes confondues' and period range (first_date → last_date), 5) Enhanced error messages for empty results. FRONTEND: 1) Fixed payload to send mode='full' when attendanceMode='complete' or 'full', 2) Ensured no month parameter is sent for full mode. PDF OUTPUT: Header shows student name, subtitle for full period, period range, total signed sessions count, total hours and signed hours, table with all signed sessions sorted by date. Ready for testing."
 
   - task: "Student Documents Management - Parcours élève Button & Modal"
     implemented: true
