@@ -1995,7 +1995,39 @@ async def send_attendance_pdf(data: dict, current_user: User = Depends(get_curre
         
         student_name = student.get('name', '')
         
-        # Récupérer TOUTES les séances du parcours (pas de filtre par mois)
+        # Récupérer les séances du mois spécifié
+        sessions = await db.sessions.find({
+            "student_id": student_id,
+            "date": {"$regex": f"^{month}"}
+        }, {"_id": 0}).to_list(1000)
+        
+        # Filtrer les séances signées si nécessaire
+        if not include_unsigned:
+            signed_sessions = [s for s in sessions if s.get('signature_status') == 'signed' or s.get('teacher_signature_status') == 'signed']
+            if not signed_sessions:
+                raise HTTPException(status_code=400, detail="Aucune séance émargée pour ce mois")
+            sessions = signed_sessions
+        
+        # Générer le PDF
+        pdf_buffer = generate_attendance_pdf_month(student, sessions, month, include_unsigned)
+        filename = f"parcours_emarge_{student_name}_{month}.pdf"
+    
+    elif mode == "full":
+        # PARCOURS COMPLET - toutes les séances signées, tous mois confondus
+        student_id = data.get('student_id')
+        include_unsigned = data.get('include_unsigned', False)
+        
+        if not student_id:
+            raise HTTPException(status_code=400, detail="student_id required for mode=full")
+        
+        # Récupérer l'élève
+        student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+        if not student:
+            raise HTTPException(status_code=404, detail="Student not found")
+        
+        student_name = student.get('name', '')
+        
+        # Récupérer TOUTES les séances du parcours (tous mois)
         sessions = await db.sessions.find({
             "student_id": student_id
         }, {"_id": 0}).to_list(1000)
@@ -2004,15 +2036,18 @@ async def send_attendance_pdf(data: dict, current_user: User = Depends(get_curre
         if not include_unsigned:
             signed_sessions = [s for s in sessions if s.get('signature_status') == 'signed' or s.get('teacher_signature_status') == 'signed']
             if not signed_sessions:
-                raise HTTPException(status_code=400, detail="Aucune séance émargée pour le parcours")
+                raise HTTPException(status_code=400, detail="Aucune séance émargée dans le parcours complet")
             sessions = signed_sessions
         
-        # Générer le PDF
-        pdf_buffer = generate_attendance_pdf_month(student, sessions, month, include_unsigned)
-        filename = f"parcours_emarge_{student_name}.pdf"
+        # Trier par date
+        sessions = sorted(sessions, key=lambda s: (s.get('date', ''), s.get('start_time', '')))
+        
+        # Générer le PDF avec indication "Parcours complet"
+        pdf_buffer = generate_attendance_pdf_month(student, sessions, None, include_unsigned)  # None = full period
+        filename = f"parcours_complet_emarge_{student_name}.pdf"
     
     else:
-        raise HTTPException(status_code=400, detail="mode must be 'session' or 'month'")
+        raise HTTPException(status_code=400, detail="mode must be 'session', 'month', or 'full'")
     
     # Envoyer l'email avec le PDF
     try:
