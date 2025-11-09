@@ -4431,11 +4431,13 @@ def main():
             success = tester.run_tercilog_changes_test()
         elif sys.argv[1] == "documents":
             success = tester.test_student_documents_management()
+        elif sys.argv[1] == "parcours-complet":
+            success = tester.test_parcours_complet_endpoint()
         else:
             success = tester.run_full_test()
     else:
-        # Run student documents management test by default (as per review request)
-        success = tester.test_student_documents_management()
+        # Run parcours complet test by default (as per review request)
+        success = tester.test_parcours_complet_endpoint()
     
     if success:
         print("\n" + "="*50)
