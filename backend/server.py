@@ -1581,6 +1581,12 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
     story.append(build_header(f"Parcours émargé — {student['name']}"))
     story.append(Spacer(0, 12))
     
+    # Sous-titre pour parcours complet (month=None)
+    if month is None:
+        subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'], fontSize=11, fontName='Helvetica-Bold', textColor=colors.HexColor('#8B5A2B'))
+        story.append(Paragraph("PARCOURS COMPLET — Toutes périodes confondues", subtitle_style))
+        story.append(Spacer(0, 8))
+    
     # Filtre + tri par date croissante
     if not include_unsigned:
         sessions = [s for s in sessions if s.get('signature_status') == 'signed' or s.get('teacher_signature_status') == 'signed']
@@ -1593,8 +1599,16 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
         total_hours = sum(s.get('duration_hours', 0) for s in sessions_sorted)
         signed_hours = sum(s.get('duration_hours', 0) for s in sessions_sorted if s.get('signature_status') == 'signed')
         
+        # Calculer la période si parcours complet
+        period_text = ""
+        if month is None and sessions_sorted:
+            first_date = sessions_sorted[0].get('date', '')
+            last_date = sessions_sorted[-1].get('date', '')
+            if first_date and last_date:
+                period_text = f" — Période : {format_fr_date(first_date)} → {format_fr_date(last_date)}"
+        
         # Texte sans balises HTML
-        story.append(Paragraph(f"Parcours complet : {len(sessions_sorted)} séance(s) émargée(s)", bold_style))
+        story.append(Paragraph(f"Parcours complet : {len(sessions_sorted)} séance(s) émargée(s){period_text}", bold_style))
         story.append(Paragraph(f"Heures totales : {total_hours}h | Heures signées élève : {signed_hours}h", normal_style))
         story.append(Spacer(0, 10))
         
