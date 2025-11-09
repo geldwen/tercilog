@@ -1953,7 +1953,7 @@ async def send_attendance_pdf(data: dict, current_user: User = Depends(get_curre
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
-    mode = data.get('mode')  # "session" or "month"
+    mode = data.get('mode')  # "session", "month", or "full"
     to_emails = data.get('to', [])
     subject = data.get('subject', 'Justificatif d\'émargement')
     body = data.get('body', '')
