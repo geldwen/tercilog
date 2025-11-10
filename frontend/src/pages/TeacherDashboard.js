@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Trash2, Mail, Edit, PenTool, FileText, FileCheck, CalendarDays, Euro, FolderOpen } from "lucide-react";
 import PlanningView from "@/components/PlanningView";
 import BillingView from "@/components/BillingView";
-import FileUploadSection from "@/components/FileUploadSection";
+import ParcoursEleveModal from "@/components/ParcoursEleveModal";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
