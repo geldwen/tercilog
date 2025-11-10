@@ -172,15 +172,41 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
   };
 
   // Export PDF avec logo TerciForm
-  const exportPDF = () => {
+  const exportPDF = async () => {
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4');
       const monthName = MONTHS.find(m => m.value === activeMonth)?.name || activeMonth;
       
-      // Logo TerciForm (en-tête gauche)
+      // Logo TerciForm (en-tête gauche) - charger en base64
       const logoUrl = '/logo_terciform.png';
+      let logoLoaded = false;
       try {
-        doc.addImage(logoUrl, 'PNG', 14, 10, 35, 15); // Largeur ~35mm pour conserver le ratio
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+          img.onload = () => {
+            try {
+              // Créer un canvas temporaire pour convertir en base64
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0);
+              const dataUrl = canvas.toDataURL('image/png');
+              doc.addImage(dataUrl, 'PNG', 14, 10, 35, 15); // Largeur ~35mm
+              logoLoaded = true;
+              resolve();
+            } catch (e) {
+              console.warn('Erreur conversion logo:', e);
+              resolve(); // Continue sans logo
+            }
+          };
+          img.onerror = () => {
+            console.warn('Logo non chargé');
+            resolve(); // Continue sans logo
+          };
+          img.src = logoUrl;
+        });
       } catch (e) {
         console.warn('Logo non chargé:', e);
       }
