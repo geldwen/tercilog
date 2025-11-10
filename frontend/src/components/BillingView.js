@@ -160,63 +160,126 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
     toast.success('Export CSV réussi !');
   };
 
-  // Export PDF
+  // Formater date avec horaires pour PDF (format européen + horaires)
+  const formatDateWithTime = (session) => {
+    if (!session.date) return '';
+    const [y, m, d] = session.date.split('-');
+    const date = new Date(y, parseInt(m) - 1, d);
+    const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    const dayName = days[date.getDay()];
+    const timeRange = `${session.start_time || ''}–${session.end_time || ''}`;
+    return `${dayName} ${d}/${m}/${y}\n${timeRange}`;
+  };
+
+  // Export PDF avec logo TerciForm
   const exportPDF = () => {
     try {
-      const doc = new jsPDF('landscape');
+      const doc = new jsPDF('landscape', 'mm', 'a4');
       const monthName = MONTHS.find(m => m.value === activeMonth)?.name || activeMonth;
       
-      // Titre
+      // Logo TerciForm (en-tête gauche)
+      const logoUrl = '/logo_terciform.png';
+      try {
+        doc.addImage(logoUrl, 'PNG', 14, 10, 35, 15); // Largeur ~35mm pour conserver le ratio
+      } catch (e) {
+        console.warn('Logo non chargé:', e);
+      }
+      
+      // Titre (à droite du logo)
       doc.setFontSize(18);
-      doc.text(`Facturation ${monthName}`, 14, 20);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Facturation — ${monthName}`, 55, 20);
       
-      // Tableau - filtrer seulement les sessions avec prix
-      const sessionsWithPrice = monthSessions.filter(s => s.hourly_rate !== null && s.hourly_rate > 0);
+      // Tableau - filtrer et trier les sessions avec prix
+      const sessionsWithPrice = monthSessions
+        .filter(s => s.hourly_rate !== null && s.hourly_rate > 0)
+        .sort((a, b) => {
+          const dateCompare = a.date.localeCompare(b.date);
+          if (dateCompare !== 0) return dateCompare;
+          return (a.start_time || '').localeCompare(b.start_time || '');
+        });
       
-      const headers = [['Date', 'Élève', 'Matière', 'Centre', 'Durée (h)', 'Coût/h (€)', 'Montant (€)', 'Statut', 'Type']];
+      const headers = [['Date\nHoraire', 'Élève', 'Matière', 'Centre', 'Durée\n(h)', 'Tarif/h\n(€)', 'Montant\n(€)', 'Statut', 'Type']];
       const rows = sessionsWithPrice.map(s => [
-        formatDate(s.date),
+        formatDateWithTime(s),
         s.student_name || '-',
         s.subject || '-',
         s.organism || '-',
-        (s.duration_hours || 0).toFixed(2),
-        (s.hourly_rate || 0).toFixed(2),
+        (s.duration_hours || 0).toFixed(1),
+        (s.hourly_rate || 0).toFixed(0),
         (s.amount || 0).toFixed(2),
-        s.signature_status === 'signed' ? 'Émargée' : s.status === 'confirmed' ? 'Confirmée' : 'En attente',
-        s.modality === 'presentiel' ? 'Présentiel' : 'Distanciel'
+        s.signature_status === 'signed' ? 'Émargée' : s.status === 'confirmed' ? 'Confirmée' : 'Attente',
+        s.modality === 'presentiel' ? 'Prés.' : 'Dist.'
       ]);
       
       // Total seulement des sessions avec prix
       const totalWithPrice = sessionsWithPrice.reduce((sum, s) => sum + (s.amount || 0), 0);
+      const totalHoursWithPrice = sessionsWithPrice.reduce((sum, s) => sum + (s.duration_hours || 0), 0);
       
       doc.autoTable({
         head: headers,
         body: rows,
-        startY: 30,
-        styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [219, 39, 119], textColor: 255 }, // Rose
-        footStyles: { fillColor: [252, 231, 243], textColor: 0, fontStyle: 'bold' },
+        startY: 32,
+        margin: { left: 14, right: 14 },
+        styles: { 
+          fontSize: 8, 
+          cellPadding: 2,
+          lineColor: [200, 200, 200],
+          lineWidth: 0.1
+        },
+        headStyles: { 
+          fillColor: [30, 58, 95], // Bleu TerciForm
+          textColor: 255,
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        columnStyles: {
+          0: { cellWidth: 25 }, // Date + Horaire
+          1: { cellWidth: 35 }, // Élève
+          2: { cellWidth: 40 }, // Matière
+          3: { cellWidth: 30 }, // Centre
+          4: { halign: 'center', cellWidth: 15 }, // Durée
+          5: { halign: 'right', cellWidth: 18 }, // Tarif/h
+          6: { halign: 'right', cellWidth: 20 }, // Montant
+          7: { halign: 'center', cellWidth: 20 }, // Statut
+          8: { halign: 'center', cellWidth: 15 }  // Type
+        },
+        footStyles: { 
+          fillColor: [232, 240, 247], 
+          textColor: 0, 
+          fontStyle: 'bold',
+          fontSize: 9
+        },
         foot: [[
-          { content: `Total ${monthName}`, colSpan: 6, styles: { halign: 'right' } },
-          { content: totalWithPrice.toFixed(2) + ' €', styles: { halign: 'right', fontStyle: 'bold' } },
+          { content: `TOTAL ${monthName.toUpperCase()}`, colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } },
+          { content: `${totalHoursWithPrice.toFixed(1)} h`, styles: { halign: 'center', fontStyle: 'bold' } },
+          '',
+          { content: `${totalWithPrice.toFixed(2)} €`, styles: { halign: 'right', fontStyle: 'bold', fontSize: 10, fillColor: [30, 58, 95], textColor: 255 } },
           '', ''
-        ]]
+        ]],
+        didDrawPage: function(data) {
+          // Numéro de page en bas à droite
+          const pageCount = doc.internal.getNumberOfPages();
+          doc.setFontSize(8);
+          doc.setTextColor(128);
+          doc.text(`Page ${data.pageNumber} / ${pageCount}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
+        }
       });
       
       // Note si des sessions sans prix
       const sessionsWithoutPrice = monthSessions.filter(s => !s.hourly_rate || s.hourly_rate === 0);
       if (sessionsWithoutPrice.length > 0) {
-        const finalY = doc.lastAutoTable.finalY + 10;
-        doc.setFontSize(10);
+        const finalY = doc.lastAutoTable.finalY + 8;
+        doc.setFontSize(9);
         doc.setTextColor(220, 38, 38); // Rouge
-        doc.text(`⚠️ ${sessionsWithoutPrice.length} séance(s) sans tarif non incluse(s)`, 14, finalY);
+        doc.text(`⚠️ ${sessionsWithoutPrice.length} séance(s) sans tarif horaire non incluse(s) dans ce total`, 14, finalY);
       }
       
       doc.save(`facturation_${activeMonth}.pdf`);
       toast.success('Export PDF réussi !');
     } catch (error) {
       console.error('Erreur export PDF:', error);
-      toast.error('Erreur lors de l\'export PDF. Vérifiez que toutes les séances ont un tarif.');
+      toast.error('Erreur lors de l\'export PDF');
     }
   };
 
