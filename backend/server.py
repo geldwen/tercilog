@@ -2470,15 +2470,16 @@ async def get_category_note(
     return note
 
 
-@api_router.post("/students/{student_id}/category-notes/{category}/generate-pdf")
-async def generate_category_pdf(
-    student_id: str,
-    category: str,
-    current_user: User = Depends(get_current_user)
-):
-    """Générer un PDF de synthèse pour une catégorie (tests/évaluations)"""
-    if current_user.role != "teacher":
-        raise HTTPException(status_code=403, detail="Access denied")
+def generate_category_pdf_content(student_id: str, category: str, student: dict, documents: list, category_note: dict):
+    """Fonction interne pour générer le contenu PDF"""
+    # Mapping des catégories vers titres français
+    category_titles = {
+        "positionnement": "Test de positionnement",
+        "evaluation_cours": "Évaluations en cours de formation",
+        "evaluation_fin": "Évaluations de fin de formation"
+    }
+    
+    category_title = category_titles.get(category, category)
     
     # Récupérer l'élève
     student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
