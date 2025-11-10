@@ -2387,6 +2387,32 @@ async def download_student_document(
     return FileResponse(filepath, filename=document['filename'])
 
 
+@api_router.patch("/students/{student_id}/documents/{document_id}")
+async def update_student_document_note(
+    student_id: str,
+    document_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Mettre à jour la note d'un document"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    document = await db.student_documents.find_one({"id": document_id, "student_id": student_id}, {"_id": 0})
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    # Mettre à jour la note
+    note = data.get('note', '')
+    await db.student_documents.update_one(
+        {"id": document_id},
+        {"$set": {"note": note}}
+    )
+    
+    logger.info(f"Document note updated: {document['filename']} - note: {note}")
+    return {"message": "Note updated", "note": note}
+
+
 @api_router.delete("/students/{student_id}/documents/{document_id}")
 async def delete_student_document(
     student_id: str,
