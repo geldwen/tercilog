@@ -239,8 +239,28 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
 
   return (
     <div className="space-y-4">
-      <div className="p-4 rounded-lg bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white">
+      <div className="p-4 rounded-lg bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white flex items-center justify-between">
         <h4 className="font-semibold text-lg">{title}</h4>
+        {showNote && (
+          <Button
+            onClick={handleGeneratePDF}
+            disabled={generatingPdf}
+            size="sm"
+            className="bg-white text-[#8B5A2B] hover:bg-gray-100 font-semibold"
+          >
+            {generatingPdf ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Génération...
+              </>
+            ) : (
+              <>
+                <FileText className="w-4 h-4 mr-2" />
+                Transmettre
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Zone d'upload */}
