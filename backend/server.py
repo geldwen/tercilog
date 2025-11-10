@@ -2542,21 +2542,63 @@ async def generate_category_pdf(
         fontName='Helvetica-Bold'
     )
     
-    # Logo (si disponible)
+    # En-tête avec logo et cadre décoratif
     logo_path = ROOT_DIR / "assets" / "logo_terciform.png"
     if logo_path.exists():
         try:
-            logo = Image(str(logo_path), width=2*inch, height=0.85*inch)
+            # Logo avec cadre décoratif
+            logo = Image(str(logo_path), width=2.5*inch, height=1.06*inch)
             logo.hAlign = 'CENTER'
-            story.append(logo)
-            story.append(Spacer(1, 20))
-        except:
-            pass
+            
+            # Cadre décoratif autour du logo
+            logo_table = Table([[logo]], colWidths=[5.5*inch])
+            logo_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('TOPPADDING', (0, 0), (-1, -1), 15),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F8F1EC')),
+                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#8B5A2B'))
+            ]))
+            story.append(logo_table)
+            story.append(Spacer(1, 25))
+        except Exception as e:
+            logger.warning(f"Logo not loaded: {e}")
     
-    # Titre principal
-    story.append(Paragraph(f"{category_title}", title_style))
-    story.append(Paragraph(f"Élève : {student.get('name', 'N/A')}", subtitle_style))
-    story.append(Spacer(1, 20))
+    # Bandeau titre avec dégradé visuel
+    title_table = Table([[Paragraph(f"{category_title}", title_style)]], colWidths=[5.5*inch])
+    title_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#8B5A2B')),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 15),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+        ('ROUNDEDCORNERS', [10, 10, 10, 10])
+    ]))
+    
+    # Modifier le style du titre pour texte blanc
+    title_style_white = ParagraphStyle(
+        'CustomTitleWhite',
+        parent=styles['Heading1'],
+        fontSize=22,
+        textColor=colors.white,
+        alignment=1,
+        fontName='Helvetica-Bold'
+    )
+    
+    title_table = Table([[Paragraph(f"{category_title}", title_style_white)]], colWidths=[5.5*inch])
+    title_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#8B5A2B')),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 15),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 15)
+    ]))
+    
+    story.append(title_table)
+    story.append(Spacer(1, 15))
+    story.append(Paragraph(f"<para align=center fontSize=13><b>Élève :</b> {student.get('name', 'N/A')}</para>", subtitle_style))
+    story.append(Spacer(1, 25))
     
     # Section Documents
     if documents:
