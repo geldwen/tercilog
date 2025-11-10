@@ -353,7 +353,7 @@ export default function StudentDashboard({ user, onLogout }) {
               <BookOpen size={28} style={{color: TERCIFORM_BLUE}} />
               <h2 className="text-xl font-bold" style={{color: TERCIFORM_BLUE}}>Ma formation</h2>
             </div>
-            <p className="text-sm" style={{color: TERCIFORM_BLUE}}>Consultez votre parcours complet</p>
+            <p className="text-sm text-gray-600 mt-1">Mon planning et mes émargements</p>
           </button>
 
           <button
