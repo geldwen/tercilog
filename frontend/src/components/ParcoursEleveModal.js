@@ -152,18 +152,25 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
     }
   };
 
-  const handleUpdateNote = async (documentId, note) => {
+  const handleSaveCategoryNote = async () => {
+    if (!noteInput.trim()) {
+      toast.error("Veuillez saisir une note");
+      return;
+    }
+    
     try {
-      await axios.patch(`${API}/students/${studentId}/documents/${documentId}`, 
-        { note },
+      setSavingNote(true);
+      await axios.put(`${API}/students/${studentId}/category-notes/${category}`,
+        { note: noteInput },
         { headers: getAuthHeaders() }
       );
-      toast.success("Note mise à jour");
-      setEditingNote({});
-      loadDocuments();
+      setCategoryNote(noteInput);
+      toast.success("Note validée et enregistrée");
     } catch (error) {
-      console.error("Error updating note:", error);
-      toast.error("Erreur lors de la mise à jour");
+      console.error("Error saving note:", error);
+      toast.error("Erreur lors de l'enregistrement");
+    } finally {
+      setSavingNote(false);
     }
   };
 
