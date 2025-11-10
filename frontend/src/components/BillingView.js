@@ -83,10 +83,15 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
     });
   }, [sessions]);
 
-  // Filtrer par mois
-  const monthSessions = enrichedSessions.filter(s => 
-    s.date && s.date.startsWith(activeMonth)
-  );
+  // Filtrer par mois et trier par date/heure croissante
+  const monthSessions = enrichedSessions
+    .filter(s => s.date && s.date.startsWith(activeMonth))
+    .sort((a, b) => {
+      // Tri par date puis par heure de début
+      const dateCompare = a.date.localeCompare(b.date);
+      if (dateCompare !== 0) return dateCompare;
+      return (a.start_time || '').localeCompare(b.start_time || '');
+    });
 
   // Calculer total du mois (montant et heures)
   const monthTotal = monthSessions.reduce((sum, s) => sum + (s.amount || 0), 0);
