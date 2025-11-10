@@ -404,14 +404,17 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
             </div>
           </TabsContent>
 
-          {/* Onglet Supports de formation */}
+          {/* Onglet Supports de formation - Pleine largeur (pas de note) */}
           <TabsContent value="supports" className="mt-6">
-            <UploadSectionWithNote
-              studentId={student.id}
-              category="support"
-              title="Supports de formation"
-              buttonText="Cliquez ici pour télécharger un support de formation"
-            />
+            <div className="max-w-4xl mx-auto">
+              <UploadSectionWithNote
+                studentId={student.id}
+                category="support"
+                title="Supports de formation"
+                buttonText="Cliquez ici pour télécharger un support de formation"
+                showNote={false}
+              />
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>
