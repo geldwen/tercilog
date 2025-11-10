@@ -2606,8 +2606,8 @@ def generate_category_pdf_content(student_id: str, category: str, student: dict,
         story.append(Paragraph("Documents téléversés", section_title_style))
         story.append(Spacer(1, 10))
         
-        # Créer un tableau pour les documents
-        data = [['N°', 'Nom du fichier', 'Date de téléversement']]
+        # Créer un tableau pour les documents avec visuels
+        data = [['N°', 'Visuel / Aperçu', 'Nom du fichier', 'Date de réalisation']]
         for idx, document in enumerate(documents, 1):
             uploaded_at = document.get('uploaded_at', '')
             if uploaded_at:
@@ -2619,8 +2619,34 @@ def generate_category_pdf_content(student_id: str, category: str, student: dict,
             else:
                 formatted_date = 'Non disponible'
             
+            # Créer une vignette ou icône pour le fichier
+            filepath = Path(document.get('filepath', ''))
+            mime = document.get('mime', '')
+            thumbnail = None
+            
+            if filepath.exists():
+                try:
+                    if mime and 'image' in mime:
+                        # Image : inclure directement avec taille réduite
+                        thumbnail = Image(str(filepath), width=1*inch, height=1*inch)
+                    elif mime and 'pdf' in mime:
+                        # PDF : icône PDF stylisée (texte)
+                        thumbnail = Paragraph("<para align=center><font size=8 color='red'>📄<br/>PDF</font></para>", styles['Normal'])
+                    else:
+                        # Autre : icône générique
+                        thumbnail = Paragraph("<para align=center><font size=8>📎<br/>DOC</font></para>", styles['Normal'])
+                except Exception as e:
+                    logger.warning(f"Could not create thumbnail for {filepath}: {e}")
+                    thumbnail = Paragraph("<para align=center><font size=8>📎</font></para>", styles['Normal'])
+            else:
+                thumbnail = Paragraph("<para align=center><font size=8>❌</font></para>", styles['Normal'])
+            
+            if not thumbnail:
+                thumbnail = Paragraph("<para align=center><font size=8>📎</font></para>", styles['Normal'])
+            
             data.append([
                 str(idx),
+                thumbnail,
                 document.get('filename', 'N/A'),
                 formatted_date
             ])
