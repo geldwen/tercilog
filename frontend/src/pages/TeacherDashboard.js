@@ -1447,72 +1447,12 @@ export default function TeacherDashboard({ user, onLogout }) {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog Parcours élève - 3 onglets pour documents */}
-      <Dialog open={showStudentDocumentsDialog} onOpenChange={setShowStudentDocumentsDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-[#8B5A2B]">
-              Parcours élève - {documentsStudent?.name}
-            </DialogTitle>
-            <DialogDescription>
-              Gérer les documents PDF de l'élève (tests, supports, évaluations)
-            </DialogDescription>
-          </DialogHeader>
-
-          <Tabs defaultValue="test_entree" className="w-full">
-            <TabsList className="gap-2 bg-[#F4EAE3] p-2 rounded-xl w-full grid grid-cols-3">
-              <TabsTrigger 
-                value="test_entree" 
-                className="data-[state=active]:bg-[#8B5A2B] data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-[#8B5A2B] data-[state=inactive]:border data-[state=inactive]:border-[#8B5A2B]/30 font-medium rounded-lg transition-all"
-              >
-                Test d'entrée (positionnement)
-              </TabsTrigger>
-              <TabsTrigger 
-                value="supports" 
-                className="data-[state=active]:bg-[#8B5A2B] data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-[#8B5A2B] data-[state=inactive]:border data-[state=inactive]:border-[#8B5A2B]/30 font-medium rounded-lg transition-all"
-              >
-                Supports de formation
-              </TabsTrigger>
-              <TabsTrigger 
-                value="evaluations" 
-                className="data-[state=active]:bg-[#8B5A2B] data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-[#8B5A2B] data-[state=inactive]:border data-[state=inactive]:border-[#8B5A2B]/30 font-medium rounded-lg transition-all"
-              >
-                Évaluations
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="test_entree" className="mt-6">
-              {documentsStudent && (
-                <FileUploadSection
-                  studentId={documentsStudent.id}
-                  category="test_entree"
-                  categoryLabel="Test d'entrée (positionnement)"
-                />
-              )}
-            </TabsContent>
-
-            <TabsContent value="supports" className="mt-6">
-              {documentsStudent && (
-                <FileUploadSection
-                  studentId={documentsStudent.id}
-                  category="supports"
-                  categoryLabel="Supports de formation"
-                />
-              )}
-            </TabsContent>
-
-            <TabsContent value="evaluations" className="mt-6">
-              {documentsStudent && (
-                <FileUploadSection
-                  studentId={documentsStudent.id}
-                  category="evaluations"
-                  categoryLabel="Évaluations"
-                />
-              )}
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+      {/* Dialog Parcours élève - Nouveau composant avec 2 onglets */}
+      <ParcoursEleveModal
+        open={showStudentDocumentsDialog}
+        onOpenChange={setShowStudentDocumentsDialog}
+        student={documentsStudent}
+      />
     </div>
   );
 }
