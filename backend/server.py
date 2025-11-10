@@ -2334,7 +2334,10 @@ async def upload_student_document(
         student_id=student_id,
         category=category,
         filename=file.filename,
-        filepath=str(filepath)
+        filepath=str(filepath),
+        mime=file.content_type,
+        size=len(content),
+        uploaded_by=current_user.id
     )
     
     doc_dict = document.model_dump()
