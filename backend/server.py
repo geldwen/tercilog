@@ -2601,9 +2601,9 @@ def generate_category_pdf_content(student_id: str, category: str, student: dict,
     story.append(Paragraph(f"<para align=center fontSize=13><b>Élève :</b> {student.get('name', 'N/A')}</para>", subtitle_style))
     story.append(Spacer(1, 25))
     
-    # Section Documents
+    # Section Contenu (Documents)
     if documents:
-        story.append(Paragraph("Documents téléversés", section_title_style))
+        story.append(Paragraph("Contenu", section_title_style))
         story.append(Spacer(1, 10))
         
         # Créer un tableau pour les documents avec visuels
