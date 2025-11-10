@@ -165,10 +165,14 @@ class StudentDocument(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     student_id: str
-    category: str  # "test_entree", "supports", "evaluations"
+    category: str  # "positionnement", "evaluation_cours", "evaluation_fin", "support"
     filename: str
     filepath: str
+    mime: Optional[str] = None
+    size: Optional[int] = None
+    note: Optional[str] = None  # Niveau ou note obtenue (pour tests/évaluations)
     uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    uploaded_by: Optional[str] = None  # ID du formateur qui a uploadé
 
 class StudentFeedback(BaseModel):
     model_config = ConfigDict(extra="ignore")
