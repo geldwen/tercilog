@@ -230,7 +230,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
         formatDateWithTime(s),
         s.student_name || '-',
         s.subject || '-',
-        s.organism || '-',
+        s.organism || 'Zepartner', // Par défaut Zepartner si vide (séances bleues)
         (s.duration_hours || 0).toFixed(1),
         (s.hourly_rate || 0).toFixed(0),
         (s.amount || 0).toFixed(2),
