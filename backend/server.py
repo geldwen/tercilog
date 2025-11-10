@@ -2470,6 +2470,191 @@ async def get_category_note(
     return note
 
 
+@api_router.post("/students/{student_id}/category-notes/{category}/generate-pdf")
+async def generate_category_pdf(
+    student_id: str,
+    category: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Générer un PDF de synthèse pour une catégorie (tests/évaluations)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Récupérer les documents de la catégorie
+    documents = await db.student_documents.find(
+        {"student_id": student_id, "category": category},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Récupérer la note de la catégorie
+    category_note = await db.student_category_notes.find_one(
+        {"student_id": student_id, "category": category},
+        {"_id": 0}
+    )
+    
+    # Mapping des catégories vers titres français
+    category_titles = {
+        "positionnement": "Test de positionnement",
+        "evaluation_cours": "Évaluations en cours de formation",
+        "evaluation_fin": "Évaluations de fin de formation"
+    }
+    
+    category_title = category_titles.get(category, category)
+    
+    # Générer le PDF
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=40, bottomMargin=40)
+    story = []
+    styles = getSampleStyleSheet()
+    
+    # Styles personnalisés
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#8B5A2B'),
+        alignment=1,  # Center
+        spaceAfter=20,
+        fontName='Helvetica-Bold'
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'Subtitle',
+        parent=styles['Normal'],
+        fontSize=14,
+        textColor=colors.HexColor('#6B4522'),
+        alignment=1,
+        spaceAfter=30,
+        fontName='Helvetica-Oblique'
+    )
+    
+    section_title_style = ParagraphStyle(
+        'SectionTitle',
+        parent=styles['Heading2'],
+        fontSize=16,
+        textColor=colors.HexColor('#8B5A2B'),
+        spaceAfter=12,
+        fontName='Helvetica-Bold'
+    )
+    
+    # Logo (si disponible)
+    logo_path = ROOT_DIR / "assets" / "logo_terciform.png"
+    if logo_path.exists():
+        try:
+            logo = Image(str(logo_path), width=2*inch, height=0.85*inch)
+            logo.hAlign = 'CENTER'
+            story.append(logo)
+            story.append(Spacer(1, 20))
+        except:
+            pass
+    
+    # Titre principal
+    story.append(Paragraph(f"{category_title}", title_style))
+    story.append(Paragraph(f"Élève : {student.get('name', 'N/A')}", subtitle_style))
+    story.append(Spacer(1, 20))
+    
+    # Section Documents
+    if documents:
+        story.append(Paragraph("Documents téléversés", section_title_style))
+        story.append(Spacer(1, 10))
+        
+        # Créer un tableau pour les documents
+        data = [['N°', 'Nom du fichier', 'Date de téléversement']]
+        for idx, doc in enumerate(documents, 1):
+            uploaded_at = doc.get('uploaded_at', '')
+            if uploaded_at:
+                try:
+                    dt = datetime.fromisoformat(uploaded_at.replace('Z', '+00:00'))
+                    formatted_date = dt.strftime('%d/%m/%Y à %H:%M')
+                except:
+                    formatted_date = uploaded_at
+            else:
+                formatted_date = 'Non disponible'
+            
+            data.append([
+                str(idx),
+                doc.get('filename', 'N/A'),
+                formatted_date
+            ])
+        
+        table = Table(data, colWidths=[0.6*inch, 3.5*inch, 2*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#8B5A2B')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8F1EC')])
+        ]))
+        
+        story.append(table)
+        story.append(Spacer(1, 30))
+    else:
+        story.append(Paragraph("Aucun document téléversé", styles['Normal']))
+        story.append(Spacer(1, 20))
+    
+    # Section Note
+    if category_note and category_note.get('note'):
+        story.append(Paragraph("Niveau ou note obtenue", section_title_style))
+        story.append(Spacer(1, 15))
+        
+        # Encadré pour la note
+        note_data = [[Paragraph(f"<para align=center fontSize=28 textColor='#8B5A2B'><b>{category_note['note']}</b></para>", styles['Normal'])]]
+        note_table = Table(note_data, colWidths=[5*inch])
+        note_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#FFF9E6')),
+            ('BOX', (0, 0), (-1, -1), 3, colors.HexColor('#8B5A2B')),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 25),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 25)
+        ]))
+        
+        story.append(note_table)
+        story.append(Spacer(1, 10))
+        
+        # Date de validation
+        if category_note.get('validated_at'):
+            try:
+                dt = datetime.fromisoformat(category_note['validated_at'].replace('Z', '+00:00'))
+                formatted_date = dt.strftime('%d/%m/%Y à %H:%M')
+            except:
+                formatted_date = category_note['validated_at']
+            
+            validation_text = f"Note validée le {formatted_date}"
+            story.append(Paragraph(f"<para align=center fontSize=10 textColor='grey'><i>{validation_text}</i></para>", styles['Normal']))
+    else:
+        story.append(Paragraph("Note non encore validée", styles['Normal']))
+    
+    story.append(Spacer(1, 40))
+    
+    # Footer
+    footer_text = f"Document généré le {datetime.now(timezone.utc).strftime('%d/%m/%Y à %H:%M')} - TerciForm"
+    story.append(Paragraph(f"<para align=center fontSize=8 textColor='grey'>{footer_text}</para>", styles['Normal']))
+    
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    
+    # Retourner le PDF
+    filename = f"{category}_{student.get('name', 'eleve').replace(' ', '_')}.pdf"
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
 @api_router.delete("/students/{student_id}/documents/{document_id}")
 async def delete_student_document(
     student_id: str,
