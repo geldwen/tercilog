@@ -385,7 +385,7 @@ export default function StudentDashboard({ user, onLogout }) {
               <MessageSquare size={28} style={{color: TERCIFORM_BLUE}} />
               <h2 className="text-xl font-bold" style={{color: TERCIFORM_BLUE}}>Mes avis</h2>
             </div>
-            <p className="text-sm" style={{color: TERCIFORM_BLUE}}>Partagez votre expérience</p>
+            <p className="text-sm text-gray-600 mt-1">Je partage mon expérience de formation</p>
           </button>
         </div>
 
