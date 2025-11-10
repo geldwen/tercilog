@@ -51,6 +51,20 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
     }
   };
 
+  const loadCategoryNote = async () => {
+    try {
+      const response = await axios.get(`${API}/students/${studentId}/category-notes/${category}`, {
+        headers: getAuthHeaders()
+      });
+      if (response.data.note) {
+        setCategoryNote(response.data.note);
+        setNoteInput(response.data.note);
+      }
+    } catch (error) {
+      console.error("Error loading category note:", error);
+    }
+  };
+
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
     
