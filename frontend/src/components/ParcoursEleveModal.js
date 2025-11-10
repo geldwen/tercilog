@@ -224,23 +224,6 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
         </CardContent>
       </Card>
 
-      {/* Champ note global (optionnel) */}
-      <div className="space-y-2">
-        <Label className="text-sm text-gray-700">Niveau ou note obtenue (optionnel)</Label>
-        <Input 
-          placeholder="Ex: B2, 15/20, Acquis..."
-          className="border-[#8B5A2B]/30 focus:border-[#8B5A2B]"
-          onBlur={(e) => {
-            if (documents.length > 0 && e.target.value) {
-              // Appliquer la note au dernier document uploadé
-              const lastDoc = documents[documents.length - 1];
-              handleUpdateNote(lastDoc.id, e.target.value);
-              e.target.value = '';
-            }
-          }}
-        />
-      </div>
-
       {/* Liste des documents */}
       {loading ? (
         <div className="text-center py-6 text-gray-500">
