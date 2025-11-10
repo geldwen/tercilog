@@ -305,7 +305,8 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
       toast.success('Export PDF réussi !');
     } catch (error) {
       console.error('Erreur export PDF:', error);
-      toast.error('Erreur lors de l\'export PDF');
+      console.error('Stack trace:', error.stack);
+      toast.error(`Erreur lors de l'export PDF: ${error.message || 'Erreur inconnue'}`);
     }
   };
 
