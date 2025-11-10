@@ -2645,27 +2645,49 @@ async def generate_category_pdf(
         story.append(Paragraph("Aucun document téléversé", styles['Normal']))
         story.append(Spacer(1, 20))
     
-    # Section Note
+    # Section Note avec design amélioré
     if category_note and category_note.get('note'):
-        story.append(Paragraph("Niveau ou note obtenue", section_title_style))
+        # Bandeau titre section
+        note_title_table = Table([[Paragraph("Niveau ou note obtenue", section_title_style)]], colWidths=[5.5*inch])
+        note_title_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F4EAE3')),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8)
+        ]))
+        story.append(note_title_table)
         story.append(Spacer(1, 15))
         
-        # Encadré pour la note
-        note_data = [[Paragraph(f"<para align=center fontSize=28 textColor='#8B5A2B'><b>{category_note['note']}</b></para>", styles['Normal'])]]
-        note_table = Table(note_data, colWidths=[5*inch])
+        # Encadré pour la note avec icône checkmark
+        note_content = f"""
+        <para align=center>
+            <font size=32 color='#8B5A2B'><b>{category_note['note']}</b></font>
+        </para>
+        """
+        note_data = [[Paragraph(note_content, styles['Normal'])]]
+        note_table = Table(note_data, colWidths=[4.5*inch])
         note_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#FFF9E6')),
-            ('BOX', (0, 0), (-1, -1), 3, colors.HexColor('#8B5A2B')),
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#FFFBF0')),
+            ('BOX', (0, 0), (-1, -1), 4, colors.HexColor('#8B5A2B')),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('TOPPADDING', (0, 0), (-1, -1), 25),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 25)
+            ('TOPPADDING', (0, 0), (-1, -1), 30),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 30),
+            ('LINEABOVE', (0, 0), (-1, 0), 2, colors.HexColor('#D4A574')),
+            ('LINEBELOW', (0, -1), (-1, -1), 2, colors.HexColor('#D4A574'))
         ]))
         
-        story.append(note_table)
-        story.append(Spacer(1, 10))
+        # Centrer le tableau de note
+        note_wrapper = Table([[note_table]], colWidths=[5.5*inch])
+        note_wrapper.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
+        ]))
         
-        # Date de validation
+        story.append(note_wrapper)
+        story.append(Spacer(1, 12))
+        
+        # Date de validation avec icône
         if category_note.get('validated_at'):
             try:
                 dt = datetime.fromisoformat(category_note['validated_at'].replace('Z', '+00:00'))
@@ -2673,10 +2695,30 @@ async def generate_category_pdf(
             except:
                 formatted_date = category_note['validated_at']
             
-            validation_text = f"Note validée le {formatted_date}"
-            story.append(Paragraph(f"<para align=center fontSize=10 textColor='grey'><i>{validation_text}</i></para>", styles['Normal']))
+            validation_text = f"✓ Note validée le {formatted_date}"
+            validation_para = Paragraph(f"<para align=center fontSize=9 textColor='#6B7280'><i>{validation_text}</i></para>", styles['Normal'])
+            
+            validation_table = Table([[validation_para]], colWidths=[5.5*inch])
+            validation_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#E8F5E9')),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#A5D6A7'))
+            ]))
+            story.append(validation_table)
     else:
-        story.append(Paragraph("Note non encore validée", styles['Normal']))
+        # Message si pas de note
+        no_note_para = Paragraph("<para align=center fontSize=11 textColor='grey'><i>Note non encore validée</i></para>", styles['Normal'])
+        no_note_table = Table([[no_note_para]], colWidths=[5.5*inch])
+        no_note_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F5F5F5')),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('TOPPADDING', (0, 0), (-1, -1), 15),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+            ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#E0E0E0'))
+        ]))
+        story.append(no_note_table)
     
     story.append(Spacer(1, 40))
     
