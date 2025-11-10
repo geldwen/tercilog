@@ -380,13 +380,13 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
       <div className="flex items-center gap-4 text-sm flex-wrap">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-blue-500 rounded"></div>
-          <span>Séance Emergent</span>
+          <span>Zepartner</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-green-50 border border-green-200 rounded"></div>
           <span>Libre</span>
         </div>
-        {uniqueCenters.map(center => (
+        {uniqueCenters.filter(c => c !== 'Zepartner').map(center => (
           <div key={center} className="flex items-center gap-2">
             <div 
               className="w-4 h-4 rounded" 
