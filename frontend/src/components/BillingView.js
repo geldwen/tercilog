@@ -137,7 +137,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
       s.date,
       s.student_name,
       s.subject,
-      s.organism || '-',
+      s.organism || 'Zepartner', // Par défaut Zepartner si vide (séances bleues)
       s.duration_hours,
       s.hourly_rate,
       s.amount,
