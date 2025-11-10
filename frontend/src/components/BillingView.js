@@ -395,7 +395,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
                       {session.subject}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {session.organism || '-'}
+                      {session.organism || 'Zepartner'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900 text-right">
                       {session.duration_hours.toFixed(2)}
