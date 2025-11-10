@@ -2396,30 +2396,78 @@ async def download_student_document(
     return FileResponse(filepath, filename=document['filename'])
 
 
-@api_router.patch("/students/{student_id}/documents/{document_id}")
-async def update_student_document_note(
+@api_router.put("/students/{student_id}/category-notes/{category}")
+async def set_category_note(
     student_id: str,
-    document_id: str,
+    category: str,
     data: dict,
     current_user: User = Depends(get_current_user)
 ):
-    """Mettre à jour la note d'un document"""
+    """Créer ou mettre à jour la note pour une catégorie entière"""
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
-    document = await db.student_documents.find_one({"id": document_id, "student_id": student_id}, {"_id": 0})
-    if not document:
-        raise HTTPException(status_code=404, detail="Document not found")
+    # Vérifier que l'élève existe
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
     
-    # Mettre à jour la note
-    note = data.get('note', '')
-    await db.student_documents.update_one(
-        {"id": document_id},
-        {"$set": {"note": note}}
+    note_value = data.get('note', '').strip()
+    if not note_value:
+        raise HTTPException(status_code=400, detail="Note cannot be empty")
+    
+    # Chercher si une note existe déjà pour cette catégorie
+    existing = await db.student_category_notes.find_one(
+        {"student_id": student_id, "category": category}, 
+        {"_id": 0}
     )
     
-    logger.info(f"Document note updated: {document['filename']} - note: {note}")
-    return {"message": "Note updated", "note": note}
+    if existing:
+        # Mettre à jour
+        await db.student_category_notes.update_one(
+            {"student_id": student_id, "category": category},
+            {"$set": {
+                "note": note_value,
+                "validated_at": datetime.now(timezone.utc).isoformat(),
+                "validated_by": current_user.id
+            }}
+        )
+        logger.info(f"Category note updated: {category} for student {student_id} - note: {note_value}")
+        return {"message": "Note updated", "note": note_value}
+    else:
+        # Créer
+        category_note = StudentCategoryNote(
+            student_id=student_id,
+            category=category,
+            note=note_value,
+            validated_by=current_user.id
+        )
+        note_dict = category_note.model_dump()
+        note_dict['validated_at'] = note_dict['validated_at'].isoformat()
+        await db.student_category_notes.insert_one(note_dict)
+        logger.info(f"Category note created: {category} for student {student_id} - note: {note_value}")
+        return {"message": "Note created", "note": note_value}
+
+
+@api_router.get("/students/{student_id}/category-notes/{category}")
+async def get_category_note(
+    student_id: str,
+    category: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer la note d'une catégorie"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    note = await db.student_category_notes.find_one(
+        {"student_id": student_id, "category": category},
+        {"_id": 0}
+    )
+    
+    if not note:
+        return {"note": None}
+    
+    return note
 
 
 @api_router.delete("/students/{student_id}/documents/{document_id}")
