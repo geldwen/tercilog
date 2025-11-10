@@ -270,6 +270,75 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
           ))}
         </div>
       )}
+
+      {/* Note/Niveau global pour la catégorie (seulement pour les tests/évaluations) */}
+      {showNote && (
+        <Card className="border-2 border-[#8B5A2B]/40 bg-gradient-to-br from-amber-50 to-yellow-50">
+          <CardContent className="pt-4 pb-4">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold text-gray-800">
+                  Niveau ou note obtenue
+                </Label>
+                {categoryNote && (
+                  <span className="text-xs text-gray-500">
+                    Dernière validation enregistrée
+                  </span>
+                )}
+              </div>
+              
+              {categoryNote ? (
+                <div className="p-4 bg-white rounded-lg border-2 border-[#8B5A2B] shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Note validée :</p>
+                      <p className="text-2xl font-bold text-[#8B5A2B]">{categoryNote}</p>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setCategoryNote('');
+                        setNoteInput('');
+                      }}
+                      size="sm"
+                      variant="outline"
+                      className="text-[#8B5A2B] border-[#8B5A2B]/30"
+                    >
+                      Modifier
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Input 
+                    placeholder="Ex: B2, 15/20, Acquis, 85%..."
+                    value={noteInput}
+                    onChange={(e) => setNoteInput(e.target.value)}
+                    className="border-[#8B5A2B]/40 focus:border-[#8B5A2B] text-base font-medium"
+                  />
+                  <Button
+                    onClick={handleSaveCategoryNote}
+                    disabled={savingNote || !noteInput.trim()}
+                    className="w-full bg-[#8B5A2B] hover:bg-[#7A4F26] text-white font-semibold"
+                  >
+                    {savingNote ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Validation en cours...
+                      </>
+                    ) : (
+                      '✓ Valider cette note'
+                    )}
+                  </Button>
+                </div>
+              )}
+              
+              <p className="text-xs text-gray-500 italic">
+                Cette note représente le niveau global obtenu pour cette catégorie et permet de suivre l'évolution de l'élève.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
