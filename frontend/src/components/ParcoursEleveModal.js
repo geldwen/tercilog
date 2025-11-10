@@ -20,15 +20,20 @@ const getAuthHeaders = () => {
   };
 };
 
-// Composant pour une section d'upload avec note
-function UploadSectionWithNote({ studentId, category, title, buttonText }) {
+// Composant pour une section d'upload avec note GLOBALE par catégorie
+function UploadSectionWithNote({ studentId, category, title, buttonText, showNote = false }) {
   const [documents, setDocuments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [editingNote, setEditingNote] = useState({});
+  const [categoryNote, setCategoryNote] = useState('');
+  const [noteInput, setNoteInput] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
 
   useEffect(() => {
     loadDocuments();
+    if (showNote) {
+      loadCategoryNote();
+    }
   }, [studentId, category]);
 
   const loadDocuments = async () => {
