@@ -2565,8 +2565,8 @@ async def generate_category_pdf(
         
         # Créer un tableau pour les documents
         data = [['N°', 'Nom du fichier', 'Date de téléversement']]
-        for idx, doc in enumerate(documents, 1):
-            uploaded_at = doc.get('uploaded_at', '')
+        for idx, document in enumerate(documents, 1):
+            uploaded_at = document.get('uploaded_at', '')
             if uploaded_at:
                 try:
                     dt = datetime.fromisoformat(uploaded_at.replace('Z', '+00:00'))
@@ -2578,7 +2578,7 @@ async def generate_category_pdf(
             
             data.append([
                 str(idx),
-                doc.get('filename', 'N/A'),
+                document.get('filename', 'N/A'),
                 formatted_date
             ])
         
