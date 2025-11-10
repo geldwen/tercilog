@@ -308,9 +308,14 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
               {categoryNote ? (
                 <div className="p-4 bg-white rounded-lg border-2 border-[#8B5A2B] shadow-sm">
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm text-gray-600 mb-1">Note validée :</p>
                       <p className="text-2xl font-bold text-[#8B5A2B]">{categoryNote}</p>
+                      {noteValidatedAt && (
+                        <p className="text-xs text-gray-400 italic mt-2">
+                          ✓ Validée le {formatDateTime(noteValidatedAt)}
+                        </p>
+                      )}
                     </div>
                     <Button
                       onClick={() => {
