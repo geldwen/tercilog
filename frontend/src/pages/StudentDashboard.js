@@ -369,7 +369,7 @@ export default function StudentDashboard({ user, onLogout }) {
               <TrendingUp size={28} style={{color: TERCIFORM_BLUE}} />
               <h2 className="text-xl font-bold" style={{color: TERCIFORM_BLUE}}>Mon parcours</h2>
             </div>
-            <p className="text-sm" style={{color: TERCIFORM_BLUE}}>Livret et besoins en formation</p>
+            <p className="text-sm text-gray-600 mt-1">Mon livret d'accueil, mes tests, mes ressources</p>
           </button>
 
           <button
