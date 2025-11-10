@@ -257,6 +257,9 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-gray-900 truncate text-sm">{doc.filename}</p>
                       <p className="text-xs text-gray-500">{formatFileSize(doc.size)}</p>
+                      <p className="text-xs text-gray-400 italic mt-1">
+                        📅 Téléversé le {formatDateTime(doc.uploaded_at)}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
