@@ -245,45 +245,6 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-gray-900 truncate text-sm">{doc.filename}</p>
                       <p className="text-xs text-gray-500">{formatFileSize(doc.size)}</p>
-                      {editingNote[doc.id] !== undefined ? (
-                        <div className="mt-2 flex items-center gap-2">
-                          <Input
-                            value={editingNote[doc.id]}
-                            onChange={(e) => setEditingNote({ ...editingNote, [doc.id]: e.target.value })}
-                            placeholder="Note..."
-                            className="text-xs h-8"
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() => handleUpdateNote(doc.id, editingNote[doc.id])}
-                            className="h-8 bg-[#8B5A2B] hover:bg-[#7A4F26]"
-                          >
-                            ✓
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setEditingNote({})}
-                            className="h-8"
-                          >
-                            ✕
-                          </Button>
-                        </div>
-                      ) : doc.note ? (
-                        <div 
-                          className="mt-1 text-xs bg-green-100 text-green-800 px-2 py-1 rounded inline-block cursor-pointer"
-                          onClick={() => setEditingNote({ [doc.id]: doc.note })}
-                        >
-                          Note : {doc.note}
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setEditingNote({ [doc.id]: '' })}
-                          className="mt-1 text-xs text-[#8B5A2B] hover:underline"
-                        >
-                          + Ajouter une note
-                        </button>
-                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
