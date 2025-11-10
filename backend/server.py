@@ -2690,10 +2690,10 @@ def generate_category_pdf_content(student_id: str, category: str, student: dict,
         story.append(note_title_table)
         story.append(Spacer(1, 15))
         
-        # Encadré pour la note avec icône checkmark
+        # Encadré pour la note - BIEN CENTRÉ
         note_content = f"""
-        <para align=center>
-            <font size=32 color='#8B5A2B'><b>{category_note['note']}</b></font>
+        <para alignment=1 spaceAfter=0>
+            <font size=36 color='#8B5A2B'><b>{category_note['note']}</b></font>
         </para>
         """
         note_data = [[Paragraph(note_content, styles['Normal'])]]
@@ -2703,8 +2703,10 @@ def generate_category_pdf_content(student_id: str, category: str, student: dict,
             ('BOX', (0, 0), (-1, -1), 4, colors.HexColor('#8B5A2B')),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('TOPPADDING', (0, 0), (-1, -1), 30),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 30),
+            ('LEFTPADDING', (0, 0), (-1, -1), 30),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 30),
+            ('TOPPADDING', (0, 0), (-1, -1), 35),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 35),
             ('LINEABOVE', (0, 0), (-1, 0), 2, colors.HexColor('#D4A574')),
             ('LINEBELOW', (0, -1), (-1, -1), 2, colors.HexColor('#D4A574'))
         ]))
