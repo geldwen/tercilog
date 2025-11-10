@@ -170,11 +170,43 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
       );
       setCategoryNote(noteInput);
       toast.success("Note validée et enregistrée");
+      loadCategoryNote(); // Recharger pour avoir validated_at
     } catch (error) {
       console.error("Error saving note:", error);
       toast.error("Erreur lors de l'enregistrement");
     } finally {
       setSavingNote(false);
+    }
+  };
+
+  const handleGeneratePDF = async () => {
+    try {
+      setGeneratingPdf(true);
+      const response = await axios.post(
+        `${API}/students/${studentId}/category-notes/${category}/generate-pdf`,
+        {},
+        {
+          headers: getAuthHeaders(),
+          responseType: 'blob'
+        }
+      );
+      
+      // Créer un lien de téléchargement
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${category}_synthese.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("PDF généré avec succès !");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Erreur lors de la génération du PDF");
+    } finally {
+      setGeneratingPdf(false);
     }
   };
 
