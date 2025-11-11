@@ -4847,11 +4847,11 @@ class TerciFormTester:
                 token=self.teacher_token
             )
             
-            if response and response.status_code in [200, 404]:  # Both are acceptable for invalid category
+            if response is not None and response.status_code in [200, 404]:  # Both are acceptable for invalid category
                 self.log(f"✅ Invalid category handled gracefully (status: {response.status_code})")
                 error_tests_passed += 1
             else:
-                self.log(f"❌ Invalid category returned {response.status_code if response else 'No response'}")
+                self.log(f"❌ Invalid category returned {response.status_code if response is not None else 'No response'}")
             
             # 4c: Test without authentication token
             self.log("--- Testing without authentication ---")
