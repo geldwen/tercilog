@@ -468,7 +468,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Student Documents Management API Testing Completed"
+    - "PDF Preview with Robust 3-Tier Fallback System"
+    - "Student Documents Management - Parcours élève Modal"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
