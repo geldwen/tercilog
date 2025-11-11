@@ -625,20 +625,64 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
               />
             </div>
             
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                onClick={() => setShowEmailModal(false)}
-                variant="outline"
-                className="text-[#8B5A2B] border-[#8B5A2B]/30"
-              >
-                Annuler
-              </Button>
+            {/* Aperçu du PDF */}
+            {showPreview && pdfPreviewUrl && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-[#8B5A2B]">
+                  Aperçu du document
+                </Label>
+                <div className="border-2 border-[#8B5A2B]/30 rounded-lg overflow-hidden">
+                  <iframe
+                    src={pdfPreviewUrl}
+                    className="w-full h-96"
+                    title="Aperçu PDF"
+                  />
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-between gap-2 pt-4">
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    setShowEmailModal(false);
+                    setShowPreview(false);
+                    if (pdfPreviewUrl) {
+                      window.URL.revokeObjectURL(pdfPreviewUrl);
+                      setPdfPreviewUrl('');
+                    }
+                  }}
+                  variant="outline"
+                  className="text-[#8B5A2B] border-[#8B5A2B]/30"
+                >
+                  Annuler
+                </Button>
+                <Button
+                  onClick={handlePreviewPdf}
+                  disabled={generatingPdf}
+                  variant="outline"
+                  className="text-[#8B5A2B] border-[#8B5A2B]/30"
+                >
+                  {generatingPdf && !showPreview ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Génération...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4 mr-2" />
+                      {showPreview ? 'Actualiser' : 'Aperçu'}
+                    </>
+                  )}
+                </Button>
+              </div>
+              
               <Button
                 onClick={handleSendEmail}
                 disabled={generatingPdf || !emailTo.trim()}
                 className="bg-[#8B5A2B] hover:bg-[#7A4F26] text-white"
               >
-                {generatingPdf ? (
+                {generatingPdf && showPreview ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Envoi...
