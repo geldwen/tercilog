@@ -218,21 +218,11 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
         {showNote && (
           <Button
             onClick={handleOpenEmailModal}
-            disabled={generatingPdf}
             size="sm"
             className="bg-white text-[#8B5A2B] hover:bg-gray-100 font-semibold"
           >
-            {generatingPdf ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Génération...
-              </>
-            ) : (
-              <>
-                <Mail className="w-4 h-4 mr-2" />
-                Transmettre
-              </>
-            )}
+            <Mail className="w-4 h-4 mr-2" />
+            Transmettre
           </Button>
         )}
       </div>
