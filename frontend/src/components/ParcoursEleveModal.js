@@ -385,6 +385,73 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
 
 // Composant principal de la modale
 export default function ParcoursEleveModal({ open, onOpenChange, student }) {
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailCategory, setEmailCategory] = useState('');
+  const [emailStudentId, setEmailStudentId] = useState('');
+  const [emailTo, setEmailTo] = useState('');
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  const handleOpenEmailModal = (category, studentId) => {
+    const categoryTitles = {
+      'positionnement': 'Test de positionnement',
+      'evaluation_cours': 'Évaluations en cours de formation',
+      'evaluation_fin': 'Évaluations de fin de formation'
+    };
+    const categoryLabel = categoryTitles[category] || category;
+    
+    setEmailCategory(category);
+    setEmailStudentId(studentId);
+    setEmailSubject(`${categoryLabel} - Synthèse`);
+    setEmailBody(`Bonjour,\n\nVeuillez trouver ci-joint le document de synthèse "${categoryLabel}".\n\nCordialement,`);
+    setShowEmailModal(true);
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailTo.trim()) {
+      toast.error("Veuillez saisir au moins un destinataire");
+      return;
+    }
+    
+    try {
+      setGeneratingPdf(true);
+      
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${API}/students/${emailStudentId}/category-notes/${emailCategory}/generate-pdf`,
+        {},
+        {
+          headers: { 'Authorization': `Bearer ${token}` },
+          responseType: 'blob'
+        }
+      );
+      
+      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+      const pdfUrl = window.URL.createObjectURL(pdfBlob);
+      
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.setAttribute('download', `${emailCategory}_synthese.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(pdfUrl);
+      
+      const mailtoLink = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody + '\n\n(Veuillez attacher le PDF téléchargé)')}`;
+      window.location.href = mailtoLink;
+      
+      toast.success("PDF téléchargé et client email ouvert !");
+      setShowEmailModal(false);
+      setEmailTo('');
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Erreur lors de la génération du PDF");
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
   if (!student) return null;
 
   return (
