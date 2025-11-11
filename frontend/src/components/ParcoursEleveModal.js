@@ -27,6 +27,7 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
   const [loading, setLoading] = useState(true);
   const [categoryNote, setCategoryNote] = useState('');
   const [noteInput, setNoteInput] = useState('');
+  const [noteValidatedAt, setNoteValidatedAt] = useState('');
   const [savingNote, setSavingNote] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
