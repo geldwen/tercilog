@@ -29,6 +29,10 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
   const [noteInput, setNoteInput] = useState('');
   const [savingNote, setSavingNote] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailTo, setEmailTo] = useState('');
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
 
   useEffect(() => {
     loadDocuments();
