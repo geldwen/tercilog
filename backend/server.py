@@ -2691,7 +2691,7 @@ async def generate_category_pdf(
         
         # Encadré pour la note - BIEN CENTRÉ
         note_content = f"""
-        <para alignment=1 spaceAfter=0>
+        <para align=center spaceAfter=0>
             <font size=36 color='#8B5A2B'><b>{category_note['note']}</b></font>
         </para>
         """
@@ -3058,7 +3058,7 @@ async def preview_pdf(
         story.append(Spacer(1, 15))
         
         note_content = f"""
-        <para alignment=1 spaceAfter=0>
+        <para align=center spaceAfter=0>
             <font size=36 color='#8B5A2B'><b>{category_note['note']}</b></font>
         </para>
         """
