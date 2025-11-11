@@ -4833,11 +4833,11 @@ class TerciFormTester:
                 token=self.teacher_token
             )
             
-            if response and response.status_code == 404:
+            if response is not None and response.status_code == 404:
                 self.log("✅ Non-existent student_id returns 404")
                 error_tests_passed += 1
             else:
-                self.log(f"❌ Non-existent student_id returned {response.status_code if response else 'No response'}, expected 404")
+                self.log(f"❌ Non-existent student_id returned {response.status_code if response is not None else 'No response'}, expected 404")
             
             # 4b: Test with invalid category
             self.log("--- Testing invalid category ---")
