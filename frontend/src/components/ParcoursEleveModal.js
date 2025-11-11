@@ -530,9 +530,8 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
       
       if (!pdfUrl) {
         const token = localStorage.getItem('token');
-        const response = await axios.post(
-          `${API}/students/${emailStudentId}/category-notes/${emailCategory}/generate-pdf`,
-          {},
+        const response = await axios.get(
+          `${API}/pdf/preview?student_id=${emailStudentId}&category=${emailCategory}`,
           {
             headers: { 'Authorization': `Bearer ${token}` },
             responseType: 'blob'
