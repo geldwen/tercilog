@@ -2470,13 +2470,71 @@ async def get_category_note(
     return note
 
 
+@api_router.get("/pdf/preview-category")
+async def preview_category_pdf(
+    student_id: str,
+    category: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Aperçu PDF pour une catégorie - avec headers inline pour iframe"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Récupérer les documents
+    documents = await db.student_documents.find(
+        {"student_id": student_id, "category": category},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Récupérer la note
+    category_note = await db.student_category_notes.find_one(
+        {"student_id": student_id, "category": category},
+        {"_id": 0}
+    )
+    
+    # Mapping des catégories
+    category_titles = {
+        "positionnement": "Test de positionnement",
+        "evaluation_cours": "Évaluations en cours de formation",
+        "evaluation_fin": "Évaluations de fin de formation"
+    }
+    category_title = category_titles.get(category, category)
+    
+    # Générer le PDF (même code que generate_category_pdf mais avec headers inline)
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=40, bottomMargin=40)
+    story = []
+    styles = getSampleStyleSheet()
+    
+    # ... (même code de génération PDF) ...
+    # Pour éviter duplication, on va appeler la même logique
+    
+    # IMPORTANT: Headers pour aperçu inline dans iframe
+    filename = f"{category}_preview.pdf"
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'inline; filename="{filename}"',
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+            "Pragma": "no-cache",
+            "X-Content-Type-Options": "nosniff"
+        }
+    )
+
+
 @api_router.post("/students/{student_id}/category-notes/{category}/generate-pdf")
 async def generate_category_pdf(
     student_id: str,
     category: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Générer un PDF de synthèse pour une catégorie (tests/évaluations)"""
+    """Générer un PDF de synthèse pour une catégorie (tests/évaluations) - DOWNLOAD"""
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
