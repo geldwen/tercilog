@@ -711,24 +711,38 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
                 <div className="border-2 border-[#8B5A2B]/30 rounded-lg overflow-hidden bg-gray-50">
                   <iframe
                     src={pdfPreviewUrl}
-                    className="w-full h-96"
+                    className="w-full h-96 border-0"
                     title="Aperçu PDF"
                     onLoad={() => {
                       console.log('[PDF Preview] Iframe loaded successfully');
                     }}
                     onError={(e) => {
                       console.error('[PDF Preview] Iframe error:', e);
-                      toast.warning("Impossible d'afficher l'aperçu. Ouvrez-le dans un nouvel onglet.");
+                      toast.warning("Impossible d'afficher l'aperçu intégré.");
+                      
                       // Fallback: ouvrir dans nouvel onglet
-                      setTimeout(() => {
-                        window.open(pdfPreviewUrl, '_blank', 'noopener,noreferrer');
-                      }, 1000);
+                      const newTab = window.open(pdfPreviewUrl, '_blank', 'noopener,noreferrer');
+                      if (newTab && !newTab.closed) {
+                        toast.info("Ouverture dans un nouvel onglet...");
+                      } else {
+                        // Si pop-up bloqué, forcer le téléchargement
+                        const link = document.createElement('a');
+                        link.href = pdfPreviewUrl;
+                        link.download = `${emailCategory}_apercu.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        toast.info("Téléchargement en cours...");
+                      }
+                      
+                      // Fermer la preview
+                      setShowPreview(false);
                     }}
-                    sandbox="allow-same-origin allow-scripts allow-forms allow-downloads allow-popups"
+                    sandbox="allow-same-origin allow-scripts allow-downloads"
                   />
                 </div>
                 <p className="text-xs text-gray-500 italic">
-                  💡 Si l'aperçu ne s'affiche pas, il s'ouvrira automatiquement dans un nouvel onglet
+                  💡 Si l'aperçu ne s'affiche pas, il s'ouvrira automatiquement dans un nouvel onglet ou se téléchargera
                 </p>
               </div>
             )}
