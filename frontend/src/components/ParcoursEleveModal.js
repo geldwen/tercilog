@@ -413,6 +413,7 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
   const handlePreviewPdf = async () => {
     try {
       setGeneratingPdf(true);
+      console.log('[PDF Preview] Starting PDF generation...');
       
       const token = localStorage.getItem('token');
       const response = await axios.post(
@@ -420,20 +421,71 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
         {},
         {
           headers: { 'Authorization': `Bearer ${token}` },
-          responseType: 'blob'
+          responseType: 'blob',
+          timeout: 30000 // 30 secondes timeout
         }
       );
+      
+      console.log('[PDF Preview] PDF received, size:', response.data.size, 'bytes');
+      console.log('[PDF Preview] Content-Type:', response.headers['content-type']);
+      
+      // Vérifier que c'est bien un PDF
+      if (!response.data.type.includes('pdf') && !response.headers['content-type']?.includes('pdf')) {
+        throw new Error('Le fichier reçu n\'est pas un PDF valide');
+      }
       
       const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
       const pdfUrl = window.URL.createObjectURL(pdfBlob);
       
-      setPdfPreviewUrl(pdfUrl);
-      setShowPreview(true);
+      console.log('[PDF Preview] Blob URL created:', pdfUrl);
       
-      toast.success("Aperçu du PDF chargé");
+      // STRATÉGIE 1: Tenter l'iframe
+      try {
+        setPdfPreviewUrl(pdfUrl);
+        setShowPreview(true);
+        toast.success("Aperçu du PDF chargé");
+        console.log('[PDF Preview] Iframe preview loaded successfully');
+      } catch (iframeError) {
+        console.warn('[PDF Preview] Iframe failed, trying new tab...', iframeError);
+        
+        // STRATÉGIE 2: Nouvel onglet
+        try {
+          const newTab = window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+          if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+            throw new Error('Pop-up bloqué');
+          }
+          toast.info("Aperçu ouvert dans un nouvel onglet");
+          console.log('[PDF Preview] Opened in new tab');
+        } catch (tabError) {
+          console.warn('[PDF Preview] New tab failed, downloading...', tabError);
+          
+          // STRATÉGIE 3: Download fallback
+          const link = document.createElement('a');
+          link.href = pdfUrl;
+          link.download = `${emailCategory}_apercu.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          toast.info("Aperçu téléchargé (pop-ups bloqués)");
+          console.log('[PDF Preview] Downloaded as fallback');
+        }
+      }
     } catch (error) {
-      console.error("Error generating PDF preview:", error);
-      toast.error("Erreur lors de la génération de l'aperçu");
+      console.error('[PDF Preview] Error:', error);
+      console.error('[PDF Preview] Stack:', error.stack);
+      
+      let errorMessage = "Erreur lors de la génération de l'aperçu";
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = "Timeout: la génération du PDF prend trop de temps";
+      } else if (error.response) {
+        errorMessage = `Erreur serveur: ${error.response.status} - ${error.response.data?.detail || error.response.statusText}`;
+      } else if (error.request) {
+        errorMessage = "Pas de réponse du serveur";
+      } else {
+        errorMessage = error.message || "Erreur inconnue";
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setGeneratingPdf(false);
     }
