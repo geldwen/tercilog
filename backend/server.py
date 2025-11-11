@@ -2470,40 +2470,6 @@ async def get_category_note(
     return note
 
 
-@api_router.get("/pdf/preview-category")
-async def preview_category_pdf(
-    student_id: str,
-    category: str,
-    inline: bool = True,
-    current_user: User = Depends(get_current_user)
-):
-    """Aperçu PDF pour une catégorie - retourne en base64 pour éviter CORS"""
-    if current_user.role != "teacher":
-        raise HTTPException(status_code=403, detail="Access denied")
-    
-    # Générer le PDF (appeler le endpoint existant en interne)
-    # Pour simplifier, on fait un appel direct à la génération
-    try:
-        # Utiliser la même logique que generate_category_pdf mais retourner en base64
-        response = await generate_category_pdf(student_id, category, current_user)
-        
-        # Lire le contenu du PDF
-        pdf_content = response.body
-        
-        # Retourner en base64 pour éviter CORS
-        import base64
-        pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
-        
-        return {
-            "data": pdf_base64,
-            "filename": f"{category}_preview.pdf",
-            "mimeType": "application/pdf"
-        }
-    except Exception as e:
-        logger.error(f"Error generating preview PDF: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @api_router.post("/students/{student_id}/category-notes/{category}/generate-pdf")
 async def generate_category_pdf(
     student_id: str,
