@@ -177,65 +177,10 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
     }
   };
 
+  // Fonction simplifiée - on appelle juste le callback parent
   const handleOpenEmailModal = () => {
-    // Préparer le sujet et le corps par défaut
-    const categoryTitles = {
-      'positionnement': 'Test de positionnement',
-      'evaluation_cours': 'Évaluations en cours de formation',
-      'evaluation_fin': 'Évaluations de fin de formation'
-    };
-    const categoryLabel = categoryTitles[category] || category;
-    
-    setEmailSubject(`${categoryLabel} - Synthèse`);
-    setEmailBody(`Bonjour,\n\nVeuillez trouver ci-joint le document de synthèse "${categoryLabel}".\n\nCordialement,`);
-    setShowEmailModal(true);
-  };
-
-  const handleSendEmail = async () => {
-    if (!emailTo.trim()) {
-      toast.error("Veuillez saisir au moins un destinataire");
-      return;
-    }
-    
-    try {
-      setGeneratingPdf(true);
-      
-      // Générer le PDF
-      const response = await axios.post(
-        `${API}/students/${studentId}/category-notes/${category}/generate-pdf`,
-        {},
-        {
-          headers: getAuthHeaders(),
-          responseType: 'blob'
-        }
-      );
-      
-      // Créer un blob URL pour le PDF
-      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
-      const pdfUrl = window.URL.createObjectURL(pdfBlob);
-      
-      // Créer un lien mailto avec le PDF (note: les pièces jointes ne fonctionnent pas avec mailto)
-      // À la place, on télécharge le PDF et on informe l'utilisateur
-      const link = document.createElement('a');
-      link.href = pdfUrl;
-      link.setAttribute('download', `${category}_synthese.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(pdfUrl);
-      
-      // Ouvrir le client email avec le sujet et le corps
-      const mailtoLink = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody + '\n\n(Veuillez attacher le PDF téléchargé)')}`;
-      window.location.href = mailtoLink;
-      
-      toast.success("PDF téléchargé et client email ouvert !");
-      setShowEmailModal(false);
-      setEmailTo('');
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Erreur lors de la génération du PDF");
-    } finally {
-      setGeneratingPdf(false);
+    if (onOpenEmailModal) {
+      onOpenEmailModal(category, studentId);
     }
   };
 
