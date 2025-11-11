@@ -21,7 +21,7 @@ const getAuthHeaders = () => {
 };
 
 // Composant pour une section d'upload avec note GLOBALE par catégorie
-function UploadSectionWithNote({ studentId, category, title, buttonText, showNote = false }) {
+function UploadSectionWithNote({ studentId, category, title, buttonText, showNote = false, onOpenEmailModal }) {
   const [documents, setDocuments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -29,11 +29,6 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
   const [noteInput, setNoteInput] = useState('');
   const [noteValidatedAt, setNoteValidatedAt] = useState('');
   const [savingNote, setSavingNote] = useState(false);
-  const [generatingPdf, setGeneratingPdf] = useState(false);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [emailTo, setEmailTo] = useState('');
-  const [emailSubject, setEmailSubject] = useState('');
-  const [emailBody, setEmailBody] = useState('');
 
   useEffect(() => {
     loadDocuments();
