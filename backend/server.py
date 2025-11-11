@@ -2854,6 +2854,292 @@ async def delete_student_document(
     return {"message": "Document deleted"}
 
 
+@api_router.get("/pdf/preview")
+async def preview_pdf(
+    student_id: str,
+    category: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Endpoint pour prévisualiser le PDF d'une catégorie (Tests/Évaluations)
+    Retourne le PDF en flux binaire avec headers same-origin pour aperçu iframe
+    """
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Récupérer les documents de la catégorie
+    documents = await db.student_documents.find(
+        {"student_id": student_id, "category": category},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Récupérer la note de la catégorie
+    category_note = await db.student_category_notes.find_one(
+        {"student_id": student_id, "category": category},
+        {"_id": 0}
+    )
+    
+    # Mapping des catégories vers titres français
+    category_titles = {
+        "positionnement": "Test de positionnement",
+        "evaluation_cours": "Évaluations en cours de formation",
+        "evaluation_fin": "Évaluations de fin de formation"
+    }
+    
+    category_title = category_titles.get(category, category)
+    
+    # Générer le PDF (même logique que generate_category_pdf)
+    buffer = io.BytesIO()
+    doc_pdf = SimpleDocTemplate(buffer, pagesize=A4, topMargin=40, bottomMargin=40)
+    story = []
+    styles = getSampleStyleSheet()
+    
+    # Styles personnalisés
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#8B5A2B'),
+        alignment=1,  # Center
+        spaceAfter=20,
+        fontName='Helvetica-Bold'
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'Subtitle',
+        parent=styles['Normal'],
+        fontSize=14,
+        textColor=colors.HexColor('#6B4522'),
+        alignment=1,
+        spaceAfter=30,
+        fontName='Helvetica-Oblique'
+    )
+    
+    section_title_style = ParagraphStyle(
+        'SectionTitle',
+        parent=styles['Heading2'],
+        fontSize=16,
+        textColor=colors.HexColor('#8B5A2B'),
+        spaceAfter=12,
+        fontName='Helvetica-Bold'
+    )
+    
+    # En-tête avec logo
+    logo_path = ROOT_DIR / "assets" / "logo_terciform.png"
+    if logo_path.exists():
+        try:
+            logo = Image(str(logo_path), width=2.5*inch, height=1.06*inch)
+            logo.hAlign = 'CENTER'
+            
+            logo_table = Table([[logo]], colWidths=[5.5*inch])
+            logo_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('TOPPADDING', (0, 0), (-1, -1), 15),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F8F1EC')),
+                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#8B5A2B'))
+            ]))
+            story.append(logo_table)
+            story.append(Spacer(1, 25))
+        except Exception as e:
+            logger.warning(f"Logo not loaded: {e}")
+    
+    # Titre
+    title_style_white = ParagraphStyle(
+        'CustomTitleWhite',
+        parent=styles['Heading1'],
+        fontSize=22,
+        textColor=colors.white,
+        alignment=1,
+        fontName='Helvetica-Bold'
+    )
+    
+    title_table = Table([[Paragraph(f"{category_title}", title_style_white)]], colWidths=[5.5*inch])
+    title_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#8B5A2B')),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 15),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 15)
+    ]))
+    
+    story.append(title_table)
+    story.append(Spacer(1, 15))
+    story.append(Paragraph(f"<para align=center fontSize=13><b>Élève :</b> {student.get('name', 'N/A')}</para>", subtitle_style))
+    story.append(Spacer(1, 25))
+    
+    # Section Documents
+    if documents:
+        story.append(Paragraph("Contenu", section_title_style))
+        story.append(Spacer(1, 10))
+        
+        data = [['N°', 'Visuel / Aperçu', 'Nom du fichier', 'Date de réalisation']]
+        for idx, document in enumerate(documents, 1):
+            uploaded_at = document.get('uploaded_at', '')
+            if uploaded_at:
+                try:
+                    dt = datetime.fromisoformat(uploaded_at.replace('Z', '+00:00'))
+                    formatted_date = dt.strftime('%d/%m/%Y à %H:%M')
+                except:
+                    formatted_date = uploaded_at
+            else:
+                formatted_date = 'Non disponible'
+            
+            filepath = Path(document.get('filepath', ''))
+            mime = document.get('mime', '')
+            thumbnail = None
+            
+            if filepath.exists():
+                try:
+                    if mime and 'image' in mime:
+                        thumbnail = Image(str(filepath), width=1*inch, height=1*inch)
+                    elif mime and 'pdf' in mime:
+                        thumbnail = Paragraph("<para align=center><font size=8 color='red'>📄<br/>PDF</font></para>", styles['Normal'])
+                    else:
+                        thumbnail = Paragraph("<para align=center><font size=8>📎<br/>DOC</font></para>", styles['Normal'])
+                except Exception as e:
+                    logger.warning(f"Could not create thumbnail: {e}")
+                    thumbnail = Paragraph("<para align=center><font size=8>📎</font></para>", styles['Normal'])
+            else:
+                thumbnail = Paragraph("<para align=center><font size=8>❌</font></para>", styles['Normal'])
+            
+            if not thumbnail:
+                thumbnail = Paragraph("<para align=center><font size=8>📎</font></para>", styles['Normal'])
+            
+            data.append([
+                str(idx),
+                thumbnail,
+                document.get('filename', 'N/A'),
+                formatted_date
+            ])
+        
+        table = Table(data, colWidths=[0.5*inch, 1.2*inch, 2.8*inch, 1.6*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#8B5A2B')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+            ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+            ('ALIGN', (2, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('TOPPADDING', (0, 1), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8F1EC')])
+        ]))
+        
+        story.append(table)
+        story.append(Spacer(1, 30))
+    else:
+        story.append(Paragraph("Aucun document téléversé", styles['Normal']))
+        story.append(Spacer(1, 20))
+    
+    # Section Note
+    if category_note and category_note.get('note'):
+        note_title_table = Table([[Paragraph("Niveau ou note obtenue", section_title_style)]], colWidths=[5.5*inch])
+        note_title_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F4EAE3')),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8)
+        ]))
+        story.append(note_title_table)
+        story.append(Spacer(1, 15))
+        
+        note_content = f"""
+        <para alignment=1 spaceAfter=0>
+            <font size=36 color='#8B5A2B'><b>{category_note['note']}</b></font>
+        </para>
+        """
+        note_data = [[Paragraph(note_content, styles['Normal'])]]
+        note_table = Table(note_data, colWidths=[4.5*inch])
+        note_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#FFFBF0')),
+            ('BOX', (0, 0), (-1, -1), 4, colors.HexColor('#8B5A2B')),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 30),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 30),
+            ('TOPPADDING', (0, 0), (-1, -1), 35),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 35),
+            ('LINEABOVE', (0, 0), (-1, 0), 2, colors.HexColor('#D4A574')),
+            ('LINEBELOW', (0, -1), (-1, -1), 2, colors.HexColor('#D4A574'))
+        ]))
+        
+        note_wrapper = Table([[note_table]], colWidths=[5.5*inch])
+        note_wrapper.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
+        ]))
+        
+        story.append(note_wrapper)
+        story.append(Spacer(1, 12))
+        
+        if category_note.get('validated_at'):
+            try:
+                dt = datetime.fromisoformat(category_note['validated_at'].replace('Z', '+00:00'))
+                formatted_date = dt.strftime('%d/%m/%Y à %H:%M')
+            except:
+                formatted_date = category_note['validated_at']
+            
+            validation_text = f"✓ Note validée le {formatted_date}"
+            validation_para = Paragraph(f"<para align=center fontSize=9 textColor='#6B7280'><i>{validation_text}</i></para>", styles['Normal'])
+            
+            validation_table = Table([[validation_para]], colWidths=[5.5*inch])
+            validation_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#E8F5E9')),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#A5D6A7'))
+            ]))
+            story.append(validation_table)
+    else:
+        no_note_para = Paragraph("<para align=center fontSize=11 textColor='grey'><i>Note non encore validée</i></para>", styles['Normal'])
+        no_note_table = Table([[no_note_para]], colWidths=[5.5*inch])
+        no_note_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F5F5F5')),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('TOPPADDING', (0, 0), (-1, -1), 15),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+            ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#E0E0E0'))
+        ]))
+        story.append(no_note_table)
+    
+    story.append(Spacer(1, 40))
+    
+    # Footer
+    footer_text = f"Document généré le {datetime.now(timezone.utc).strftime('%d/%m/%Y à %H:%M')} - TerciForm"
+    story.append(Paragraph(f"<para align=center fontSize=8 textColor='grey'>{footer_text}</para>", styles['Normal']))
+    
+    # Build PDF
+    doc_pdf.build(story)
+    buffer.seek(0)
+    
+    # Retourner le PDF avec headers same-origin pour iframe preview
+    filename = f"apercu_{category}.pdf"
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"inline; filename={filename}",
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+            "X-Frame-Options": "SAMEORIGIN"
+        }
+    )
+
+
 # Include router
 app.include_router(api_router)
 
