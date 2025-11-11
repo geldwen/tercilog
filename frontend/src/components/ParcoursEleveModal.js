@@ -278,7 +278,7 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
         <h4 className="font-semibold text-lg">{title}</h4>
         {showNote && (
           <Button
-            onClick={handleGeneratePDF}
+            onClick={handleOpenEmailModal}
             disabled={generatingPdf}
             size="sm"
             className="bg-white text-[#8B5A2B] hover:bg-gray-100 font-semibold"
@@ -290,7 +290,7 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
               </>
             ) : (
               <>
-                <FileText className="w-4 h-4 mr-2" />
+                <Mail className="w-4 h-4 mr-2" />
                 Transmettre
               </>
             )}
