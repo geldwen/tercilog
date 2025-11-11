@@ -489,6 +489,7 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
                 title="Test de positionnement"
                 buttonText="Cliquez ici pour télécharger le test de positionnement"
                 showNote={true}
+                onOpenEmailModal={handleOpenEmailModal}
               />
 
               {/* 2A - Évaluations en cours de formation */}
@@ -498,6 +499,7 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
                 title="Évaluations en cours de formation"
                 buttonText="Cliquez ici pour télécharger les évaluations en cours de formation"
                 showNote={true}
+                onOpenEmailModal={handleOpenEmailModal}
               />
 
               {/* 3A - Évaluations de fin de formation */}
@@ -507,6 +509,7 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
                 title="Évaluations de fin de formation"
                 buttonText="Cliquez ici pour télécharger les évaluations de fin de formation"
                 showNote={true}
+                onOpenEmailModal={handleOpenEmailModal}
               />
             </div>
           </TabsContent>
