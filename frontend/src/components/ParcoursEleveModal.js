@@ -410,12 +410,7 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
     setShowEmailModal(true);
   };
 
-  const handleSendEmail = async () => {
-    if (!emailTo.trim()) {
-      toast.error("Veuillez saisir au moins un destinataire");
-      return;
-    }
-    
+  const handlePreviewPdf = async () => {
     try {
       setGeneratingPdf(true);
       
@@ -432,18 +427,65 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
       const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
       const pdfUrl = window.URL.createObjectURL(pdfBlob);
       
+      setPdfPreviewUrl(pdfUrl);
+      setShowPreview(true);
+      
+      toast.success("Aperçu du PDF chargé");
+    } catch (error) {
+      console.error("Error generating PDF preview:", error);
+      toast.error("Erreur lors de la génération de l'aperçu");
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailTo.trim()) {
+      toast.error("Veuillez saisir au moins un destinataire");
+      return;
+    }
+    
+    try {
+      setGeneratingPdf(true);
+      
+      // Si le PDF est déjà en preview, on le réutilise, sinon on le génère
+      let pdfUrl = pdfPreviewUrl;
+      
+      if (!pdfUrl) {
+        const token = localStorage.getItem('token');
+        const response = await axios.post(
+          `${API}/students/${emailStudentId}/category-notes/${emailCategory}/generate-pdf`,
+          {},
+          {
+            headers: { 'Authorization': `Bearer ${token}` },
+            responseType: 'blob'
+          }
+        );
+        
+        const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+        pdfUrl = window.URL.createObjectURL(pdfBlob);
+      }
+      
+      // Télécharger le PDF
       const link = document.createElement('a');
       link.href = pdfUrl;
       link.setAttribute('download', `${emailCategory}_synthese.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(pdfUrl);
       
+      // Ouvrir le client email
       const mailtoLink = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody + '\n\n(Veuillez attacher le PDF téléchargé)')}`;
       window.location.href = mailtoLink;
       
       toast.success("PDF téléchargé et client email ouvert !");
+      
+      // Nettoyer
+      if (pdfPreviewUrl) {
+        window.URL.revokeObjectURL(pdfPreviewUrl);
+        setPdfPreviewUrl('');
+      }
+      setShowPreview(false);
       setShowEmailModal(false);
       setEmailTo('');
     } catch (error) {
