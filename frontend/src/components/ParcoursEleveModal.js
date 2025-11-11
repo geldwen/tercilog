@@ -57,8 +57,6 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
     }
   };
 
-  const [noteValidatedAt, setNoteValidatedAt] = useState('');
-
   const loadCategoryNote = async () => {
     try {
       const response = await axios.get(`${API}/students/${studentId}/category-notes/${category}`, {
