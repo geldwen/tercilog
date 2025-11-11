@@ -392,6 +392,8 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleOpenEmailModal = (category, studentId) => {
     const categoryTitles = {
