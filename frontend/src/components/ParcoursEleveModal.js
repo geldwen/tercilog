@@ -683,13 +683,28 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
                 <Label className="text-sm font-medium text-[#8B5A2B]">
                   Aperçu du document
                 </Label>
-                <div className="border-2 border-[#8B5A2B]/30 rounded-lg overflow-hidden">
+                <div className="border-2 border-[#8B5A2B]/30 rounded-lg overflow-hidden bg-gray-50">
                   <iframe
                     src={pdfPreviewUrl}
                     className="w-full h-96"
                     title="Aperçu PDF"
+                    onLoad={() => {
+                      console.log('[PDF Preview] Iframe loaded successfully');
+                    }}
+                    onError={(e) => {
+                      console.error('[PDF Preview] Iframe error:', e);
+                      toast.warning("Impossible d'afficher l'aperçu. Ouvrez-le dans un nouvel onglet.");
+                      // Fallback: ouvrir dans nouvel onglet
+                      setTimeout(() => {
+                        window.open(pdfPreviewUrl, '_blank', 'noopener,noreferrer');
+                      }, 1000);
+                    }}
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-downloads allow-popups"
                   />
                 </div>
+                <p className="text-xs text-gray-500 italic">
+                  💡 Si l'aperçu ne s'affiche pas, il s'ouvrira automatiquement dans un nouvel onglet
+                </p>
               </div>
             )}
             
