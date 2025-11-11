@@ -192,8 +192,8 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
     };
     const categoryLabel = categoryTitles[category] || category;
     
-    setEmailSubject(`${categoryLabel} - ${title || 'Synthèse'}`);
-    setEmailBody(`Bonjour,\n\nVeuillez trouver ci-joint le document de synthèse pour ${categoryLabel}.\n\nCordialement,`);
+    setEmailSubject(`${categoryLabel} - Synthèse`);
+    setEmailBody(`Bonjour,\n\nVeuillez trouver ci-joint le document de synthèse "${categoryLabel}".\n\nCordialement,`);
     setShowEmailModal(true);
   };
 
