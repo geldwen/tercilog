@@ -4861,11 +4861,11 @@ class TerciFormTester:
                 # No token provided
             )
             
-            if response and response.status_code == 403:
+            if response is not None and response.status_code == 403:
                 self.log("✅ Unauthenticated request returns 403")
                 error_tests_passed += 1
             else:
-                self.log(f"❌ Unauthenticated request returned {response.status_code if response else 'No response'}, expected 403")
+                self.log(f"❌ Unauthenticated request returned {response.status_code if response is not None else 'No response'}, expected 403")
             
             # Step 5: Compare with old endpoint (if available)
             self.log("=== STEP 5: Comparing with Old Endpoint ===")
