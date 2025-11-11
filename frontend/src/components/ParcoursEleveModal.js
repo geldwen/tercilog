@@ -416,9 +416,8 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
       console.log('[PDF Preview] Starting PDF generation...');
       
       const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API}/students/${emailStudentId}/category-notes/${emailCategory}/generate-pdf`,
-        {},
+      const response = await axios.get(
+        `${API}/pdf/preview?student_id=${emailStudentId}&category=${emailCategory}`,
         {
           headers: { 'Authorization': `Bearer ${token}` },
           responseType: 'blob',
@@ -439,14 +438,40 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
       
       console.log('[PDF Preview] Blob URL created:', pdfUrl);
       
-      // STRATÉGIE 1: Tenter l'iframe
+      // STRATÉGIE 1: Tenter l'iframe avec détection de timeout
+      let iframeLoaded = false;
+      let iframeTimeout;
+      
+      const iframeLoadPromise = new Promise((resolve, reject) => {
+        iframeTimeout = setTimeout(() => {
+          if (!iframeLoaded) {
+            console.warn('[PDF Preview] Iframe timeout (2s)');
+            reject(new Error('Iframe timeout'));
+          }
+        }, 2000); // Timeout de 2 secondes
+        
+        // Marquer comme succès si on arrive ici
+        resolve();
+      });
+      
       try {
         setPdfPreviewUrl(pdfUrl);
         setShowPreview(true);
+        
+        // Attendre un court instant pour voir si l'iframe se charge
+        await iframeLoadPromise;
+        
+        iframeLoaded = true;
+        clearTimeout(iframeTimeout);
         toast.success("Aperçu du PDF chargé");
         console.log('[PDF Preview] Iframe preview loaded successfully');
       } catch (iframeError) {
+        clearTimeout(iframeTimeout);
         console.warn('[PDF Preview] Iframe failed, trying new tab...', iframeError);
+        
+        // Fermer la preview iframe si elle était ouverte
+        setShowPreview(false);
+        setPdfPreviewUrl('');
         
         // STRATÉGIE 2: Nouvel onglet
         try {
@@ -454,7 +479,7 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
           if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
             throw new Error('Pop-up bloqué');
           }
-          toast.info("Aperçu ouvert dans un nouvel onglet");
+          toast.info("Aperçu intégré indisponible. Ouverture dans un nouvel onglet.");
           console.log('[PDF Preview] Opened in new tab');
         } catch (tabError) {
           console.warn('[PDF Preview] New tab failed, downloading...', tabError);
@@ -466,7 +491,7 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          toast.info("Aperçu téléchargé (pop-ups bloqués)");
+          toast.info("Aperçu intégré indisponible. Téléchargement en cours.");
           console.log('[PDF Preview] Downloaded as fallback');
         }
       }
