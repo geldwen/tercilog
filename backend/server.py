@@ -2779,17 +2779,20 @@ async def send_category_pdf_by_email(
     data: dict,
     current_user: User = Depends(get_current_user)
 ):
-    """Envoyer le PDF de synthèse par email"""
+    """Envoyer le PDF de synthèse par email via Gmail SMTP"""
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
     # Récupérer les emails destinataires
-    to_emails = data.get('to', [])
-    subject = data.get('subject', '')
+    to_emails_str = data.get('to', '')
+    subject = data.get('subject', 'Document de synthèse')
     body = data.get('body', '')
     
+    # Parser les emails (séparés par virgules)
+    to_emails = [email.strip() for email in to_emails_str.split(',') if email.strip()]
+    
     if not to_emails:
-        raise HTTPException(status_code=400, detail="At least one recipient email required")
+        raise HTTPException(status_code=400, detail="Au moins un destinataire requis")
     
     # Récupérer l'élève
     student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
@@ -2808,7 +2811,7 @@ async def send_category_pdf_by_email(
         {"_id": 0}
     )
     
-    # Générer le PDF (réutiliser la même logique que generate_category_pdf)
+    # Mapping des catégories
     category_titles = {
         "positionnement": "Test de positionnement",
         "evaluation_cours": "Évaluations en cours de formation",
@@ -2816,16 +2819,144 @@ async def send_category_pdf_by_email(
     }
     category_title = category_titles.get(category, category)
     
-    # Générer le PDF en mémoire
-    buffer = io.BytesIO()
-    # ... (même code de génération PDF que dans generate_category_pdf)
-    # Pour éviter la duplication, on pourrait faire un appel interne au endpoint generate_category_pdf
-    # mais pour l'instant, gardons simple et appelons directement depuis le frontend
-    
-    # NOTE: Pour simplifier, on va faire autrement : le frontend génère le PDF puis l'envoie
-    # Mais créons quand même l'endpoint qui attend le PDF en attachment
-    
-    return {"message": "Email endpoint ready - use frontend to generate and send"}
+    # Générer le PDF (même logique que preview_pdf endpoint)
+    try:
+        buffer = io.BytesIO()
+        doc_pdf = SimpleDocTemplate(buffer, pagesize=A4, topMargin=40, bottomMargin=40)
+        story = []
+        styles = getSampleStyleSheet()
+        
+        # Styles personnalisés
+        title_style_white = ParagraphStyle(
+            'CustomTitleWhite',
+            parent=styles['Heading1'],
+            fontSize=22,
+            textColor=colors.white,
+            alignment=1,
+            fontName='Helvetica-Bold'
+        )
+        
+        subtitle_style = ParagraphStyle(
+            'Subtitle',
+            parent=styles['Normal'],
+            fontSize=14,
+            textColor=colors.HexColor('#6B4522'),
+            alignment=1,
+            spaceAfter=30,
+            fontName='Helvetica-Oblique'
+        )
+        
+        section_title_style = ParagraphStyle(
+            'SectionTitle',
+            parent=styles['Heading2'],
+            fontSize=16,
+            textColor=colors.HexColor('#8B5A2B'),
+            spaceAfter=12,
+            fontName='Helvetica-Bold'
+        )
+        
+        # Logo
+        logo_path = ROOT_DIR / "assets" / "logo_terciform.png"
+        if logo_path.exists():
+            try:
+                logo = Image(str(logo_path), width=2.5*inch, height=1.06*inch)
+                logo.hAlign = 'CENTER'
+                logo_table = Table([[logo]], colWidths=[5.5*inch])
+                logo_table.setStyle(TableStyle([
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('TOPPADDING', (0, 0), (-1, -1), 15),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+                    ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F8F1EC')),
+                    ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#8B5A2B'))
+                ]))
+                story.append(logo_table)
+                story.append(Spacer(1, 25))
+            except Exception as e:
+                logger.warning(f"Logo not loaded: {e}")
+        
+        # Titre
+        title_table = Table([[Paragraph(f"{category_title}", title_style_white)]], colWidths=[5.5*inch])
+        title_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#8B5A2B')),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 15),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 15)
+        ]))
+        story.append(title_table)
+        story.append(Spacer(1, 15))
+        story.append(Paragraph(f"<para align=center fontSize=13><b>Élève :</b> {student.get('name', 'N/A')}</para>", subtitle_style))
+        story.append(Spacer(1, 25))
+        
+        # Documents (simplified version)
+        if documents:
+            story.append(Paragraph("Contenu", section_title_style))
+            story.append(Spacer(1, 10))
+            for idx, doc in enumerate(documents, 1):
+                uploaded_at = doc.get('uploaded_at', '')
+                if uploaded_at:
+                    try:
+                        dt = datetime.fromisoformat(uploaded_at.replace('Z', '+00:00'))
+                        formatted_date = dt.strftime('%d/%m/%Y à %H:%M')
+                    except:
+                        formatted_date = uploaded_at
+                else:
+                    formatted_date = 'Non disponible'
+                story.append(Paragraph(f"{idx}. {doc.get('filename', 'N/A')} - {formatted_date}", styles['Normal']))
+            story.append(Spacer(1, 20))
+        
+        # Note
+        if category_note and category_note.get('note'):
+            story.append(Paragraph("Niveau ou note obtenue", section_title_style))
+            story.append(Spacer(1, 10))
+            note_content = f"<para align=center spaceAfter=0><font size=36 color='#8B5A2B'><b>{category_note['note']}</b></font></para>"
+            story.append(Paragraph(note_content, styles['Normal']))
+            story.append(Spacer(1, 20))
+        
+        # Footer
+        footer_text = f"Document généré le {datetime.now(timezone.utc).strftime('%d/%m/%Y à %H:%M')} - TerciForm"
+        story.append(Paragraph(f"<para align=center fontSize=8 textColor='grey'>{footer_text}</para>", styles['Normal']))
+        
+        doc_pdf.build(story)
+        buffer.seek(0)
+        pdf_bytes = buffer.getvalue()
+        
+        # Envoyer l'email avec Gmail SMTP
+        gmail_user = os.environ.get('GMAIL_USER')
+        gmail_password = os.environ.get('GMAIL_PASSWORD')
+        
+        if not gmail_user or not gmail_password:
+            raise HTTPException(status_code=500, detail="Gmail credentials not configured")
+        
+        msg = MIMEMultipart()
+        msg['From'] = gmail_user
+        msg['To'] = ', '.join(to_emails)
+        msg['Subject'] = subject
+        
+        # Corps du message
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Attacher le PDF
+        pdf_attachment = MIMEBase('application', 'pdf')
+        pdf_attachment.set_payload(pdf_bytes)
+        encoders.encode_base64(pdf_attachment)
+        filename = f"{category}_{student.get('name', 'eleve').replace(' ', '_')}.pdf"
+        pdf_attachment.add_header('Content-Disposition', f'attachment; filename={filename}')
+        msg.attach(pdf_attachment)
+        
+        # Envoyer via SMTP
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(gmail_user, gmail_password)
+            server.send_message(msg)
+        
+        logger.info(f"PDF email sent to {to_emails} for student {student_id}, category {category}")
+        return {"message": "Email envoyé avec succès", "recipients": to_emails}
+        
+    except Exception as e:
+        logger.error(f"Error sending email: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de l'envoi: {str(e)}")
 
 
 @api_router.delete("/students/{student_id}/documents/{document_id}")
