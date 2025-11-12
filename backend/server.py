@@ -706,6 +706,84 @@ async def get_formation_needs(
     return {"exists": True, "questionnaire": questionnaire}
 
 
+@api_router.get("/students/{student_id}/formation-needs/pdf")
+async def download_formation_needs_pdf(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Télécharger le questionnaire de besoins en formation en PDF"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Récupérer le questionnaire
+    questionnaire = await db.formation_needs.find_one({"student_id": student_id}, {"_id": 0})
+    if not questionnaire:
+        raise HTTPException(status_code=404, detail="No questionnaire found for this student")
+    
+    # Générer le PDF
+    pdf_buffer = generate_formation_needs_pdf(student, questionnaire)
+    
+    return StreamingResponse(
+        io.BytesIO(pdf_buffer),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=Questionnaire_{student['name'].replace(' ', '_')}.pdf"
+        }
+    )
+
+
+@api_router.post("/students/{student_id}/formation-needs/send-email")
+async def send_formation_needs_email(
+    student_id: str,
+    data: dict,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user)
+):
+    """Envoyer le questionnaire de besoins en formation par email"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    to = data.get('to', '')
+    subject = data.get('subject', 'Questionnaire de besoins en formation')
+    body = data.get('body', '')
+    
+    if not to:
+        raise HTTPException(status_code=400, detail="Email recipient is required")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Récupérer le questionnaire
+    questionnaire = await db.formation_needs.find_one({"student_id": student_id}, {"_id": 0})
+    if not questionnaire:
+        raise HTTPException(status_code=404, detail="No questionnaire found for this student")
+    
+    # Générer le PDF
+    pdf_buffer = generate_formation_needs_pdf(student, questionnaire)
+    
+    # Envoyer l'email avec le PDF en pièce jointe
+    try:
+        send_email_with_attachment(
+            to=to,
+            subject=subject,
+            body=body,
+            attachment=pdf_buffer,
+            attachment_name=f"Questionnaire_{student['name'].replace(' ', '_')}.pdf"
+        )
+        logger.info(f"Formation needs questionnaire emailed to {to} for student {student_id}")
+        return {"message": "Email sent successfully"}
+    except Exception as e:
+        logger.error(f"Error sending formation needs email: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error sending email: {str(e)}")
+
+
 @api_router.post("/sessions/bulk")
 async def create_bulk_sessions(
     data: dict,
