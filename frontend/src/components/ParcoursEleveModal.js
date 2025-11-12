@@ -532,55 +532,82 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
           </Card>
 
           {/* Section 2: Motivation et objectifs */}
-          <Card className="border-2 border-[#8B5A2B]/20">
+          <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
             <CardContent className="pt-6 space-y-4">
               <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
                 2. Motivation et objectifs
               </h4>
               
-              <div>
-                <p className="text-sm font-medium text-gray-700">Formation d'anglais antérieure :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.formation_anglais_anterieure)}</p>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Avez-vous déjà suivi une formation d'anglais ? *</Label>
+                <div className="flex gap-4">
+                  {['Oui', 'Non'].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        checked={q.formation_anglais_anterieure === option}
+                        readOnly
+                        className="w-4 h-4 questionnaire-radio"
+                      />
+                      <span className={q.formation_anglais_anterieure === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                    </label>
+                  ))}
+                </div>
+                {q.formation_details && (
+                  <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 mt-2">{q.formation_details}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-gray-900">Pourquoi souhaitez-vous suivre cette formation ? *</Label>
+                <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.raison_formation || '—'}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-gray-900">Dans quel cadre utiliserez-vous l'anglais ? *</Label>
+                <div className="space-y-2">
+                  {['Travail quotidien', 'Communication client', 'Réunions', 'Voyages'].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={q.cadre_utilisation?.includes(option)}
+                        readOnly
+                        className="w-4 h-4 questionnaire-checkbox"
+                      />
+                      <span className={q.cadre_utilisation?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                    </label>
+                  ))}
+                  {q.cadre_autre && (
+                    <p className="text-pink-700 font-semibold bg-white p-2 rounded-md border-2 border-pink-200 ml-6">Autre : {q.cadre_autre}</p>
+                  )}
                 </div>
               </div>
 
-              {q.formation_details && (
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Détails de la formation :</p>
-                  <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                    <p className="text-gray-900">{q.formation_details}</p>
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <p className="text-sm font-medium text-gray-700">Raison de la formation :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.raison_formation)}</p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-gray-700">Cadre d'utilisation :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.cadre_utilisation)}</p>
-                  {q.cadre_autre && <p className="text-gray-900 mt-1">Autre : {q.cadre_autre}</p>}
+              <div className="space-y-2">
+                <Label className="text-gray-900">Quels sont vos objectifs principaux ? *</Label>
+                <div className="space-y-2">
+                  {[
+                    'Gagner en aisance à l\'oral',
+                    'Améliorer la compréhension',
+                    'Rédiger des e-mails',
+                    'Préparer un examen (TOEIC, Bright, etc.)'
+                  ].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={q.objectifs_principaux?.includes(option)}
+                        readOnly
+                        className="w-4 h-4 questionnaire-checkbox"
+                      />
+                      <span className={q.objectifs_principaux?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
-              <div>
-                <p className="text-sm font-medium text-gray-700">Objectifs principaux :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.objectifs_principaux)}</p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-gray-700">Attentes à la fin de la formation :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.attentes_fin_formation)}</p>
-                </div>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Qu'attendez-vous concrètement à la fin de la formation ? *</Label>
+                <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.attentes_fin_formation || '—'}</p>
               </div>
             </CardContent>
           </Card>
