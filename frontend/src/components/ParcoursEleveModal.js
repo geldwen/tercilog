@@ -785,11 +785,7 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
                     setGeneratingPdf(true);
                     const token = localStorage.getItem('token');
                     
-                    // Récupérer l'élève pour le nom
-                    const studentResponse = await axios.get(`${API}/students`, {
-                      headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    const student = studentResponse.data.find(s => s.id === emailStudentId);
+                    // Utiliser directement student.name depuis les props
                     const studentName = student?.name || 'eleve';
                     
                     const response = await axios.get(
