@@ -218,7 +218,7 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
   };
 
   // Sauvegarder événement
-  const handleSaveEvent = () => {
+  const handleSaveEvent = async () => {
     if (!modalData.center || !modalData.title) {
       toast.error('Veuillez remplir les champs requis (Intitulé et Centre)');
       return;
@@ -228,13 +228,20 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
     if (modalData.center === 'Zepartner' || centerColors[modalData.center]) {
       const event = {
         ...modalData,
-        color: getCenterColor(modalData.center)
+        color: getCenterColor(modalData.center),
+        organism: modalData.center
       };
       
-      savePlanningEvent(event);
-      setPlanningEvents(getPlanningEvents());
-      setShowModal(false);
-      toast.success('Bloc planning créé !');
+      try {
+        await savePlanningEvent(event);
+        const updatedEvents = await getPlanningEvents();
+        setPlanningEvents(updatedEvents);
+        setShowModal(false);
+        toast.success('Bloc planning créé !');
+      } catch (error) {
+        console.error('Error saving event:', error);
+        toast.error('Erreur lors de la sauvegarde');
+      }
       return;
     }
 
@@ -244,20 +251,27 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
   };
 
   // Choisir couleur pour un centre
-  const handleColorSelect = (color) => {
+  const handleColorSelect = async (color) => {
     setCenterColor(selectedCenter, color);
     setCenterColorsState(getCenterColors());
     
     const event = {
       ...modalData,
-      color
+      color,
+      organism: selectedCenter
     };
     
-    savePlanningEvent(event);
-    setPlanningEvents(getPlanningEvents());
-    setShowColorPicker(false);
-    setShowModal(false);
-    toast.success('Bloc planning créé avec couleur !');
+    try {
+      await savePlanningEvent(event);
+      const updatedEvents = await getPlanningEvents();
+      setPlanningEvents(updatedEvents);
+      setShowColorPicker(false);
+      setShowModal(false);
+      toast.success('Bloc planning créé avec couleur !');
+    } catch (error) {
+      console.error('Error saving event:', error);
+      toast.error('Erreur lors de la sauvegarde');
+    }
   };
 
   // Ouvrir dialogue de suppression
