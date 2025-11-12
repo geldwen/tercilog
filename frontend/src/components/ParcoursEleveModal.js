@@ -485,42 +485,47 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
           }
         `}</style>
 
-        {/* Contenu du questionnaire avec réponses en rose */}
+        {/* Contenu du questionnaire avec format original */}
         <div className="space-y-6">
           {/* Section 1: Identification */}
-          <Card className="border-2 border-[#8B5A2B]/20">
+          <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
             <CardContent className="pt-6 space-y-4">
               <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
                 1. Identification
               </h4>
               
-              <div>
-                <p className="text-sm font-medium text-gray-700">Situation professionnelle :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.situation_professionnelle)}</p>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Situation professionnelle *</Label>
+                <div className="space-y-2">
+                  {['En fonction', 'En recherche d\'emploi', 'En reconversion'].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={q.situation_professionnelle?.includes(option)}
+                        readOnly
+                        className="w-4 h-4 questionnaire-checkbox"
+                      />
+                      <span className={q.situation_professionnelle?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
               {q.si_en_fonction && (
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Si en fonction :</p>
-                  <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                    <p className="text-gray-900">{q.si_en_fonction}</p>
-                  </div>
+                <div className="space-y-2">
+                  <Label className="text-gray-900">Si en fonction, précisez :</Label>
+                  <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">{q.si_en_fonction}</p>
                 </div>
               )}
 
-              <div>
-                <p className="text-sm font-medium text-gray-700">Poste occupé :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.poste_occupe)}</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-gray-900">Poste occupé</Label>
+                  <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">{q.poste_occupe || '—'}</p>
                 </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-gray-700">Ancienneté :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.anciennete)}</p>
+                <div className="space-y-2">
+                  <Label className="text-gray-900">Ancienneté dans le poste</Label>
+                  <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">{q.anciennete || '—'}</p>
                 </div>
               </div>
             </CardContent>
