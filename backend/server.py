@@ -2775,11 +2775,20 @@ async def generate_category_pdf(
         ]))
         story.append(no_note_table)
     
-    story.append(Spacer(1, 40))
+    story.append(Spacer(1, 30))
     
-    # Footer
-    footer_text = f"Document généré le {datetime.now(timezone.utc).strftime('%d/%m/%Y à %H:%M')} - TerciForm"
-    story.append(Paragraph(f"<para align=center fontSize=8 textColor='grey'>{footer_text}</para>", styles['Normal']))
+    # Footer professionnel
+    footer_text = f"Document généré le {datetime.now(timezone.utc).strftime('%d/%m/%Y à %H:%M')} - TerciForm © 2025"
+    footer_para = Paragraph(f"<para align=center fontSize=10 textColor='#6B7280'><i>{footer_text}</i></para>", styles['Normal'])
+    
+    footer_table = Table([[footer_para]], colWidths=[7.0*inch])
+    footer_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('LINEABOVE', (0, 0), (-1, 0), 1, colors.HexColor('#CCCCCC'))
+    ]))
+    story.append(footer_table)
     
     # Build PDF
     doc.build(story)
@@ -3531,11 +3540,20 @@ async def preview_pdf(
         ]))
         story.append(no_note_table)
     
-    story.append(Spacer(1, 40))
+    story.append(Spacer(1, 30))
     
-    # Footer
-    footer_text = f"Document généré le {datetime.now(timezone.utc).strftime('%d/%m/%Y à %H:%M')} - TerciForm"
-    story.append(Paragraph(f"<para align=center fontSize=8 textColor='grey'>{footer_text}</para>", styles['Normal']))
+    # Footer professionnel
+    footer_text = f"Document généré le {datetime.now(timezone.utc).strftime('%d/%m/%Y à %H:%M')} - TerciForm © 2025"
+    footer_para = Paragraph(f"<para align=center fontSize=10 textColor='#6B7280'><i>{footer_text}</i></para>", styles['Normal'])
+    
+    footer_table = Table([[footer_para]], colWidths=[7.0*inch])
+    footer_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('LINEABOVE', (0, 0), (-1, 0), 1, colors.HexColor('#CCCCCC'))
+    ]))
+    story.append(footer_table)
     
     # Build PDF
     doc_pdf.build(story)
