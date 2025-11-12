@@ -3258,12 +3258,12 @@ async def preview_pdf(
     story.append(Paragraph(f"<para align=center fontSize=13><b>Élève :</b> {student.get('name', 'N/A')}</para>", subtitle_style))
     story.append(Spacer(1, 25))
     
-    # Section Documents
+    # Section Documents - AVEC APERÇUS VISUELS COMPLETS
     if documents:
-        story.append(Paragraph("Contenu", section_title_style))
-        story.append(Spacer(1, 10))
+        story.append(Paragraph("Documents téléversés", section_title_style))
+        story.append(Spacer(1, 15))
         
-        data = [['N°', 'Visuel / Aperçu', 'Nom du fichier', 'Date de réalisation']]
+        # Pour chaque document, afficher un aperçu visuel complet
         for idx, document in enumerate(documents, 1):
             uploaded_at = document.get('uploaded_at', '')
             if uploaded_at:
@@ -3277,54 +3277,76 @@ async def preview_pdf(
             
             filepath = Path(document.get('filepath', ''))
             mime = document.get('mime', '')
-            thumbnail = None
+            filename = document.get('filename', 'N/A')
             
+            # Bandeau titre document
+            doc_title_style = ParagraphStyle(
+                'DocTitle',
+                parent=styles['Normal'],
+                fontSize=12,
+                textColor=colors.white,
+                fontName='Helvetica-Bold'
+            )
+            
+            doc_header = Table([
+                [Paragraph(f"Document {idx} : {filename}", doc_title_style)]
+            ], colWidths=[5.5*inch])
+            doc_header.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#6B4522')),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 10),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8)
+            ]))
+            story.append(doc_header)
+            story.append(Spacer(1, 5))
+            
+            # Date de réalisation
+            story.append(Paragraph(f"<i>Date de réalisation : {formatted_date}</i>", styles['Normal']))
+            story.append(Spacer(1, 10))
+            
+            # APERÇU VISUEL DU DOCUMENT
             if filepath.exists():
                 try:
-                    if mime and 'image' in mime:
-                        thumbnail = Image(str(filepath), width=1*inch, height=1*inch)
-                    elif mime and 'pdf' in mime:
-                        thumbnail = Paragraph("<para align=center><font size=8 color='red'>📄<br/>PDF</font></para>", styles['Normal'])
+                    if mime and 'pdf' in mime:
+                        # Pour les PDFs : convertir les 2 premières pages en images
+                        pdf_images, success = create_pdf_preview_image(filepath, max_width=5.0*inch)
+                        if success and pdf_images:
+                            for page_idx, img in enumerate(pdf_images, 1):
+                                story.append(Paragraph(f"<b>Page {page_idx} :</b>", styles['Normal']))
+                                story.append(Spacer(1, 5))
+                                story.append(img)
+                                story.append(Spacer(1, 10))
+                        else:
+                            story.append(Paragraph("❌ Impossible de générer l'aperçu du PDF", styles['Normal']))
+                    
+                    elif mime and 'image' in mime:
+                        # Pour les images : afficher directement
+                        img = Image(str(filepath), width=5.0*inch, height=None)
+                        img.hAlign = 'CENTER'
+                        story.append(img)
+                    
                     else:
-                        thumbnail = Paragraph("<para align=center><font size=8>📎<br/>DOC</font></para>", styles['Normal'])
+                        # Autres types de fichiers
+                        story.append(Paragraph(f"📎 Document de type : {mime or 'inconnu'}", styles['Normal']))
+                
                 except Exception as e:
-                    logger.warning(f"Could not create thumbnail: {e}")
-                    thumbnail = Paragraph("<para align=center><font size=8>📎</font></para>", styles['Normal'])
+                    logger.warning(f"Could not create preview for {filename}: {e}")
+                    story.append(Paragraph(f"⚠️ Erreur lors de la génération de l'aperçu", styles['Normal']))
             else:
-                thumbnail = Paragraph("<para align=center><font size=8>❌</font></para>", styles['Normal'])
+                story.append(Paragraph("❌ Fichier non trouvé", styles['Normal']))
             
-            if not thumbnail:
-                thumbnail = Paragraph("<para align=center><font size=8>📎</font></para>", styles['Normal'])
+            story.append(Spacer(1, 20))
             
-            data.append([
-                str(idx),
-                thumbnail,
-                document.get('filename', 'N/A'),
-                formatted_date
-            ])
-        
-        table = Table(data, colWidths=[0.5*inch, 1.2*inch, 2.8*inch, 1.6*inch])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#8B5A2B')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
-            ('ALIGN', (1, 0), (1, -1), 'CENTER'),
-            ('ALIGN', (2, 0), (-1, -1), 'LEFT'),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('TOPPADDING', (0, 1), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8F1EC')])
-        ]))
-        
-        story.append(table)
-        story.append(Spacer(1, 30))
+            # Séparateur entre documents
+            if idx < len(documents):
+                separator = Table([['']], colWidths=[5.5*inch])
+                separator.setStyle(TableStyle([
+                    ('LINEABOVE', (0, 0), (-1, 0), 1, colors.HexColor('#E0E0E0'))
+                ]))
+                story.append(separator)
+                story.append(Spacer(1, 20))
+    
     else:
         story.append(Paragraph("Aucun document téléversé", styles['Normal']))
         story.append(Spacer(1, 20))
