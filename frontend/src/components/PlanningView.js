@@ -51,8 +51,17 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
   const [selectedCenter, setSelectedCenter] = useState('');
 
   useEffect(() => {
-    setPlanningEvents(getPlanningEvents());
-    setCenterColorsState(getCenterColors());
+    const loadPlanningData = async () => {
+      try {
+        const events = await getPlanningEvents();
+        setPlanningEvents(events);
+        setCenterColorsState(getCenterColors());
+      } catch (error) {
+        console.error('Error loading planning events:', error);
+        toast.error('Erreur lors du chargement du planning');
+      }
+    };
+    loadPlanningData();
   }, []);
 
   const currentMonth = MONTHS.find(m => m.value === activeMonth);
