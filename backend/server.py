@@ -649,6 +649,74 @@ async def create_student(user_data: UserCreate, current_user: User = Depends(get
     user_data.role = "student"
     return await register(user_data)
 
+@api_router.post("/sessions/bulk")
+async def create_bulk_sessions(
+    data: dict,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user)
+):
+    """Créer plusieurs séances pour plusieurs élèves en une seule fois"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    student_ids = data.get('student_ids', [])
+    sessions_data = data.get('sessions', [])
+    
+    if not student_ids or not sessions_data:
+        raise HTTPException(status_code=400, detail="student_ids and sessions required")
+    
+    created_sessions = []
+    
+    # Créer toutes les séances
+    for student_id in student_ids:
+        student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+        if not student:
+            continue
+        
+        student_sessions = []
+        for session_data in sessions_data:
+            new_session = Session(
+                **session_data,
+                student_id=student_id,
+                teacher_id=current_user.id,
+                validation_deadline_hours=48
+            )
+            await db.sessions.insert_one(new_session.dict())
+            student_sessions.append(new_session)
+            created_sessions.append(new_session)
+        
+        # Envoyer UN SEUL email par élève avec toutes les séances
+        if student_sessions:
+            session_list = "\n".join([
+                f"• {s.subject} - {s.date} de {s.start_time} à {s.end_time} ({s.modality})"
+                for s in student_sessions
+            ])
+            
+            email_body = f"""
+Bonjour {student.get('name', '')},
+
+Votre formateur a programmé {len(student_sessions)} nouvelle(s) séance(s) :
+
+{session_list}
+
+Merci de confirmer votre présence en vous connectant à votre espace élève :
+{os.environ.get('FRONTEND_URL', '')}/student-dashboard
+
+Cordialement,
+TerciForm
+            """
+            
+            background_tasks.add_task(
+                send_email,
+                to_email=student['email'],
+                subject=f"Nouvelles séances programmées - {len(student_sessions)} séance(s)",
+                body=email_body
+            )
+    
+    logger.info(f"Bulk sessions created: {len(created_sessions)} sessions for {len(student_ids)} students")
+    return {"message": f"{len(created_sessions)} sessions created", "sessions": created_sessions}
+
+
 @api_router.post("/sessions", response_model=Session)
 async def create_session(session_data: SessionCreate, current_user: User = Depends(get_current_user)):
     if current_user.role != "teacher":
