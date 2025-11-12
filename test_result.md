@@ -521,6 +521,18 @@ frontend:
           agent: "testing"
           comment: "✅ PDF PREVIEW ENDPOINT COMPREHENSIVE TEST COMPLETED SUCCESSFULLY: Successfully tested new GET /api/pdf/preview endpoint for Parcours élève modal. FIXED BACKEND ISSUE: ReportLab alignment error in PDF generation (changed 'alignment=1' to 'align=center' in HTML-like tags). TESTED SCENARIOS: 1) All 3 categories (positionnement, evaluation_cours, evaluation_fin) ✅ All return HTTP 200 with valid PDFs, 2) Header verification ✅ Content-Type: application/pdf, Content-Disposition: inline, X-Frame-Options: SAMEORIGIN, Cache-Control: no-store, 3) Error cases ✅ Non-existent student returns 404, Invalid category handled gracefully (200), Unauthenticated access returns 403, 4) Endpoint comparison ✅ New GET endpoint generates identical PDFs to old POST endpoint (164986 bytes). VERIFICATION RESULTS: ✅ 3/3 categories successful ✅ 3/3 error tests passed ✅ Same-origin headers correctly set for iframe compatibility ✅ PDF content valid and non-empty (>164KB each) ✅ Both old and new endpoints generate identical results. New PDF preview endpoint working correctly and ready for production use with robust 3-tier fallback system."
 
+  - task: "Documents Bénéficiaires Tab - Display Formation Needs Questionnaires"
+    implemented: true
+    working: "unknown"
+    file: "ParcoursEleveModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "DOCUMENTS BÉNÉFICIAIRES TAB IMPLEMENTED: Completed the implementation of the 'Documents bénéficiaires' tab in the Parcours élève modal to display submitted formation needs questionnaires. CHANGES: 1) Created BeneficiaryDocumentsTab component to fetch and display questionnaires via GET /api/students/{student_id}/formation-needs endpoint, 2) Implemented two-view system: (a) List view showing all submitted questionnaires with student name and timestamp, (b) Detailed view showing complete questionnaire with all 6 sections, 3) All student answers displayed with PINK BACKGROUND (bg-pink-100) as requested, including checkboxes and open text responses, 4) Questionnaire sections displayed: (1) Identification (situation professionnelle, poste, ancienneté), (2) Motivation et objectifs (formation antérieure, raison, objectifs), (3) Niveau et compétences (comprehension/expression orale/écrite), (4) Besoins professionnels (situations, difficultés, certification), (5) Contraintes (rythme, format, contraintes), (6) Situation de handicap (with conditional sub-fields), 5) Signature display at bottom with timestamp, 6) Created test student 'Toto Test' (toto@test.com / toto123) with complete questionnaire data for testing, 7) Responsive card-based layout with brown-themed UI (#8B5A2B) matching existing Parcours élève design. Backend API tested and working correctly (see backend test results). Ready for frontend testing."
+
 agent_communication:
     - agent: "main"
       message: "IMPLEMENTATION COMPLETE: Successfully implemented both requested features: A) 'Parcours émargé' modal now properly handles 3 options (Séance unique, Mois, Parcours complet) with correct backend payload logic, B) 'Parcours élève' button and modal with 3-tab document management system (Test d'entrée, Supports de formation, Évaluations) with multi-PDF upload/download/delete functionality. Created FileUploadSection.js component with brown-themed UI. Backend document management endpoints already exist and are ready to use. Ready for backend and frontend testing."
