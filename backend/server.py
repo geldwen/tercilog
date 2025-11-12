@@ -3230,36 +3230,7 @@ async def delete_planning_event(
     return {"message": "Event deleted"}
 
 
-def create_pdf_preview_image(pdf_path: Path, max_width: float = 6.0 * inch) -> tuple:
-    """
-    Convertir les premières pages d'un PDF en images pour inclusion dans le rapport
-    Retourne (liste_images, liste_fichiers_temp, succès)
-    """
-    try:
-        # Convertir les 2 premières pages du PDF en images
-        images_pil = convert_from_path(
-            str(pdf_path),
-            first_page=1,
-            last_page=2,  # Limiter à 2 pages pour éviter des PDFs trop lourds
-            dpi=150  # Qualité moyenne pour garder une taille raisonnable
-        )
-        
-        result_images = []
-        temp_files = []
-        for idx, img_pil in enumerate(images_pil):
-            # Sauvegarder temporairement l'image avec un nom unique
-            temp_img_path = pdf_path.parent / f"temp_{pdf_path.stem}_page{idx}_{uuid.uuid4().hex[:8]}.jpg"
-            img_pil.save(str(temp_img_path), 'JPEG', quality=85)
-            temp_files.append(temp_img_path)
-            
-            # Créer l'image ReportLab avec dimensions appropriées
-            img_reportlab = Image(str(temp_img_path), width=max_width, height=max_width * img_pil.height / img_pil.width)
-            result_images.append(img_reportlab)
-        
-        return result_images, temp_files, True
-    except Exception as e:
-        logger.warning(f"Could not convert PDF to images: {e}")
-        return [], [], False
+# Fonction supprimée - PyMuPDF utilisé directement dans le code
 
 
 @api_router.get("/pdf/preview")
