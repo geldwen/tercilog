@@ -675,13 +675,50 @@ async def create_bulk_sessions(
         
         student_sessions = []
         for session_data in sessions_data:
+            # Calculate duration
+            try:
+                start_h, start_m = map(int, session_data['start_time'].split(':'))
+                end_h, end_m = map(int, session_data['end_time'].split(':'))
+                duration = (end_h * 60 + end_m - start_h * 60 - start_m) / 60.0
+            except:
+                duration = 0.0
+            
+            # Calculate deadline
+            deadline = datetime.now(timezone.utc) + timedelta(hours=48)
+            
+            # Calculate hourly_rate and amount
+            hourly_rate = session_data.get('hourly_rate')
+            if hourly_rate is not None:
+                hourly_rate_source = session_data.get('hourly_rate_source', 'manual')
+            else:
+                hourly_rate = infer_hourly_rate(session_data['subject'])
+                hourly_rate_source = "auto"
+            
+            amount = round(duration * hourly_rate, 2)
+            
+            # Create session
             new_session = Session(
-                **session_data,
+                subject=session_data['subject'],
+                date=session_data['date'],
+                start_time=session_data['start_time'],
+                end_time=session_data['end_time'],
                 student_id=student_id,
-                teacher_id=current_user.id,
-                validation_deadline_hours=48
+                student_name=student['name'],
+                student_email=student['email'],
+                validation_deadline=deadline.isoformat(),
+                duration_hours=duration,
+                meeting_link=session_data.get('meeting_link', ''),
+                hourly_rate=hourly_rate,
+                hourly_rate_source=hourly_rate_source,
+                amount=amount,
+                organism=session_data.get('organism', ''),
+                modality=session_data.get('modality', 'distanciel')
             )
-            await db.sessions.insert_one(new_session.dict())
+            
+            doc = new_session.model_dump()
+            doc['created_at'] = doc['created_at'].isoformat()
+            await db.sessions.insert_one(doc)
+            
             student_sessions.append(new_session)
             created_sessions.append(new_session)
         
@@ -692,25 +729,40 @@ async def create_bulk_sessions(
                 for s in student_sessions
             ])
             
+            portal_url = get_student_portal_url()
+            student_password = student.get('plain_password', '***')
+            
             email_body = f"""
-Bonjour {student.get('name', '')},
-
-Votre formateur a programmé {len(student_sessions)} nouvelle(s) séance(s) :
-
-{session_list}
-
-Merci de confirmer votre présence en vous connectant à votre espace élève :
-{os.environ.get('FRONTEND_URL', '')}/student-dashboard
-
-Cordialement,
-TerciForm
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #1e3a5f;">Nouvelles séances de formation TerciForm</h2>
+            <p>Bonjour {student['name']},</p>
+            <p><strong>Votre formateur a programmé {len(student_sessions)} nouvelle(s) séance(s) :</strong></p>
+            <ul>
+                {"".join([f"<li>{s.subject} - {s.date} de {s.start_time} à {s.end_time} ({s.modality})</li>" for s in student_sessions])}
+            </ul>
+            <p>Veuillez confirmer votre présence en vous connectant à la plateforme :</p>
+            <div style="margin: 30px 0;">
+                <a href="{portal_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Accédez à TerciLog</a>
+            </div>
+            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Rappel de vos identifiants :</p>
+                <p style="margin: 5px 0;"><strong>Identifiant :</strong> {student['email']}</p>
+                <p style="margin: 5px 0;"><strong>Mot de passe :</strong> {student_password}</p>
+            </div>
+            <p style="color: #dc2626; font-weight: bold;">⚠️ Important : En cas d'absence d'une séance validée, les heures de formation seront perdues.</p>
+            <p>Cordialement,<br>Votre formateur</p>
+        </div>
+    </body>
+    </html>
             """
             
             background_tasks.add_task(
                 send_email,
-                to_email=student['email'],
-                subject=f"Nouvelles séances programmées - {len(student_sessions)} séance(s)",
-                body=email_body
+                student['email'],
+                f"Nouvelles séances TerciForm - {len(student_sessions)} séance(s)",
+                email_body
             )
     
     logger.info(f"Bulk sessions created: {len(created_sessions)} sessions for {len(student_ids)} students")
