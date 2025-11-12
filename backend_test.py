@@ -5187,11 +5187,13 @@ def main():
             success = tester.test_parcours_complet_endpoint()
         elif sys.argv[1] == "pdf-preview":
             success = tester.test_pdf_preview_endpoint()
+        elif sys.argv[1] == "formation-needs":
+            success = tester.test_formation_needs_endpoint()
         else:
             success = tester.run_full_test()
     else:
-        # Run PDF preview test by default (as per review request)
-        success = tester.test_pdf_preview_endpoint()
+        # Run formation needs test by default (as per review request)
+        success = tester.test_formation_needs_endpoint()
     
     if success:
         print("\n" + "="*50)
