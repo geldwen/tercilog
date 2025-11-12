@@ -853,16 +853,20 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
           {q.signature && (
             <Card className="border-2 border-blue-300 bg-blue-50">
               <CardContent className="pt-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-4">Signature du bénéficiaire</h4>
-                <div className="bg-white p-4 rounded-lg border-2 border-gray-300">
+                <h4 className="text-lg font-bold text-gray-900 mb-4">7. Validation</h4>
+                <Label className="text-gray-900">Signature * (horodatée)</Label>
+                <div className="bg-white p-4 rounded-lg border-2 border-gray-300 mt-2">
                   <img 
                     src={q.signature} 
                     alt="Signature" 
                     className="max-h-32 mx-auto"
                   />
                 </div>
-                <p className="text-sm text-gray-600 italic mt-3 text-center">
-                  Signé le {formatDateTime(q.submitted_at)}
+                <p className="text-sm text-gray-600 italic mt-3">
+                  Je certifie l'exactitude des données et transmets mes informations à TerciForm
+                </p>
+                <p className="text-sm text-gray-600 italic mt-2 text-center font-semibold">
+                  ✓ Signé le {formatDateTime(q.submitted_at)}
                 </p>
               </CardContent>
             </Card>
