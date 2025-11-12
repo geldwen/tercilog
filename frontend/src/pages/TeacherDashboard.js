@@ -1108,55 +1108,51 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 </div>
                               </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="flex flex-col gap-2 min-w-[200px]">
                               <Button 
                                 onClick={() => handleSendPdf(student)} 
                                 variant="outline" 
                                 size="sm" 
-                                className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-white border-red-600"
+                                className="w-full py-3 rounded-md flex items-center justify-start gap-2 text-white border-0"
                                 style={{ backgroundColor: '#DC143C' }}
                               >
-                                <FileText className="w-4 h-4" />
-                                Planning de formation
+                                <FileText className="w-5 h-5" />
+                                <span className="font-medium">Planning de formation</span>
                               </Button>
                               <Button 
                                 onClick={() => handleOpenSendAttendance(student)} 
                                 variant="outline" 
                                 size="sm" 
-                                className="w-full py-2 rounded-md border border-purple-300 text-purple-700 flex items-center justify-center gap-2 hover:bg-purple-50"
+                                className="w-full py-3 rounded-md border-2 border-purple-500 text-purple-700 flex items-center justify-start gap-2 hover:bg-purple-50 bg-white"
                               >
-                                <FileCheck className="w-4 h-4" />
-                                Parcours émargé
+                                <FileCheck className="w-5 h-5" />
+                                <span className="font-medium">Parcours émargé</span>
                               </Button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3 mt-2">
                               <Button 
                                 onClick={() => handleEditStudent(student)} 
                                 variant="outline" 
                                 size="sm" 
-                                className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-blue-600 border-blue-300 hover:bg-blue-50"
+                                className="w-full py-3 rounded-md flex items-center justify-start gap-2 border-2 border-blue-500 text-blue-700 hover:bg-blue-50 bg-white"
                               >
-                                <Edit className="w-4 h-4" />
-                                Modifier la fiche
+                                <Edit className="w-5 h-5" />
+                                <span className="font-medium">Modifier la fiche</span>
                               </Button>
                               <Button 
                                 onClick={() => handleDeleteStudent(student.id, student.name)} 
                                 variant="outline" 
                                 size="sm" 
-                                className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
+                                className="w-full py-3 rounded-md flex items-center justify-start gap-2 border-2 border-red-500 bg-white hover:bg-red-50"
                               >
-                                <Trash2 className="w-4 h-4" />
-                                Supprimer
+                                <Trash2 className="w-5 h-5 text-red-600" />
+                                <span className="font-medium text-red-700">Supprimer</span>
                               </Button>
-                            </div>
-                            {/* Bouton Parcours élève - carré et marron */}
-                            <div className="mt-3 flex justify-center">
+                              {/* Bouton Parcours élève */}
                               <Button 
                                 onClick={() => handleOpenStudentDocuments(student)} 
-                                className="w-24 h-24 bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white rounded-xl shadow-md hover:brightness-110 active:scale-[0.99] flex flex-col items-center justify-center text-center font-semibold"
+                                className="w-full py-4 mt-2 bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white rounded-lg shadow-md hover:brightness-110 active:scale-[0.99] flex items-center justify-center gap-2 font-semibold"
                               >
-                                <FolderOpen className="w-6 h-6 mb-1" />
-                                <span className="text-xs">Parcours élève</span>
+                                <FolderOpen className="w-5 h-5" />
+                                <span>Parcours élève</span>
                               </Button>
                             </div>
                           </div>
