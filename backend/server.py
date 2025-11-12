@@ -3336,45 +3336,48 @@ async def preview_pdf(
             story.append(Paragraph(f"<i><font size=9>Date : {formatted_date}</font></i>", styles['Normal']))
             story.append(Spacer(1, 5))
             
-            # APERÇU VISUEL COMPACT
+            # APERÇU VISUEL - TOUTES LES PAGES, SANS CADRE
             if filepath.exists():
                 try:
                     if mime and 'pdf' in mime:
-                        # Pour les PDFs : UNE SEULE page pour économiser l'espace
+                        # Pour les PDFs : afficher les 2 pages
                         pdf_images, temp_files, success = create_pdf_preview_image(filepath, max_width=6.0*inch)
                         if success and pdf_images:
                             temp_files_to_cleanup.extend(temp_files)
-                            # Afficher SEULEMENT la première page
-                            img = pdf_images[0]
-                            img.hAlign = 'CENTER'
-                            story.append(img)
-                            
-                            # Si plusieurs pages, indiquer
-                            if len(pdf_images) > 1:
-                                story.append(Paragraph(f"<i><font size=8 color='grey'>(+ {len(pdf_images)-1} page(s) supplémentaire(s))</font></i>", styles['Normal']))
+                            # Afficher toutes les pages
+                            for page_idx, img in enumerate(pdf_images, 1):
+                                story.append(Paragraph(f"<font size=10><b>Page {page_idx}</b></font>", styles['Normal']))
+                                story.append(Spacer(1, 3))
+                                img.hAlign = 'CENTER'
+                                story.append(img)
+                                story.append(Spacer(1, 5))
                         else:
-                            story.append(Paragraph("⚠️ Aperçu indisponible", styles['Normal']))
+                            story.append(Paragraph("Aperçu PDF indisponible", styles['Normal']))
                     
                     elif mime and 'image' in mime:
-                        # Images : taille réduite pour éviter sauts de page
+                        # Images : afficher directement
                         img = Image(str(filepath), width=6.0*inch, height=None)
                         img.hAlign = 'CENTER'
                         story.append(img)
                     
                     else:
-                        story.append(Paragraph(f"📎 {mime or 'Document'}", styles['Normal']))
+                        story.append(Paragraph(f"Document de type : {mime or 'inconnu'}", styles['Normal']))
                 
                 except Exception as e:
                     logger.warning(f"Could not create preview for {filename}: {e}")
-                    story.append(Paragraph("⚠️ Erreur aperçu", styles['Normal']))
+                    story.append(Paragraph("Erreur lors de la génération de l'aperçu", styles['Normal']))
             else:
-                story.append(Paragraph("❌ Fichier non trouvé", styles['Normal']))
+                story.append(Paragraph("Fichier non trouvé", styles['Normal']))
             
-            # Séparateur minimal
+            # Séparateur simple entre documents
             if idx < len(documents):
-                story.append(Spacer(1, 8))
-                story.append(Paragraph("─" * 80, styles['Normal']))
-                story.append(Spacer(1, 8))
+                story.append(Spacer(1, 10))
+                sep_line = Table([['']], colWidths=[6.5*inch])
+                sep_line.setStyle(TableStyle([
+                    ('LINEABOVE', (0, 0), (-1, 0), 0.5, colors.HexColor('#DDDDDD'))
+                ]))
+                story.append(sep_line)
+                story.append(Spacer(1, 10))
     
     else:
         story.append(Paragraph("Aucun document téléversé", styles['Normal']))
