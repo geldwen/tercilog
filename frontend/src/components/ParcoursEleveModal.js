@@ -691,13 +691,14 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
                 id="emailBody"
                 value={emailBody}
                 onChange={(e) => setEmailBody(e.target.value)}
-                rows={5}
-                className="w-full border border-[#8B5A2B]/30 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50"
+                rows={6}
+                className="w-full border-2 border-[#8B5A2B]/30 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50 focus:border-[#8B5A2B]"
+                placeholder="Votre message personnalisé..."
               />
             </div>
             
-            {/* Aperçu du PDF */}
-            {showPreview && pdfPreviewUrl && (
+            {/* Aperçu du PDF - SUPPRIMÉ */}
+            {false && showPreview && pdfPreviewUrl && (
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-[#8B5A2B]">
                   Aperçu du document
