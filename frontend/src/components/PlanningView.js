@@ -287,9 +287,10 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
 
     try {
       if (eventToDelete.origin === 'local') {
-        // Supprimer du localStorage
-        deletePlanningEvent(eventToDelete.id);
-        setPlanningEvents(getPlanningEvents());
+        // Supprimer de MongoDB
+        await deletePlanningEvent(eventToDelete.id);
+        const updatedEvents = await getPlanningEvents();
+        setPlanningEvents(updatedEvents);
         toast.success('Bloc planning supprimé !');
       } else if (eventToDelete.origin === 'emergent') {
         // Appeler l'API de suppression
