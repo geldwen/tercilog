@@ -643,45 +643,48 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
 
       {/* Modale d'envoi par email - AU MÊME NIVEAU que la modale principale */}
       <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-[#8B5A2B]">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-2xl font-bold text-[#8B5A2B]">
               Transmettre par email
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="emailTo" className="text-sm font-medium">
-                Destinataire(s) <span className="text-red-500">*</span>
+          <div className="space-y-5 py-4">
+            {/* Destinataire */}
+            <div className="space-y-3">
+              <Label htmlFor="emailTo" className="text-base font-semibold text-gray-900">
+                Destinataire(s) <span className="text-red-600">*</span>
               </Label>
               <Input
                 id="emailTo"
                 type="email"
-                placeholder="exemple@email.com"
+                placeholder="exemple@email.com, autre@email.com"
                 value={emailTo}
                 onChange={(e) => setEmailTo(e.target.value)}
-                className="border-[#8B5A2B]/30 focus:border-[#8B5A2B]"
+                className="h-12 text-base border-2 border-[#8B5A2B]/30 focus:border-[#8B5A2B] rounded-lg px-4"
               />
-              <p className="text-xs text-gray-500">
-                Séparez plusieurs emails par des virgules
+              <p className="text-sm text-gray-600 italic">
+                💡 Séparez plusieurs emails par des virgules
               </p>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="emailSubject" className="text-sm font-medium">
-                Objet
+            {/* Objet */}
+            <div className="space-y-3">
+              <Label htmlFor="emailSubject" className="text-base font-semibold text-gray-900">
+                Objet de l'email
               </Label>
               <Input
                 id="emailSubject"
                 value={emailSubject}
                 onChange={(e) => setEmailSubject(e.target.value)}
-                className="border-[#8B5A2B]/30 focus:border-[#8B5A2B]"
+                className="h-12 text-base border-2 border-[#8B5A2B]/30 focus:border-[#8B5A2B] rounded-lg px-4"
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="emailBody" className="text-sm font-medium">
+            {/* Message */}
+            <div className="space-y-3">
+              <Label htmlFor="emailBody" className="text-base font-semibold text-gray-900">
                 Message
               </Label>
               <textarea
