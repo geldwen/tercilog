@@ -3311,8 +3311,9 @@ async def preview_pdf(
                 try:
                     if mime and 'pdf' in mime:
                         # Pour les PDFs : convertir les 2 premières pages en images
-                        pdf_images, success = create_pdf_preview_image(filepath, max_width=5.0*inch)
+                        pdf_images, temp_files, success = create_pdf_preview_image(filepath, max_width=5.0*inch)
                         if success and pdf_images:
+                            temp_files_to_cleanup.extend(temp_files)  # Ajouter à la liste de nettoyage
                             for page_idx, img in enumerate(pdf_images, 1):
                                 story.append(Paragraph(f"<b>Page {page_idx} :</b>", styles['Normal']))
                                 story.append(Spacer(1, 5))
