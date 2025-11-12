@@ -198,6 +198,25 @@ class StudentFeedbackCreate(BaseModel):
     teacher_support: str
     recommendation: str
 
+class PlanningEvent(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    date: str
+    start_time: str
+    end_time: str
+    organism: str = ""
+    teacher_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PlanningEventCreate(BaseModel):
+    title: str
+    date: str
+    start_time: str
+    end_time: str
+    organism: str = ""
+
 # Helper functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
