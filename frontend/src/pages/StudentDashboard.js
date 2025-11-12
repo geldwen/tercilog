@@ -536,57 +536,12 @@ export default function StudentDashboard({ user, onLogout }) {
         )}
       </main>
 
-      {/* Training Needs Dialog */}
-      <Dialog open={showNeedsDialog} onOpenChange={setShowNeedsDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Mes besoins en formation</DialogTitle>
-            <DialogDescription>Partagez vos attentes pour personnaliser votre parcours</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label>Qu'attendez-vous de cette formation ?</Label>
-              <Textarea
-                value={trainingNeeds.expectations}
-                onChange={(e) => setTrainingNeeds({ ...trainingNeeds, expectations: e.target.value })}
-                rows={3}
-                className="mt-2"
-              />
-            </div>
-            <div>
-              <Label>Quelles sont vos forces actuelles ?</Label>
-              <Textarea
-                value={trainingNeeds.strengths}
-                onChange={(e) => setTrainingNeeds({ ...trainingNeeds, strengths: e.target.value })}
-                rows={3}
-                className="mt-2"
-              />
-            </div>
-            <div>
-              <Label>Qu'aimeriez-vous améliorer ?</Label>
-              <Textarea
-                value={trainingNeeds.improvements}
-                onChange={(e) => setTrainingNeeds({ ...trainingNeeds, improvements: e.target.value })}
-                rows={3}
-                className="mt-2"
-              />
-            </div>
-            <div>
-              <Label>Quelles sont vos disponibilités ?</Label>
-              <Textarea
-                value={trainingNeeds.availability}
-                onChange={(e) => setTrainingNeeds({ ...trainingNeeds, availability: e.target.value })}
-                rows={3}
-                className="mt-2"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNeedsDialog(false)}>Annuler</Button>
-            <Button onClick={saveTrainingNeeds} style={{backgroundColor: TERCIFORM_BLUE}}>Sauvegarder</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Training Needs Questionnaire */}
+      <FormationNeedsQuestionnaire
+        open={showNeedsDialog}
+        onClose={() => setShowNeedsDialog(false)}
+        studentId={user?.id}
+      />
 
       {/* Feedback Dialog */}
       <Dialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog}>
