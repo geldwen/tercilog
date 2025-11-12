@@ -3219,50 +3219,72 @@ async def preview_pdf(
         fontName='Helvetica-Bold'
     )
     
-    # En-tête avec logo
+    # En-tête avec logo - Design professionnel
     logo_path = ROOT_DIR / "assets" / "logo_terciform.png"
     if logo_path.exists():
         try:
-            logo = Image(str(logo_path), width=2.5*inch, height=1.06*inch)
+            logo = Image(str(logo_path), width=3.0*inch, height=1.27*inch)
             logo.hAlign = 'CENTER'
             
-            logo_table = Table([[logo]], colWidths=[5.5*inch])
+            logo_table = Table([[logo]], colWidths=[7.0*inch])
             logo_table.setStyle(TableStyle([
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('TOPPADDING', (0, 0), (-1, -1), 15),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
-                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F8F1EC')),
-                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#8B5A2B'))
+                ('TOPPADDING', (0, 0), (-1, -1), 20),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 20),
+                ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+                ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#8B5A2B'))
             ]))
             story.append(logo_table)
-            story.append(Spacer(1, 25))
+            story.append(Spacer(1, 20))
         except Exception as e:
             logger.warning(f"Logo not loaded: {e}")
     
-    # Titre
+    # Titre principal - Design amélioré
     title_style_white = ParagraphStyle(
         'CustomTitleWhite',
         parent=styles['Heading1'],
-        fontSize=22,
+        fontSize=26,
         textColor=colors.white,
         alignment=1,
-        fontName='Helvetica-Bold'
+        fontName='Helvetica-Bold',
+        leading=32
     )
     
-    title_table = Table([[Paragraph(f"{category_title}", title_style_white)]], colWidths=[5.5*inch])
+    title_table = Table([[Paragraph(f"{category_title}", title_style_white)]], colWidths=[7.0*inch])
     title_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#8B5A2B')),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 15),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 15)
+        ('TOPPADDING', (0, 0), (-1, -1), 20),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 20)
     ]))
     
     story.append(title_table)
-    story.append(Spacer(1, 15))
-    story.append(Paragraph(f"<para align=center fontSize=13><b>Élève :</b> {student.get('name', 'N/A')}</para>", subtitle_style))
-    story.append(Spacer(1, 25))
+    story.append(Spacer(1, 5))
+    
+    # Bandeau nom de l'élève
+    student_style = ParagraphStyle(
+        'StudentName',
+        parent=styles['Normal'],
+        fontSize=16,
+        textColor=colors.HexColor('#6B4522'),
+        alignment=1,
+        fontName='Helvetica-Bold',
+        leading=20
+    )
+    
+    student_table = Table([[Paragraph(f"Élève : {student.get('name', 'N/A')}", student_style)]], colWidths=[7.0*inch])
+    student_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F4EAE3')),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('TOPPADDING', (0, 0), (-1, -1), 15),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#8B5A2B'))
+    ]))
+    
+    story.append(student_table)
+    story.append(Spacer(1, 30))
     
     # Section Documents - AVEC APERÇUS VISUELS COMPLETS ET MISE EN PAGE PROFESSIONNELLE
     temp_files_to_cleanup = []  # Liste des fichiers temporaires à nettoyer
