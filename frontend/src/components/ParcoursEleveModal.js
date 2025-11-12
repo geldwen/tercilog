@@ -955,11 +955,12 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
 
   // Vue liste des questionnaires
   return (
-    <div className="space-y-4">
-      <div className="p-4 rounded-lg bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white">
-        <h4 className="font-semibold text-lg">Documents bénéficiaires</h4>
-        <p className="text-sm opacity-90 mt-1">Questionnaires et documents soumis par l'élève</p>
-      </div>
+    <>
+      <div className="space-y-4">
+        <div className="p-4 rounded-lg bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white">
+          <h4 className="font-semibold text-lg">Documents bénéficiaires</h4>
+          <p className="text-sm opacity-90 mt-1">Questionnaires et documents soumis par l'élève</p>
+        </div>
 
       {questionnaires.map((q) => (
         <Card key={q.id} className="border-2 border-[#8B5A2B]/20 hover:shadow-lg transition-shadow">
