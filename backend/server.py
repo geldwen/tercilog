@@ -3321,20 +3321,31 @@ async def preview_pdf(
             mime = document.get('mime', '')
             filename = document.get('filename', 'N/A')
             
-            # En-tête document ULTRA COMPACT
-            doc_title_style_inline = ParagraphStyle(
-                'DocTitleInline',
+            # En-tête document professionnel et compact
+            doc_title_style_pro = ParagraphStyle(
+                'DocTitlePro',
                 parent=styles['Normal'],
-                fontSize=12,
+                fontSize=13,
                 textColor=colors.HexColor('#8B5A2B'),
                 fontName='Helvetica-Bold',
-                leading=14
+                leading=16,
+                spaceAfter=4
             )
             
-            # Titre et date sur une seule ligne compacte
-            story.append(Paragraph(f"<b>Document {idx} : {filename}</b>", doc_title_style_inline))
-            story.append(Paragraph(f"<i><font size=9>Date : {formatted_date}</font></i>", styles['Normal']))
-            story.append(Spacer(1, 5))
+            doc_date_style = ParagraphStyle(
+                'DocDate',
+                parent=styles['Normal'],
+                fontSize=9,
+                textColor=colors.HexColor('#666666'),
+                fontName='Helvetica-Oblique',
+                leading=12,
+                spaceAfter=8
+            )
+            
+            # Titre du document
+            story.append(Paragraph(f"<b>Document {idx} : {filename}</b>", doc_title_style_pro))
+            # Date de réalisation
+            story.append(Paragraph(f"Date de réalisation : {formatted_date}", doc_date_style))
             
             # APERÇU VISUEL - TOUTES LES PAGES, SANS CADRE
             if filepath.exists():
