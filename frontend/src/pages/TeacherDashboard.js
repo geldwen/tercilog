@@ -203,6 +203,22 @@ export default function TeacherDashboard({ user, onLogout }) {
     setMultiSessions(updated);
   };
 
+  const toggleStudentSelection = (studentId) => {
+    if (selectedStudents.includes(studentId)) {
+      setSelectedStudents(selectedStudents.filter(id => id !== studentId));
+    } else {
+      setSelectedStudents([...selectedStudents, studentId]);
+    }
+  };
+
+  const selectAllStudents = () => {
+    setSelectedStudents(students.map(s => s.id));
+  };
+
+  const deselectAllStudents = () => {
+    setSelectedStudents([]);
+  };
+
   const handleCreateStudent = async (e) => {
     e.preventDefault();
     try {
