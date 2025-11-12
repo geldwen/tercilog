@@ -677,9 +677,9 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <DialogTrigger asChild>
                   <Button className="gap-2 text-white" style={{ backgroundColor: TERCIFORM_BLUE }}><Plus className="w-4 h-4" />Créer une séance</Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader><DialogTitle>Nouvelle Séance</DialogTitle><DialogDescription>Créer une nouvelle séance</DialogDescription></DialogHeader>
-                  <form onSubmit={handleCreateSession} className="space-y-4">
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader><DialogTitle>Créer des séances</DialogTitle><DialogDescription>Créer une ou plusieurs séances pour un élève</DialogDescription></DialogHeader>
+                  <form onSubmit={handleCreateMultiSessions} className="space-y-4">
                     <div className="space-y-2"><Label>Matière</Label><Input placeholder="ex: Anglais" value={sessionForm.subject} onChange={(e) => setSessionForm({ ...sessionForm, subject: e.target.value })} required /></div>
                     <div className="space-y-2"><Label>Date</Label><Input type="date" value={sessionForm.date} onChange={(e) => setSessionForm({ ...sessionForm, date: e.target.value })} required /></div>
                     <div className="grid grid-cols-2 gap-4">
