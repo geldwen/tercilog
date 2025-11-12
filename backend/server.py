@@ -3297,13 +3297,20 @@ async def preview_pdf(
     story.append(student_table)
     story.append(Spacer(1, 30))
     
-    # Section Documents - COMPACT SANS SAUT DE PAGE
+    # Section Documents - Professionnel et lisible
     temp_files_to_cleanup = []  # Liste des fichiers temporaires à nettoyer
     
     if documents:
-        # Titre de section simple
-        story.append(Paragraph("<b>📋 Documents téléversés</b>", section_title_style))
-        story.append(Spacer(1, 10))
+        # Titre de section avec ligne de séparation
+        story.append(Spacer(1, 5))
+        section_line = Table([['']], colWidths=[6.5*inch])
+        section_line.setStyle(TableStyle([
+            ('LINEABOVE', (0, 0), (-1, 0), 2, colors.HexColor('#8B5A2B'))
+        ]))
+        story.append(section_line)
+        story.append(Spacer(1, 8))
+        story.append(Paragraph("<font size=14 color='#8B5A2B'><b>Documents téléversés</b></font>", styles['Normal']))
+        story.append(Spacer(1, 12))
         
         # Pour chaque document, afficher un aperçu visuel complet
         for idx, document in enumerate(documents, 1):
