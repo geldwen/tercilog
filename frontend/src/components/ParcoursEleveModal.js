@@ -644,6 +644,19 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
               />
             </div>
           </TabsContent>
+
+          {/* Onglet Documents bénéficiaires - Pleine largeur (pas de note) */}
+          <TabsContent value="beneficiaire" className="mt-6">
+            <div className="max-w-4xl mx-auto">
+              <UploadSectionWithNote
+                studentId={student.id}
+                category="beneficiaire"
+                title="Documents bénéficiaires"
+                buttonText="Cliquez ici pour télécharger un document bénéficiaire"
+                showNote={false}
+              />
+            </div>
+          </TabsContent>
         </Tabs>
       </DialogContent>
 
