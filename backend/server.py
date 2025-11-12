@@ -3435,6 +3435,14 @@ async def preview_pdf(
     doc_pdf.build(story)
     buffer.seek(0)
     
+    # Nettoyer les fichiers temporaires
+    for temp_file in temp_files_to_cleanup:
+        try:
+            if temp_file.exists():
+                temp_file.unlink()
+        except Exception as e:
+            logger.warning(f"Could not delete temp file {temp_file}: {e}")
+    
     # Retourner le PDF avec headers same-origin pour iframe preview
     filename = f"apercu_{category}.pdf"
     return Response(
