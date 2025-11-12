@@ -3056,6 +3056,14 @@ async def send_category_pdf_by_email(
         buffer.seek(0)
         pdf_bytes = buffer.getvalue()
         
+        # Nettoyer les fichiers temporaires
+        for temp_file in temp_files_to_cleanup:
+            try:
+                if temp_file.exists():
+                    temp_file.unlink()
+            except Exception as e:
+                logger.warning(f"Could not delete temp file {temp_file}: {e}")
+        
         # Envoyer l'email avec Gmail SMTP
         gmail_user = os.environ.get('GMAIL_USER')
         gmail_password = os.environ.get('GMAIL_PASSWORD')
