@@ -383,6 +383,387 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
   );
 }
 
+// Composant pour afficher les questionnaires bénéficiaires
+function BeneficiaryDocumentsTab({ studentId, studentName }) {
+  const [questionnaires, setQuestionnaires] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedQuestionnaire, setSelectedQuestionnaire] = useState(null);
+
+  useEffect(() => {
+    loadQuestionnaires();
+  }, [studentId]);
+
+  const loadQuestionnaires = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API}/students/${studentId}/formation-needs`, {
+        headers: getAuthHeaders()
+      });
+      
+      if (response.data.exists && response.data.questionnaire) {
+        // On place le questionnaire dans un tableau pour avoir une structure de liste
+        setQuestionnaires([response.data.questionnaire]);
+      } else {
+        setQuestionnaires([]);
+      }
+    } catch (error) {
+      console.error("Error loading questionnaires:", error);
+      toast.error("Erreur lors du chargement des questionnaires");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const renderAnswer = (value) => {
+    if (Array.isArray(value)) {
+      return value.length > 0 ? value.join(', ') : '—';
+    }
+    return value || '—';
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#8B5A2B]" />
+        <p className="text-gray-600">Chargement des questionnaires...</p>
+      </div>
+    );
+  }
+
+  if (questionnaires.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+        <p className="text-gray-600 text-lg">Aucun questionnaire soumis pour le moment</p>
+        <p className="text-gray-500 text-sm mt-2">L'élève n'a pas encore rempli le questionnaire de besoins en formation</p>
+      </div>
+    );
+  }
+
+  // Vue détaillée du questionnaire
+  if (selectedQuestionnaire) {
+    const q = selectedQuestionnaire;
+    
+    return (
+      <div className="space-y-6">
+        {/* Header avec bouton retour */}
+        <div className="flex items-center justify-between bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white p-4 rounded-lg">
+          <div>
+            <h3 className="text-xl font-bold">Questionnaire de besoins en formation</h3>
+            <p className="text-sm opacity-90 mt-1">
+              Soumis le {formatDateTime(q.submitted_at)} par {studentName}
+            </p>
+          </div>
+          <Button
+            onClick={() => setSelectedQuestionnaire(null)}
+            className="bg-white text-[#8B5A2B] hover:bg-gray-100"
+          >
+            ← Retour
+          </Button>
+        </div>
+
+        {/* Contenu du questionnaire avec réponses en rose */}
+        <div className="space-y-6">
+          {/* Section 1: Identification */}
+          <Card className="border-2 border-[#8B5A2B]/20">
+            <CardContent className="pt-6 space-y-4">
+              <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+                1. Identification
+              </h4>
+              
+              <div>
+                <p className="text-sm font-medium text-gray-700">Situation professionnelle :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.situation_professionnelle)}</p>
+                </div>
+              </div>
+
+              {q.si_en_fonction && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Si en fonction :</p>
+                  <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                    <p className="text-gray-900">{q.si_en_fonction}</p>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <p className="text-sm font-medium text-gray-700">Poste occupé :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.poste_occupe)}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-700">Ancienneté :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.anciennete)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Section 2: Motivation et objectifs */}
+          <Card className="border-2 border-[#8B5A2B]/20">
+            <CardContent className="pt-6 space-y-4">
+              <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+                2. Motivation et objectifs
+              </h4>
+              
+              <div>
+                <p className="text-sm font-medium text-gray-700">Formation d'anglais antérieure :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.formation_anglais_anterieure)}</p>
+                </div>
+              </div>
+
+              {q.formation_details && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Détails de la formation :</p>
+                  <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                    <p className="text-gray-900">{q.formation_details}</p>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <p className="text-sm font-medium text-gray-700">Raison de la formation :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.raison_formation)}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-700">Cadre d'utilisation :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.cadre_utilisation)}</p>
+                  {q.cadre_autre && <p className="text-gray-900 mt-1">Autre : {q.cadre_autre}</p>}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-700">Objectifs principaux :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.objectifs_principaux)}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-700">Attentes à la fin de la formation :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.attentes_fin_formation)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Section 3: Niveau et compétences */}
+          <Card className="border-2 border-[#8B5A2B]/20">
+            <CardContent className="pt-6 space-y-4">
+              <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+                3. Niveau et compétences linguistiques (auto-évaluation)
+              </h4>
+              
+              {[
+                { key: 'comprehension_orale', label: 'Compréhension orale' },
+                { key: 'expression_orale', label: 'Expression orale' },
+                { key: 'comprehension_ecrite', label: 'Compréhension écrite' },
+                { key: 'expression_ecrite', label: 'Expression écrite' }
+              ].map(({ key, label }) => (
+                <div key={key}>
+                  <p className="text-sm font-medium text-gray-700">{label} :</p>
+                  <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                    <p className="text-gray-900">{renderAnswer(q[key])}</p>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Section 4: Besoins professionnels */}
+          <Card className="border-2 border-[#8B5A2B]/20">
+            <CardContent className="pt-6 space-y-4">
+              <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+                4. Besoins professionnels et attentes spécifiques
+              </h4>
+              
+              <div>
+                <p className="text-sm font-medium text-gray-700">Situations où l'anglais est nécessaire :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.situations_anglais_necessaire)}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-700">Difficultés rencontrées :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.difficultes)}</p>
+                  {q.difficultes_autre && <p className="text-gray-900 mt-1">Autre : {q.difficultes_autre}</p>}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-700">Contenu particulier :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.contenu_particulier)}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-700">Certification souhaitée :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.certification_souhaitee)}</p>
+                  {q.certification_laquelle && <p className="text-gray-900 mt-1">Laquelle : {q.certification_laquelle}</p>}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Section 5: Contraintes et conditions */}
+          <Card className="border-2 border-[#8B5A2B]/20">
+            <CardContent className="pt-6 space-y-4">
+              <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+                5. Contraintes et conditions de suivi
+              </h4>
+              
+              <div>
+                <p className="text-sm font-medium text-gray-700">Rythme souhaité :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.rythme_souhaite)}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-700">Format préféré :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.format_prefere)}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-gray-700">Contraintes particulières :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.contraintes_particulieres)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Section 6: Situation de handicap */}
+          <Card className="border-2 border-[#8B5A2B]/20">
+            <CardContent className="pt-6 space-y-4">
+              <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+                6. Situation de handicap et besoins d'adaptation
+              </h4>
+              
+              <div>
+                <p className="text-sm font-medium text-gray-700">Situation de handicap :</p>
+                <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                  <p className="text-gray-900">{renderAnswer(q.situation_handicap)}</p>
+                </div>
+              </div>
+
+              {q.situation_handicap === 'Oui' && (
+                <>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Accompagnement spécifique :</p>
+                    <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                      <p className="text-gray-900">{renderAnswer(q.accompagnement_specifique)}</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Matériel particulier :</p>
+                    <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                      <p className="text-gray-900">{renderAnswer(q.materiel_particulier)}</p>
+                      {q.materiel_autre && <p className="text-gray-900 mt-1">Autre : {q.materiel_autre}</p>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Aménagement du rythme :</p>
+                    <div className="mt-2 p-3 bg-pink-100 rounded-md">
+                      <p className="text-gray-900">{renderAnswer(q.amenagement_rythme)}</p>
+                      {q.amenagement_autre && <p className="text-gray-900 mt-1">Autre : {q.amenagement_autre}</p>}
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Signature */}
+          {q.signature && (
+            <Card className="border-2 border-blue-300 bg-blue-50">
+              <CardContent className="pt-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-4">Signature du bénéficiaire</h4>
+                <div className="bg-white p-4 rounded-lg border-2 border-gray-300">
+                  <img 
+                    src={q.signature} 
+                    alt="Signature" 
+                    className="max-h-32 mx-auto"
+                  />
+                </div>
+                <p className="text-sm text-gray-600 italic mt-3 text-center">
+                  Signé le {formatDateTime(q.submitted_at)}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Vue liste des questionnaires
+  return (
+    <div className="space-y-4">
+      <div className="p-4 rounded-lg bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white">
+        <h4 className="font-semibold text-lg">Documents bénéficiaires</h4>
+        <p className="text-sm opacity-90 mt-1">Questionnaires et documents soumis par l'élève</p>
+      </div>
+
+      {questionnaires.map((q) => (
+        <Card key={q.id} className="border-2 border-[#8B5A2B]/20 hover:shadow-lg transition-shadow cursor-pointer">
+          <CardContent className="pt-6" onClick={() => setSelectedQuestionnaire(q)}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-start gap-4">
+                <FileText className="w-12 h-12 text-[#8B5A2B]" />
+                <div>
+                  <h5 className="font-bold text-lg text-gray-900">Questionnaire de besoins en formation</h5>
+                  <p className="text-sm text-gray-600 mt-1">
+                    👤 Bénéficiaire : <span className="font-medium">{studentName}</span>
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    📅 Soumis le {formatDateTime(q.submitted_at)}
+                  </p>
+                </div>
+              </div>
+              <Button
+                className="bg-[#8B5A2B] hover:bg-[#7A4F26] text-white"
+              >
+                Consulter →
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 // Composant principal de la modale
 export default function ParcoursEleveModal({ open, onOpenChange, student }) {
   const [showEmailModal, setShowEmailModal] = useState(false);
