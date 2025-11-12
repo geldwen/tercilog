@@ -158,31 +158,28 @@ export default function TeacherDashboard({ user, onLogout }) {
   const handleCreateMultiSessions = async (e) => {
     e.preventDefault();
     try {
-      // Créer toutes les séances pour tous les élèves sélectionnés
-      const studentsToCreate = selectedStudents.length > 0 ? selectedStudents : [sessionForm.student_id];
-      const promises = [];
+      const studentsToCreate = selectedStudents.length > 0 ? selectedStudents : [];
       
-      studentsToCreate.forEach(student_id => {
-        multiSessions.forEach(session => {
-          promises.push(
-            axios.post(`${API}/sessions`, {
-              ...session,
-              student_id,
-              validation_deadline_hours: 48
-            })
-          );
-        });
+      if (studentsToCreate.length === 0) {
+        toast.error("Veuillez sélectionner au moins un élève");
+        return;
+      }
+      
+      // Utiliser le nouvel endpoint bulk qui envoie UN email par élève
+      const response = await axios.post(`${API}/sessions/bulk`, {
+        student_ids: studentsToCreate,
+        sessions: multiSessions
       });
       
-      await Promise.all(promises);
       const totalCreated = multiSessions.length * studentsToCreate.length;
-      toast.success(`${totalCreated} séance(s) créée(s) pour ${studentsToCreate.length} élève(s) et emails envoyés !`);
+      toast.success(`${totalCreated} séance(s) créée(s) pour ${studentsToCreate.length} élève(s) et UN email par élève envoyé !`);
       setShowCreateSession(false);
       setSessionForm({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48, meeting_link: "", modality: "distanciel", hourly_rate: 0, hourly_rate_source: "inferred" });
       setMultiSessions([{ subject: "", date: "", start_time: "", end_time: "", modality: "distanciel", hourly_rate: 0, meeting_link: "" }]);
       setSelectedStudents([]);
       loadData(selectedMonth);
     } catch (error) {
+      console.error("Error creating sessions:", error);
       toast.error(error.response?.data?.detail || "Erreur lors de la création des séances");
     }
   };
