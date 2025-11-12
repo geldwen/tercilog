@@ -3297,23 +3297,13 @@ async def preview_pdf(
     story.append(student_table)
     story.append(Spacer(1, 30))
     
-    # Section Documents - AVEC APERÇUS VISUELS COMPLETS ET MISE EN PAGE PROFESSIONNELLE
+    # Section Documents - COMPACT SANS SAUT DE PAGE
     temp_files_to_cleanup = []  # Liste des fichiers temporaires à nettoyer
     
     if documents:
-        # Titre de section avec style professionnel
-        section_header = Table([
-            [Paragraph("📋 Documents téléversés", section_title_style)]
-        ], colWidths=[7.0*inch])
-        section_header.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F4EAE3')),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('TOPPADDING', (0, 0), (-1, -1), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-            ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#8B5A2B'))
-        ]))
-        story.append(section_header)
-        story.append(Spacer(1, 20))
+        # Titre de section simple
+        story.append(Paragraph("<b>📋 Documents téléversés</b>", section_title_style))
+        story.append(Spacer(1, 10))
         
         # Pour chaque document, afficher un aperçu visuel complet
         for idx, document in enumerate(documents, 1):
