@@ -3321,43 +3321,20 @@ async def preview_pdf(
             mime = document.get('mime', '')
             filename = document.get('filename', 'N/A')
             
-            # Bandeau titre document - Style plus professionnel
-            doc_title_style = ParagraphStyle(
-                'DocTitle',
+            # En-tête document ULTRA COMPACT
+            doc_title_style_inline = ParagraphStyle(
+                'DocTitleInline',
                 parent=styles['Normal'],
-                fontSize=13,
-                textColor=colors.white,
+                fontSize=12,
+                textColor=colors.HexColor('#8B5A2B'),
                 fontName='Helvetica-Bold',
-                leading=16
-            )
-            
-            doc_subtitle_style = ParagraphStyle(
-                'DocSubtitle',
-                parent=styles['Normal'],
-                fontSize=10,
-                textColor=colors.HexColor('#666666'),
-                fontName='Helvetica-Oblique',
                 leading=14
             )
             
-            # En-tête du document avec numéro et nom - compact
-            doc_header = Table([
-                [Paragraph(f"Document {idx}", doc_title_style)],
-                [Paragraph(filename, doc_title_style)]
-            ], colWidths=[7.0*inch])
-            doc_header.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#8B5A2B')),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('TOPPADDING', (0, 0), (-1, -1), 6),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
-            ]))
-            story.append(doc_header)
+            # Titre et date sur une seule ligne compacte
+            story.append(Paragraph(f"<b>Document {idx} : {filename}</b>", doc_title_style_inline))
+            story.append(Paragraph(f"<i><font size=9>Date : {formatted_date}</font></i>", styles['Normal']))
             story.append(Spacer(1, 5))
-            
-            # Date simple sans cadre
-            story.append(Paragraph(f"<i>📅 Date de réalisation : {formatted_date}</i>", doc_subtitle_style))
-            story.append(Spacer(1, 10))
             
             # APERÇU VISUEL DU DOCUMENT - SANS CADRE, SANS SAUT DE PAGE
             if filepath.exists():
