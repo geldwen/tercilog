@@ -2068,6 +2068,212 @@ def generate_feedback_pdf(student: dict, feedback: dict) -> io.BytesIO:
     return buffer
 
 
+def generate_formation_needs_pdf(student: dict, questionnaire: dict) -> bytes:
+    """Générer un PDF du questionnaire de besoins en formation"""
+    buffer = io.BytesIO()
+    
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=72,
+        bottomMargin=54
+    )
+    
+    styles = getSampleStyleSheet()
+    normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=10)
+    bold_style = ParagraphStyle('Bold', parent=styles['Normal'], fontSize=11, fontName='Helvetica-Bold')
+    title_style = ParagraphStyle('Title', parent=styles['Normal'], fontSize=14, fontName='Helvetica-Bold', textColor=colors.HexColor('#8B5A2B'))
+    section_style = ParagraphStyle('Section', parent=styles['Normal'], fontSize=12, fontName='Helvetica-Bold', textColor=colors.HexColor('#8B5A2B'))
+    answer_style = ParagraphStyle('Answer', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#DB2777'), fontName='Helvetica-Bold')
+    
+    story = []
+    
+    # En-tête
+    story.append(build_header(f"Questionnaire de besoins en formation — {student['name']}"))
+    story.append(Spacer(0, 20))
+    
+    # Info élève
+    story.append(Paragraph(f"Bénéficiaire : {student.get('name', '')}", bold_style))
+    story.append(Paragraph(f"Email : {student.get('email', '')}", normal_style))
+    submitted_at = questionnaire.get('submitted_at', '')
+    if submitted_at:
+        try:
+            dt = datetime.fromisoformat(submitted_at.replace('Z', '+00:00'))
+            formatted_date = dt.strftime('%d/%m/%Y à %H:%M')
+            story.append(Paragraph(f"Soumis le : {formatted_date}", normal_style))
+        except:
+            story.append(Paragraph(f"Soumis le : {submitted_at}", normal_style))
+    story.append(Spacer(0, 20))
+    
+    def render_list(items):
+        if isinstance(items, list):
+            return ', '.join(items) if items else '—'
+        return items if items else '—'
+    
+    # Section 1: Identification
+    story.append(Paragraph("1. Identification", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("Situation professionnelle :", bold_style))
+    story.append(Paragraph(render_list(questionnaire.get('situation_professionnelle')), answer_style))
+    story.append(Spacer(0, 6))
+    
+    if questionnaire.get('si_en_fonction'):
+        story.append(Paragraph("Si en fonction, précisez :", bold_style))
+        story.append(Paragraph(questionnaire.get('si_en_fonction', '—'), answer_style))
+        story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Poste occupé :", bold_style))
+    story.append(Paragraph(questionnaire.get('poste_occupe', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Ancienneté dans le poste :", bold_style))
+    story.append(Paragraph(questionnaire.get('anciennete', '—'), answer_style))
+    story.append(Spacer(0, 15))
+    
+    # Section 2: Motivation et objectifs
+    story.append(Paragraph("2. Motivation et objectifs", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("Avez-vous déjà suivi une formation d'anglais ? *", bold_style))
+    story.append(Paragraph(questionnaire.get('formation_anglais_anterieure', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    if questionnaire.get('formation_details'):
+        story.append(Paragraph("Détails de la formation :", bold_style))
+        story.append(Paragraph(questionnaire.get('formation_details', '—'), answer_style))
+        story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Pourquoi souhaitez-vous suivre cette formation ? *", bold_style))
+    story.append(Paragraph(questionnaire.get('raison_formation', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Dans quel cadre utiliserez-vous l'anglais ? *", bold_style))
+    cadre = render_list(questionnaire.get('cadre_utilisation'))
+    if questionnaire.get('cadre_autre'):
+        cadre += f", Autre : {questionnaire.get('cadre_autre')}"
+    story.append(Paragraph(cadre, answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Quels sont vos objectifs principaux ? *", bold_style))
+    story.append(Paragraph(render_list(questionnaire.get('objectifs_principaux')), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Qu'attendez-vous concrètement à la fin de la formation ? *", bold_style))
+    story.append(Paragraph(questionnaire.get('attentes_fin_formation', '—'), answer_style))
+    story.append(Spacer(0, 15))
+    
+    # Section 3: Niveau et compétences
+    story.append(Paragraph("3. Niveau et compétences linguistiques (auto-évaluation)", section_style))
+    story.append(Spacer(0, 8))
+    
+    competences = [
+        ('Compréhension orale', 'comprehension_orale'),
+        ('Expression orale', 'expression_orale'),
+        ('Compréhension écrite', 'comprehension_ecrite'),
+        ('Expression écrite', 'expression_ecrite')
+    ]
+    
+    for label, key in competences:
+        story.append(Paragraph(f"{label} : ", bold_style))
+        story.append(Paragraph(questionnaire.get(key, '—'), answer_style))
+        story.append(Spacer(0, 6))
+    
+    story.append(Spacer(0, 10))
+    
+    # Section 4: Besoins professionnels
+    story.append(Paragraph("4. Besoins professionnels et attentes spécifiques", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("Situations où l'anglais est nécessaire :", bold_style))
+    story.append(Paragraph(questionnaire.get('situations_anglais_necessaire', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Difficultés rencontrées :", bold_style))
+    difficultes = render_list(questionnaire.get('difficultes'))
+    if questionnaire.get('difficultes_autre'):
+        difficultes += f", Autre : {questionnaire.get('difficultes_autre')}"
+    story.append(Paragraph(difficultes, answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Contenu particulier :", bold_style))
+    story.append(Paragraph(questionnaire.get('contenu_particulier', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Certification souhaitée :", bold_style))
+    cert = questionnaire.get('certification_souhaitee', '—')
+    if questionnaire.get('certification_laquelle'):
+        cert += f" ({questionnaire.get('certification_laquelle')})"
+    story.append(Paragraph(cert, answer_style))
+    story.append(Spacer(0, 15))
+    
+    # Section 5: Contraintes et conditions
+    story.append(Paragraph("5. Contraintes et conditions de suivi", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("Rythme souhaité :", bold_style))
+    story.append(Paragraph(render_list(questionnaire.get('rythme_souhaite')), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Format préféré :", bold_style))
+    story.append(Paragraph(render_list(questionnaire.get('format_prefere')), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Contraintes particulières :", bold_style))
+    story.append(Paragraph(questionnaire.get('contraintes_particulieres', '—'), answer_style))
+    story.append(Spacer(0, 15))
+    
+    # Section 6: Situation de handicap
+    story.append(Paragraph("6. Situation de handicap et besoins d'adaptation", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("Situation de handicap :", bold_style))
+    story.append(Paragraph(questionnaire.get('situation_handicap', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    if questionnaire.get('situation_handicap') == 'Oui':
+        story.append(Paragraph("Accompagnement spécifique :", bold_style))
+        story.append(Paragraph(questionnaire.get('accompagnement_specifique', '—'), answer_style))
+        story.append(Spacer(0, 6))
+        
+        story.append(Paragraph("Matériel particulier :", bold_style))
+        materiel = render_list(questionnaire.get('materiel_particulier'))
+        if questionnaire.get('materiel_autre'):
+            materiel += f", Autre : {questionnaire.get('materiel_autre')}"
+        story.append(Paragraph(materiel, answer_style))
+        story.append(Spacer(0, 6))
+        
+        story.append(Paragraph("Aménagement du rythme :", bold_style))
+        amenagement = render_list(questionnaire.get('amenagement_rythme'))
+        if questionnaire.get('amenagement_autre'):
+            amenagement += f", Autre : {questionnaire.get('amenagement_autre')}"
+        story.append(Paragraph(amenagement, answer_style))
+        story.append(Spacer(0, 6))
+    
+    story.append(Spacer(0, 15))
+    
+    # Signature
+    story.append(Paragraph("7. Validation", section_style))
+    story.append(Spacer(0, 8))
+    story.append(Paragraph("Je certifie l'exactitude des données et transmets mes informations à TerciForm", normal_style))
+    story.append(Spacer(0, 10))
+    
+    # Footer
+    def add_page_number(canvas, doc):
+        canvas.saveState()
+        page_num = canvas.getPageNumber()
+        canvas.setFont('Helvetica', 8)
+        canvas.setFillColor(colors.grey)
+        canvas.drawCentredString(A4[0]/2, 30, f"Page {page_num}")
+        canvas.restoreState()
+    
+    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
 @api_router.post("/students/{student_id}/send-planning-pdf")
 async def send_student_planning_pdf(student_id: str, data: dict, current_user: User = Depends(get_current_user)):
     """Envoyer le planning d'un élève en PDF par email (TOUTES les séances du parcours)"""
