@@ -3123,7 +3123,7 @@ async def delete_planning_event(
     return {"message": "Event deleted"}
 
 
-def create_pdf_preview_image(pdf_path: Path, max_width: float = 5.0 * inch) -> tuple:
+def create_pdf_preview_image(pdf_path: Path, max_width: float = 6.0 * inch) -> tuple:
     """
     Convertir les premières pages d'un PDF en images pour inclusion dans le rapport
     Retourne (liste_images, liste_fichiers_temp, succès)
