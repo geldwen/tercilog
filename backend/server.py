@@ -3264,12 +3264,23 @@ async def preview_pdf(
     story.append(Paragraph(f"<para align=center fontSize=13><b>Élève :</b> {student.get('name', 'N/A')}</para>", subtitle_style))
     story.append(Spacer(1, 25))
     
-    # Section Documents - AVEC APERÇUS VISUELS COMPLETS
+    # Section Documents - AVEC APERÇUS VISUELS COMPLETS ET MISE EN PAGE PROFESSIONNELLE
     temp_files_to_cleanup = []  # Liste des fichiers temporaires à nettoyer
     
     if documents:
-        story.append(Paragraph("Documents téléversés", section_title_style))
-        story.append(Spacer(1, 15))
+        # Titre de section avec style professionnel
+        section_header = Table([
+            [Paragraph("📋 Documents téléversés", section_title_style)]
+        ], colWidths=[7.0*inch])
+        section_header.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F4EAE3')),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('TOPPADDING', (0, 0), (-1, -1), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+            ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#8B5A2B'))
+        ]))
+        story.append(section_header)
+        story.append(Spacer(1, 20))
         
         # Pour chaque document, afficher un aperçu visuel complet
         for idx, document in enumerate(documents, 1):
@@ -3287,53 +3298,108 @@ async def preview_pdf(
             mime = document.get('mime', '')
             filename = document.get('filename', 'N/A')
             
-            # Bandeau titre document
+            # Bandeau titre document - Style plus professionnel
             doc_title_style = ParagraphStyle(
                 'DocTitle',
                 parent=styles['Normal'],
-                fontSize=12,
+                fontSize=13,
                 textColor=colors.white,
-                fontName='Helvetica-Bold'
+                fontName='Helvetica-Bold',
+                leading=16
             )
             
+            doc_subtitle_style = ParagraphStyle(
+                'DocSubtitle',
+                parent=styles['Normal'],
+                fontSize=10,
+                textColor=colors.HexColor('#666666'),
+                fontName='Helvetica-Oblique',
+                leading=14
+            )
+            
+            # En-tête du document avec numéro et nom
             doc_header = Table([
-                [Paragraph(f"Document {idx} : {filename}", doc_title_style)]
-            ], colWidths=[5.5*inch])
+                [Paragraph(f"Document {idx}", doc_title_style)],
+                [Paragraph(filename, doc_title_style)]
+            ], colWidths=[7.0*inch])
             doc_header.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#6B4522')),
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('LEFTPADDING', (0, 0), (-1, -1), 10),
-                ('TOPPADDING', (0, 0), (-1, -1), 8),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 8)
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#8B5A2B')),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('TOPPADDING', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
             ]))
             story.append(doc_header)
-            story.append(Spacer(1, 5))
             
-            # Date de réalisation
-            story.append(Paragraph(f"<i>Date de réalisation : {formatted_date}</i>", styles['Normal']))
-            story.append(Spacer(1, 10))
+            # Date dans un cadre élégant
+            date_para = Paragraph(f"<i>📅 Date de réalisation : {formatted_date}</i>", doc_subtitle_style)
+            date_table = Table([[date_para]], colWidths=[7.0*inch])
+            date_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#FFFBF0')),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#E0E0E0'))
+            ]))
+            story.append(date_table)
+            story.append(Spacer(1, 15))
             
-            # APERÇU VISUEL DU DOCUMENT
+            # APERÇU VISUEL DU DOCUMENT - PLUS GRAND ET PROFESSIONNEL
             if filepath.exists():
                 try:
                     if mime and 'pdf' in mime:
-                        # Pour les PDFs : convertir les 2 premières pages en images
-                        pdf_images, temp_files, success = create_pdf_preview_image(filepath, max_width=5.0*inch)
+                        # Pour les PDFs : convertir les 2 premières pages en images (PLUS GRANDES)
+                        pdf_images, temp_files, success = create_pdf_preview_image(filepath, max_width=6.5*inch)
                         if success and pdf_images:
-                            temp_files_to_cleanup.extend(temp_files)  # Ajouter à la liste de nettoyage
+                            temp_files_to_cleanup.extend(temp_files)
                             for page_idx, img in enumerate(pdf_images, 1):
-                                story.append(Paragraph(f"<b>Page {page_idx} :</b>", styles['Normal']))
-                                story.append(Spacer(1, 5))
-                                story.append(img)
-                                story.append(Spacer(1, 10))
+                                # Indication de page avec style
+                                page_label = Paragraph(f"<b>Page {page_idx}</b>", styles['Normal'])
+                                page_table = Table([[page_label]], colWidths=[7.0*inch])
+                                page_table.setStyle(TableStyle([
+                                    ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#E8F5E9')),
+                                    ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                                    ('LEFTPADDING', (0, 0), (-1, -1), 10),
+                                    ('TOPPADDING', (0, 0), (-1, -1), 6),
+                                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6)
+                                ]))
+                                story.append(page_table)
+                                story.append(Spacer(1, 8))
+                                
+                                # Image avec cadre
+                                img_container = Table([[img]], colWidths=[7.0*inch])
+                                img_container.setStyle(TableStyle([
+                                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                                    ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#CCCCCC')),
+                                    ('TOPPADDING', (0, 0), (-1, -1), 10),
+                                    ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                                    ('LEFTPADDING', (0, 0), (-1, -1), 10),
+                                    ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+                                    ('BACKGROUND', (0, 0), (-1, -1), colors.white)
+                                ]))
+                                story.append(img_container)
+                                story.append(Spacer(1, 15))
                         else:
-                            story.append(Paragraph("❌ Impossible de générer l'aperçu du PDF", styles['Normal']))
+                            story.append(Paragraph("⚠️ Impossible de générer l'aperçu du PDF", styles['Normal']))
                     
                     elif mime and 'image' in mime:
-                        # Pour les images : afficher directement
-                        img = Image(str(filepath), width=5.0*inch, height=None)
+                        # Pour les images : afficher directement (PLUS GRANDES)
+                        img = Image(str(filepath), width=6.5*inch, height=None)
                         img.hAlign = 'CENTER'
-                        story.append(img)
+                        
+                        img_container = Table([[img]], colWidths=[7.0*inch])
+                        img_container.setStyle(TableStyle([
+                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                            ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#CCCCCC')),
+                            ('TOPPADDING', (0, 0), (-1, -1), 10),
+                            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+                            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+                            ('BACKGROUND', (0, 0), (-1, -1), colors.white)
+                        ]))
+                        story.append(img_container)
                     
                     else:
                         # Autres types de fichiers
@@ -3341,20 +3407,27 @@ async def preview_pdf(
                 
                 except Exception as e:
                     logger.warning(f"Could not create preview for {filename}: {e}")
-                    story.append(Paragraph(f"⚠️ Erreur lors de la génération de l'aperçu", styles['Normal']))
+                    error_para = Paragraph("⚠️ Erreur lors de la génération de l'aperçu", styles['Normal'])
+                    error_table = Table([[error_para]], colWidths=[7.0*inch])
+                    error_table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#FFEBEE')),
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('TOPPADDING', (0, 0), (-1, -1), 10),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 10)
+                    ]))
+                    story.append(error_table)
             else:
                 story.append(Paragraph("❌ Fichier non trouvé", styles['Normal']))
             
-            story.append(Spacer(1, 20))
-            
-            # Séparateur entre documents
+            # Séparateur élégant entre documents (seulement si pas le dernier)
             if idx < len(documents):
-                separator = Table([['']], colWidths=[5.5*inch])
+                story.append(Spacer(1, 25))
+                separator = Table([['']], colWidths=[7.0*inch])
                 separator.setStyle(TableStyle([
-                    ('LINEABOVE', (0, 0), (-1, 0), 1, colors.HexColor('#E0E0E0'))
+                    ('LINEABOVE', (0, 0), (-1, 0), 3, colors.HexColor('#8B5A2B'))
                 ]))
                 story.append(separator)
-                story.append(Spacer(1, 20))
+                story.append(Spacer(1, 25))
     
     else:
         story.append(Paragraph("Aucun document téléversé", styles['Normal']))
