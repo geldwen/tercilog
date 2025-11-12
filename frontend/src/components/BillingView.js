@@ -174,7 +174,12 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
   // Export PDF avec logo TerciForm
   const exportPDF = async () => {
     try {
-      const doc = new jsPDF('landscape', 'mm', 'a4');
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
       const monthName = MONTHS.find(m => m.value === activeMonth)?.name || activeMonth;
       
       // Logo TerciForm (en-tête gauche) - charger en base64
@@ -206,6 +211,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
             resolve(); // Continue sans logo
           };
           img.src = logoUrl;
+          setTimeout(() => resolve(), 2000); // Timeout après 2s
         });
       } catch (e) {
         console.warn('Logo non chargé:', e);
