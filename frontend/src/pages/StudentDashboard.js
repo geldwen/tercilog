@@ -498,7 +498,7 @@ export default function StudentDashboard({ user, onLogout }) {
               <CardContent>
                 <p className="text-gray-600 mb-4">Partagez vos attentes et objectifs de formation</p>
                 <Button onClick={() => setShowNeedsDialog(true)} style={{backgroundColor: TERCIFORM_BLUE}}>
-                  Remplir le questionnaire
+                  Remplir et soumettre mon questionnaire
                 </Button>
               </CardContent>
             </Card>
