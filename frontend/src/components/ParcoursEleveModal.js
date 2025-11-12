@@ -885,12 +885,12 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
       </div>
 
       {questionnaires.map((q) => (
-        <Card key={q.id} className="border-2 border-[#8B5A2B]/20 hover:shadow-lg transition-shadow cursor-pointer">
-          <CardContent className="pt-6" onClick={() => setSelectedQuestionnaire(q)}>
+        <Card key={q.id} className="border-2 border-[#8B5A2B]/20 hover:shadow-lg transition-shadow">
+          <CardContent className="pt-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-4 flex-1">
                 <FileText className="w-12 h-12 text-[#8B5A2B]" />
-                <div>
+                <div className="flex-1">
                   <h5 className="font-bold text-lg text-gray-900">Questionnaire de besoins en formation</h5>
                   <p className="text-sm text-gray-600 mt-1">
                     👤 Bénéficiaire : <span className="font-medium">{studentName}</span>
@@ -900,11 +900,34 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
                   </p>
                 </div>
               </div>
-              <Button
-                className="bg-[#8B5A2B] hover:bg-[#7A4F26] text-white"
-              >
-                Consulter →
-              </Button>
+              <div className="flex gap-2 flex-shrink-0">
+                <Button
+                  onClick={() => setSelectedQuestionnaire(q)}
+                  className="bg-[#8B5A2B] hover:bg-[#7A4F26] text-white"
+                >
+                  Consulter →
+                </Button>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownloadQuestionnaire(q.student_id);
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Download className="w-4 h-4 mr-1" />
+                  PDF
+                </Button>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEmailQuestionnaire(q.student_id);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Mail className="w-4 h-4 mr-1" />
+                  Envoyer
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
