@@ -738,107 +738,106 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
               </div>
             )}
             
-            <div className="flex justify-between gap-2 pt-4">
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => {
-                    setShowEmailModal(false);
-                    setShowPreview(false);
-                    if (pdfPreviewUrl) {
-                      window.URL.revokeObjectURL(pdfPreviewUrl);
-                      setPdfPreviewUrl('');
-                    }
-                  }}
-                  variant="outline"
-                  className="text-[#8B5A2B] border-[#8B5A2B]/30"
-                >
-                  Annuler
-                </Button>
-                <Button
-                  onClick={handlePreviewPdf}
-                  disabled={generatingPdf}
-                  variant="outline"
-                  className="text-[#8B5A2B] border-[#8B5A2B]/30"
-                >
-                  {generatingPdf && !showPreview ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Génération...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-4 h-4 mr-2" />
-                      {showPreview ? 'Actualiser' : 'Aperçu'}
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={async () => {
-                    try {
-                      setGeneratingPdf(true);
-                      const token = localStorage.getItem('token');
-                      const response = await axios.get(
-                        `${API}/pdf/preview?student_id=${emailStudentId}&category=${emailCategory}`,
-                        {
-                          headers: { 'Authorization': `Bearer ${token}` },
-                          responseType: 'blob'
-                        }
-                      );
-                      
-                      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
-                      const pdfUrl = window.URL.createObjectURL(pdfBlob);
-                      
-                      // Télécharger le PDF
-                      const link = document.createElement('a');
-                      link.href = pdfUrl;
-                      link.download = `${emailCategory}_synthese.pdf`;
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                      
-                      // Nettoyer
-                      window.URL.revokeObjectURL(pdfUrl);
-                      
-                      toast.success("PDF téléchargé !");
-                    } catch (error) {
-                      console.error("Error downloading PDF:", error);
-                      toast.error("Erreur lors du téléchargement");
-                    } finally {
-                      setGeneratingPdf(false);
-                    }
-                  }}
-                  disabled={generatingPdf}
-                  variant="outline"
-                  className="text-green-700 border-green-500 hover:bg-green-50"
-                >
-                  {generatingPdf ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Téléchargement...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4 mr-2" />
-                      Télécharger PDF
-                    </>
-                  )}
-                </Button>
-              </div>
+            <div className="flex flex-col gap-3 pt-6">
+              {/* Bouton Annuler */}
+              <Button
+                onClick={() => {
+                  setShowEmailModal(false);
+                  setShowPreview(false);
+                  if (pdfPreviewUrl) {
+                    window.URL.revokeObjectURL(pdfPreviewUrl);
+                    setPdfPreviewUrl('');
+                  }
+                }}
+                variant="outline"
+                className="w-full py-3 text-gray-700 border-gray-300 hover:bg-gray-50"
+              >
+                Annuler
+              </Button>
               
+              {/* Bouton Transmettre par email */}
               <Button
                 onClick={handleSendEmail}
                 disabled={generatingPdf || !emailTo.trim()}
-                className="bg-[#8B5A2B] hover:bg-[#7A4F26] text-white"
+                className="w-full py-3 bg-[#8B5A2B] hover:bg-[#7A4F26] text-white font-semibold"
               >
-                {generatingPdf && showPreview ? (
+                {generatingPdf ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Envoi...
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Envoi en cours...
                   </>
                 ) : (
                   <>
-                    <Mail className="w-4 h-4 mr-2" />
-                    Envoyer
+                    <Mail className="w-5 h-5 mr-2" />
+                    Transmettre par email
+                  </>
+                )}
+              </Button>
+              
+              {/* Bouton Télécharger PDF - vert plein */}
+              <Button
+                onClick={async () => {
+                  try {
+                    setGeneratingPdf(true);
+                    const token = localStorage.getItem('token');
+                    
+                    // Récupérer l'élève pour le nom
+                    const studentResponse = await axios.get(`${API}/students`, {
+                      headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const student = studentResponse.data.find(s => s.id === emailStudentId);
+                    const studentName = student?.name || 'eleve';
+                    
+                    const response = await axios.get(
+                      `${API}/pdf/preview?student_id=${emailStudentId}&category=${emailCategory}`,
+                      {
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        responseType: 'blob'
+                      }
+                    );
+                    
+                    const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+                    const pdfUrl = window.URL.createObjectURL(pdfBlob);
+                    
+                    // Nom du fichier : NOM_ELEVE_test_de_positionnement.pdf
+                    const categoryNames = {
+                      'positionnement': 'test_de_positionnement',
+                      'evaluation_cours': 'evaluations_cours_formation',
+                      'evaluation_fin': 'evaluations_fin_formation'
+                    };
+                    const fileName = `${studentName.replace(/\s+/g, '_')}_${categoryNames[emailCategory] || emailCategory}.pdf`;
+                    
+                    // Télécharger le PDF
+                    const link = document.createElement('a');
+                    link.href = pdfUrl;
+                    link.download = fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Nettoyer
+                    window.URL.revokeObjectURL(pdfUrl);
+                    
+                    toast.success("PDF téléchargé !");
+                  } catch (error) {
+                    console.error("Error downloading PDF:", error);
+                    toast.error("Erreur lors du téléchargement");
+                  } finally {
+                    setGeneratingPdf(false);
+                  }
+                }}
+                disabled={generatingPdf}
+                className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold"
+              >
+                {generatingPdf ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Téléchargement...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-5 h-5 mr-2" />
+                    Télécharger le PDF
                   </>
                 )}
               </Button>
