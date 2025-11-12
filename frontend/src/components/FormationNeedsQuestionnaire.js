@@ -316,7 +316,267 @@ export default function FormationNeedsQuestionnaire({ open, onClose, studentId }
             ))}
           </div>
 
-          {/* Suite des sections... (je vais les ajouter dans la prochaine itération pour ne pas dépasser la limite) */}
+          {/* 4. BESOINS PROFESSIONNELS */}
+          <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+            <h3 className="text-lg font-bold text-gray-900">4. Besoins professionnels et attentes spécifiques</h3>
+            
+            <div className="space-y-2">
+              <Label>Dans votre fonction actuelle, quelles sont les situations professionnelles où l'anglais est nécessaire ou pourrait le devenir ?</Label>
+              <textarea
+                value={formData.situations_anglais_necessaire}
+                onChange={(e) => updateField('situations_anglais_necessaire', e.target.value)}
+                rows={3}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                placeholder="Votre réponse..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Quelles difficultés rencontrez-vous actuellement ?</Label>
+              <div className="space-y-2">
+                {[
+                  'Manque de vocabulaire',
+                  'Difficultés à comprendre',
+                  'Blocage à l\'oral',
+                  'Grammaire',
+                  'Prononciation'
+                ].map(option => (
+                  <label key={option} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.difficultes.includes(option)}
+                      onChange={() => toggleCheckbox('difficultes', option)}
+                      className="w-4 h-4"
+                    />
+                    <span>{option}</span>
+                  </label>
+                ))}
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" className="w-4 h-4" disabled />
+                  <Input
+                    value={formData.difficultes_autre}
+                    onChange={(e) => updateField('difficultes_autre', e.target.value)}
+                    placeholder="Autre (précisez)"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Souhaitez-vous insister sur un type de contenu particulier ?</Label>
+              <textarea
+                value={formData.contenu_particulier}
+                onChange={(e) => updateField('contenu_particulier', e.target.value)}
+                rows={2}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                placeholder="Votre réponse..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Souhaitez-vous passer une certification ?</Label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="certification"
+                    value="Oui"
+                    checked={formData.certification_souhaitee === 'Oui'}
+                    onChange={(e) => updateField('certification_souhaitee', e.target.value)}
+                    className="w-4 h-4"
+                  />
+                  <span>Oui</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="certification"
+                    value="Non"
+                    checked={formData.certification_souhaitee === 'Non'}
+                    onChange={(e) => updateField('certification_souhaitee', e.target.value)}
+                    className="w-4 h-4"
+                  />
+                  <span>Non</span>
+                </label>
+              </div>
+              {formData.certification_souhaitee === 'Oui' && (
+                <Input
+                  value={formData.certification_laquelle}
+                  onChange={(e) => updateField('certification_laquelle', e.target.value)}
+                  placeholder="Si oui, laquelle ?"
+                  className="mt-2"
+                />
+              )}
+            </div>
+          </div>
+
+          {/* 5. CONTRAINTES ET CONDITIONS */}
+          <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+            <h3 className="text-lg font-bold text-gray-900">5. Contraintes et conditions de suivi</h3>
+            
+            <div className="space-y-2">
+              <Label>Disponibilités et rythme souhaité</Label>
+              <div className="space-y-2">
+                {['Intensif', 'Étendu', 'Flexible'].map(option => (
+                  <label key={option} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.rythme_souhaite.includes(option)}
+                      onChange={() => toggleCheckbox('rythme_souhaite', option)}
+                      className="w-4 h-4"
+                    />
+                    <span>{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Format préféré</Label>
+              <div className="space-y-2">
+                {['Présentiel', 'Distanciel', 'Hybride'].map(option => (
+                  <label key={option} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.format_prefere.includes(option)}
+                      onChange={() => toggleCheckbox('format_prefere', option)}
+                      className="w-4 h-4"
+                    />
+                    <span>{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Avez-vous des contraintes particulières (horaires, déplacements, matériel, etc.) ?</Label>
+              <textarea
+                value={formData.contraintes_particulieres}
+                onChange={(e) => updateField('contraintes_particulieres', e.target.value)}
+                rows={3}
+                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                placeholder="Votre réponse..."
+              />
+            </div>
+          </div>
+
+          {/* 6. SITUATION DE HANDICAP */}
+          <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+            <h3 className="text-lg font-bold text-gray-900">6. Situation de handicap et besoins d'adaptation</h3>
+            
+            <div className="space-y-2">
+              <Label>Êtes-vous en situation de handicap ou rencontrez-vous une difficulté particulière pouvant impacter votre apprentissage ?</Label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="handicap"
+                    value="Oui"
+                    checked={formData.situation_handicap === 'Oui'}
+                    onChange={(e) => updateField('situation_handicap', e.target.value)}
+                    className="w-4 h-4"
+                  />
+                  <span>Oui</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="handicap"
+                    value="Non"
+                    checked={formData.situation_handicap === 'Non'}
+                    onChange={(e) => updateField('situation_handicap', e.target.value)}
+                    className="w-4 h-4"
+                  />
+                  <span>Non</span>
+                </label>
+              </div>
+            </div>
+
+            {formData.situation_handicap === 'Oui' && (
+              <>
+                <div className="space-y-2">
+                  <Label>Souhaitez-vous un accompagnement spécifique pendant la formation ?</Label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="accompagnement"
+                        value="Oui"
+                        checked={formData.accompagnement_specifique === 'Oui'}
+                        onChange={(e) => updateField('accompagnement_specifique', e.target.value)}
+                        className="w-4 h-4"
+                      />
+                      <span>Oui</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="accompagnement"
+                        value="Non"
+                        checked={formData.accompagnement_specifique === 'Non'}
+                        onChange={(e) => updateField('accompagnement_specifique', e.target.value)}
+                        className="w-4 h-4"
+                      />
+                      <span>Non</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Avez-vous besoin d'un matériel ou outil particulier ?</Label>
+                  <div className="space-y-2">
+                    {['Ordinateur adapté', 'Casque audio', 'Logiciel spécifique'].map(option => (
+                      <label key={option} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.materiel_particulier.includes(option)}
+                          onChange={() => toggleCheckbox('materiel_particulier', option)}
+                          className="w-4 h-4"
+                        />
+                        <span>{option}</span>
+                      </label>
+                    ))}
+                    <div className="flex items-center gap-2">
+                      <input type="checkbox" className="w-4 h-4" disabled />
+                      <Input
+                        value={formData.materiel_autre}
+                        onChange={(e) => updateField('materiel_autre', e.target.value)}
+                        placeholder="Autre (précisez)"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Souhaitez-vous un aménagement particulier du rythme ou de l'organisation ?</Label>
+                  <div className="space-y-2">
+                    {['Séances plus courtes', 'Pauses plus fréquentes', 'Séances individuelles'].map(option => (
+                      <label key={option} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.amenagement_rythme.includes(option)}
+                          onChange={() => toggleCheckbox('amenagement_rythme', option)}
+                          className="w-4 h-4"
+                        />
+                        <span>{option}</span>
+                      </label>
+                    ))}
+                    <div className="flex items-center gap-2">
+                      <input type="checkbox" className="w-4 h-4" disabled />
+                      <Input
+                        value={formData.amenagement_autre}
+                        onChange={(e) => updateField('amenagement_autre', e.target.value)}
+                        placeholder="Autre (précisez)"
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* SIGNATURE ET SOUMISSION */}
           <div className="space-y-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
