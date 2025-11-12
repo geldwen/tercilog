@@ -147,11 +147,50 @@ export default function TeacherDashboard({ user, onLogout }) {
       await axios.post(`${API}/sessions`, sessionForm);
       toast.success("Séance créée et email envoyé !");
       setShowCreateSession(false);
-      setSessionForm({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48, meeting_link: "" });
+      setSessionForm({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48, meeting_link: "", modality: "distanciel", hourly_rate: 0, hourly_rate_source: "inferred" });
       loadData(selectedMonth);
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur");
     }
+  };
+
+  const handleCreateMultiSessions = async (e) => {
+    e.preventDefault();
+    try {
+      // Créer toutes les séances
+      const promises = multiSessions.map(session => 
+        axios.post(`${API}/sessions`, {
+          ...session,
+          student_id: sessionForm.student_id,
+          validation_deadline_hours: 48
+        })
+      );
+      
+      await Promise.all(promises);
+      toast.success(`${multiSessions.length} séance(s) créée(s) et emails envoyés !`);
+      setShowCreateSession(false);
+      setSessionForm({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48, meeting_link: "", modality: "distanciel", hourly_rate: 0, hourly_rate_source: "inferred" });
+      setMultiSessions([{ subject: "", date: "", start_time: "", end_time: "", modality: "distanciel", hourly_rate: 0, meeting_link: "" }]);
+      loadData(selectedMonth);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erreur lors de la création des séances");
+    }
+  };
+
+  const addSessionToMulti = () => {
+    setMultiSessions([...multiSessions, { subject: "", date: "", start_time: "", end_time: "", modality: "distanciel", hourly_rate: 0, meeting_link: "" }]);
+  };
+
+  const removeSessionFromMulti = (index) => {
+    if (multiSessions.length > 1) {
+      setMultiSessions(multiSessions.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateMultiSession = (index, field, value) => {
+    const updated = [...multiSessions];
+    updated[index][field] = value;
+    setMultiSessions(updated);
   };
 
   const handleCreateStudent = async (e) => {
