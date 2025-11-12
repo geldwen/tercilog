@@ -762,7 +762,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                     </div>
 
                     {/* Liste des séances à créer */}
-                    {sessionForm.student_id && (
+                    {selectedStudents.length > 0 && (
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <h3 className="text-lg font-bold text-gray-900">Séances à créer ({multiSessions.length})</h3>
