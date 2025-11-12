@@ -766,18 +766,40 @@ async def send_formation_needs_email(
         raise HTTPException(status_code=404, detail="No questionnaire found for this student")
     
     # Générer le PDF
-    pdf_buffer = generate_formation_needs_pdf(student, questionnaire)
+    pdf_bytes = generate_formation_needs_pdf(student, questionnaire)
+    
+    # Séparer les emails (virgule ou point-virgule)
+    to_emails = [email.strip() for email in to.replace(';', ',').split(',') if email.strip()]
+    
+    if not to_emails:
+        raise HTTPException(status_code=400, detail="At least one valid email required")
     
     # Envoyer l'email avec le PDF en pièce jointe
     try:
-        send_email_with_attachment(
-            to=to,
-            subject=subject,
-            body=body,
-            attachment=pdf_buffer,
-            attachment_name=f"Questionnaire_{student['name'].replace(' ', '_')}.pdf"
-        )
-        logger.info(f"Formation needs questionnaire emailed to {to} for student {student_id}")
+        gmail_user = os.environ['GMAIL_USER']
+        gmail_password = os.environ['GMAIL_PASSWORD']
+        
+        msg = MIMEMultipart()
+        msg['From'] = gmail_user
+        msg['To'] = ', '.join(to_emails)
+        msg['Subject'] = subject
+        
+        # Corps du message
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Attacher le PDF
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload(pdf_bytes)
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', f'attachment; filename=Questionnaire_{student["name"].replace(" ", "_")}.pdf')
+        msg.attach(part)
+        
+        # Envoyer
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(gmail_user, gmail_password)
+            server.send_message(msg)
+        
+        logger.info(f"Formation needs questionnaire emailed to {to_emails} for student {student_id}")
         return {"message": "Email sent successfully"}
     except Exception as e:
         logger.error(f"Error sending formation needs email: {str(e)}")
