@@ -3377,7 +3377,7 @@ async def preview_pdf(
             story.append(date_table)
             story.append(Spacer(1, 15))
             
-            # APERÇU VISUEL DU DOCUMENT - PLUS GRAND ET PROFESSIONNEL
+            # APERÇU VISUEL DU DOCUMENT - SANS CADRE, SANS SAUT DE PAGE
             if filepath.exists():
                 try:
                     if mime and 'pdf' in mime:
@@ -3386,53 +3386,23 @@ async def preview_pdf(
                         if success and pdf_images:
                             temp_files_to_cleanup.extend(temp_files)
                             for page_idx, img in enumerate(pdf_images, 1):
-                                # Indication de page avec style
-                                page_label = Paragraph(f"<b>Page {page_idx}</b>", styles['Normal'])
-                                page_table = Table([[page_label]], colWidths=[7.0*inch])
-                                page_table.setStyle(TableStyle([
-                                    ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#E8F5E9')),
-                                    ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                                    ('LEFTPADDING', (0, 0), (-1, -1), 10),
-                                    ('TOPPADDING', (0, 0), (-1, -1), 6),
-                                    ('BOTTOMPADDING', (0, 0), (-1, -1), 6)
-                                ]))
-                                story.append(page_table)
-                                story.append(Spacer(1, 8))
+                                # Indication de page simple
+                                story.append(Paragraph(f"<b>Page {page_idx}</b>", styles['Normal']))
+                                story.append(Spacer(1, 5))
                                 
-                                # Image avec cadre
-                                img_container = Table([[img]], colWidths=[7.0*inch])
-                                img_container.setStyle(TableStyle([
-                                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                                    ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#CCCCCC')),
-                                    ('TOPPADDING', (0, 0), (-1, -1), 10),
-                                    ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-                                    ('LEFTPADDING', (0, 0), (-1, -1), 10),
-                                    ('RIGHTPADDING', (0, 0), (-1, -1), 10),
-                                    ('BACKGROUND', (0, 0), (-1, -1), colors.white)
-                                ]))
-                                story.append(img_container)
-                                story.append(Spacer(1, 15))
+                                # Image SANS cadre, centrée
+                                img.hAlign = 'CENTER'
+                                story.append(img)
+                                story.append(Spacer(1, 10))
                         else:
                             story.append(Paragraph("⚠️ Impossible de générer l'aperçu du PDF", styles['Normal']))
                     
                     elif mime and 'image' in mime:
-                        # Pour les images : afficher directement (PLUS GRANDES)
+                        # Pour les images : afficher directement SANS cadre (PLUS GRANDES)
                         img = Image(str(filepath), width=6.5*inch, height=None)
                         img.hAlign = 'CENTER'
-                        
-                        img_container = Table([[img]], colWidths=[7.0*inch])
-                        img_container.setStyle(TableStyle([
-                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                            ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#CCCCCC')),
-                            ('TOPPADDING', (0, 0), (-1, -1), 10),
-                            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-                            ('LEFTPADDING', (0, 0), (-1, -1), 10),
-                            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
-                            ('BACKGROUND', (0, 0), (-1, -1), colors.white)
-                        ]))
-                        story.append(img_container)
+                        story.append(img)
+                        story.append(Spacer(1, 10))
                     
                     else:
                         # Autres types de fichiers
