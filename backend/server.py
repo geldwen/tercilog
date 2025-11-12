@@ -1555,7 +1555,6 @@ async def check_and_send_session_reminders():
 
 def build_header(title: str):
     """Construire l'en-tête avec logo + titre (Flowable Table)"""
-    from PIL import Image as PILImage
     
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle('TitleStyle', parent=styles['Normal'], fontSize=16, fontName='Helvetica-Bold', alignment=2)
@@ -1846,7 +1845,6 @@ def generate_attendance_pdf_single_session(session: dict) -> io.BytesIO:
 def generate_attendance_pdf_month(student: dict, sessions: list, month: str, include_unsigned: bool = False) -> io.BytesIO:
     """Générer un PDF de justificatifs d'émargement pour TOUT le parcours"""
     import base64
-    from PIL import Image as PILImage
     
     buffer = io.BytesIO()
     
@@ -1947,7 +1945,7 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
                     signed_date = datetime.fromisoformat(session['signed_at']).strftime('%d/%m/%Y %H:%M')
                     
                     eleve_cell = [sig_rl, Paragraph(f"Émargé le {signed_date}", small_style)]
-                except Exception as e:
+                except Exception:
                     eleve_cell = Paragraph("Non signé", ParagraphStyle('Red', parent=cell_style, textColor=colors.red))
             else:
                 eleve_cell = Paragraph("Non signé", ParagraphStyle('Red', parent=cell_style, textColor=colors.red))
@@ -1968,7 +1966,7 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
                     signed_date = datetime.fromisoformat(session['teacher_signed_at']).strftime('%d/%m/%Y %H:%M')
                     
                     formateur_cell = [sig_rl, Paragraph(f"Émargé le {signed_date}", small_style)]
-                except Exception as e:
+                except Exception:
                     formateur_cell = Paragraph("Non signé", ParagraphStyle('Red', parent=cell_style, textColor=colors.red))
             else:
                 formateur_cell = Paragraph("Non signé", ParagraphStyle('Red', parent=cell_style, textColor=colors.red))
