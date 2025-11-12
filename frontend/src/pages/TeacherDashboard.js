@@ -680,86 +680,148 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader><DialogTitle>Créer des séances</DialogTitle><DialogDescription>Créer une ou plusieurs séances pour un élève</DialogDescription></DialogHeader>
                   <form onSubmit={handleCreateMultiSessions} className="space-y-4">
-                    <div className="space-y-2"><Label>Matière</Label><Input placeholder="ex: Anglais" value={sessionForm.subject} onChange={(e) => setSessionForm({ ...sessionForm, subject: e.target.value })} required /></div>
-                    <div className="space-y-2"><Label>Date</Label><Input type="date" value={sessionForm.date} onChange={(e) => setSessionForm({ ...sessionForm, date: e.target.value })} required /></div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2"><Label>Heure début</Label><Input type="time" value={sessionForm.start_time} onChange={(e) => setSessionForm({ ...sessionForm, start_time: e.target.value })} required /></div>
-                      <div className="space-y-2"><Label>Heure fin</Label><Input type="time" value={sessionForm.end_time} onChange={(e) => setSessionForm({ ...sessionForm, end_time: e.target.value })} required /></div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Élève *</Label>
-                      <select value={sessionForm.student_id} onChange={(e) => handleStudentChange(e.target.value)} className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md">
+                    {/* Sélection de l'élève en premier */}
+                    <div className="space-y-2 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <Label className="text-base font-bold">Élève *</Label>
+                      <select value={sessionForm.student_id} onChange={(e) => handleStudentChange(e.target.value)} className="w-full h-11 px-3 py-2 border-2 border-blue-300 rounded-md bg-white font-medium">
                         <option value="">Sélectionner un élève</option>
                         {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Lien visioconférence (Google Meet, Zoom, etc.)</Label>
-                      <Input 
-                        placeholder="https://meet.google.com/xxx-xxxx-xxx" 
-                        value={sessionForm.meeting_link} 
-                        onChange={(e) => setSessionForm({ ...sessionForm, meeting_link: e.target.value })} 
-                      />
-                      <p className="text-xs text-gray-500">Optionnel - Copiez le lien de votre visioconférence ici</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Modalité *</Label>
-                      <select 
-                        value={sessionForm.modality} 
-                        onChange={(e) => setSessionForm({ ...sessionForm, modality: e.target.value })}
-                        className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md bg-white"
-                      >
-                        <option value="distanciel">Distanciel</option>
-                        <option value="presentiel">Présentiel</option>
-                      </select>
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label>Coût horaire (€) *</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          step="1"
-                          min="0"
-                          value={sessionForm.hourly_rate}
-                          onChange={(e) => setSessionForm({
-                            ...sessionForm,
-                            hourly_rate: parseFloat(e.target.value) || 0,
-                            hourly_rate_source: 'manual'
-                          })}
-                          className="flex-1"
-                        />
-                        
-                        <button
-                          type="button"
-                          onClick={() => setSessionForm({
-                            ...sessionForm,
-                            hourly_rate: 20,
-                            hourly_rate_source: 'manual'
-                          })}
-                          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium transition-colors"
+                    {/* Liste des séances à créer */}
+                    {sessionForm.student_id && (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-bold text-gray-900">Séances à créer ({multiSessions.length})</h3>
+                          <Button
+                            type="button"
+                            onClick={addSessionToMulti}
+                            className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Ajouter une séance
+                          </Button>
+                        </div>
+
+                        {multiSessions.map((session, index) => (
+                          <div key={index} className="p-4 border-2 border-gray-200 rounded-lg space-y-3 bg-gray-50">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-bold text-gray-900">Séance {index + 1}</h4>
+                              {multiSessions.length > 1 && (
+                                <Button
+                                  type="button"
+                                  onClick={() => removeSessionFromMulti(index)}
+                                  variant="outline"
+                                  className="text-red-600 border-red-300 hover:bg-red-50"
+                                  size="sm"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Matière</Label>
+                              <Input
+                                placeholder="ex: Anglais"
+                                value={session.subject}
+                                onChange={(e) => updateMultiSession(index, 'subject', e.target.value)}
+                                required
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Date</Label>
+                              <Input
+                                type="date"
+                                value={session.date}
+                                onChange={(e) => updateMultiSession(index, 'date', e.target.value)}
+                                required
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label>Heure début</Label>
+                                <Input
+                                  type="time"
+                                  value={session.start_time}
+                                  onChange={(e) => updateMultiSession(index, 'start_time', e.target.value)}
+                                  required
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Heure fin</Label>
+                                <Input
+                                  type="time"
+                                  value={session.end_time}
+                                  onChange={(e) => updateMultiSession(index, 'end_time', e.target.value)}
+                                  required
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Modalité</Label>
+                              <select
+                                value={session.modality}
+                                onChange={(e) => updateMultiSession(index, 'modality', e.target.value)}
+                                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md bg-white"
+                              >
+                                <option value="distanciel">Distanciel</option>
+                                <option value="presentiel">Présentiel</option>
+                              </select>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Lien visioconférence</Label>
+                              <Input
+                                placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                                value={session.meeting_link}
+                                onChange={(e) => updateMultiSession(index, 'meeting_link', e.target.value)}
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Coût horaire (€)</Label>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="number"
+                                  step="1"
+                                  min="0"
+                                  value={session.hourly_rate}
+                                  onChange={(e) => updateMultiSession(index, 'hourly_rate', parseFloat(e.target.value) || 0)}
+                                  className="flex-1"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => updateMultiSession(index, 'hourly_rate', 20)}
+                                  className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-sm font-medium"
+                                >
+                                  20€
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateMultiSession(index, 'hourly_rate', 40)}
+                                  className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-sm font-medium"
+                                >
+                                  40€
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        <Button
+                          type="submit"
+                          className="w-full text-white py-6 text-lg font-bold"
+                          style={{ backgroundColor: TERCIFORM_BLUE }}
                         >
-                          20€
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSessionForm({
-                            ...sessionForm,
-                            hourly_rate: 40,
-                            hourly_rate_source: 'manual'
-                          })}
-                          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium transition-colors"
-                        >
-                          40€
-                        </button>
+                          Créer {multiSessions.length} séance(s) et envoyer les confirmations
+                        </Button>
                       </div>
-                      <p className="text-xs text-gray-500">
-                        Suggéré automatiquement selon la matière. Modifiez si besoin.
-                      </p>
-                    </div>
-                    
-                    <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }} disabled={!sessionForm.student_id}>Créer et envoyer</Button>
+                    )}
                   </form>
                 </DialogContent>
               </Dialog>
