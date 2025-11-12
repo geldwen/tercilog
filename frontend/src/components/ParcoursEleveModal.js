@@ -1010,7 +1010,92 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
           </CardContent>
         </Card>
       ))}
-    </div>
+      </div>
+
+      {/* Modal d'envoi par email */}
+      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-[#8B5A2B]">
+              Envoyer le questionnaire par email
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="emailTo" className="text-base font-semibold">
+                Destinataire(s) <span className="text-red-600">*</span>
+              </Label>
+              <Input
+                id="emailTo"
+                type="email"
+                placeholder="exemple@email.com, autre@email.com"
+                value={emailTo}
+                onChange={(e) => setEmailTo(e.target.value)}
+                className="h-12 text-base border-2 border-[#8B5A2B]/30"
+              />
+              <p className="text-sm text-gray-600 italic">
+                💡 Séparez plusieurs emails par des virgules
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="emailSubject" className="text-base font-semibold">
+                Objet de l'email
+              </Label>
+              <Input
+                id="emailSubject"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                className="h-12 text-base border-2 border-[#8B5A2B]/30"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="emailBody" className="text-base font-semibold">
+                Message
+              </Label>
+              <textarea
+                id="emailBody"
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+                rows={6}
+                className="w-full border-2 border-[#8B5A2B]/30 rounded-lg px-4 py-3 text-base"
+                placeholder="Votre message personnalisé..."
+              />
+            </div>
+            
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={() => setShowEmailModal(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                Annuler
+              </Button>
+              
+              <Button
+                onClick={handleSendEmail}
+                disabled={sending || !emailTo.trim()}
+                className="flex-1 bg-[#8B5A2B] hover:bg-[#7A4F26] text-white"
+              >
+                {sending ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Envoi en cours...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-5 h-5 mr-2" />
+                    Envoyer
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
