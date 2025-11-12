@@ -388,6 +388,12 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
   const [questionnaires, setQuestionnaires] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedQuestionnaire, setSelectedQuestionnaire] = useState(null);
+  const [downloading, setDownloading] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailTo, setEmailTo] = useState('');
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     loadQuestionnaires();
