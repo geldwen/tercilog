@@ -613,23 +613,37 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
           </Card>
 
           {/* Section 3: Niveau et compétences */}
-          <Card className="border-2 border-[#8B5A2B]/20">
+          <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
             <CardContent className="pt-6 space-y-4">
               <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
                 3. Niveau et compétences linguistiques (auto-évaluation)
               </h4>
               
+              <div className="grid grid-cols-4 gap-2">
+                <div className="font-bold text-gray-900">Compétence</div>
+                <div className="font-bold text-center text-gray-900">Faible</div>
+                <div className="font-bold text-center text-gray-900">Moyen</div>
+                <div className="font-bold text-center text-gray-900">Bon</div>
+              </div>
+
               {[
                 { key: 'comprehension_orale', label: 'Compréhension orale' },
                 { key: 'expression_orale', label: 'Expression orale' },
                 { key: 'comprehension_ecrite', label: 'Compréhension écrite' },
                 { key: 'expression_ecrite', label: 'Expression écrite' }
               ].map(({ key, label }) => (
-                <div key={key}>
-                  <p className="text-sm font-medium text-gray-700">{label} :</p>
-                  <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                    <p className="text-gray-900">{renderAnswer(q[key])}</p>
-                  </div>
+                <div key={key} className="grid grid-cols-4 gap-2 items-center bg-white p-2 rounded-md">
+                  <div className="text-gray-900">{label}</div>
+                  {['Faible', 'Moyen', 'Bon'].map(level => (
+                    <div key={level} className="flex justify-center">
+                      <input
+                        type="radio"
+                        checked={q[key] === level}
+                        readOnly
+                        className="w-4 h-4 questionnaire-radio"
+                      />
+                    </div>
+                  ))}
                 </div>
               ))}
             </CardContent>
