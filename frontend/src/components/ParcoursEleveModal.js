@@ -772,6 +772,57 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
                     </>
                   )}
                 </Button>
+                <Button
+                  onClick={async () => {
+                    try {
+                      setGeneratingPdf(true);
+                      const token = localStorage.getItem('token');
+                      const response = await axios.get(
+                        `${API}/pdf/preview?student_id=${emailStudentId}&category=${emailCategory}`,
+                        {
+                          headers: { 'Authorization': `Bearer ${token}` },
+                          responseType: 'blob'
+                        }
+                      );
+                      
+                      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+                      const pdfUrl = window.URL.createObjectURL(pdfBlob);
+                      
+                      // Télécharger le PDF
+                      const link = document.createElement('a');
+                      link.href = pdfUrl;
+                      link.download = `${emailCategory}_synthese.pdf`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      
+                      // Nettoyer
+                      window.URL.revokeObjectURL(pdfUrl);
+                      
+                      toast.success("PDF téléchargé !");
+                    } catch (error) {
+                      console.error("Error downloading PDF:", error);
+                      toast.error("Erreur lors du téléchargement");
+                    } finally {
+                      setGeneratingPdf(false);
+                    }
+                  }}
+                  disabled={generatingPdf}
+                  variant="outline"
+                  className="text-green-700 border-green-500 hover:bg-green-50"
+                >
+                  {generatingPdf ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Téléchargement...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Télécharger PDF
+                    </>
+                  )}
+                </Button>
               </div>
               
               <Button
