@@ -649,6 +649,63 @@ async def create_student(user_data: UserCreate, current_user: User = Depends(get
     user_data.role = "student"
     return await register(user_data)
 
+@api_router.post("/students/{student_id}/formation-needs")
+async def submit_formation_needs(
+    student_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Soumettre le questionnaire des besoins en formation"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Ajouter l'ID et la date
+    questionnaire = {
+        "id": str(uuid.uuid4()),
+        "student_id": student_id,
+        **data,
+        "submitted_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Vérifier si un questionnaire existe déjà
+    existing = await db.formation_needs.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if existing:
+        # Mettre à jour
+        await db.formation_needs.update_one(
+            {"student_id": student_id},
+            {"$set": questionnaire}
+        )
+        logger.info(f"Formation needs updated for student {student_id}")
+    else:
+        # Créer
+        await db.formation_needs.insert_one(questionnaire)
+        logger.info(f"Formation needs submitted for student {student_id}")
+    
+    return {"message": "Questionnaire soumis avec succès", "questionnaire": questionnaire}
+
+
+@api_router.get("/students/{student_id}/formation-needs")
+async def get_formation_needs(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer le questionnaire des besoins en formation"""
+    # Accessible par l'élève lui-même ou par un professeur
+    if current_user.role not in ["student", "teacher"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    if current_user.role == "student" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    questionnaire = await db.formation_needs.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if not questionnaire:
+        return {"exists": False}
+    
+    return {"exists": True, "questionnaire": questionnaire}
+
+
 @api_router.post("/sessions/bulk")
 async def create_bulk_sessions(
     data: dict,
