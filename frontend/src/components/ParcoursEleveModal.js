@@ -650,40 +650,66 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
           </Card>
 
           {/* Section 4: Besoins professionnels */}
-          <Card className="border-2 border-[#8B5A2B]/20">
+          <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
             <CardContent className="pt-6 space-y-4">
               <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
                 4. Besoins professionnels et attentes spécifiques
               </h4>
               
-              <div>
-                <p className="text-sm font-medium text-gray-700">Situations où l'anglais est nécessaire :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.situations_anglais_necessaire)}</p>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Dans votre fonction actuelle, quelles sont les situations professionnelles où l'anglais est nécessaire ou pourrait le devenir ?</Label>
+                <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.situations_anglais_necessaire || '—'}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-gray-900">Quelles difficultés rencontrez-vous actuellement ?</Label>
+                <div className="space-y-2">
+                  {[
+                    'Manque de vocabulaire',
+                    'Difficultés à comprendre',
+                    'Blocage à l\'oral',
+                    'Grammaire',
+                    'Prononciation'
+                  ].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={q.difficultes?.includes(option)}
+                        readOnly
+                        className="w-4 h-4 questionnaire-checkbox"
+                      />
+                      <span className={q.difficultes?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                    </label>
+                  ))}
+                  {q.difficultes_autre && (
+                    <p className="text-pink-700 font-semibold bg-white p-2 rounded-md border-2 border-pink-200 ml-6">Autre : {q.difficultes_autre}</p>
+                  )}
                 </div>
               </div>
 
-              <div>
-                <p className="text-sm font-medium text-gray-700">Difficultés rencontrées :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.difficultes)}</p>
-                  {q.difficultes_autre && <p className="text-gray-900 mt-1">Autre : {q.difficultes_autre}</p>}
-                </div>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Souhaitez-vous insister sur un type de contenu particulier ?</Label>
+                <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.contenu_particulier || '—'}</p>
               </div>
 
-              <div>
-                <p className="text-sm font-medium text-gray-700">Contenu particulier :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.contenu_particulier)}</p>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Souhaitez-vous passer une certification ?</Label>
+                <div className="flex gap-4">
+                  {['Oui', 'Non'].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        checked={q.certification_souhaitee === option}
+                        readOnly
+                        className="w-4 h-4 questionnaire-radio"
+                      />
+                      <span className={q.certification_souhaitee === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                    </label>
+                  ))}
                 </div>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-gray-700">Certification souhaitée :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.certification_souhaitee)}</p>
-                  {q.certification_laquelle && <p className="text-gray-900 mt-1">Laquelle : {q.certification_laquelle}</p>}
-                </div>
+                {q.certification_laquelle && (
+                  <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 mt-2">{q.certification_laquelle}</p>
+                )}
               </div>
             </CardContent>
           </Card>
