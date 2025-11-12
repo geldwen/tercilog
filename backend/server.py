@@ -3258,6 +3258,8 @@ async def preview_pdf(
     story.append(Spacer(1, 25))
     
     # Section Documents - AVEC APERÇUS VISUELS COMPLETS
+    temp_files_to_cleanup = []  # Liste des fichiers temporaires à nettoyer
+    
     if documents:
         story.append(Paragraph("Documents téléversés", section_title_style))
         story.append(Spacer(1, 15))
