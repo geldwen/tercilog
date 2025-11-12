@@ -3336,60 +3336,45 @@ async def preview_pdf(
             story.append(Paragraph(f"<i><font size=9>Date : {formatted_date}</font></i>", styles['Normal']))
             story.append(Spacer(1, 5))
             
-            # APERÇU VISUEL DU DOCUMENT - SANS CADRE, SANS SAUT DE PAGE
+            # APERÇU VISUEL COMPACT
             if filepath.exists():
                 try:
                     if mime and 'pdf' in mime:
-                        # Pour les PDFs : convertir les 2 premières pages en images (PLUS GRANDES)
-                        pdf_images, temp_files, success = create_pdf_preview_image(filepath, max_width=6.5*inch)
+                        # Pour les PDFs : UNE SEULE page pour économiser l'espace
+                        pdf_images, temp_files, success = create_pdf_preview_image(filepath, max_width=6.0*inch)
                         if success and pdf_images:
                             temp_files_to_cleanup.extend(temp_files)
-                            for page_idx, img in enumerate(pdf_images, 1):
-                                # Indication de page simple
-                                story.append(Paragraph(f"<b>Page {page_idx}</b>", styles['Normal']))
-                                story.append(Spacer(1, 5))
-                                
-                                # Image SANS cadre, centrée
-                                img.hAlign = 'CENTER'
-                                story.append(img)
-                                story.append(Spacer(1, 10))
+                            # Afficher SEULEMENT la première page
+                            img = pdf_images[0]
+                            img.hAlign = 'CENTER'
+                            story.append(img)
+                            
+                            # Si plusieurs pages, indiquer
+                            if len(pdf_images) > 1:
+                                story.append(Paragraph(f"<i><font size=8 color='grey'>(+ {len(pdf_images)-1} page(s) supplémentaire(s))</font></i>", styles['Normal']))
                         else:
-                            story.append(Paragraph("⚠️ Impossible de générer l'aperçu du PDF", styles['Normal']))
+                            story.append(Paragraph("⚠️ Aperçu indisponible", styles['Normal']))
                     
                     elif mime and 'image' in mime:
-                        # Pour les images : afficher directement SANS cadre (PLUS GRANDES)
-                        img = Image(str(filepath), width=6.5*inch, height=None)
+                        # Images : taille réduite pour éviter sauts de page
+                        img = Image(str(filepath), width=6.0*inch, height=None)
                         img.hAlign = 'CENTER'
                         story.append(img)
-                        story.append(Spacer(1, 10))
                     
                     else:
-                        # Autres types de fichiers
-                        story.append(Paragraph(f"📎 Document de type : {mime or 'inconnu'}", styles['Normal']))
+                        story.append(Paragraph(f"📎 {mime or 'Document'}", styles['Normal']))
                 
                 except Exception as e:
                     logger.warning(f"Could not create preview for {filename}: {e}")
-                    error_para = Paragraph("⚠️ Erreur lors de la génération de l'aperçu", styles['Normal'])
-                    error_table = Table([[error_para]], colWidths=[7.0*inch])
-                    error_table.setStyle(TableStyle([
-                        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#FFEBEE')),
-                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                        ('TOPPADDING', (0, 0), (-1, -1), 10),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 10)
-                    ]))
-                    story.append(error_table)
+                    story.append(Paragraph("⚠️ Erreur aperçu", styles['Normal']))
             else:
                 story.append(Paragraph("❌ Fichier non trouvé", styles['Normal']))
             
-            # Séparateur simple entre documents (seulement si pas le dernier)
+            # Séparateur minimal
             if idx < len(documents):
-                story.append(Spacer(1, 15))
-                separator = Table([['']], colWidths=[7.0*inch])
-                separator.setStyle(TableStyle([
-                    ('LINEABOVE', (0, 0), (-1, 0), 1, colors.HexColor('#CCCCCC'))
-                ]))
-                story.append(separator)
-                story.append(Spacer(1, 15))
+                story.append(Spacer(1, 8))
+                story.append(Paragraph("─" * 80, styles['Normal']))
+                story.append(Spacer(1, 8))
     
     else:
         story.append(Paragraph("Aucun document téléversé", styles['Normal']))
