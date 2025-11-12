@@ -3004,6 +3004,104 @@ async def delete_student_document(
     return {"message": "Document deleted"}
 
 
+@api_router.get("/planning/events")
+async def get_planning_events(
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer tous les événements de planning du professeur"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    events = await db.planning_events.find(
+        {"teacher_id": current_user.id},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    return events
+
+
+@api_router.post("/planning/events")
+async def create_planning_event(
+    event_data: PlanningEventCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Créer un nouvel événement de planning"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    event = PlanningEvent(
+        **event_data.dict(),
+        teacher_id=current_user.id
+    )
+    
+    await db.planning_events.insert_one(event.dict())
+    logger.info(f"Planning event created: {event.id} by teacher {current_user.id}")
+    
+    return event
+
+
+@api_router.put("/planning/events/{event_id}")
+async def update_planning_event(
+    event_id: str,
+    event_data: PlanningEventCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Mettre à jour un événement de planning"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Vérifier que l'événement existe et appartient au professeur
+    existing_event = await db.planning_events.find_one(
+        {"id": event_id, "teacher_id": current_user.id},
+        {"_id": 0}
+    )
+    
+    if not existing_event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Mettre à jour l'événement
+    update_data = event_data.dict()
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.planning_events.update_one(
+        {"id": event_id, "teacher_id": current_user.id},
+        {"$set": update_data}
+    )
+    
+    # Récupérer l'événement mis à jour
+    updated_event = await db.planning_events.find_one(
+        {"id": event_id},
+        {"_id": 0}
+    )
+    
+    logger.info(f"Planning event updated: {event_id} by teacher {current_user.id}")
+    return updated_event
+
+
+@api_router.delete("/planning/events/{event_id}")
+async def delete_planning_event(
+    event_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Supprimer un événement de planning"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Vérifier que l'événement existe et appartient au professeur
+    existing_event = await db.planning_events.find_one(
+        {"id": event_id, "teacher_id": current_user.id},
+        {"_id": 0}
+    )
+    
+    if not existing_event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    await db.planning_events.delete_one({"id": event_id, "teacher_id": current_user.id})
+    
+    logger.info(f"Planning event deleted: {event_id} by teacher {current_user.id}")
+    return {"message": "Event deleted"}
+
+
 @api_router.get("/pdf/preview")
 async def preview_pdf(
     student_id: str,
