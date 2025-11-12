@@ -2929,12 +2929,24 @@ async def send_category_pdf_by_email(
         story.append(Paragraph(f"<para align=center fontSize=13><b>Élève :</b> {student.get('name', 'N/A')}</para>", subtitle_style))
         story.append(Spacer(1, 25))
         
-        # Documents (simplified version)
+        # Section Documents - AVEC APERÇUS VISUELS (même logique que preview_pdf)
+        temp_files_to_cleanup = []
+        
         if documents:
-            story.append(Paragraph("Contenu", section_title_style))
-            story.append(Spacer(1, 10))
-            for idx, doc in enumerate(documents, 1):
-                uploaded_at = doc.get('uploaded_at', '')
+            # Titre de section
+            story.append(Spacer(1, 5))
+            section_line = Table([['']], colWidths=[6.5*inch])
+            section_line.setStyle(TableStyle([
+                ('LINEABOVE', (0, 0), (-1, 0), 2, colors.HexColor('#8B5A2B'))
+            ]))
+            story.append(section_line)
+            story.append(Spacer(1, 8))
+            story.append(Paragraph("<font size=14 color='#8B5A2B'><b>Documents téléversés</b></font>", styles['Normal']))
+            story.append(Spacer(1, 12))
+            
+            # Pour chaque document
+            for idx, document in enumerate(documents, 1):
+                uploaded_at = document.get('uploaded_at', '')
                 if uploaded_at:
                     try:
                         dt = datetime.fromisoformat(uploaded_at.replace('Z', '+00:00'))
@@ -2943,8 +2955,90 @@ async def send_category_pdf_by_email(
                         formatted_date = uploaded_at
                 else:
                     formatted_date = 'Non disponible'
-                story.append(Paragraph(f"{idx}. {doc.get('filename', 'N/A')} - {formatted_date}", styles['Normal']))
-            story.append(Spacer(1, 20))
+                
+                filepath = Path(document.get('filepath', ''))
+                mime = document.get('mime', '')
+                filename = document.get('filename', 'N/A')
+                
+                # En-tête document
+                doc_title_style_pro = ParagraphStyle(
+                    'DocTitlePro',
+                    parent=styles['Normal'],
+                    fontSize=13,
+                    textColor=colors.HexColor('#8B5A2B'),
+                    fontName='Helvetica-Bold',
+                    leading=16,
+                    spaceAfter=4
+                )
+                
+                doc_date_style = ParagraphStyle(
+                    'DocDate',
+                    parent=styles['Normal'],
+                    fontSize=9,
+                    textColor=colors.HexColor('#666666'),
+                    fontName='Helvetica-Oblique',
+                    leading=12,
+                    spaceAfter=8
+                )
+                
+                story.append(Paragraph(f"<b>Document {idx} : {filename}</b>", doc_title_style_pro))
+                story.append(Paragraph(f"Date de réalisation : {formatted_date}", doc_date_style))
+                
+                # APERÇU VISUEL - conversion PDF en images
+                if filepath.exists():
+                    try:
+                        if mime and 'pdf' in mime:
+                            # Convertir le PDF en images
+                            logger.info(f"Converting PDF to images for email: {filepath}")
+                            try:
+                                images_pil = convert_from_path(
+                                    str(filepath),
+                                    first_page=1,
+                                    last_page=2,
+                                    dpi=150
+                                )
+                                
+                                for page_idx, img_pil in enumerate(images_pil, 1):
+                                    temp_img_path = filepath.parent / f"temp_{uuid.uuid4().hex[:8]}.jpg"
+                                    img_pil.save(str(temp_img_path), 'JPEG', quality=85)
+                                    temp_files_to_cleanup.append(temp_img_path)
+                                    
+                                    story.append(Paragraph(f"<font size=10><b>Page {page_idx}</b></font>", styles['Normal']))
+                                    story.append(Spacer(1, 3))
+                                    
+                                    img_reportlab = Image(str(temp_img_path), width=6.0*inch, height=6.0*inch * img_pil.height / img_pil.width)
+                                    img_reportlab.hAlign = 'CENTER'
+                                    story.append(img_reportlab)
+                                    story.append(Spacer(1, 8))
+                                
+                            except Exception as pdf_error:
+                                logger.error(f"PDF conversion error in email: {pdf_error}")
+                                story.append(Paragraph(f"Erreur conversion PDF: {str(pdf_error)}", styles['Normal']))
+                        
+                        elif mime and 'image' in mime:
+                            img = Image(str(filepath), width=6.0*inch, height=None)
+                            img.hAlign = 'CENTER'
+                            story.append(img)
+                            story.append(Spacer(1, 8))
+                        
+                        else:
+                            story.append(Paragraph(f"Document de type : {mime or 'inconnu'}", styles['Normal']))
+                    
+                    except Exception as e:
+                        logger.error(f"Could not create preview in email for {filename}: {e}")
+                        story.append(Paragraph(f"Erreur aperçu: {str(e)}", styles['Normal']))
+                else:
+                    story.append(Paragraph("Fichier non trouvé", styles['Normal']))
+                
+                # Séparateur
+                if idx < len(documents):
+                    story.append(Spacer(1, 10))
+                    sep_line = Table([['']], colWidths=[6.5*inch])
+                    sep_line.setStyle(TableStyle([
+                        ('LINEABOVE', (0, 0), (-1, 0), 0.5, colors.HexColor('#DDDDDD'))
+                    ]))
+                    story.append(sep_line)
+                    story.append(Spacer(1, 10))
         
         # Note
         if category_note and category_note.get('note'):
