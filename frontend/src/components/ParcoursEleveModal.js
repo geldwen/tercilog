@@ -715,31 +715,49 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
           </Card>
 
           {/* Section 5: Contraintes et conditions */}
-          <Card className="border-2 border-[#8B5A2B]/20">
+          <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
             <CardContent className="pt-6 space-y-4">
               <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
                 5. Contraintes et conditions de suivi
               </h4>
               
-              <div>
-                <p className="text-sm font-medium text-gray-700">Rythme souhaité :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.rythme_souhaite)}</p>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Disponibilités et rythme souhaité</Label>
+                <div className="space-y-2">
+                  {['Intensif', 'Étendu', 'Flexible'].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={q.rythme_souhaite?.includes(option)}
+                        readOnly
+                        className="w-4 h-4 questionnaire-checkbox"
+                      />
+                      <span className={q.rythme_souhaite?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
-              <div>
-                <p className="text-sm font-medium text-gray-700">Format préféré :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.format_prefere)}</p>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Format préféré</Label>
+                <div className="space-y-2">
+                  {['Présentiel', 'Distanciel', 'Hybride'].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={q.format_prefere?.includes(option)}
+                        readOnly
+                        className="w-4 h-4 questionnaire-checkbox"
+                      />
+                      <span className={q.format_prefere?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
-              <div>
-                <p className="text-sm font-medium text-gray-700">Contraintes particulières :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.contraintes_particulieres)}</p>
-                </div>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Avez-vous des contraintes particulières (horaires, déplacements, matériel, etc.) ?</Label>
+                <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.contraintes_particulieres || '—'}</p>
               </div>
             </CardContent>
           </Card>
