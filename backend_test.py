@@ -1399,6 +1399,186 @@ class TerciFormTester:
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_formation_needs_endpoint(self):
+        """Test the Documents bénéficiaires functionality - Formation Needs endpoint"""
+        self.log("🎯 Testing Formation Needs Endpoint for TerciLog")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as professor
+            self.log("=== STEP 1: Professor Login ===")
+            prof_login_data = {
+                "email": "prof@test.com",
+                "password": "prof123"
+            }
+            
+            response = self.make_request("POST", "/auth/login", prof_login_data)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Professor login failed", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            data = response.json()
+            prof_token = data["access_token"]
+            prof_info = data["user"]
+            self.log(f"✅ Professor login successful: {prof_info['name']} ({prof_info['email']})")
+            
+            # Step 2: Test with Toto student ID
+            self.log("=== STEP 2: Testing Formation Needs for Toto ===")
+            toto_id = "7db42079-64bc-45c0-b2c5-deea98af3f1f"
+            self.log(f"Testing with Toto ID: {toto_id}")
+            
+            response = self.make_request("GET", f"/students/{toto_id}/formation-needs", token=prof_token)
+            
+            if not response:
+                self.log("❌ No response received from formation-needs endpoint", "ERROR")
+                return False
+            
+            self.log(f"Response Status Code: {response.status_code}")
+            
+            if response.status_code != 200:
+                self.log("❌ Formation needs request failed", "ERROR")
+                self.log(f"HTTP Status Code: {response.status_code}")
+                self.log(f"Response Body: {response.text}")
+                return False
+            
+            # Step 3: Parse and validate response
+            self.log("=== STEP 3: Validating Response ===")
+            try:
+                formation_data = response.json()
+            except Exception as e:
+                self.log(f"❌ Failed to parse response JSON: {e}", "ERROR")
+                self.log(f"Response text: {response.text}")
+                return False
+            
+            self.log(f"✅ Response parsed successfully")
+            self.log(f"Response structure: {list(formation_data.keys())}")
+            
+            # Step 4: Check if questionnaire exists
+            self.log("=== STEP 4: Checking Questionnaire Existence ===")
+            exists = formation_data.get("exists", False)
+            self.log(f"Questionnaire exists: {exists}")
+            
+            if not exists:
+                self.log("❌ No questionnaire found for Toto", "ERROR")
+                self.log("This might mean the test data wasn't created properly")
+                return False
+            
+            # Step 5: Validate questionnaire data
+            self.log("=== STEP 5: Validating Questionnaire Data ===")
+            questionnaire = formation_data.get("questionnaire", {})
+            
+            if not questionnaire:
+                self.log("❌ Questionnaire data is empty", "ERROR")
+                return False
+            
+            self.log(f"✅ Questionnaire data found")
+            self.log(f"Questionnaire fields: {list(questionnaire.keys())}")
+            
+            # Step 6: Check expected fields
+            self.log("=== STEP 6: Checking Expected Fields ===")
+            expected_fields = [
+                "id", "student_id", "situation_professionnelle", "raison_formation",
+                "formation_anglais_anterieure", "objectifs_principaux", "comprehension_orale",
+                "expression_orale", "comprehension_ecrite", "expression_ecrite", "submitted_at"
+            ]
+            
+            missing_fields = []
+            present_fields = []
+            
+            for field in expected_fields:
+                if field in questionnaire:
+                    present_fields.append(field)
+                    self.log(f"   ✅ {field}: {str(questionnaire[field])[:100]}...")
+                else:
+                    missing_fields.append(field)
+                    self.log(f"   ❌ {field}: MISSING")
+            
+            # Step 7: Validate specific content
+            self.log("=== STEP 7: Validating Specific Content ===")
+            
+            # Check student_id matches
+            if questionnaire.get("student_id") == toto_id:
+                self.log(f"   ✅ student_id matches: {toto_id}")
+            else:
+                self.log(f"   ❌ student_id mismatch: expected {toto_id}, got {questionnaire.get('student_id')}")
+            
+            # Check some key content
+            raison_formation = questionnaire.get("raison_formation", "")
+            if raison_formation:
+                self.log(f"   ✅ raison_formation present: {raison_formation[:100]}...")
+            else:
+                self.log(f"   ❌ raison_formation is empty")
+            
+            # Check submitted_at format
+            submitted_at = questionnaire.get("submitted_at", "")
+            if submitted_at:
+                self.log(f"   ✅ submitted_at present: {submitted_at}")
+                # Try to parse as ISO datetime
+                try:
+                    from datetime import datetime
+                    datetime.fromisoformat(submitted_at.replace('Z', '+00:00'))
+                    self.log(f"   ✅ submitted_at is valid ISO format")
+                except:
+                    self.log(f"   ⚠️ submitted_at format might be invalid")
+            else:
+                self.log(f"   ❌ submitted_at is missing")
+            
+            # Step 8: Check JSON serialization (no MongoDB ObjectId issues)
+            self.log("=== STEP 8: JSON Serialization Check ===")
+            try:
+                import json
+                json_str = json.dumps(formation_data)
+                self.log(f"   ✅ Response is properly JSON serializable")
+                self.log(f"   JSON length: {len(json_str)} characters")
+            except Exception as e:
+                self.log(f"   ❌ JSON serialization failed: {e}", "ERROR")
+                return False
+            
+            # Step 9: Final verification
+            self.log("=== STEP 9: Final Verification ===")
+            checks = []
+            checks.append(("Professor login successful", prof_token is not None))
+            checks.append(("GET request successful", response.status_code == 200))
+            checks.append(("Response exists=True", formation_data.get("exists") == True))
+            checks.append(("Questionnaire data present", bool(questionnaire)))
+            checks.append(("Student ID matches", questionnaire.get("student_id") == toto_id))
+            checks.append(("Key fields present", len(present_fields) >= 8))
+            checks.append(("JSON serializable", True))  # We already tested this above
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Step 10: Summary
+            self.log("=== STEP 10: Test Summary ===")
+            self.log(f"✅ Endpoint: GET /api/students/{toto_id}/formation-needs")
+            self.log(f"✅ Authentication: Professor (prof@test.com)")
+            self.log(f"✅ Response status: {response.status_code}")
+            self.log(f"✅ Questionnaire exists: {formation_data.get('exists')}")
+            self.log(f"✅ Fields present: {len(present_fields)}/{len(expected_fields)}")
+            if missing_fields:
+                self.log(f"⚠️ Missing fields: {missing_fields}")
+            
+            if all_passed:
+                self.log("🎉 FORMATION NEEDS ENDPOINT TEST COMPLETED SUCCESSFULLY!")
+                self.log("✅ The Documents bénéficiaires functionality is working correctly")
+            else:
+                self.log("❌ Some verification checks failed", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
     def test_student_dashboard_endpoints(self):
         """Test all 5 new Student Dashboard endpoints comprehensively"""
         self.log("🎯 Testing Student Dashboard Enhancement - 5 New Endpoints")
