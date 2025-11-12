@@ -94,6 +94,7 @@ export default function TeacherDashboard({ user, onLogout }) {
     modality: "distanciel",
     organism: ""
   });
+  const [multiSessions, setMultiSessions] = useState([{ subject: "", date: "", start_time: "", end_time: "", modality: "distanciel", hourly_rate: 0, meeting_link: "" }]);
   const [studentForm, setStudentForm] = useState({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0 });
 
   const monthsList = [{ key: '2025-10', label: 'octobre 2025' }, { key: '2025-11', label: 'novembre 2025' }, { key: '2025-12', label: 'décembre 2025' }];
