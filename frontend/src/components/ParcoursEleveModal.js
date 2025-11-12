@@ -473,6 +473,17 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
             ← Retour
           </Button>
         </div>
+        
+        <style>{`
+          .questionnaire-checkbox:checked {
+            background-color: #DB2777;
+            border-color: #DB2777;
+          }
+          .questionnaire-radio:checked {
+            background-color: #DB2777;
+            border-color: #DB2777;
+          }
+        `}</style>
 
         {/* Contenu du questionnaire avec réponses en rose */}
         <div className="space-y-6">
