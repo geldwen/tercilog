@@ -3108,7 +3108,7 @@ async def delete_planning_event(
 def create_pdf_preview_image(pdf_path: Path, max_width: float = 5.0 * inch) -> tuple:
     """
     Convertir les premières pages d'un PDF en images pour inclusion dans le rapport
-    Retourne (liste_images, succès)
+    Retourne (liste_images, liste_fichiers_temp, succès)
     """
     try:
         # Convertir les 2 premières pages du PDF en images
@@ -3120,22 +3120,21 @@ def create_pdf_preview_image(pdf_path: Path, max_width: float = 5.0 * inch) -> t
         )
         
         result_images = []
-        for img_pil in images_pil:
-            # Sauvegarder temporairement l'image
-            temp_img_path = pdf_path.parent / f"temp_{pdf_path.stem}_page.jpg"
+        temp_files = []
+        for idx, img_pil in enumerate(images_pil):
+            # Sauvegarder temporairement l'image avec un nom unique
+            temp_img_path = pdf_path.parent / f"temp_{pdf_path.stem}_page{idx}_{uuid.uuid4().hex[:8]}.jpg"
             img_pil.save(str(temp_img_path), 'JPEG', quality=85)
+            temp_files.append(temp_img_path)
             
             # Créer l'image ReportLab avec dimensions appropriées
             img_reportlab = Image(str(temp_img_path), width=max_width, height=max_width * img_pil.height / img_pil.width)
             result_images.append(img_reportlab)
-            
-            # Supprimer le fichier temporaire
-            temp_img_path.unlink()
         
-        return result_images, True
+        return result_images, temp_files, True
     except Exception as e:
         logger.warning(f"Could not convert PDF to images: {e}")
-        return [], False
+        return [], [], False
 
 
 @api_router.get("/pdf/preview")
