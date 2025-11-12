@@ -3422,15 +3422,15 @@ async def preview_pdf(
             else:
                 story.append(Paragraph("❌ Fichier non trouvé", styles['Normal']))
             
-            # Séparateur élégant entre documents (seulement si pas le dernier)
+            # Séparateur simple entre documents (seulement si pas le dernier)
             if idx < len(documents):
-                story.append(Spacer(1, 25))
+                story.append(Spacer(1, 15))
                 separator = Table([['']], colWidths=[7.0*inch])
                 separator.setStyle(TableStyle([
-                    ('LINEABOVE', (0, 0), (-1, 0), 3, colors.HexColor('#8B5A2B'))
+                    ('LINEABOVE', (0, 0), (-1, 0), 1, colors.HexColor('#CCCCCC'))
                 ]))
                 story.append(separator)
-                story.append(Spacer(1, 25))
+                story.append(Spacer(1, 15))
     
     else:
         story.append(Paragraph("Aucun document téléversé", styles['Normal']))
