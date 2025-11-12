@@ -706,13 +706,59 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader><DialogTitle>Créer des séances</DialogTitle><DialogDescription>Créer une ou plusieurs séances pour un élève</DialogDescription></DialogHeader>
                   <form onSubmit={handleCreateMultiSessions} className="space-y-4">
-                    {/* Sélection de l'élève en premier */}
-                    <div className="space-y-2 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                      <Label className="text-base font-bold">Élève *</Label>
-                      <select value={sessionForm.student_id} onChange={(e) => handleStudentChange(e.target.value)} className="w-full h-11 px-3 py-2 border-2 border-blue-300 rounded-md bg-white font-medium">
-                        <option value="">Sélectionner un élève</option>
-                        {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                      </select>
+                    {/* Sélection multi-élèves */}
+                    <div className="space-y-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-base font-bold">Élèves * ({selectedStudents.length} sélectionné(s))</Label>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            onClick={selectAllStudents}
+                            size="sm"
+                            variant="outline"
+                            className="text-xs"
+                          >
+                            Tout sélectionner
+                          </Button>
+                          <Button
+                            type="button"
+                            onClick={deselectAllStudents}
+                            size="sm"
+                            variant="outline"
+                            className="text-xs"
+                          >
+                            Tout désélectionner
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 bg-white rounded border">
+                        {students.map(student => (
+                          <div
+                            key={student.id}
+                            onClick={() => toggleStudentSelection(student.id)}
+                            className={`
+                              p-3 rounded cursor-pointer border-2 transition-all
+                              ${selectedStudents.includes(student.id)
+                                ? 'bg-blue-100 border-blue-500 font-bold'
+                                : 'bg-white border-gray-300 hover:border-blue-300'
+                              }
+                            `}
+                          >
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={selectedStudents.includes(student.id)}
+                                onChange={() => {}}
+                                className="w-4 h-4"
+                              />
+                              <span className="text-sm">{student.name}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-600 italic">
+                        💡 Cliquez sur les élèves pour créer les mêmes séances pour plusieurs élèves
+                      </p>
                     </div>
 
                     {/* Liste des séances à créer */}
