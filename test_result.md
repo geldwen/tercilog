@@ -524,7 +524,7 @@ frontend:
   - task: "Documents Bénéficiaires Tab - Display Formation Needs Questionnaires"
     implemented: true
     working: "unknown"
-    file: "ParcoursEleveModal.js"
+    file: "ParcoursEleveModal.js, server.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
@@ -532,6 +532,9 @@ frontend:
         - working: "unknown"
           agent: "main"
           comment: "DOCUMENTS BÉNÉFICIAIRES TAB IMPLEMENTED: Completed the implementation of the 'Documents bénéficiaires' tab in the Parcours élève modal to display submitted formation needs questionnaires. CHANGES: 1) Created BeneficiaryDocumentsTab component to fetch and display questionnaires via GET /api/students/{student_id}/formation-needs endpoint, 2) Implemented two-view system: (a) List view showing all submitted questionnaires with student name and timestamp, (b) Detailed view showing complete questionnaire with all 6 sections, 3) All student answers displayed with PINK BACKGROUND (bg-pink-100) as requested, including checkboxes and open text responses, 4) Questionnaire sections displayed: (1) Identification (situation professionnelle, poste, ancienneté), (2) Motivation et objectifs (formation antérieure, raison, objectifs), (3) Niveau et compétences (comprehension/expression orale/écrite), (4) Besoins professionnels (situations, difficultés, certification), (5) Contraintes (rythme, format, contraintes), (6) Situation de handicap (with conditional sub-fields), 5) Signature display at bottom with timestamp, 6) Created test student 'Toto Test' (toto@test.com / toto123) with complete questionnaire data for testing, 7) Responsive card-based layout with brown-themed UI (#8B5A2B) matching existing Parcours élève design. Backend API tested and working correctly (see backend test results). Ready for frontend testing."
+        - working: "unknown"
+          agent: "main"
+          comment: "DOCUMENTS BÉNÉFICIAIRES - FINAL IMPLEMENTATION WITH PDF AND EMAIL: Updated questionnaire display to show original form format with checkboxes and answers in DARK PINK (#DB2777/pink-700). FRONTEND CHANGES: 1) Redesigned questionnaire view to match original form structure with all questions visible, 2) Checkboxes and radio buttons display actual selections with pink styling (questionnaire-checkbox/radio CSS classes), 3) Text answers displayed in pink-700 font with white background and pink-200 border, 4) Added Download PDF and Send Email buttons next to Consulter button in list view, 5) Created email modal for sending questionnaire with recipient, subject, and message fields, 6) Imported Mail and Send icons from lucide-react. BACKEND CHANGES: 1) Created GET /api/students/{student_id}/formation-needs/pdf endpoint to generate and download PDF, 2) Created POST /api/students/{student_id}/formation-needs/send-email endpoint to send questionnaire via email with PDF attachment, 3) Implemented generate_formation_needs_pdf() function using ReportLab to generate formatted PDF with all 6 sections, answers in pink color (#DB2777), proper page numbering and headers, 4) Added StreamingResponse to imports, 5) Email sending uses existing SMTP pattern with MIMEMultipart and PDF attachment. TEST DATA: Student 'Toto Test' created with complete questionnaire ready for testing. Ready for backend and frontend testing."
 
 agent_communication:
     - agent: "main"
