@@ -2844,7 +2844,14 @@ async def send_category_pdf_by_email(
     # Générer le PDF (même logique que preview_pdf endpoint)
     try:
         buffer = io.BytesIO()
-        doc_pdf = SimpleDocTemplate(buffer, pagesize=A4, topMargin=40, bottomMargin=40)
+        doc_pdf = SimpleDocTemplate(
+            buffer, 
+            pagesize=A4, 
+            topMargin=30, 
+            bottomMargin=30,
+            leftMargin=30,
+            rightMargin=30
+        )
         story = []
         styles = getSampleStyleSheet()
         
