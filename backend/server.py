@@ -3350,7 +3350,7 @@ async def preview_pdf(
                 leading=14
             )
             
-            # En-tête du document avec numéro et nom
+            # En-tête du document avec numéro et nom - compact
             doc_header = Table([
                 [Paragraph(f"Document {idx}", doc_title_style)],
                 [Paragraph(filename, doc_title_style)]
@@ -3358,24 +3358,16 @@ async def preview_pdf(
             doc_header.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#8B5A2B')),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('TOPPADDING', (0, 0), (-1, -1), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
             ]))
             story.append(doc_header)
+            story.append(Spacer(1, 5))
             
-            # Date dans un cadre élégant
-            date_para = Paragraph(f"<i>📅 Date de réalisation : {formatted_date}</i>", doc_subtitle_style)
-            date_table = Table([[date_para]], colWidths=[7.0*inch])
-            date_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#FFFBF0')),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('TOPPADDING', (0, 0), (-1, -1), 8),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#E0E0E0'))
-            ]))
-            story.append(date_table)
-            story.append(Spacer(1, 15))
+            # Date simple sans cadre
+            story.append(Paragraph(f"<i>📅 Date de réalisation : {formatted_date}</i>", doc_subtitle_style))
+            story.append(Spacer(1, 10))
             
             # APERÇU VISUEL DU DOCUMENT - SANS CADRE, SANS SAUT DE PAGE
             if filepath.exists():
