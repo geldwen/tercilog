@@ -2988,28 +2988,33 @@ async def send_category_pdf_by_email(
                 if filepath.exists():
                     try:
                         if mime and 'pdf' in mime:
-                            # Convertir le PDF en images
-                            logger.info(f"Converting PDF to images for email: {filepath}")
+                            # Convertir le PDF en images avec PyMuPDF (pas besoin de poppler!)
+                            logger.info(f"Converting PDF to images for email with PyMuPDF: {filepath}")
                             try:
-                                images_pil = convert_from_path(
-                                    str(filepath),
-                                    first_page=1,
-                                    last_page=2,
-                                    dpi=150
-                                )
+                                pdf_document = fitz.open(str(filepath))
+                                num_pages = min(len(pdf_document), 2)  # Maximum 2 pages
                                 
-                                for page_idx, img_pil in enumerate(images_pil, 1):
+                                for page_idx in range(num_pages):
+                                    page = pdf_document[page_idx]
+                                    # Convertir en image avec résolution 150 DPI
+                                    mat = fitz.Matrix(150/72, 150/72)
+                                    pix = page.get_pixmap(matrix=mat)
+                                    
+                                    # Sauvegarder temporairement
                                     temp_img_path = filepath.parent / f"temp_{uuid.uuid4().hex[:8]}.jpg"
-                                    img_pil.save(str(temp_img_path), 'JPEG', quality=85)
+                                    pix.save(str(temp_img_path))
                                     temp_files_to_cleanup.append(temp_img_path)
                                     
-                                    story.append(Paragraph(f"<font size=10><b>Page {page_idx}</b></font>", styles['Normal']))
+                                    story.append(Paragraph(f"<font size=10><b>Page {page_idx + 1}</b></font>", styles['Normal']))
                                     story.append(Spacer(1, 3))
                                     
-                                    img_reportlab = Image(str(temp_img_path), width=6.0*inch, height=6.0*inch * img_pil.height / img_pil.width)
+                                    # Créer l'image ReportLab avec dimensions appropriées
+                                    img_reportlab = Image(str(temp_img_path), width=6.0*inch, height=6.0*inch * pix.height / pix.width)
                                     img_reportlab.hAlign = 'CENTER'
                                     story.append(img_reportlab)
                                     story.append(Spacer(1, 8))
+                                
+                                pdf_document.close()
                                 
                             except Exception as pdf_error:
                                 logger.error(f"PDF conversion error in email: {pdf_error}")
