@@ -576,7 +576,7 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
         </DialogHeader>
 
         <Tabs defaultValue="tests" className="w-full">
-          <TabsList className="gap-2 bg-[#F4EAE3] p-2 rounded-xl w-full grid grid-cols-2">
+          <TabsList className="gap-2 bg-[#F4EAE3] p-2 rounded-xl w-full grid grid-cols-3">
             <TabsTrigger 
               value="tests" 
               className="data-[state=active]:bg-[#8B5A2B] data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-[#8B5A2B] data-[state=inactive]:border data-[state=inactive]:border-[#8B5A2B]/30 font-medium rounded-lg transition-all"
@@ -588,6 +588,12 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
               className="data-[state=active]:bg-[#8B5A2B] data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-[#8B5A2B] data-[state=inactive]:border data-[state=inactive]:border-[#8B5A2B]/30 font-medium rounded-lg transition-all"
             >
               Supports de formation
+            </TabsTrigger>
+            <TabsTrigger 
+              value="beneficiaire"
+              className="data-[state=active]:bg-[#8B5A2B] data-[state=active]:text-white data-[state=inactive]:bg-white data-[state=inactive]:text-[#8B5A2B] data-[state=inactive]:border data-[state=inactive]:border-[#8B5A2B]/30 font-medium rounded-lg transition-all"
+            >
+              Documents bénéficiaires
             </TabsTrigger>
           </TabsList>
 
