@@ -525,36 +525,22 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
     try {
       setGeneratingPdf(true);
       
-      // Si le PDF est déjà en preview, on le réutilise, sinon on le génère
-      let pdfUrl = pdfPreviewUrl;
+      const token = localStorage.getItem('token');
       
-      if (!pdfUrl) {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(
-          `${API}/pdf/preview?student_id=${emailStudentId}&category=${emailCategory}`,
-          {
-            headers: { 'Authorization': `Bearer ${token}` },
-            responseType: 'blob'
-          }
-        );
-        
-        const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
-        pdfUrl = window.URL.createObjectURL(pdfBlob);
-      }
+      // Envoyer le PDF par email via le backend
+      const response = await axios.post(
+        `${API}/students/${emailStudentId}/category-notes/${emailCategory}/send-by-email`,
+        {
+          to: emailTo,
+          subject: emailSubject,
+          body: emailBody
+        },
+        {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }
+      );
       
-      // Télécharger le PDF
-      const link = document.createElement('a');
-      link.href = pdfUrl;
-      link.setAttribute('download', `${emailCategory}_synthese.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      
-      // Ouvrir le client email
-      const mailtoLink = `mailto:${emailTo}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody + '\n\n(Veuillez attacher le PDF téléchargé)')}`;
-      window.location.href = mailtoLink;
-      
-      toast.success("PDF téléchargé et client email ouvert !");
+      toast.success(`Email envoyé avec succès à ${emailTo} !`);
       
       // Nettoyer
       if (pdfPreviewUrl) {
@@ -564,9 +550,15 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
       setShowPreview(false);
       setShowEmailModal(false);
       setEmailTo('');
+      setEmailSubject('');
+      setEmailBody('');
     } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Erreur lors de la génération du PDF");
+      console.error("Error sending email:", error);
+      let errorMessage = "Erreur lors de l'envoi de l'email";
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      toast.error(errorMessage);
     } finally {
       setGeneratingPdf(false);
     }
