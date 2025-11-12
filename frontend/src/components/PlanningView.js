@@ -354,17 +354,20 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
           onSessionsUpdate();
         }
       } else {
-        // Dupliquer en local
+        // Dupliquer en local (MongoDB)
         const newEvent = {
-          ...eventToDuplicate,
-          id: `planning_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          title: eventToDuplicate.title,
+          center: eventToDuplicate.center,
+          color: eventToDuplicate.color,
+          organism: eventToDuplicate.organism || eventToDuplicate.center || '',
           date: duplicateData.date,
           start_time: duplicateData.start_time,
           end_time: duplicateData.end_time
         };
         
-        savePlanningEvent(newEvent);
-        setPlanningEvents(getPlanningEvents());
+        await savePlanningEvent(newEvent);
+        const updatedEvents = await getPlanningEvents();
+        setPlanningEvents(updatedEvents);
         toast.success('Bloc planning dupliqué !');
       }
     } catch (error) {
