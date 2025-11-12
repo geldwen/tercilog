@@ -763,41 +763,85 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
           </Card>
 
           {/* Section 6: Situation de handicap */}
-          <Card className="border-2 border-[#8B5A2B]/20">
+          <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
             <CardContent className="pt-6 space-y-4">
               <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
                 6. Situation de handicap et besoins d'adaptation
               </h4>
               
-              <div>
-                <p className="text-sm font-medium text-gray-700">Situation de handicap :</p>
-                <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                  <p className="text-gray-900">{renderAnswer(q.situation_handicap)}</p>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Êtes-vous en situation de handicap ou rencontrez-vous une difficulté particulière pouvant impacter votre apprentissage ?</Label>
+                <div className="flex gap-4">
+                  {['Oui', 'Non'].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        checked={q.situation_handicap === option}
+                        readOnly
+                        className="w-4 h-4 questionnaire-radio"
+                      />
+                      <span className={q.situation_handicap === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
               {q.situation_handicap === 'Oui' && (
                 <>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Accompagnement spécifique :</p>
-                    <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                      <p className="text-gray-900">{renderAnswer(q.accompagnement_specifique)}</p>
+                  <div className="space-y-2">
+                    <Label className="text-gray-900">Souhaitez-vous un accompagnement spécifique pendant la formation ?</Label>
+                    <div className="flex gap-4">
+                      {['Oui', 'Non'].map(option => (
+                        <label key={option} className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            checked={q.accompagnement_specifique === option}
+                            readOnly
+                            className="w-4 h-4 questionnaire-radio"
+                          />
+                          <span className={q.accompagnement_specifique === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                        </label>
+                      ))}
                     </div>
                   </div>
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Matériel particulier :</p>
-                    <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                      <p className="text-gray-900">{renderAnswer(q.materiel_particulier)}</p>
-                      {q.materiel_autre && <p className="text-gray-900 mt-1">Autre : {q.materiel_autre}</p>}
+                  <div className="space-y-2">
+                    <Label className="text-gray-900">Avez-vous besoin d'un matériel ou outil particulier ?</Label>
+                    <div className="space-y-2">
+                      {['Ordinateur adapté', 'Casque audio', 'Logiciel spécifique'].map(option => (
+                        <label key={option} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={q.materiel_particulier?.includes(option)}
+                            readOnly
+                            className="w-4 h-4 questionnaire-checkbox"
+                          />
+                          <span className={q.materiel_particulier?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                        </label>
+                      ))}
+                      {q.materiel_autre && (
+                        <p className="text-pink-700 font-semibold bg-white p-2 rounded-md border-2 border-pink-200 ml-6">Autre : {q.materiel_autre}</p>
+                      )}
                     </div>
                   </div>
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Aménagement du rythme :</p>
-                    <div className="mt-2 p-3 bg-pink-100 rounded-md">
-                      <p className="text-gray-900">{renderAnswer(q.amenagement_rythme)}</p>
-                      {q.amenagement_autre && <p className="text-gray-900 mt-1">Autre : {q.amenagement_autre}</p>}
+                  <div className="space-y-2">
+                    <Label className="text-gray-900">Souhaitez-vous un aménagement particulier du rythme ou de l'organisation ?</Label>
+                    <div className="space-y-2">
+                      {['Séances plus courtes', 'Pauses plus fréquentes', 'Séances individuelles'].map(option => (
+                        <label key={option} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={q.amenagement_rythme?.includes(option)}
+                            readOnly
+                            className="w-4 h-4 questionnaire-checkbox"
+                          />
+                          <span className={q.amenagement_rythme?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                        </label>
+                      ))}
+                      {q.amenagement_autre && (
+                        <p className="text-pink-700 font-semibold bg-white p-2 rounded-md border-2 border-pink-200 ml-6">Autre : {q.amenagement_autre}</p>
+                      )}
                     </div>
                   </div>
                 </>
