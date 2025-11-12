@@ -3354,36 +3354,56 @@ async def preview_pdf(
             # Date de réalisation
             story.append(Paragraph(f"Date de réalisation : {formatted_date}", doc_date_style))
             
-            # APERÇU VISUEL - TOUTES LES PAGES, SANS CADRE
+            # APERÇU VISUEL COMPLET - PDFs convertis en images
             if filepath.exists():
                 try:
                     if mime and 'pdf' in mime:
-                        # Pour les PDFs : afficher les 2 pages
-                        pdf_images, temp_files, success = create_pdf_preview_image(filepath, max_width=6.0*inch)
-                        if success and pdf_images:
-                            temp_files_to_cleanup.extend(temp_files)
-                            # Afficher toutes les pages
-                            for page_idx, img in enumerate(pdf_images, 1):
+                        # Convertir le PDF en images
+                        logger.info(f"Converting PDF to images: {filepath}")
+                        try:
+                            # Convertir les 2 premières pages
+                            images_pil = convert_from_path(
+                                str(filepath),
+                                first_page=1,
+                                last_page=2,
+                                dpi=150
+                            )
+                            
+                            logger.info(f"PDF converted to {len(images_pil)} images")
+                            
+                            for page_idx, img_pil in enumerate(images_pil, 1):
+                                # Sauvegarder temporairement
+                                temp_img_path = filepath.parent / f"temp_{uuid.uuid4().hex[:8]}.jpg"
+                                img_pil.save(str(temp_img_path), 'JPEG', quality=85)
+                                temp_files_to_cleanup.append(temp_img_path)
+                                
+                                # Ajouter au PDF
                                 story.append(Paragraph(f"<font size=10><b>Page {page_idx}</b></font>", styles['Normal']))
                                 story.append(Spacer(1, 3))
-                                img.hAlign = 'CENTER'
-                                story.append(img)
-                                story.append(Spacer(1, 5))
-                        else:
-                            story.append(Paragraph("Aperçu PDF indisponible", styles['Normal']))
+                                
+                                # Créer l'image ReportLab
+                                img_reportlab = Image(str(temp_img_path), width=6.0*inch, height=6.0*inch * img_pil.height / img_pil.width)
+                                img_reportlab.hAlign = 'CENTER'
+                                story.append(img_reportlab)
+                                story.append(Spacer(1, 8))
+                            
+                        except Exception as pdf_error:
+                            logger.error(f"PDF conversion error: {pdf_error}")
+                            story.append(Paragraph(f"Erreur conversion PDF: {str(pdf_error)}", styles['Normal']))
                     
                     elif mime and 'image' in mime:
                         # Images : afficher directement
                         img = Image(str(filepath), width=6.0*inch, height=None)
                         img.hAlign = 'CENTER'
                         story.append(img)
+                        story.append(Spacer(1, 8))
                     
                     else:
                         story.append(Paragraph(f"Document de type : {mime or 'inconnu'}", styles['Normal']))
                 
                 except Exception as e:
-                    logger.warning(f"Could not create preview for {filename}: {e}")
-                    story.append(Paragraph("Erreur lors de la génération de l'aperçu", styles['Normal']))
+                    logger.error(f"Could not create preview for {filename}: {e}")
+                    story.append(Paragraph(f"Erreur aperçu: {str(e)}", styles['Normal']))
             else:
                 story.append(Paragraph("Fichier non trouvé", styles['Normal']))
             
