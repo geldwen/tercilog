@@ -439,6 +439,77 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
     return value || '—';
   };
 
+  const handleDownloadQuestionnaire = async (studentIdToDownload) => {
+    try {
+      setDownloading(true);
+      const response = await axios.get(
+        `${API}/students/${studentIdToDownload}/formation-needs/pdf`,
+        {
+          headers: getAuthHeaders(),
+          responseType: 'blob'
+        }
+      );
+      
+      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+      const pdfUrl = window.URL.createObjectURL(pdfBlob);
+      
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `Questionnaire_${studentName.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      window.URL.revokeObjectURL(pdfUrl);
+      toast.success("PDF téléchargé avec succès !");
+    } catch (error) {
+      console.error("Error downloading questionnaire:", error);
+      toast.error("Erreur lors du téléchargement du PDF");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleEmailQuestionnaire = (studentIdToEmail) => {
+    setEmailTo('');
+    setEmailSubject(`Questionnaire de besoins en formation - ${studentName}`);
+    setEmailBody(`Bonjour,\n\nVeuillez trouver ci-joint le questionnaire de besoins en formation de ${studentName}.\n\nCordialement,`);
+    setShowEmailModal(true);
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailTo.trim()) {
+      toast.error("Veuillez saisir au moins un destinataire");
+      return;
+    }
+    
+    try {
+      setSending(true);
+      await axios.post(
+        `${API}/students/${studentId}/formation-needs/send-email`,
+        {
+          to: emailTo,
+          subject: emailSubject,
+          body: emailBody
+        },
+        {
+          headers: getAuthHeaders()
+        }
+      );
+      
+      toast.success(`Email envoyé avec succès à ${emailTo} !`);
+      setShowEmailModal(false);
+      setEmailTo('');
+      setEmailSubject('');
+      setEmailBody('');
+    } catch (error) {
+      console.error("Error sending email:", error);
+      toast.error(error.response?.data?.detail || "Erreur lors de l'envoi de l'email");
+    } finally {
+      setSending(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-12">
