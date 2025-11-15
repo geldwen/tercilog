@@ -384,7 +384,7 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
 }
 
 // Composant pour afficher les questionnaires bénéficiaires
-function BeneficiaryDocumentsTab({ studentId, studentName }) {
+function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
   const [formationNeedsQ, setFormationNeedsQ] = useState(null);
   const [midCourseQ, setMidCourseQ] = useState(null);
   const [endCourseQ, setEndCourseQ] = useState(null);
