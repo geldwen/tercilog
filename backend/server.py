@@ -2743,6 +2743,158 @@ def generate_mid_course_questionnaire_pdf(student: dict, questionnaire: dict) ->
     return buffer.getvalue()
 
 
+def generate_end_course_questionnaire_pdf(student: dict, questionnaire: dict) -> bytes:
+    """Générer un PDF du questionnaire de fin de formation"""
+    buffer = io.BytesIO()
+    
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=72,
+        bottomMargin=54
+    )
+    
+    styles = getSampleStyleSheet()
+    normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=10)
+    bold_style = ParagraphStyle('Bold', parent=styles['Normal'], fontSize=11, fontName='Helvetica-Bold')
+    section_style = ParagraphStyle('Section', parent=styles['Normal'], fontSize=12, fontName='Helvetica-Bold', textColor=colors.HexColor('#8B5A2B'))
+    answer_style = ParagraphStyle('Answer', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#DB2777'), fontName='Helvetica-Bold')
+    
+    story = []
+    
+    # En-tête
+    story.append(build_header(f"Questionnaire de fin de formation — {student['name']}"))
+    story.append(Spacer(0, 20))
+    
+    # Info élève
+    story.append(Paragraph(f"Bénéficiaire : {student.get('name', '')}", bold_style))
+    story.append(Paragraph(f"Email : {student.get('email', '')}", normal_style))
+    submitted_at = questionnaire.get('submitted_at', '')
+    if submitted_at:
+        try:
+            dt = datetime.fromisoformat(submitted_at.replace('Z', '+00:00'))
+            formatted_date = dt.strftime('%d/%m/%Y à %H:%M')
+            story.append(Paragraph(f"Soumis le : {formatted_date}", normal_style))
+        except:
+            story.append(Paragraph(f"Soumis le : {submitted_at}", normal_style))
+    story.append(Spacer(0, 20))
+    
+    def render_list(items):
+        if isinstance(items, list):
+            return ', '.join(items) if items else '—'
+        return items if items else '—'
+    
+    # Section 1: Informations générales
+    story.append(Paragraph("1. Informations générales", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("Nom et prénom :", bold_style))
+    story.append(Paragraph(questionnaire.get('nom_prenom', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Date :", bold_style))
+    story.append(Paragraph(questionnaire.get('date', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Formateur référent :", bold_style))
+    story.append(Paragraph(questionnaire.get('formateur_referent', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Durée totale suivie :", bold_style))
+    story.append(Paragraph(questionnaire.get('duree_totale', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Mode de formation :", bold_style))
+    story.append(Paragraph(render_list(questionnaire.get('mode_formation')), answer_style))
+    story.append(Spacer(0, 15))
+    
+    # Section 2: Évaluation des acquis
+    story.append(Paragraph("🎯 2. Évaluation de vos acquis", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("Pensez-vous avoir progressé depuis le début de la formation ?", bold_style))
+    story.append(Paragraph(questionnaire.get('progression', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Dans quels domaines avez-vous constaté le plus d'amélioration ?", bold_style))
+    domaines = render_list(questionnaire.get('domaines_amelioration'))
+    if questionnaire.get('domaines_autre'):
+        domaines += f", Autre : {questionnaire.get('domaines_autre')}"
+    story.append(Paragraph(domaines, answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Vous sentez-vous plus à l'aise pour utiliser l'anglais dans votre environnement professionnel ?", bold_style))
+    story.append(Paragraph(questionnaire.get('aise_professionnel', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Quels points souhaitez-vous encore renforcer ?", bold_style))
+    story.append(Paragraph(questionnaire.get('points_renforcer', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Avez-vous atteint les objectifs fixés en début de formation ?", bold_style))
+    story.append(Paragraph(questionnaire.get('objectifs_atteints', '—'), answer_style))
+    story.append(Spacer(0, 15))
+    
+    # Section 3: Appréciation
+    story.append(Paragraph("💬 3. Appréciation de la formation", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("Le contenu et les supports ont-ils été adaptés à vos besoins ?", bold_style))
+    story.append(Paragraph(questionnaire.get('contenu_adapte', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Le rythme et la durée de la formation vous ont-ils convenu ?", bold_style))
+    story.append(Paragraph(questionnaire.get('rythme_duree', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Le formateur a-t-il répondu à vos attentes (écoute, pédagogie, disponibilité) ?", bold_style))
+    story.append(Paragraph(questionnaire.get('formateur_satisfaisant', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Comment évalueriez-vous globalement la formation ?", bold_style))
+    story.append(Paragraph(questionnaire.get('evaluation_globale', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Recommanderiez-vous cette formation à d'autres personnes ?", bold_style))
+    story.append(Paragraph(questionnaire.get('recommandation', '—'), answer_style))
+    story.append(Spacer(0, 15))
+    
+    # Section 4: Perspectives
+    story.append(Paragraph("🧩 4. Perspectives et suite du parcours", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("Comment comptez-vous utiliser vos nouvelles compétences ?", bold_style))
+    story.append(Paragraph(questionnaire.get('utilisation_competences', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Souhaitez-vous poursuivre avec une formation complémentaire ?", bold_style))
+    formation_comp = questionnaire.get('formation_complementaire', '—')
+    if questionnaire.get('formation_complementaire_details'):
+        formation_comp += f" - {questionnaire.get('formation_complementaire_details')}"
+    story.append(Paragraph(formation_comp, answer_style))
+    story.append(Spacer(0, 15))
+    
+    # Validation
+    story.append(Paragraph("✍️ 5. Validation", section_style))
+    story.append(Spacer(0, 8))
+    story.append(Paragraph(f"Questionnaire soumis le {formatted_date if submitted_at else 'N/A'}", normal_style))
+    
+    # Footer
+    def add_page_number(canvas, doc):
+        canvas.saveState()
+        page_num = canvas.getPageNumber()
+        canvas.setFont('Helvetica', 8)
+        canvas.setFillColor(colors.grey)
+        canvas.drawCentredString(A4[0]/2, 30, f"Page {page_num}")
+        canvas.restoreState()
+    
+    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
 @api_router.post("/students/{student_id}/send-planning-pdf")
 async def send_student_planning_pdf(student_id: str, data: dict, current_user: User = Depends(get_current_user)):
     """Envoyer le planning d'un élève en PDF par email (TOUTES les séances du parcours)"""
