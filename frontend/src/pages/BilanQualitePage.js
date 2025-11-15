@@ -98,6 +98,7 @@ const BilanQualitePage = () => {
             periodeType: filtres.periodeType,
             moisIndex: filtres.moisIndex,
             annee: filtres.annee,
+            parcours: filtres.parcours,
           },
         });
         setData(response.data);
