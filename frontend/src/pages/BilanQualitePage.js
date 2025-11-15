@@ -185,6 +185,30 @@ const BilanQualitePage = () => {
     };
   }, [lignes]);
 
+  // Supprimer un élève du rapport
+  const handleDeleteStudent = async (studentId, studentName) => {
+    if (!window.confirm(`Voulez-vous vraiment retirer "${studentName}" du rapport qualité ?`)) {
+      return;
+    }
+
+    try {
+      setDeleting(studentId);
+      await axios.delete(`${API}/api/teachers/qualite-report/${studentId}`, {
+        headers: getAuthHeaders(),
+      });
+      
+      toast.success(`${studentName} a été retiré du rapport`);
+      
+      // Recharger les données
+      setData((prev) => prev.filter((e) => e.id !== studentId));
+    } catch (error) {
+      console.error("Erreur suppression élève:", error);
+      toast.error(error.response?.data?.detail || "Erreur lors de la suppression");
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   // Export PDF
   const exportPDF = () => {
     const doc = new jsPDF({ unit: "pt" });
