@@ -119,8 +119,13 @@ const BilanQualitePage = () => {
 
   // Agrégation des KPIs
   const agreg = useMemo(() => {
+    // Retour élève = Q3 soumis ET Q1 & Q2 verts
     const eligibles = lignes.filter(
-      (e) => e.questionnaires.q3Statut === "VERT" && e.questionnaires.reponseFin
+      (e) =>
+        e.questionnaires.q3Statut === "VERT" &&
+        e.questionnaires.q1Statut === "VERT" &&
+        e.questionnaires.q2Statut === "VERT" &&
+        e.questionnaires.reponseFin
     );
     const N = eligibles.length;
     const scores = eligibles.map((e) => scoreProgression(e.questionnaires.reponseFin));
