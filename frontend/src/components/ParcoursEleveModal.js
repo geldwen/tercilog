@@ -1929,7 +1929,7 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
 
           {/* Onglet Documents bénéficiaires - Affichage des questionnaires soumis */}
           <TabsContent value="beneficiaire" className="mt-6">
-            <BeneficiaryDocumentsTab studentId={student.id} studentName={student.name} />
+            <BeneficiaryDocumentsTab studentId={student.id} studentName={student.name} student={student} />
           </TabsContent>
         </Tabs>
       </DialogContent>
