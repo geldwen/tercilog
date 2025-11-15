@@ -111,7 +111,7 @@ const BilanQualitePage = () => {
     };
 
     fetchData();
-  }, [filtres.periodeType, filtres.moisIndex, filtres.annee]);
+  }, [filtres.periodeType, filtres.moisIndex, filtres.annee, filtres.parcours]);
 
   // Pas de filtrage côté client, le backend fait tout
   const lignes = useMemo(() => data, [data]);
