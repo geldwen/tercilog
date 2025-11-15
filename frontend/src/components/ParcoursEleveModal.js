@@ -387,6 +387,7 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
 function BeneficiaryDocumentsTab({ studentId, studentName }) {
   const [formationNeedsQ, setFormationNeedsQ] = useState(null);
   const [midCourseQ, setMidCourseQ] = useState(null);
+  const [endCourseQ, setEndCourseQ] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedQuestionnaire, setSelectedQuestionnaire] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
