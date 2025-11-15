@@ -25,6 +25,11 @@ export default function StudentDashboard({ user, onLogout }) {
   const [showMidCourseDialog, setShowMidCourseDialog] = useState(false);
   const [showEndCourseDialog, setShowEndCourseDialog] = useState(false);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  
+  // États pour les questionnaires soumis
+  const [formationNeedsSubmitted, setFormationNeedsSubmitted] = useState(false);
+  const [midCourseSubmitted, setMidCourseSubmitted] = useState(false);
+  const [endCourseSubmitted, setEndCourseSubmitted] = useState(false);
   const [showSignatureDialog, setShowSignatureDialog] = useState(false);
   const [currentSessionToSign, setCurrentSessionToSign] = useState(null);
 
