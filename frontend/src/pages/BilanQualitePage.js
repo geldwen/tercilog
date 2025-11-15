@@ -428,11 +428,19 @@ const BilanQualitePage = () => {
                   </table>
                 </div>
 
-                {/* Légende */}
-                <div className="mt-4 text-sm text-gray-600 flex gap-6 border-t pt-4">
-                  <span>{dot("VERT")} soumis par l'élève</span>
-                  <span>{dot("ROUGE")} en attente d'envoi</span>
-                  <span className="italic">Règle : si Q2 est rouge, Q3 est forcément rouge (progressif).</span>
+                {/* Légende enrichie */}
+                <div className="mt-4 text-xs text-gray-500 border-t pt-4 space-y-1">
+                  <div className="flex gap-4 items-center">
+                    <span>{dot("VERT")} soumis par l'élève</span>
+                    <span>·</span>
+                    <span>{dot("ROUGE")} en attente d'envoi</span>
+                  </div>
+                  <div>
+                    <strong>Q1</strong> = besoin · <strong>Q2</strong> = mi-parcours · <strong>Q3</strong> = fin (progressif)
+                  </div>
+                  <div className="italic">
+                    Règle : si Q2 est rouge, Q3 est forcément rouge (progressif).
+                  </div>
                 </div>
               </CardContent>
             </Card>
