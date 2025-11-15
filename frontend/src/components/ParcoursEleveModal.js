@@ -483,17 +483,15 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
   const handleDownloadQuestionnaire = async (type) => {
     try {
       setDownloading(true);
-      let endpoint = '';
+      const baseEndpoint = getQuestionnaireEndpoint(type);
+      let endpoint = `/students/${studentId}/${baseEndpoint}/pdf`;
       let filename = '';
       
       if (type === 'formation-needs') {
-        endpoint = `/students/${studentId}/formation-needs/pdf`;
         filename = `Questionnaire_BesoinFormation_${studentName.replace(/\s+/g, '_')}.pdf`;
       } else if (type === 'mid-course') {
-        endpoint = `/students/${studentId}/mid-course-questionnaire/pdf`;
         filename = `Questionnaire_MiParcours_${studentName.replace(/\s+/g, '_')}.pdf`;
       } else if (type === 'end-course') {
-        endpoint = `/students/${studentId}/end-course-questionnaire/pdf`;
         filename = `Questionnaire_FinFormation_${studentName.replace(/\s+/g, '_')}.pdf`;
       }
       
