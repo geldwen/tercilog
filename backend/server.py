@@ -89,6 +89,7 @@ class UserCreate(BaseModel):
     session_type: str = ""  # "distanciel" or "présentiel"
     start_date: str = ""
     end_date: str = ""
+    parcours: str = ""  # Matière/Parcours de l'élève
 
 class UserLogin(BaseModel):
     email: EmailStr
