@@ -561,10 +561,16 @@ export default function StudentDashboard({ user, onLogout }) {
         )}
       </main>
 
-      {/* Training Needs Questionnaire */}
+      {/* Training Needs Questionnaires */}
       <FormationNeedsQuestionnaire
         open={showNeedsDialog}
         onClose={() => setShowNeedsDialog(false)}
+        studentId={user?.id}
+      />
+      
+      <MidCourseQuestionnaire
+        open={showMidCourseDialog}
+        onClose={() => setShowMidCourseDialog(false)}
         studentId={user?.id}
       />
 
