@@ -545,12 +545,12 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
     );
   }
 
-  if (questionnaires.length === 0) {
+  if (!formationNeedsQ && !midCourseQ) {
     return (
       <div className="text-center py-12">
         <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
         <p className="text-gray-600 text-lg">Aucun questionnaire soumis pour le moment</p>
-        <p className="text-gray-500 text-sm mt-2">L'élève n'a pas encore rempli le questionnaire de besoins en formation</p>
+        <p className="text-gray-500 text-sm mt-2">L'élève n'a pas encore rempli de questionnaires</p>
       </div>
     );
   }
