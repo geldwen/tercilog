@@ -250,6 +250,9 @@ const BilanQualitePage = () => {
       styles: { fontSize: 9, cellPadding: 4 },
       theme: "striped",
       headStyles: { fillColor: [43, 138, 62] },
+      columnStyles: {
+        7: { cellWidth: 120 } // Difficultés column wider
+      }
     });
 
     doc.save(`Rapport_Qualite_${filtres.parcours}_${filtres.annee}_${MOIS_FR[filtres.moisIndex] || ""}.pdf`);
