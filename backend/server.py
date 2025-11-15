@@ -4745,6 +4745,207 @@ async def preview_pdf(
 # Include router
 app.include_router(api_router)
 
+def calculer_score_progression(questionnaire_fin: dict) -> int:
+    """
+    Calcule un score de progression sur 100 basé sur le questionnaire de fin
+    """
+    score = 0
+    
+    # Progression globale (40 points)
+    progression = questionnaire_fin.get('progression_globale', '')
+    if progression == 'Très satisfaisante':
+        score += 40
+    elif progression == 'Satisfaisante':
+        score += 30
+    elif progression == 'Moyenne':
+        score += 15
+    
+    # Objectifs atteints (30 points)
+    objectifs = questionnaire_fin.get('objectifs_atteints', '')
+    if objectifs == 'Oui':
+        score += 30
+    elif objectifs == 'Partiellement':
+        score += 15
+    
+    # Évaluation globale sur 5 (20 points)
+    try:
+        eval_globale = int(questionnaire_fin.get('evaluation_globale', 0))
+        score += (eval_globale / 5.0) * 20
+    except:
+        pass
+    
+    # Recommandation (10 points)
+    recommandation = questionnaire_fin.get('recommandation', '')
+    if recommandation == 'Oui':
+        score += 10
+    elif recommandation == 'Peut-être':
+        score += 5
+    
+    return min(100, int(score))
+
+
+def attribuer_niveau_progression(score: int) -> dict:
+    """
+    Attribue un niveau de progression selon le score
+    """
+    if score >= 76:
+        return {
+            "niveau": "Progression excellente", 
+            "couleur": "#1976D2",  # Bleu
+            "couleur_bg": "#E3F2FD"
+        }
+    elif score >= 51:
+        return {
+            "niveau": "Progression solide", 
+            "couleur": "#388E3C",  # Vert
+            "couleur_bg": "#E8F5E9"
+        }
+    elif score >= 26:
+        return {
+            "niveau": "Progression moyenne", 
+            "couleur": "#F57C00",  # Orange
+            "couleur_bg": "#FFF3E0"
+        }
+    else:
+        return {
+            "niveau": "Progression limitée", 
+            "couleur": "#D32F2F",  # Rouge
+            "couleur_bg": "#FFEBEE"
+        }
+
+
+def generate_bilan_eleve_pdf(student: dict, q_besoins: dict, q_mi_parcours: dict, q_fin: dict, score: int, niveau: dict) -> bytes:
+    """
+    Génère le PDF du Bilan Élève IA avec synthèse automatique
+    """
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, 
+                           leftMargin=36, rightMargin=36,
+                           topMargin=72, bottomMargin=54)
+    
+    story = []
+    styles = getSampleStyleSheet()
+    
+    # Style personnalisé pour le titre
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        textColor=colors.HexColor('#8B5A2B'),
+        spaceAfter=30,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+    
+    # Style pour les sections
+    section_style = ParagraphStyle(
+        'SectionTitle',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=colors.HexColor('#8B5A2B'),
+        spaceAfter=12,
+        spaceBefore=20,
+        fontName='Helvetica-Bold'
+    )
+    
+    # Style normal
+    normal_style = ParagraphStyle(
+        'CustomNormal',
+        parent=styles['Normal'],
+        fontSize=11,
+        leading=16,
+        spaceAfter=8
+    )
+    
+    # En-tête avec logo TerciForm
+    story.append(Paragraph("🎓 TERCIFORM", title_style))
+    story.append(Paragraph("Bilan Élève - Synthèse IA", title_style))
+    story.append(Spacer(1, 20))
+    
+    # Informations élève
+    story.append(Paragraph("📋 Informations du bénéficiaire", section_style))
+    info_data = [
+        ["Nom :", student.get('name', '—')],
+        ["Email :", student.get('email', '—')],
+        ["Date du bilan :", datetime.now().strftime("%d/%m/%Y")]
+    ]
+    info_table = Table(info_data, colWidths=[2*inch, 4*inch])
+    info_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#F5F5F5')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey)
+    ]))
+    story.append(info_table)
+    story.append(Spacer(1, 20))
+    
+    # Score de progression avec bandeau coloré
+    story.append(Paragraph("🎯 Score de Progression", section_style))
+    score_table = Table(
+        [[Paragraph(f"<b>{score}/100</b>", ParagraphStyle('ScoreStyle', fontSize=36, textColor=colors.HexColor(niveau['couleur']), alignment=TA_CENTER))],
+         [Paragraph(f"<b>{niveau['niveau']}</b>", ParagraphStyle('NiveauStyle', fontSize=14, textColor=colors.HexColor(niveau['couleur']), alignment=TA_CENTER))]],
+        colWidths=[6*inch]
+    )
+    score_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor(niveau['couleur_bg'])),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 15),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+        ('BOX', (0, 0), (-1, -1), 2, colors.HexColor(niveau['couleur']))
+    ]))
+    story.append(score_table)
+    story.append(Spacer(1, 20))
+    
+    # Synthèse IA automatique
+    story.append(Paragraph("🤖 Synthèse IA - Analyse de parcours", section_style))
+    
+    # Objectifs initiaux
+    objectifs_initiaux = q_besoins.get('objectifs_principaux', '') or q_besoins.get('raison_formation', 'Non précisé')
+    synthese_text = f"""
+    <b>Objectifs initiaux :</b><br/>
+    Le bénéficiaire souhaitait initialement {objectifs_initiaux}.<br/><br/>
+    
+    <b>Évolution à mi-parcours :</b><br/>
+    À mi-parcours, le bénéficiaire a rapporté : "{q_mi_parcours.get('apprentissages', 'Progression en cours')}".<br/>
+    Difficultés rencontrées : {q_mi_parcours.get('difficultes', 'Aucune difficulté majeure signalée')}.<br/><br/>
+    
+    <b>Bilan final :</b><br/>
+    En fin de formation, le bénéficiaire se déclare {q_fin.get('progression_globale', 'satisfait')} de sa progression.
+    Objectifs atteints : {q_fin.get('objectifs_atteints', 'Oui')}.<br/>
+    Appréciation du formateur : {q_fin.get('appreciation_formateur', 'Très bon parcours')}.<br/><br/>
+    
+    <b>Recommandations :</b><br/>
+    {q_fin.get('formation_complementaire', 'Formation réussie, pas de recommandation particulière')}.
+    """
+    
+    story.append(Paragraph(synthese_text, normal_style))
+    story.append(Spacer(1, 20))
+    
+    # Domaines d'amélioration
+    story.append(Paragraph("📈 Domaines d'amélioration identifiés", section_style))
+    domaines = q_fin.get('domaines_amelioration', 'Compréhension orale, Expression écrite')
+    story.append(Paragraph(f"• {domaines}", normal_style))
+    story.append(Spacer(1, 15))
+    
+    # Recommandation finale
+    recommandation_finale = "Oui" if q_fin.get('recommandation') == 'Oui' else "Non précisé"
+    story.append(Paragraph(f"<b>Recommandation de la formation :</b> {recommandation_finale}", normal_style))
+    
+    # Pied de page
+    story.append(Spacer(1, 30))
+    footer_text = f"Document généré automatiquement par TerciForm IA le {datetime.now().strftime('%d/%m/%Y à %H:%M')}"
+    story.append(Paragraph(footer_text, ParagraphStyle('Footer', fontSize=9, textColor=colors.grey, alignment=TA_CENTER)))
+    
+    # Construire le PDF
+    doc.build(story)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
