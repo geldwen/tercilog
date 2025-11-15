@@ -2450,6 +2450,143 @@ def generate_formation_needs_pdf(student: dict, questionnaire: dict) -> bytes:
     return buffer.getvalue()
 
 
+def generate_mid_course_questionnaire_pdf(student: dict, questionnaire: dict) -> bytes:
+    """Générer un PDF du questionnaire à mi-parcours"""
+    buffer = io.BytesIO()
+    
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=72,
+        bottomMargin=54
+    )
+    
+    styles = getSampleStyleSheet()
+    normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=10)
+    bold_style = ParagraphStyle('Bold', parent=styles['Normal'], fontSize=11, fontName='Helvetica-Bold')
+    section_style = ParagraphStyle('Section', parent=styles['Normal'], fontSize=12, fontName='Helvetica-Bold', textColor=colors.HexColor('#8B5A2B'))
+    answer_style = ParagraphStyle('Answer', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#DB2777'), fontName='Helvetica-Bold')
+    
+    story = []
+    
+    # En-tête
+    story.append(build_header(f"Questionnaire à mi-parcours — {student['name']}"))
+    story.append(Spacer(0, 20))
+    
+    # Info élève
+    story.append(Paragraph(f"Bénéficiaire : {student.get('name', '')}", bold_style))
+    story.append(Paragraph(f"Email : {student.get('email', '')}", normal_style))
+    submitted_at = questionnaire.get('submitted_at', '')
+    if submitted_at:
+        try:
+            dt = datetime.fromisoformat(submitted_at.replace('Z', '+00:00'))
+            formatted_date = dt.strftime('%d/%m/%Y à %H:%M')
+            story.append(Paragraph(f"Soumis le : {formatted_date}", normal_style))
+        except:
+            story.append(Paragraph(f"Soumis le : {submitted_at}", normal_style))
+    story.append(Spacer(0, 20))
+    
+    def render_list(items):
+        if isinstance(items, list):
+            return ', '.join(items) if items else '—'
+        return items if items else '—'
+    
+    # Section 1: Informations générales
+    story.append(Paragraph("1. Informations générales", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("Nom et prénom :", bold_style))
+    story.append(Paragraph(questionnaire.get('nom_prenom', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Date du suivi :", bold_style))
+    story.append(Paragraph(questionnaire.get('date_suivi', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Formateur référent :", bold_style))
+    story.append(Paragraph(questionnaire.get('formateur_referent', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Mode de formation :", bold_style))
+    story.append(Paragraph(render_list(questionnaire.get('mode_formation')), answer_style))
+    story.append(Spacer(0, 15))
+    
+    # Section 2: Ressenti
+    story.append(Paragraph("💬 2. Ressenti sur le déroulement de la formation", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("La formation répond-elle à vos attentes jusqu'à présent ?", bold_style))
+    story.append(Paragraph(questionnaire.get('formation_attentes', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Le rythme et la durée des séances vous conviennent-ils ?", bold_style))
+    story.append(Paragraph(questionnaire.get('rythme_duree', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Les supports et méthodes utilisés facilitent-ils votre apprentissage ?", bold_style))
+    story.append(Paragraph(questionnaire.get('supports_methodes', '—'), answer_style))
+    story.append(Spacer(0, 15))
+    
+    # Section 3: Progression
+    story.append(Paragraph("🎯 3. Progression et besoins complémentaires", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("Qu'avez-vous le plus appris ou amélioré depuis le début de la formation ?", bold_style))
+    story.append(Paragraph(questionnaire.get('apprentissages', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Rencontrez-vous actuellement des difficultés particulières ?", bold_style))
+    story.append(Paragraph(questionnaire.get('difficultes', '—'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Souhaitez-vous approfondir certains points ?", bold_style))
+    approfondir = questionnaire.get('approfondir', '—')
+    if questionnaire.get('approfondir_details'):
+        approfondir += f" - {questionnaire.get('approfondir_details')}"
+    story.append(Paragraph(approfondir, answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Suggestions pour améliorer le déroulement :", bold_style))
+    story.append(Paragraph(questionnaire.get('suggestions', '—'), answer_style))
+    story.append(Spacer(0, 15))
+    
+    # Section 4: Suivi formateur
+    story.append(Paragraph("🔄 4. Suivi et adaptation (complété par le formateur)", section_style))
+    story.append(Spacer(0, 8))
+    
+    story.append(Paragraph("Observation du formateur :", bold_style))
+    story.append(Paragraph(questionnaire.get('observation_formateur', 'Non renseigné'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Ajustement(s) envisagé(s) :", bold_style))
+    story.append(Paragraph(questionnaire.get('ajustements', 'Non renseigné'), answer_style))
+    story.append(Spacer(0, 6))
+    
+    story.append(Paragraph("Décision :", bold_style))
+    story.append(Paragraph(render_list(questionnaire.get('decision')), answer_style))
+    story.append(Spacer(0, 15))
+    
+    # Validation
+    story.append(Paragraph("✍️ 5. Validation", section_style))
+    story.append(Spacer(0, 8))
+    story.append(Paragraph(f"Questionnaire soumis le {formatted_date if submitted_at else 'N/A'}", normal_style))
+    
+    # Footer
+    def add_page_number(canvas, doc):
+        canvas.saveState()
+        page_num = canvas.getPageNumber()
+        canvas.setFont('Helvetica', 8)
+        canvas.setFillColor(colors.grey)
+        canvas.drawCentredString(A4[0]/2, 30, f"Page {page_num}")
+        canvas.restoreState()
+    
+    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
 @api_router.post("/students/{student_id}/send-planning-pdf")
 async def send_student_planning_pdf(student_id: str, data: dict, current_user: User = Depends(get_current_user)):
     """Envoyer le planning d'un élève en PDF par email (TOUTES les séances du parcours)"""
