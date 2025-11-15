@@ -621,6 +621,12 @@ export default function TeacherDashboard({ user, onLogout }) {
               <Euro className="w-5 h-5" />
               {showBilling ? 'Retour Séances' : 'Facturation'}
             </Button>
+            <Button
+              onClick={() => window.location.href = '/qualite/bilan'}
+              className="inline-flex items-center gap-2 bg-[#2B8A3E] hover:bg-[#237A32] text-white font-semibold px-4 py-2 rounded-md shadow-sm"
+            >
+              📊 Bilan Qualité
+            </Button>
           </div>
         </div>
 
