@@ -1563,33 +1563,6 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
             </CardContent>
           </Card>
         )}
-        
-        {/* Bouton magique "Générer le Bilan Élève" */}
-        <div className="mt-6 flex justify-center">
-          <Button
-            onClick={handleGenerateBilan}
-            disabled={!formationNeedsQ || !midCourseQ || !endCourseQ || downloading}
-            className={`
-              ${formationNeedsQ && midCourseQ && endCourseQ 
-                ? 'bg-gradient-to-r from-[#E8F5E9] to-[#C8E6C9] text-gray-800 hover:from-[#C8E6C9] hover:to-[#A5D6A7] border-2 border-green-300' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }
-              font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200
-              ${formationNeedsQ && midCourseQ && endCourseQ ? 'hover:scale-105 hover:shadow-lg' : ''}
-            `}
-          >
-            {downloading ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Génération en cours...
-              </>
-            ) : (
-              <>
-                🪄 Générer le Bilan Élève
-              </>
-            )}
-          </Button>
-        </div>
       </div>
 
       {/* Modal d'envoi par email */}
