@@ -139,11 +139,8 @@ const BilanQualitePage = () => {
     // Difficultés top 3
     const freq = new Map();
     eligibles.forEach((e) => {
-      const difficultes = e.questionnaires.reponseFin?.difficultes || "";
-      if (difficultes) {
-        const tags = difficultes.split(",").map((d) => d.trim());
-        tags.forEach((d) => freq.set(d, (freq.get(d) || 0) + 1));
-      }
+      const difficulties = e.q3?.difficulties || [];
+      difficulties.forEach((d) => freq.set(d, (freq.get(d) || 0) + 1));
     });
     const top3 = Array.from(freq.entries())
       .sort((a, b) => b[1] - a[1])
@@ -152,10 +149,7 @@ const BilanQualitePage = () => {
 
     // Complétion (Q1+Q2+Q3 soumis)
     const nbComplets = lignes.filter(
-      (e) =>
-        e.questionnaires.q1Statut === "VERT" &&
-        e.questionnaires.q2Statut === "VERT" &&
-        e.questionnaires.q3Statut === "VERT"
+      (e) => e.q1?.submitted && e.q2?.submitted && e.q3?.submitted
     ).length;
     const completionPct = lignes.length ? Math.round((nbComplets * 100) / lignes.length) : 0;
 
