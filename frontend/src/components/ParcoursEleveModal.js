@@ -567,6 +567,39 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
     }
   };
 
+  const handleGenerateBilan = async () => {
+    try {
+      setDownloading(true);
+      
+      const response = await axios.post(
+        `${API}/students/${studentId}/generate-bilan`,
+        {},
+        {
+          headers: getAuthHeaders(),
+          responseType: 'blob'
+        }
+      );
+      
+      const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+      const pdfUrl = window.URL.createObjectURL(pdfBlob);
+      
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `Bilan_Eleve_${studentName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      window.URL.revokeObjectURL(pdfUrl);
+      toast.success("✅ Bilan Élève généré avec succès !");
+    } catch (error) {
+      console.error("Error generating bilan:", error);
+      toast.error(error.response?.data?.detail || "Erreur lors de la génération du bilan");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-12">
