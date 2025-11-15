@@ -1316,7 +1316,7 @@ async def get_qualite_report(
         result.append({
             "id": student_id,
             "nom": student_name,
-            "parcours": matiere,
+            "parcours": student_parcours,
             "q1": q1_data,
             "q2": q2_data,
             "q3": q3_data,
