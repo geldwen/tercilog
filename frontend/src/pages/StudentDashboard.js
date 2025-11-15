@@ -11,6 +11,9 @@ import SignaturePad from "@/components/SignaturePad";
 import FormationNeedsQuestionnaire from "@/components/FormationNeedsQuestionnaire";
 import MidCourseQuestionnaire from "@/components/MidCourseQuestionnaire";
 import EndCourseQuestionnaire from "@/components/EndCourseQuestionnaire";
+import BureautiqueFormationNeedsQuestionnaire from "@/components/BureautiqueFormationNeedsQuestionnaire";
+import BureautiqueMidCourseQuestionnaire from "@/components/BureautiqueMidCourseQuestionnaire";
+import BureautiqueEndCourseQuestionnaire from "@/components/BureautiqueEndCourseQuestionnaire";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
