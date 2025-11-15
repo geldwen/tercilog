@@ -988,54 +988,111 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
           <p className="text-sm opacity-90 mt-1">Questionnaires et documents soumis par l'élève</p>
         </div>
 
-      {questionnaires.map((q) => (
-        <Card key={q.id} className="border-2 border-[#8B5A2B]/20 hover:shadow-lg transition-shadow">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-start gap-4 flex-1">
-                <FileText className="w-12 h-12 text-[#8B5A2B]" />
-                <div className="flex-1">
-                  <h5 className="font-bold text-lg text-gray-900">Questionnaire de besoins en formation</h5>
-                  <p className="text-sm text-gray-600 mt-1">
-                    👤 Bénéficiaire : <span className="font-medium">{studentName}</span>
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    📅 Soumis le {formatDateTime(q.submitted_at)}
-                  </p>
+        {/* Questionnaire 1 : Besoins en formation */}
+        {formationNeedsQ && (
+          <Card className="border-2 border-[#8B5A2B]/20 hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-start gap-4 flex-1">
+                  <FileText className="w-12 h-12 text-[#8B5A2B]" />
+                  <div className="flex-1">
+                    <h5 className="font-bold text-lg text-gray-900">1) Questionnaire de besoin en formation</h5>
+                    <p className="text-sm text-gray-600 mt-1">
+                      👤 Bénéficiaire : <span className="font-medium">{studentName}</span>
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      📅 Soumis le {formatDateTime(formationNeedsQ.submitted_at)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <Button
+                    onClick={() => {
+                      setSelectedQuestionnaire(formationNeedsQ);
+                      setSelectedType('formation-needs');
+                    }}
+                    className="bg-[#8B5A2B] hover:bg-[#7A4F26] text-white"
+                  >
+                    Consulter →
+                  </Button>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownloadQuestionnaire('formation-needs');
+                    }}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    PDF
+                  </Button>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEmailQuestionnaire('formation-needs');
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Mail className="w-4 h-4 mr-1" />
+                    Envoyer
+                  </Button>
                 </div>
               </div>
-              <div className="flex gap-2 flex-shrink-0">
-                <Button
-                  onClick={() => setSelectedQuestionnaire(q)}
-                  className="bg-[#8B5A2B] hover:bg-[#7A4F26] text-white"
-                >
-                  Consulter →
-                </Button>
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDownloadQuestionnaire(q.student_id);
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <Download className="w-4 h-4 mr-1" />
-                  PDF
-                </Button>
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEmailQuestionnaire(q.student_id);
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <Mail className="w-4 h-4 mr-1" />
-                  Envoyer
-                </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Questionnaire 2 : À mi-parcours */}
+        {midCourseQ && (
+          <Card className="border-2 border-[#8B5A2B]/20 hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-start gap-4 flex-1">
+                  <FileText className="w-12 h-12 text-[#8B5A2B]" />
+                  <div className="flex-1">
+                    <h5 className="font-bold text-lg text-gray-900">2) Questionnaire à mi-parcours</h5>
+                    <p className="text-sm text-gray-600 mt-1">
+                      👤 Bénéficiaire : <span className="font-medium">{studentName}</span>
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      📅 Soumis le {formatDateTime(midCourseQ.submitted_at)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <Button
+                    onClick={() => {
+                      setSelectedQuestionnaire(midCourseQ);
+                      setSelectedType('mid-course');
+                    }}
+                    className="bg-[#8B5A2B] hover:bg-[#7A4F26] text-white"
+                  >
+                    Consulter →
+                  </Button>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownloadQuestionnaire('mid-course');
+                    }}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    PDF
+                  </Button>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEmailQuestionnaire('mid-course');
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Mail className="w-4 h-4 mr-1" />
+                    Envoyer
+                  </Button>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Modal d'envoi par email */}
