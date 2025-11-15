@@ -220,14 +220,14 @@ const BilanQualitePage = () => {
 
     autoTable(doc, {
       startY: 200,
-      head: [["Élève", "Matière", "Q1", "Q2", "Q3", "Score prog.", "Satisfaction", "Difficultés"]],
+      head: [["Élève", "Parcours", "Q1", "Q2", "Q3", "Score prog.", "Satisfaction", "Difficultés"]],
       body: rows,
       styles: { fontSize: 9, cellPadding: 4 },
       theme: "striped",
       headStyles: { fillColor: [43, 138, 62] },
     });
 
-    doc.save(`Rapport_Qualite_${filtres.matiere}_${filtres.annee || filtres.mois}.pdf`);
+    doc.save(`Rapport_Qualite_${filtres.parcours}_${filtres.annee}_${MOIS_FR[filtres.moisIndex] || ""}.pdf`);
     toast.success("Rapport PDF généré avec succès !");
   };
 
