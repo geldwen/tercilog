@@ -80,6 +80,7 @@ const BilanQualitePage = () => {
   });
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(null);
 
   const periodeLabel =
     filtres.periodeType === "mois"
