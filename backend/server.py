@@ -1361,14 +1361,14 @@ async def get_qualite_report(
     fin_periode = None
     
     if periodeType == "mois" and moisIndex is not None and annee is not None:
-        debut_periode = datetime(annee, moisIndex + 1, 1)
+        debut_periode = datetime(annee, moisIndex + 1, 1, tzinfo=timezone.utc)
         if moisIndex + 1 == 12:
-            fin_periode = datetime(annee + 1, 1, 1) - timedelta(days=1)
+            fin_periode = datetime(annee + 1, 1, 1, tzinfo=timezone.utc) - timedelta(days=1)
         else:
-            fin_periode = datetime(annee, moisIndex + 2, 1) - timedelta(days=1)
+            fin_periode = datetime(annee, moisIndex + 2, 1, tzinfo=timezone.utc) - timedelta(days=1)
     elif periodeType == "annee" and annee is not None:
-        debut_periode = datetime(annee, 1, 1)
-        fin_periode = datetime(annee, 12, 31, 23, 59, 59)
+        debut_periode = datetime(annee, 1, 1, tzinfo=timezone.utc)
+        fin_periode = datetime(annee, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
     
     logger.info(f"Période de filtrage: {debut_periode} -> {fin_periode}")
     
