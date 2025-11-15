@@ -530,27 +530,31 @@ export default function StudentDashboard({ user, onLogout }) {
                 <p className="text-gray-600 mb-4">Partagez vos attentes et objectifs de formation</p>
                 <div className="space-y-3">
                   <Button 
-                    onClick={() => setShowNeedsDialog(true)} 
-                    style={{backgroundColor: TERCIFORM_BLUE}}
+                    onClick={() => !formationNeedsSubmitted && setShowNeedsDialog(true)} 
+                    style={{backgroundColor: formationNeedsSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
                     className="w-full justify-start"
+                    disabled={formationNeedsSubmitted}
                   >
                     1) Questionnaire de besoin en formation
+                    {formationNeedsSubmitted && <span className="ml-2 text-xs">✓ Validé</span>}
                   </Button>
                   <Button 
-                    onClick={() => setShowMidCourseDialog(true)} 
-                    style={{backgroundColor: TERCIFORM_BLUE}}
+                    onClick={() => !midCourseSubmitted && setShowMidCourseDialog(true)} 
+                    style={{backgroundColor: midCourseSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
                     className="w-full justify-start"
+                    disabled={midCourseSubmitted}
                   >
                     2) Questionnaire à mi-parcours
+                    {midCourseSubmitted && <span className="ml-2 text-xs">✓ Validé</span>}
                   </Button>
                   <Button 
-                    onClick={() => setShowEndCourseDialog(true)} 
-                    style={{backgroundColor: TERCIFORM_BLUE}}
+                    onClick={() => !endCourseSubmitted && setShowEndCourseDialog(true)} 
+                    style={{backgroundColor: endCourseSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
                     className="w-full justify-start"
-                    disabled
+                    disabled={endCourseSubmitted}
                   >
                     3) Questionnaire de fin de formation
-                    <span className="ml-2 text-xs opacity-75">(bientôt)</span>
+                    {endCourseSubmitted && <span className="ml-2 text-xs">✓ Validé</span>}
                   </Button>
                 </div>
               </CardContent>
