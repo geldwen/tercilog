@@ -463,9 +463,19 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
   const handleDownloadQuestionnaire = async (type) => {
     try {
       setDownloading(true);
-      const endpoint = type === 'formation-needs' 
-        ? `/students/${studentId}/formation-needs/pdf`
-        : `/students/${studentId}/mid-course-questionnaire/pdf`;
+      let endpoint = '';
+      let filename = '';
+      
+      if (type === 'formation-needs') {
+        endpoint = `/students/${studentId}/formation-needs/pdf`;
+        filename = `Questionnaire_BesoinFormation_${studentName.replace(/\s+/g, '_')}.pdf`;
+      } else if (type === 'mid-course') {
+        endpoint = `/students/${studentId}/mid-course-questionnaire/pdf`;
+        filename = `Questionnaire_MiParcours_${studentName.replace(/\s+/g, '_')}.pdf`;
+      } else if (type === 'end-course') {
+        endpoint = `/students/${studentId}/end-course-questionnaire/pdf`;
+        filename = `Questionnaire_FinFormation_${studentName.replace(/\s+/g, '_')}.pdf`;
+      }
       
       const response = await axios.get(
         `${API}${endpoint}`,
@@ -477,10 +487,6 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
       
       const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
       const pdfUrl = window.URL.createObjectURL(pdfBlob);
-      
-      const filename = type === 'formation-needs'
-        ? `Questionnaire_BesoinFormation_${studentName.replace(/\s+/g, '_')}.pdf`
-        : `Questionnaire_MiParcours_${studentName.replace(/\s+/g, '_')}.pdf`;
       
       const link = document.createElement('a');
       link.href = pdfUrl;
@@ -502,7 +508,16 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
   const handleEmailQuestionnaire = (type) => {
     setSelectedType(type);
     setEmailTo('');
-    const title = type === 'formation-needs' ? 'Questionnaire de besoins en formation' : 'Questionnaire à mi-parcours';
+    let title = '';
+    
+    if (type === 'formation-needs') {
+      title = 'Questionnaire de besoins en formation';
+    } else if (type === 'mid-course') {
+      title = 'Questionnaire à mi-parcours';
+    } else if (type === 'end-course') {
+      title = 'Questionnaire de fin de formation';
+    }
+    
     setEmailSubject(`${title} - ${studentName}`);
     setEmailBody(`Bonjour,\n\nVeuillez trouver ci-joint le ${title.toLowerCase()} de ${studentName}.\n\nCordialement,`);
     setShowEmailModal(true);
@@ -516,9 +531,15 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
     
     try {
       setSending(true);
-      const endpoint = selectedType === 'formation-needs'
-        ? `/students/${studentId}/formation-needs/send-email`
-        : `/students/${studentId}/mid-course-questionnaire/send-email`;
+      let endpoint = '';
+      
+      if (selectedType === 'formation-needs') {
+        endpoint = `/students/${studentId}/formation-needs/send-email`;
+      } else if (selectedType === 'mid-course') {
+        endpoint = `/students/${studentId}/mid-course-questionnaire/send-email`;
+      } else if (selectedType === 'end-course') {
+        endpoint = `/students/${studentId}/end-course-questionnaire/send-email`;
+      }
       
       await axios.post(
         `${API}${endpoint}`,
