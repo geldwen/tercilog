@@ -549,15 +549,8 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
     
     try {
       setSending(true);
-      let endpoint = '';
-      
-      if (selectedType === 'formation-needs') {
-        endpoint = `/students/${studentId}/formation-needs/send-email`;
-      } else if (selectedType === 'mid-course') {
-        endpoint = `/students/${studentId}/mid-course-questionnaire/send-email`;
-      } else if (selectedType === 'end-course') {
-        endpoint = `/students/${studentId}/end-course-questionnaire/send-email`;
-      }
+      const baseEndpoint = getQuestionnaireEndpoint(selectedType);
+      let endpoint = `/students/${studentId}/${baseEndpoint}/send-email`;
       
       await axios.post(
         `${API}${endpoint}`,
