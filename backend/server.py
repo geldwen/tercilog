@@ -1118,6 +1118,49 @@ async def send_end_course_questionnaire_email(
         raise HTTPException(status_code=500, detail=f"Error sending email: {str(e)}")
 
 
+@api_router.post("/students/{student_id}/generate-bilan")
+async def generate_student_bilan(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Générer le Bilan Élève IA avec les 3 questionnaires"""
+    if current_user.role not in ["student", "teacher"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Récupérer les 3 questionnaires
+    q_besoins = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    q_mi_parcours = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    q_fin = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    
+    # Vérifier que les 3 questionnaires existent
+    if not q_besoins or not q_mi_parcours or not q_fin:
+        raise HTTPException(
+            status_code=400, 
+            detail="Les trois questionnaires doivent être complétés pour générer le bilan"
+        )
+    
+    # Calculer le score de progression
+    score = calculer_score_progression(q_fin)
+    niveau = attribuer_niveau_progression(score)
+    
+    # Générer le PDF du bilan
+    pdf_bytes = generate_bilan_eleve_pdf(student, q_besoins, q_mi_parcours, q_fin, score, niveau)
+    
+    # Retourner le PDF
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="Bilan_Eleve_{student.get("name", "").replace(" ", "_")}_{datetime.now().strftime("%Y%m%d")}.pdf"'
+        }
+    )
+
+
 @api_router.post("/sessions/bulk")
 async def create_bulk_sessions(
     data: dict,
