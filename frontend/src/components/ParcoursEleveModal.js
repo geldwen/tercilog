@@ -640,9 +640,8 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
   
   // Fonction pour rendre le questionnaire 1 (besoins en formation)
   const renderFormationNeedsDetail = (q) => (
-
-        {/* Contenu du questionnaire avec format original */}
-        <div className="space-y-6">
+    <div className="space-y-6">
+      {/* Contenu du questionnaire avec format original */}
           {/* Section 1: Identification */}
           <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
             <CardContent className="pt-6 space-y-4">
