@@ -113,21 +113,14 @@ const BilanQualitePage = () => {
     fetchData();
   }, [filtres.periodeType, filtres.moisIndex, filtres.annee]);
 
-  // Filtrage côté client par parcours
-  const lignes = useMemo(
-    () => data.filter((e) => filtres.parcours === "Toutes" || e.matiere === filtres.parcours),
-    [data, filtres.parcours]
-  );
+  // Pas de filtrage côté client, le backend fait tout
+  const lignes = useMemo(() => data, [data]);
 
   // Agrégation des KPIs
   const agreg = useMemo(() => {
-    // Retour élève = Q3 soumis ET Q1 & Q2 verts
+    // Retour élève = Q1 ET Q2 ET Q3 soumis
     const eligibles = lignes.filter(
-      (e) =>
-        e.questionnaires.q3Statut === "VERT" &&
-        e.questionnaires.q1Statut === "VERT" &&
-        e.questionnaires.q2Statut === "VERT" &&
-        e.questionnaires.reponseFin
+      (e) => e.q1?.submitted && e.q2?.submitted && e.q3?.submitted
     );
     const N = eligibles.length;
     const scores = eligibles.map((e) => scoreProgression(e.questionnaires.reponseFin));
