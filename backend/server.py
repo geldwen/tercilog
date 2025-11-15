@@ -669,19 +669,19 @@ async def submit_formation_needs(
     }
     
     # Vérifier si un questionnaire existe déjà
-    existing = await db.formation_needs.find_one({"student_id": student_id}, {"_id": 0})
+    existing = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
     
     if existing:
         # Mettre à jour
-        await db.formation_needs.update_one(
+        await db.formation_needs_questionnaires.update_one(
             {"student_id": student_id},
             {"$set": questionnaire}
         )
-        logger.info(f"Formation needs updated for student {student_id}")
+        logger.info(f"Formation needs questionnaire updated for student {student_id}")
     else:
         # Créer
-        await db.formation_needs.insert_one(questionnaire)
-        logger.info(f"Formation needs submitted for student {student_id}")
+        await db.formation_needs_questionnaires.insert_one(questionnaire)
+        logger.info(f"Formation needs questionnaire submitted for student {student_id}")
     
     return {"message": "Questionnaire soumis avec succès", "questionnaire": questionnaire}
 
