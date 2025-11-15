@@ -114,6 +114,16 @@ function App() {
               )
             }
           />
+          <Route
+            path="/qualite/bilan"
+            element={
+              user && user.role === "teacher" ? (
+                <BilanQualitePage user={user} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
         </Routes>
       </BrowserRouter>
     </div>
