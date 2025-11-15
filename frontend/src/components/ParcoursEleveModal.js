@@ -406,9 +406,15 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
     try {
       setLoading(true);
       
+      // Déterminer les endpoints selon le parcours de l'élève
+      const isBureautique = student?.parcours === "Bureautique";
+      const q1Endpoint = isBureautique ? 'bureautique-formation-needs' : 'formation-needs';
+      const q2Endpoint = isBureautique ? 'bureautique-mid-course-questionnaire' : 'mid-course-questionnaire';
+      const q3Endpoint = isBureautique ? 'bureautique-end-course-questionnaire' : 'end-course-questionnaire';
+      
       // Charger le questionnaire de besoins en formation
       const formationNeedsResponse = await axios.get(
-        `${API}/students/${studentId}/formation-needs`,
+        `${API}/students/${studentId}/${q1Endpoint}`,
         { headers: getAuthHeaders() }
       );
       if (formationNeedsResponse.data.exists) {
@@ -417,7 +423,7 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
       
       // Charger le questionnaire à mi-parcours
       const midCourseResponse = await axios.get(
-        `${API}/students/${studentId}/mid-course-questionnaire`,
+        `${API}/students/${studentId}/${q2Endpoint}`,
         { headers: getAuthHeaders() }
       );
       if (midCourseResponse.data.exists) {
@@ -426,7 +432,7 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
       
       // Charger le questionnaire de fin de formation
       const endCourseResponse = await axios.get(
-        `${API}/students/${studentId}/end-course-questionnaire`,
+        `${API}/students/${studentId}/${q3Endpoint}`,
         { headers: getAuthHeaders() }
       );
       if (endCourseResponse.data.exists) {
