@@ -521,10 +521,10 @@ frontend:
           agent: "testing"
           comment: "✅ PDF PREVIEW ENDPOINT COMPREHENSIVE TEST COMPLETED SUCCESSFULLY: Successfully tested new GET /api/pdf/preview endpoint for Parcours élève modal. FIXED BACKEND ISSUE: ReportLab alignment error in PDF generation (changed 'alignment=1' to 'align=center' in HTML-like tags). TESTED SCENARIOS: 1) All 3 categories (positionnement, evaluation_cours, evaluation_fin) ✅ All return HTTP 200 with valid PDFs, 2) Header verification ✅ Content-Type: application/pdf, Content-Disposition: inline, X-Frame-Options: SAMEORIGIN, Cache-Control: no-store, 3) Error cases ✅ Non-existent student returns 404, Invalid category handled gracefully (200), Unauthenticated access returns 403, 4) Endpoint comparison ✅ New GET endpoint generates identical PDFs to old POST endpoint (164986 bytes). VERIFICATION RESULTS: ✅ 3/3 categories successful ✅ 3/3 error tests passed ✅ Same-origin headers correctly set for iframe compatibility ✅ PDF content valid and non-empty (>164KB each) ✅ Both old and new endpoints generate identical results. New PDF preview endpoint working correctly and ready for production use with robust 3-tier fallback system."
 
-  - task: "Documents Bénéficiaires Tab - Display Formation Needs Questionnaires (2 types)"
+  - task: "Documents Bénéficiaires Tab - Display Formation Needs Questionnaires (3 types + validation colors)"
     implemented: true
     working: "unknown"
-    file: "ParcoursEleveModal.js, server.py, StudentDashboard.js, MidCourseQuestionnaire.js"
+    file: "ParcoursEleveModal.js, server.py, StudentDashboard.js, MidCourseQuestionnaire.js, EndCourseQuestionnaire.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
