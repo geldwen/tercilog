@@ -1027,8 +1027,7 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
             </Card>
           )}
         </div>
-      </div>
-    )
+    </div>
   );
   
   // Fonction pour rendre le questionnaire 2 (mi-parcours)
