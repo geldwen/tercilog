@@ -386,7 +386,7 @@ const BilanQualitePage = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <Th>Élève</Th>
-                        <Th>Matière</Th>
+                        <Th>Parcours</Th>
                         <Th>Q1</Th>
                         <Th>Q2</Th>
                         <Th>Q3</Th>
