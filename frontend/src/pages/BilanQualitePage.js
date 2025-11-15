@@ -95,7 +95,7 @@ const BilanQualitePage = () => {
           headers: getAuthHeaders(),
           params: {
             periodeType: filtres.periodeType,
-            mois: filtres.mois,
+            moisIndex: filtres.moisIndex,
             annee: filtres.annee,
           },
         });
@@ -109,12 +109,12 @@ const BilanQualitePage = () => {
     };
 
     fetchData();
-  }, [filtres.periodeType, filtres.mois, filtres.annee]);
+  }, [filtres.periodeType, filtres.moisIndex, filtres.annee]);
 
-  // Filtrage côté client par matière
+  // Filtrage côté client par parcours
   const lignes = useMemo(
-    () => data.filter((e) => filtres.matiere === "Toutes" || e.matiere === filtres.matiere),
-    [data, filtres.matiere]
+    () => data.filter((e) => filtres.parcours === "Toutes" || e.matiere === filtres.parcours),
+    [data, filtres.parcours]
   );
 
   // Agrégation des KPIs
