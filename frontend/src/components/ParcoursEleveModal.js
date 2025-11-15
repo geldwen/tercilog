@@ -1333,7 +1333,8 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
         </Card>
       )}
     </div>
-  );
+    );
+  }
 
   // Vue liste des questionnaires
   return (
