@@ -1028,9 +1028,309 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
             </Card>
           )}
         </div>
-      </div>
+      </>
     );
-  }
+  
+  // Fonction pour rendre le questionnaire 2 (mi-parcours)
+  const renderMidCourseDetail = (q) => (
+    <div className="space-y-6">
+      {/* Section 1: Informations générales */}
+      <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+        <CardContent className="pt-6 space-y-4">
+          <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+            1. Informations générales
+          </h4>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Nom et prénom :</Label>
+            <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">{q.nom_prenom || '—'}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-gray-900">Date du suivi :</Label>
+              <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">{q.date_suivi || '—'}</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-900">Formateur référent :</Label>
+              <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">{q.formateur_referent || '—'}</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Mode de formation :</Label>
+            <div className="space-y-2">
+              {['Présentiel', 'Distanciel', 'Hybride'].map(option => (
+                <label key={option} className="flex items-center gap-2">
+                  <input type="checkbox" checked={q.mode_formation?.includes(option)} readOnly className="w-4 h-4 questionnaire-checkbox" />
+                  <span className={q.mode_formation?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 2: Ressenti */}
+      <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+        <CardContent className="pt-6 space-y-4">
+          <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+            💬 2. Ressenti sur le déroulement de la formation
+          </h4>
+          <div className="space-y-2">
+            <Label className="text-gray-900">La formation répond-elle à vos attentes ?</Label>
+            <div className="space-y-2">
+              {['Tout à fait', 'Plutôt oui', 'Plutôt non', 'Pas du tout'].map(option => (
+                <label key={option} className="flex items-center gap-2">
+                  <input type="radio" checked={q.formation_attentes === option} readOnly className="w-4 h-4 questionnaire-radio" />
+                  <span className={q.formation_attentes === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Le rythme et la durée des séances vous conviennent-ils ?</Label>
+            <div className="space-y-2">
+              {['Tout à fait', 'Plutôt oui', 'Plutôt non', 'Pas du tout'].map(option => (
+                <label key={option} className="flex items-center gap-2">
+                  <input type="radio" checked={q.rythme_duree === option} readOnly className="w-4 h-4 questionnaire-radio" />
+                  <span className={q.rythme_duree === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Les supports et méthodes facilitent-ils votre apprentissage ?</Label>
+            <div className="space-y-2">
+              {['Oui tout à fait', 'Assez', 'Peu', 'Pas du tout'].map(option => (
+                <label key={option} className="flex items-center gap-2">
+                  <input type="radio" checked={q.supports_methodes === option} readOnly className="w-4 h-4 questionnaire-radio" />
+                  <span className={q.supports_methodes === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 3: Progression */}
+      <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+        <CardContent className="pt-6 space-y-4">
+          <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+            🎯 3. Progression et besoins complémentaires
+          </h4>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Qu'avez-vous le plus appris ou amélioré ?</Label>
+            <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.apprentissages || '—'}</p>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Rencontrez-vous des difficultés particulières ?</Label>
+            <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.difficultes || '—'}</p>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Souhaitez-vous approfondir certains points ?</Label>
+            <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">
+              {q.approfondir || '—'} {q.approfondir_details && `- ${q.approfondir_details}`}
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Suggestions pour améliorer la formation :</Label>
+            <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.suggestions || '—'}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Signature */}
+      {q.signature && (
+        <Card className="border-2 border-blue-300 bg-blue-50">
+          <CardContent className="pt-6">
+            <h4 className="text-lg font-bold text-gray-900 mb-4">✍️ 5. Validation</h4>
+            <Label className="text-gray-900">Signature du stagiaire (horodatée)</Label>
+            <div className="bg-white p-4 rounded-lg border-2 border-gray-300 mt-2">
+              <img src={q.signature} alt="Signature" className="max-h-32 mx-auto" />
+            </div>
+            <p className="text-sm text-gray-600 italic mt-2 text-center font-semibold">
+              ✓ Signé le {formatDateTime(q.submitted_at)}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+
+  // Fonction pour rendre le questionnaire 3 (fin de formation)
+  const renderEndCourseDetail = (q) => (
+    <div className="space-y-6">
+      {/* Section 1: Informations générales */}
+      <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+        <CardContent className="pt-6 space-y-4">
+          <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+            1. Informations générales
+          </h4>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Nom et prénom :</Label>
+            <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">{q.nom_prenom || '—'}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label className="text-gray-900">Date :</Label>
+              <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">{q.date || '—'}</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-900">Formateur :</Label>
+              <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">{q.formateur_referent || '—'}</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-900">Durée totale :</Label>
+              <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">{q.duree_totale || '—'}</p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Mode de formation :</Label>
+            <div className="space-y-2">
+              {['Présentiel', 'Distanciel', 'Hybride'].map(option => (
+                <label key={option} className="flex items-center gap-2">
+                  <input type="checkbox" checked={q.mode_formation?.includes(option)} readOnly className="w-4 h-4 questionnaire-checkbox" />
+                  <span className={q.mode_formation?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 2: Évaluation */}
+      <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+        <CardContent className="pt-6 space-y-4">
+          <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+            🎯 2. Évaluation de vos acquis
+          </h4>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Pensez-vous avoir progressé ?</Label>
+            <div className="space-y-2">
+              {['Oui, beaucoup', 'Oui, un peu', 'Peu', 'Pas du tout'].map(option => (
+                <label key={option} className="flex items-center gap-2">
+                  <input type="radio" checked={q.progression === option} readOnly className="w-4 h-4 questionnaire-radio" />
+                  <span className={q.progression === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Domaines d'amélioration :</Label>
+            <div className="space-y-2">
+              {['Compréhension orale', 'Expression orale', 'Compréhension écrite', 'Expression écrite'].map(option => (
+                <label key={option} className="flex items-center gap-2">
+                  <input type="checkbox" checked={q.domaines_amelioration?.includes(option)} readOnly className="w-4 h-4 questionnaire-checkbox" />
+                  <span className={q.domaines_amelioration?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Plus à l'aise professionnellement ?</Label>
+            <div className="space-y-2">
+              {['Tout à fait', 'Plutôt oui', 'Plutôt non', 'Pas du tout'].map(option => (
+                <label key={option} className="flex items-center gap-2">
+                  <input type="radio" checked={q.aise_professionnel === option} readOnly className="w-4 h-4 questionnaire-radio" />
+                  <span className={q.aise_professionnel === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Points à renforcer :</Label>
+            <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.points_renforcer || '—'}</p>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Objectifs atteints ?</Label>
+            <div className="space-y-2">
+              {['Oui totalement', 'Partiellement', 'Non encore', 'Non du tout'].map(option => (
+                <label key={option} className="flex items-center gap-2">
+                  <input type="radio" checked={q.objectifs_atteints === option} readOnly className="w-4 h-4 questionnaire-radio" />
+                  <span className={q.objectifs_atteints === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 3: Appréciation */}
+      <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+        <CardContent className="pt-6 space-y-4">
+          <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+            💬 3. Appréciation de la formation
+          </h4>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Contenu adapté ?</Label>
+            <div className="space-y-2">
+              {['Tout à fait', 'Plutôt oui', 'Plutôt non', 'Pas du tout'].map(option => (
+                <label key={option} className="flex items-center gap-2">
+                  <input type="radio" checked={q.contenu_adapte === option} readOnly className="w-4 h-4 questionnaire-radio" />
+                  <span className={q.contenu_adapte === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Évaluation globale :</Label>
+            <div className="space-y-2">
+              {['⭐ Excellent', '⭐ Bon', '⭐ Moyen', '⭐ Insatisfaisant'].map(option => (
+                <label key={option} className="flex items-center gap-2">
+                  <input type="radio" checked={q.evaluation_globale === option} readOnly className="w-4 h-4 questionnaire-radio" />
+                  <span className={q.evaluation_globale === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Recommandation :</Label>
+            <div className="flex gap-4">
+              {['Oui', 'Non', 'Peut-être'].map(option => (
+                <label key={option} className="flex items-center gap-2">
+                  <input type="radio" checked={q.recommandation === option} readOnly className="w-4 h-4 questionnaire-radio" />
+                  <span className={q.recommandation === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 4: Perspectives */}
+      <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+        <CardContent className="pt-6 space-y-4">
+          <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+            🧩 4. Perspectives et suite du parcours
+          </h4>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Utilisation des nouvelles compétences :</Label>
+            <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.utilisation_competences || '—'}</p>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-gray-900">Formation complémentaire ?</Label>
+            <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">
+              {q.formation_complementaire || '—'} {q.formation_complementaire_details && `- ${q.formation_complementaire_details}`}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Signature */}
+      {q.signature && (
+        <Card className="border-2 border-blue-300 bg-blue-50">
+          <CardContent className="pt-6">
+            <h4 className="text-lg font-bold text-gray-900 mb-4">✍️ 5. Validation</h4>
+            <Label className="text-gray-900">Signature du stagiaire (horodatée)</Label>
+            <div className="bg-white p-4 rounded-lg border-2 border-gray-300 mt-2">
+              <img src={q.signature} alt="Signature" className="max-h-32 mx-auto" />
+            </div>
+            <p className="text-sm text-gray-600 italic mt-2 text-center font-semibold">
+              ✓ Signé le {formatDateTime(q.submitted_at)}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
 
   // Vue liste des questionnaires
   return (
