@@ -1165,29 +1165,83 @@ async def generate_student_bilan(
 @api_router.get("/teachers/qualite-report")
 async def get_qualite_report(
     periodeType: str,
-    mois: str = None,
-    annee: str = None,
+    moisIndex: int = None,
+    annee: int = None,
+    parcours: str = None,
     current_user: User = Depends(get_current_user)
 ):
-    """Récupérer les données pour le rapport qualité"""
+    """
+    Récupérer les données pour le rapport qualité
+    - Retourne TOUS les élèves du professeur (même sans questionnaires)
+    - Filtre optionnel par parcours
+    - Filtre par période basé sur la date de soumission du Q3 (ou inclut les élèves sans Q3)
+    """
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
-    # Récupérer tous les élèves du professeur
-    students = await db.users.find(
-        {"role": "student", "teacher_id": current_user.id},
-        {"_id": 0}
-    ).to_list(length=None)
+    logger.info(f"Qualité report requested by teacher {current_user.id}: periodeType={periodeType}, moisIndex={moisIndex}, annee={annee}, parcours={parcours}")
+    
+    # Calculer la période de filtrage
+    debut_periode = None
+    fin_periode = None
+    
+    if periodeType == "mois" and moisIndex is not None and annee is not None:
+        # Exemple : novembre 2025 = mois 10 (0-indexed)
+        debut_periode = datetime(annee, moisIndex + 1, 1)
+        # Dernier jour du mois
+        if moisIndex + 1 == 12:
+            fin_periode = datetime(annee + 1, 1, 1) - timedelta(days=1)
+        else:
+            fin_periode = datetime(annee, moisIndex + 2, 1) - timedelta(days=1)
+    elif periodeType == "annee" and annee is not None:
+        debut_periode = datetime(annee, 1, 1)
+        fin_periode = datetime(annee, 12, 31, 23, 59, 59)
+    
+    logger.info(f"Période calculée: {debut_periode} -> {fin_periode}")
+    
+    # Récupérer TOUS les élèves du professeur
+    query = {"role": "student", "teacher_id": current_user.id}
+    students = await db.users.find(query, {"_id": 0}).to_list(length=None)
+    
+    logger.info(f"Found {len(students)} students for teacher {current_user.id}")
     
     result = []
     
     for student in students:
         student_id = student.get("id")
+        student_name = student.get("name", "")
         
         # Récupérer les 3 questionnaires
         q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
         q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
         q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        
+        # Filtrage par période basé sur Q3
+        if debut_periode and fin_periode:
+            # Si Q3 existe, vérifier sa date de soumission
+            if q3 and q3.get("submitted_at"):
+                try:
+                    q3_date_str = q3.get("submitted_at")
+                    # Parser la date (format ISO)
+                    if isinstance(q3_date_str, str):
+                        q3_date = datetime.fromisoformat(q3_date_str.replace('Z', '+00:00'))
+                    else:
+                        q3_date = q3_date_str
+                    
+                    # Si Q3 hors période, skip cet élève
+                    if q3_date < debut_periode or q3_date > fin_periode:
+                        logger.debug(f"Student {student_name} Q3 outside period, skipping")
+                        continue
+                except Exception as e:
+                    logger.warning(f"Error parsing Q3 date for {student_name}: {e}")
+            # Si pas de Q3, on INCLUT quand même l'élève (important)
+        
+        # Déterminer la matière/parcours
+        matiere = student.get("matiere", "Non spécifié")
+        
+        # Filtrage par parcours (optionnel)
+        if parcours and parcours != "Toutes" and matiere != parcours:
+            continue
         
         # Déterminer les statuts (VERT si existe, ROUGE sinon)
         q1_statut = "VERT" if q1 else "ROUGE"
@@ -1209,13 +1263,9 @@ async def get_qualite_report(
                 "difficultes": q3.get("difficultes", ""),
             }
         
-        # Déterminer la matière (à partir des séances ou autre source)
-        # Pour l'instant, on met "Non spécifié"
-        matiere = student.get("matiere", "Non spécifié")
-        
         result.append({
             "id": student_id,
-            "nom": student.get("name", ""),
+            "nom": student_name,
             "matiere": matiere,
             "dateDebut": student.get("created_at", ""),
             "dateFin": "",
@@ -1227,6 +1277,7 @@ async def get_qualite_report(
             }
         })
     
+    logger.info(f"Returning {len(result)} students after filtering")
     return result
 
 
