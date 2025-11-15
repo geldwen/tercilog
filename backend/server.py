@@ -1221,6 +1221,36 @@ async def get_qualite_report(
         q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
         q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
         
+        # Filtrage par période : vérifier si au moins UN questionnaire est dans la période
+        # OU si l'élève n'a aucun questionnaire (à inclure aussi)
+        has_q_in_period = False
+        
+        if debut_periode and fin_periode:
+            # Vérifier chaque questionnaire
+            for q in [q1, q2, q3]:
+                if q and q.get("submitted_at"):
+                    try:
+                        q_date_str = q.get("submitted_at")
+                        if isinstance(q_date_str, str):
+                            q_date = datetime.fromisoformat(q_date_str.replace('Z', '+00:00'))
+                        else:
+                            q_date = q_date_str
+                        
+                        # Si le questionnaire est dans la période
+                        if debut_periode <= q_date <= fin_periode:
+                            has_q_in_period = True
+                            break
+                    except Exception as e:
+                        logger.warning(f"Error parsing date for student {student_name}: {e}")
+            
+            # Si l'élève n'a AUCUN questionnaire dans la période ET qu'il a au moins un questionnaire, on le skip
+            if not has_q_in_period and (q1 or q2 or q3):
+                logger.debug(f"Student {student_name} has no questionnaires in period, skipping")
+                continue
+            # Si l'élève n'a AUCUN questionnaire du tout, on l'inclut quand même
+            if not q1 and not q2 and not q3:
+                has_q_in_period = True  # Inclure les élèves sans questionnaire
+        
         # Format de retour pour chaque questionnaire
         q1_data = {
             "submitted": q1 is not None,
