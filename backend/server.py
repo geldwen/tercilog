@@ -1162,6 +1162,74 @@ async def generate_student_bilan(
     )
 
 
+@api_router.get("/teachers/qualite-report")
+async def get_qualite_report(
+    periodeType: str,
+    mois: str = None,
+    annee: str = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer les données pour le rapport qualité"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer tous les élèves du professeur
+    students = await db.users.find(
+        {"role": "student", "teacher_id": current_user.id},
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    result = []
+    
+    for student in students:
+        student_id = student.get("id")
+        
+        # Récupérer les 3 questionnaires
+        q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        
+        # Déterminer les statuts (VERT si existe, ROUGE sinon)
+        q1_statut = "VERT" if q1 else "ROUGE"
+        q2_statut = "VERT" if q2 else "ROUGE"
+        q3_statut = "VERT" if q3 else "ROUGE"
+        
+        # Règle progressive : si Q2 rouge, Q3 doit être rouge
+        if q2_statut == "ROUGE":
+            q3_statut = "ROUGE"
+        
+        # Préparer reponseFin si Q3 existe
+        reponseFin = None
+        if q3:
+            reponseFin = {
+                "progression_globale": q3.get("progression_globale", ""),
+                "objectifs_atteints": q3.get("objectifs_atteints", ""),
+                "evaluation_globale": q3.get("evaluation_globale", "0"),
+                "recommandation": q3.get("recommandation", ""),
+                "difficultes": q3.get("difficultes", ""),
+            }
+        
+        # Déterminer la matière (à partir des séances ou autre source)
+        # Pour l'instant, on met "Non spécifié"
+        matiere = student.get("matiere", "Non spécifié")
+        
+        result.append({
+            "id": student_id,
+            "nom": student.get("name", ""),
+            "matiere": matiere,
+            "dateDebut": student.get("created_at", ""),
+            "dateFin": "",
+            "questionnaires": {
+                "q1Statut": q1_statut,
+                "q2Statut": q2_statut,
+                "q3Statut": q3_statut,
+                "reponseFin": reponseFin
+            }
+        })
+    
+    return result
+
+
 @api_router.post("/sessions/bulk")
 async def create_bulk_sessions(
     data: dict,
