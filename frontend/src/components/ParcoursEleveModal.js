@@ -424,6 +424,15 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
         setMidCourseQ(midCourseResponse.data.questionnaire);
       }
       
+      // Charger le questionnaire de fin de formation
+      const endCourseResponse = await axios.get(
+        `${API}/students/${studentId}/end-course-questionnaire`,
+        { headers: getAuthHeaders() }
+      );
+      if (endCourseResponse.data.exists) {
+        setEndCourseQ(endCourseResponse.data.questionnaire);
+      }
+      
     } catch (error) {
       console.error("Error loading questionnaires:", error);
       toast.error("Erreur lors du chargement des questionnaires");
