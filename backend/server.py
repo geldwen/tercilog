@@ -650,7 +650,18 @@ async def create_student(user_data: UserCreate, current_user: User = Depends(get
         raise HTTPException(status_code=403, detail="Access denied")
     
     user_data.role = "student"
-    return await register(user_data)
+    student = await register(user_data)
+    
+    # OBLIGATOIRE : Assigner automatiquement l'élève au professeur qui le crée
+    await db.users.update_one(
+        {"id": student.id},
+        {"$set": {"teacher_id": current_user.id}}
+    )
+    logger.info(f"Student {student.name} automatically assigned to teacher {current_user.id}")
+    
+    # Recharger l'élève avec le teacher_id
+    updated_student = await db.users.find_one({"id": student.id}, {"_id": 0})
+    return User(**updated_student)
 
 @api_router.post("/students/{student_id}/formation-needs")
 async def submit_formation_needs(
