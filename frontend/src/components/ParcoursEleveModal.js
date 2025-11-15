@@ -385,9 +385,11 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
 
 // Composant pour afficher les questionnaires bénéficiaires
 function BeneficiaryDocumentsTab({ studentId, studentName }) {
-  const [questionnaires, setQuestionnaires] = useState([]);
+  const [formationNeedsQ, setFormationNeedsQ] = useState(null);
+  const [midCourseQ, setMidCourseQ] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedQuestionnaire, setSelectedQuestionnaire] = useState(null);
+  const [selectedType, setSelectedType] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailTo, setEmailTo] = useState('');
@@ -402,16 +404,25 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
   const loadQuestionnaires = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/students/${studentId}/formation-needs`, {
-        headers: getAuthHeaders()
-      });
       
-      if (response.data.exists && response.data.questionnaire) {
-        // On place le questionnaire dans un tableau pour avoir une structure de liste
-        setQuestionnaires([response.data.questionnaire]);
-      } else {
-        setQuestionnaires([]);
+      // Charger le questionnaire de besoins en formation
+      const formationNeedsResponse = await axios.get(
+        `${API}/students/${studentId}/formation-needs`,
+        { headers: getAuthHeaders() }
+      );
+      if (formationNeedsResponse.data.exists) {
+        setFormationNeedsQ(formationNeedsResponse.data.questionnaire);
       }
+      
+      // Charger le questionnaire à mi-parcours
+      const midCourseResponse = await axios.get(
+        `${API}/students/${studentId}/mid-course-questionnaire`,
+        { headers: getAuthHeaders() }
+      );
+      if (midCourseResponse.data.exists) {
+        setMidCourseQ(midCourseResponse.data.questionnaire);
+      }
+      
     } catch (error) {
       console.error("Error loading questionnaires:", error);
       toast.error("Erreur lors du chargement des questionnaires");
