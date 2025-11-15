@@ -854,11 +854,15 @@ async def get_mid_course_questionnaire(
     if current_user.role == "student" and current_user.id != student_id:
         raise HTTPException(status_code=403, detail="Access denied")
     
+    logger.info(f"Searching mid-course questionnaire for student_id: {student_id}")
     questionnaire = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    logger.info(f"Mid-course questionnaire found: {questionnaire is not None}")
     
     if not questionnaire:
+        logger.warning(f"No mid-course questionnaire found for student {student_id}")
         return {"exists": False}
     
+    logger.info(f"Returning mid-course questionnaire with {len(questionnaire)} fields")
     return {"exists": True, "questionnaire": questionnaire}
 
 
