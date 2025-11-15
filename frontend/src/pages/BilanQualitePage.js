@@ -6,7 +6,7 @@ import autoTable from "jspdf-autotable";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { ArrowLeft, Download } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 
 const API = process.env.REACT_APP_BACKEND_URL || "";
 
