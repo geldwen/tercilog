@@ -1124,6 +1124,59 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
             </CardContent>
           </Card>
         )}
+
+        {/* Questionnaire 3 : Fin de formation */}
+        {endCourseQ && (
+          <Card className="border-2 border-[#8B5A2B]/20 hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-start gap-4 flex-1">
+                  <FileText className="w-12 h-12 text-[#8B5A2B]" />
+                  <div className="flex-1">
+                    <h5 className="font-bold text-lg text-gray-900">3) Questionnaire de fin de formation</h5>
+                    <p className="text-sm text-gray-600 mt-1">
+                      👤 Bénéficiaire : <span className="font-medium">{studentName}</span>
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      📅 Soumis le {formatDateTime(endCourseQ.submitted_at)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <Button
+                    onClick={() => {
+                      setSelectedQuestionnaire(endCourseQ);
+                      setSelectedType('end-course');
+                    }}
+                    className="bg-[#8B5A2B] hover:bg-[#7A4F26] text-white"
+                  >
+                    Consulter →
+                  </Button>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownloadQuestionnaire('end-course');
+                    }}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    PDF
+                  </Button>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEmailQuestionnaire('end-course');
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Mail className="w-4 h-4 mr-1" />
+                    Envoyer
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Modal d'envoi par email */}
