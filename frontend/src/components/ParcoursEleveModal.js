@@ -450,11 +450,15 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
     return value || '—';
   };
 
-  const handleDownloadQuestionnaire = async (studentIdToDownload) => {
+  const handleDownloadQuestionnaire = async (type) => {
     try {
       setDownloading(true);
+      const endpoint = type === 'formation-needs' 
+        ? `/students/${studentId}/formation-needs/pdf`
+        : `/students/${studentId}/mid-course-questionnaire/pdf`;
+      
       const response = await axios.get(
-        `${API}/students/${studentIdToDownload}/formation-needs/pdf`,
+        `${API}${endpoint}`,
         {
           headers: getAuthHeaders(),
           responseType: 'blob'
@@ -464,9 +468,13 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
       const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
       const pdfUrl = window.URL.createObjectURL(pdfBlob);
       
+      const filename = type === 'formation-needs'
+        ? `Questionnaire_BesoinFormation_${studentName.replace(/\s+/g, '_')}.pdf`
+        : `Questionnaire_MiParcours_${studentName.replace(/\s+/g, '_')}.pdf`;
+      
       const link = document.createElement('a');
       link.href = pdfUrl;
-      link.download = `Questionnaire_${studentName.replace(/\s+/g, '_')}.pdf`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -481,10 +489,12 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
     }
   };
 
-  const handleEmailQuestionnaire = (studentIdToEmail) => {
+  const handleEmailQuestionnaire = (type) => {
+    setSelectedType(type);
     setEmailTo('');
-    setEmailSubject(`Questionnaire de besoins en formation - ${studentName}`);
-    setEmailBody(`Bonjour,\n\nVeuillez trouver ci-joint le questionnaire de besoins en formation de ${studentName}.\n\nCordialement,`);
+    const title = type === 'formation-needs' ? 'Questionnaire de besoins en formation' : 'Questionnaire à mi-parcours';
+    setEmailSubject(`${title} - ${studentName}`);
+    setEmailBody(`Bonjour,\n\nVeuillez trouver ci-joint le ${title.toLowerCase()} de ${studentName}.\n\nCordialement,`);
     setShowEmailModal(true);
   };
 
@@ -496,8 +506,12 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
     
     try {
       setSending(true);
+      const endpoint = selectedType === 'formation-needs'
+        ? `/students/${studentId}/formation-needs/send-email`
+        : `/students/${studentId}/mid-course-questionnaire/send-email`;
+      
       await axios.post(
-        `${API}/students/${studentId}/formation-needs/send-email`,
+        `${API}${endpoint}`,
         {
           to: emailTo,
           subject: emailSubject,
@@ -513,6 +527,7 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
       setEmailTo('');
       setEmailSubject('');
       setEmailBody('');
+      setSelectedType(null);
     } catch (error) {
       console.error("Error sending email:", error);
       toast.error(error.response?.data?.detail || "Erreur lors de l'envoi de l'email");
