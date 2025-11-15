@@ -2,7 +2,7 @@ import requests
 import json
 
 # URL backend
-API = "https://edutrack-manager.preview.emergentagent.com/api"
+API = "https://qtrack-terci.preview.emergentagent.com/api"
 
 # 1. Login professeur
 print("🔐 Connexion professeur...")

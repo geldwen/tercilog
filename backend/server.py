@@ -297,14 +297,14 @@ def get_student_portal_url():
     2. FRONTEND_URL
     3. REACT_APP_FRONTEND_URL
     4. REACT_APP_BACKEND_URL (removing /api suffix if present)
-    5. Fallback: https://edutrack-manager.preview.emergentagent.com
+    5. Fallback: https://qtrack-terci.preview.emergentagent.com
     """
     url = (
         os.getenv("STUDENT_PORTAL_URL")
         or os.getenv("FRONTEND_URL")
         or os.getenv("REACT_APP_FRONTEND_URL")
         or os.getenv("REACT_APP_BACKEND_URL")
-        or "https://edutrack-manager.preview.emergentagent.com"
+        or "https://qtrack-terci.preview.emergentagent.com"
     )
     
     # Normalize URL
