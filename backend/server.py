@@ -1172,34 +1172,15 @@ async def get_qualite_report(
 ):
     """
     Récupérer les données pour le rapport qualité
-    - Retourne TOUS les élèves du professeur (même sans questionnaires)
-    - Filtre optionnel par parcours
-    - Filtre par période basé sur la date de soumission du Q3 (ou inclut les élèves sans Q3)
+    IMPORTANT: Retourne TOUS les élèves assignés au professeur
+    La période ne sert QUE pour les calculs de KPI, PAS pour filtrer les élèves
     """
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
     logger.info(f"Qualité report requested by teacher {current_user.id}: periodeType={periodeType}, moisIndex={moisIndex}, annee={annee}, parcours={parcours}")
     
-    # Calculer la période de filtrage
-    debut_periode = None
-    fin_periode = None
-    
-    if periodeType == "mois" and moisIndex is not None and annee is not None:
-        # Exemple : novembre 2025 = mois 10 (0-indexed)
-        debut_periode = datetime(annee, moisIndex + 1, 1)
-        # Dernier jour du mois
-        if moisIndex + 1 == 12:
-            fin_periode = datetime(annee + 1, 1, 1) - timedelta(days=1)
-        else:
-            fin_periode = datetime(annee, moisIndex + 2, 1) - timedelta(days=1)
-    elif periodeType == "annee" and annee is not None:
-        debut_periode = datetime(annee, 1, 1)
-        fin_periode = datetime(annee, 12, 31, 23, 59, 59)
-    
-    logger.info(f"Période calculée: {debut_periode} -> {fin_periode}")
-    
-    # Récupérer TOUS les élèves du professeur
+    # Récupérer TOUS les élèves du professeur (SANS FILTRE DE PÉRIODE)
     query = {"role": "student", "teacher_id": current_user.id}
     students = await db.users.find(query, {"_id": 0}).to_list(length=None)
     
@@ -1211,73 +1192,89 @@ async def get_qualite_report(
         student_id = student.get("id")
         student_name = student.get("name", "")
         
-        # Récupérer les 3 questionnaires
-        q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
-        q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
-        q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
-        
-        # Filtrage par période basé sur Q3
-        if debut_periode and fin_periode:
-            # Si Q3 existe, vérifier sa date de soumission
-            if q3 and q3.get("submitted_at"):
-                try:
-                    q3_date_str = q3.get("submitted_at")
-                    # Parser la date (format ISO)
-                    if isinstance(q3_date_str, str):
-                        q3_date = datetime.fromisoformat(q3_date_str.replace('Z', '+00:00'))
-                    else:
-                        q3_date = q3_date_str
-                    
-                    # Si Q3 hors période, skip cet élève
-                    if q3_date < debut_periode or q3_date > fin_periode:
-                        logger.debug(f"Student {student_name} Q3 outside period, skipping")
-                        continue
-                except Exception as e:
-                    logger.warning(f"Error parsing Q3 date for {student_name}: {e}")
-            # Si pas de Q3, on INCLUT quand même l'élève (important)
-        
         # Déterminer la matière/parcours
         matiere = student.get("matiere", "Non spécifié")
         
         # Filtrage par parcours (optionnel)
         if parcours and parcours != "Toutes" and matiere != parcours:
+            logger.debug(f"Student {student_name} filtered out by parcours: {matiere} != {parcours}")
             continue
         
-        # Déterminer les statuts (VERT si existe, ROUGE sinon)
-        q1_statut = "VERT" if q1 else "ROUGE"
-        q2_statut = "VERT" if q2 else "ROUGE"
-        q3_statut = "VERT" if q3 else "ROUGE"
+        # Récupérer les 3 questionnaires
+        q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
         
-        # Règle progressive : si Q2 rouge, Q3 doit être rouge
-        if q2_statut == "ROUGE":
-            q3_statut = "ROUGE"
+        # Format de retour pour chaque questionnaire
+        q1_data = {
+            "submitted": q1 is not None,
+            "submitted_at": q1.get("submitted_at") if q1 else None,
+        }
         
-        # Préparer reponseFin si Q3 existe
-        reponseFin = None
-        if q3:
-            reponseFin = {
-                "progression_globale": q3.get("progression_globale", ""),
-                "objectifs_atteints": q3.get("objectifs_atteints", ""),
-                "evaluation_globale": q3.get("evaluation_globale", "0"),
-                "recommandation": q3.get("recommandation", ""),
-                "difficultes": q3.get("difficultes", ""),
-            }
+        q2_data = {
+            "submitted": q2 is not None,
+            "submitted_at": q2.get("submitted_at") if q2 else None,
+        }
+        
+        # Règle progressive : si Q2 pas soumis, Q3 ne peut pas être soumis
+        q3_submitted = q3 is not None
+        if not q2_data["submitted"]:
+            q3_submitted = False
+        
+        # Calculer les scores pour Q3
+        score_progression = None
+        score_satisfaction = None
+        difficulties = []
+        
+        if q3 and q3_submitted:
+            # Score progression (0-100)
+            prog_val = q3.get("progression_globale", "")
+            prog_score = 0
+            if prog_val == "Très satisfaisante": prog_score = 100
+            elif prog_val == "Satisfaisante": prog_score = 75
+            elif prog_val == "Moyenne": prog_score = 50
+            elif prog_val == "Insuffisante": prog_score = 25
+            
+            obj_val = q3.get("objectifs_atteints", "")
+            obj_score = 0
+            if obj_val == "Oui": obj_score = 100
+            elif obj_val == "Partiellement": obj_score = 66
+            
+            try:
+                eval_globale = int(q3.get("evaluation_globale", 0))
+                sat_score = (eval_globale / 5) * 100
+            except:
+                sat_score = 0
+            
+            rec_val = q3.get("recommandation", "")
+            rec_score = 100 if rec_val == "Oui" else 50 if rec_val == "Peut-être" else 0
+            
+            score_progression = round(prog_score * 0.4 + obj_score * 0.3 + sat_score * 0.2 + rec_score * 0.1)
+            score_satisfaction = round(sat_score)
+            
+            # Difficultés
+            diff_str = q3.get("difficultes", "")
+            if diff_str:
+                difficulties = [d.strip() for d in diff_str.split(",") if d.strip()]
+        
+        q3_data = {
+            "submitted": q3_submitted,
+            "submitted_at": q3.get("submitted_at") if (q3 and q3_submitted) else None,
+            "score_progression": score_progression,
+            "score_satisfaction": score_satisfaction,
+            "difficulties": difficulties,
+        }
         
         result.append({
             "id": student_id,
             "nom": student_name,
-            "matiere": matiere,
-            "dateDebut": student.get("created_at", ""),
-            "dateFin": "",
-            "questionnaires": {
-                "q1Statut": q1_statut,
-                "q2Statut": q2_statut,
-                "q3Statut": q3_statut,
-                "reponseFin": reponseFin
-            }
+            "parcours": matiere,
+            "q1": q1_data,
+            "q2": q2_data,
+            "q3": q3_data,
         })
     
-    logger.info(f"Returning {len(result)} students after filtering")
+    logger.info(f"Returning {len(result)} students (all assigned students, no period filter)")
     return result
 
 
