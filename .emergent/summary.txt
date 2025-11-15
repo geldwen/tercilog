@@ -1,89 +1,88 @@
 <analysis>
-My analysis of the trajectory reveals a comprehensive development cycle for the TerciLog application, moving from an MVP to a feature-rich platform. The work, driven by continuous user feedback, involved several major development phases and iterative bug-fixing loops.
+The trajectory documents a multi-stage feature development and debugging process for the TerciLog application. The initial task was to expand a single student questionnaire into a three-part system (besoin, mi-parcours, fin). This involved creating new frontend components, backend endpoints, database models, and PDF generation logic.
 
-Initially, the focus was on stabilizing core features, particularly the unreliable PDF generation and preview system which suffered from Script error and CORS issues. The AI engineer implemented a robust backend-driven approach with a 3-tier frontend fallback (iframe, new tab, download), which became a recurring theme of refinement.
+Subsequent user requests led to the creation of two major new features:
+1.  **Bilan Élève:** An AI-powered feature to generate a summary PDF from a student's three completed questionnaires.
+2.  **Bilan Qualité:** A comprehensive analytics dashboard for teachers, featuring student progress tracking, aggregated KPIs, and filtering by period and parcours (course).
 
-A significant architectural flaw was discovered and rectified: the planning/calendar events were stored in , leading to data loss. The engineer migrated this to a full-stack feature with MongoDB persistence via new backend APIs, completely refactoring the frontend state management () and calendar view ().
+The development was characterized by extensive debugging cycles. Key issues resolved include:
+*   A frontend crash due to a JavaScript hoisting error ().
+*   Data visibility problems caused by database name mismatches ( vs. ) and missing  assignments for students.
+*   A critical bug where questionnaires were saved to the wrong MongoDB collection.
+*   A persistent issue where the Bilan Qualité page filters were not being applied by the backend.
 
-Subsequent work expanded functionality significantly. The Parcours élève (student documents) section was overhauled to generate complex PDFs that include visual previews of uploaded documents. This proved challenging, leading to multiple iterations on the backend. The dependency on the  library for PDF-to-image conversion was a persistent source of failure, which was decisively solved by migrating to the self-contained  library.
+The work was interrupted while the AI engineer was actively fixing this final filtering bug in the backend.
 
-The user also requested major workflow improvements, such as multi-session and multi-student creation, which required substantial changes to both frontend modals () and backend logic, culminating in a new bulk creation endpoint to prevent data duplication.
-
-Most recently, the engineer implemented a complex, multi-part student questionnaire feature () and was in the process of creating a new tab (Documents bénéficiaires) in the teacher's modal to display the submitted results. This is where the work was interrupted.
+The user's primary language is French. The next agent must respond in French.
 </analysis>
 
 <product_requirements>
-TerciLog is a student and trainer management application designed to handle session planning, attendance, billing, and student documentation.
+The TerciLog application requires a robust student progress tracking and quality analysis module.
 
-**Core Features:**
-*   **Teacher Dashboard:** Provides a Planning calendar view for creating, editing, and managing student sessions, and a Facturation (Billing) view for generating monthly financial reports with PDF/CSV export.
-*   **Student Dashboard:** Allows students to view their schedule, confirm session attendance, provide feedback, and access documents.
-*   **Parcours Élève (Student Record):** A comprehensive modal for teachers to manage a student's documents, categorized into Tests et évaluation and Supports de formation. Key functionality includes multi-format file uploads and the generation of a consolidated PDF summary that visually embeds the uploaded documents.
-*   **Session Management:** Teachers can create single or multiple sessions for one or more students at once. The system automatically sends confirmation emails to students. Session status (e.g., confirmed by student) is tracked and reflected in the UI.
-*   **Questionnaire Module:** Students can fill out a detailed Mes besoins en formation (Training Needs) questionnaire. The submitted form is then visible to the teacher in the student's record.
+1.  **Three-Part Questionnaire System**: Students must have access to three distinct questionnaires: besoin en formation, à mi-parcours, and fin de formation. Teachers must be able to view all submitted questionnaires for their assigned students, with options to consult, download a PDF, and email the results. When consulting, student answers must have a dark pink background.
 
-**Recent Implementation:**
-The latest work involved building the Mes besoins en formation questionnaire, including the frontend form and backend endpoint for submission. The system was being updated to display these submitted questionnaires in a new Documents bénéficiaires tab within the teacher's Parcours Élève modal.
+2.  **Générer le Bilan Élève Feature**: On the teacher's view of a student's documents, a button should allow the generation of an AI-powered summary PDF. This PDF synthesizes data from the three completed questionnaires, calculates a progression score, and provides a textual summary. The button should be visible but disabled if the three questionnaires are not complete.
+
+3.  **Bilan Qualité Dashboard**: A new page accessible to teachers that provides an aggregated view of student quality metrics.
+    *   **Filtering**: Users must be able to filter the data by period (month/year) and by Parcours (e.g., Anglais, Bureautique).
+    *   **KPIs**: The dashboard must display key performance indicators like the number of evaluated students, average progression, average satisfaction, and a visual bar for overall sentiment.
+    *   **Student Table**: A detailed table listing all students matching the filters, showing the submission status (Green/Red dots) for each of the three questionnaires, and a button to remove a student from the report.
+    *   **Data Logic**: The KPIs and table data must update dynamically when filters are changed.
 </product_requirements>
 
 <key_technical_concepts>
-- **Backend:** FastAPI (Python), Pydantic for data validation.
-- **Frontend:** React, Zustand for global state management, Axios for API calls.
-- **Database:** MongoDB for data persistence.
-- **PDF Generation:**
-    - **Backend (ReportLab):** For complex, server-side PDF creation (e.g., student evaluation summaries).
-    - **Backend (PyMuPDF):** For PDF-to-image conversion to embed document previews.
-    - **Frontend (jsPDF/jspdf-autotable):** For simpler, client-side table-based PDF exports (e.g., billing).
-- **Email:** Backend-driven email sending via  using a configured Gmail account.
+- **Backend**: Python (FastAPI), MongoDB (with  driver), ReportLab (for PDF generation), Pydantic.
+- **Frontend**: JavaScript (React), Axios (for API calls),  and  (for client-side PDF generation).
+- **Architecture**: RESTful API, client-server architecture.
+- **Debugging & Data Management**: Use of custom Python scripts to directly interact with MongoDB for seeding, diagnostics (), and data migration.
+- **Feature Development**: Iterative implementation of complex features (analytics dashboard) based on detailed user feedback and mockups.
 </key_technical_concepts>
 
 <code_architecture>
-The application follows a standard monolithic full-stack architecture, with a React single-page application () communicating with a Python FastAPI server (), backed by a MongoDB database.
+The application follows a standard MERN-like stack with a React frontend and a Python/FastAPI backend.
 
 **Directory Structure:**
 
 
 - ****
-    - **Importance:** The monolithic API server containing all business logic. It handles data models (Pydantic), database interactions (MongoDB), user authentication, file uploads, email sending, and all complex PDF generation.
-    - **Summary of Changes:** Extensively modified. New endpoints were added for planning event persistence (), bulk session creation (), and questionnaire submission (). The PDF generation logic () was significantly enhanced to use  to embed visual previews of uploaded files, with multiple rounds of layout adjustments to control spacing and page breaks. Email sending was updated to use the same advanced PDF generation logic.
+  - **Importance**: The application's monolithic backend, handling all API logic, database interaction, and PDF generation. It's the single source of truth for business logic.
+  - **Summary of Changes**: This file has undergone massive expansion. It now includes endpoints for all three questionnaire types, the Bilan Élève generation (), and the complex Bilan Qualité report (). The latter was significantly refactored multiple times to fix critical bugs related to data filtering, data structure, and business logic (e.g., ensuring all students are returned regardless of questionnaire status, while filtering KPIs by period). A  model was also introduced.
 
 - ****
-    - **Importance:** The main workspace for teachers, containing the Planning and Billing views.
-    - **Summary of Changes:** The session creation modal was completely overhauled to support creating multiple sessions for multiple students simultaneously, calling the new  endpoint. The student card UI was adjusted for better readability.
+  - **Importance**: A new, feature-rich dashboard page for teachers to analyze student quality metrics. It is the primary focus of the most recent development efforts.
+  - **Summary of Changes**: Created from scratch and heavily modified. It includes state management for filters, fetching and displaying aggregated KPIs and a detailed student table. It was refactored multiple times to:
+    - Fix API call parameters ( dependencies).
+    - Adapt to a new, more detailed data structure from the backend.
+    - Improve the UI/UX based on user feedback (e.g., new period selector, visual progress bar, clearer legends).
+    - Add a delete student functionality.
 
 - ****
-    - **Importance:** The modal for managing all of a student's documents and evaluations.
-    - **Summary of Changes:** The UI was updated to include a Télécharger PDF button and rearrange other action buttons. It was modified to begin adding a third tab, Documents bénéficiaires, to display submitted questionnaires.
+  - **Importance**: The modal where teachers view an individual student's records.
+  - **Summary of Changes**: Initially modified to show the three new questionnaires, it was later debugged to fix a critical JavaScript hoisting error. The Générer le Bilan Élève button was added here, with its position being corrected based on specific user feedback and an annotated screenshot.
 
-- ****
-    - **Importance:** The main interface for students.
-    - **Summary of Changes:** The existing Mes besoins en formation feature was replaced with a button that launches the new, detailed  component in a modal.
-
-- ****
-    - **Importance:** State management for the planning calendar.
-    - **Summary of Changes:** This file was completely rewritten. The original implementation used , causing data loss. It now uses  to make API calls to the new  endpoints, ensuring all calendar data is persisted in MongoDB.
+- ** and **
+  - **Importance**: These scripts were created for essential one-off data management and debugging tasks.
+  - **Summary of Changes**:
+    -  was created to diagnose and fix the critical issue of students not being assigned to the correct teacher, which was preventing any data from showing on the user's real account.
+    -  was created to implement the user's request for a system where questionnaires are templated per parcours. It seeds the database with initial templates.
 </code_architecture>
 
 <pending_tasks>
-- **Display Questionnaire:** Complete the implementation of the Documents bénéficiaires tab in  to fetch and display the submitted questionnaire data for the selected student. The display should be styled with a pink background for answers.
-- **Fix Session Confirmation UI:** Investigate and fix why confirmed sessions do not consistently appear green in the teacher's planning view, even though the status is correct in the database.
-- **Create Test Data:** Create a new test student and have them submit a filled-out questionnaire to verify the end-to-end flow.
+The user's request in message #459 contains three main tasks. Two have been addressed, but the most important one (filtering) was not fully fixed.
+- **Fix Bilan Qualité filters**: The core pending task is to ensure the period and parcours filters correctly update the KPIs and the student list on the Bilan Qualité page.
+- **Questionnaire Templates by Parcours**: While an initial script was created, the full logic for automatically assigning questionnaires to new students based on their parcours needs to be implemented and verified.
 </pending_tasks>
 
 <current_work>
-The previous engineer was working on a multi-part user request. The immediate task was to implement the display of a submitted Mes besoins en formation questionnaire within the teacher's view.
+The AI engineer was in the final stages of debugging a critical bug on the Bilan Qualité page.
 
-Specifically, the work involved:
-1.  **Adding a New Tab:** A third  and  for Documents bénéficiaires was being added to the  component.
-2.  **Displaying Submitted Data:** The next step was to fetch the questionnaire data for the current student (likely via a new backend endpoint or by extending an existing one) and render it within this new tab. The user specified that the student's answers should be displayed with a pink background.
-3.  **Test Data Creation:** The user explicitly asked for a test student to be created and for a questionnaire to be submitted on their behalf to allow for easy verification of the new feature.
+**The Problem:** The user reported that changing the filters (e.g., setting the year to 2026) did not change the data displayed in the table or the KPIs. The data remained static.
 
-The engineer had just added the basic structure for the new tab in  and was about to implement the logic to fetch and render the questionnaire content. The file was edited as follows:
+**The Diagnosis:** The AI correctly determined that the frontend was sending the filter parameters correctly, but the backend endpoint ( in ) was completely ignoring them. The endpoint was returning all students assigned to the teacher, regardless of the selected period or parcours.
 
-- **File:** 
-- **Change:** A new  with  was added, and an empty  section for it was stubbed out, ready for the questionnaire display logic to be added.
+**The Action Taken:** The engineer began correcting the backend logic. The last actions were two consecutive file edits to  to add date-based filtering to the database queries that fetch questionnaires. The goal was to ensure that while all students assigned to the teacher are always *listed*, the questionnaire data and derived KPIs would be filtered based on the  date falling within the selected period. The backend service was restarted to apply these changes. The work was interrupted immediately after the restart, before the fix could be verified.
 </current_work>
 
 <optional_next_step>
-I will now complete the Documents bénéficiaires tab in  by adding the logic to fetch and display the student's submitted questionnaire answers with the requested styling.
+Test the API endpoint  with a period filter for the year 2026 to confirm that it now correctly returns an empty list of questionnaires, which will validate the backend fix.
 </optional_next_step>
