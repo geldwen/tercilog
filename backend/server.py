@@ -1392,10 +1392,16 @@ async def get_qualite_report(
             logger.debug(f"Student {student_name} filtered out by parcours: {student_parcours} != {parcours}")
             continue
         
-        # Récupérer les 3 questionnaires
-        q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
-        q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
-        q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        # Récupérer les 3 questionnaires selon le parcours de l'élève
+        if student_parcours == "Bureautique":
+            q1 = await db.bureautique_formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+            q2 = await db.bureautique_mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+            q3 = await db.bureautique_end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        else:
+            # Par défaut : Anglais ou autres parcours
+            q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+            q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+            q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
         
         # Filtrage par période : vérifier si au moins UN questionnaire est dans la période
         # OU si l'élève n'a aucun questionnaire (à inclure aussi)
