@@ -1414,9 +1414,15 @@ async def get_qualite_report(
                     try:
                         q_date_str = q.get("submitted_at")
                         if isinstance(q_date_str, str):
+                            # Parser la date
                             q_date = datetime.fromisoformat(q_date_str.replace('Z', '+00:00'))
+                            # Si la date est naive (sans timezone), ajouter UTC
+                            if q_date.tzinfo is None:
+                                q_date = q_date.replace(tzinfo=timezone.utc)
                         else:
                             q_date = q_date_str
+                            if q_date.tzinfo is None:
+                                q_date = q_date.replace(tzinfo=timezone.utc)
                         
                         # Si le questionnaire est dans la période
                         if debut_periode <= q_date <= fin_periode:
