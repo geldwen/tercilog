@@ -576,7 +576,7 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
     );
   }
 
-  if (!formationNeedsQ && !midCourseQ) {
+  if (!formationNeedsQ && !midCourseQ && !endCourseQ) {
     return (
       <div className="text-center py-12">
         <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
