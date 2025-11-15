@@ -418,6 +418,7 @@ const BilanQualitePage = () => {
                         <Th>Score progression</Th>
                         <Th>Satisfaction</Th>
                         <Th>Difficultés</Th>
+                        <Th>Actions</Th>
                       </tr>
                     </thead>
                     <tbody>
