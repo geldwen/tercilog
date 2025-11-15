@@ -1154,10 +1154,12 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
         </Card>
       )}
     </div>
-  );
+    );
+  }
 
   // Fonction pour rendre le questionnaire 3 (fin de formation)
-  const renderEndCourseDetail = (q) => (
+  function renderEndCourseDetail(q) {
+    return (
     <div className="space-y-6">
       {/* Section 1: Informations générales */}
       <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
