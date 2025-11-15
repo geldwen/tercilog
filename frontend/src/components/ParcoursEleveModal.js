@@ -590,18 +590,29 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
   if (selectedQuestionnaire) {
     const q = selectedQuestionnaire;
     
+    // Déterminer le titre selon le type
+    let title = "1) Questionnaire de besoin en formation";
+    if (selectedType === 'mid-course') {
+      title = "2) Questionnaire à mi-parcours";
+    } else if (selectedType === 'end-course') {
+      title = "3) Questionnaire de fin de formation";
+    }
+    
     return (
       <div className="space-y-6">
         {/* Header avec bouton retour */}
         <div className="flex items-center justify-between bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white p-4 rounded-lg">
           <div>
-            <h3 className="text-xl font-bold">Questionnaire de besoins en formation</h3>
+            <h3 className="text-xl font-bold">{title}</h3>
             <p className="text-sm opacity-90 mt-1">
               Soumis le {formatDateTime(q.submitted_at)} par {studentName}
             </p>
           </div>
           <Button
-            onClick={() => setSelectedQuestionnaire(null)}
+            onClick={() => {
+              setSelectedQuestionnaire(null);
+              setSelectedType(null);
+            }}
             className="bg-white text-[#8B5A2B] hover:bg-gray-100"
           >
             ← Retour
@@ -618,6 +629,17 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
             border-color: #DB2777;
           }
         `}</style>
+        
+        {/* Afficher le contenu selon le type */}
+        {selectedType === 'formation-needs' && renderFormationNeedsDetail(q)}
+        {selectedType === 'mid-course' && renderMidCourseDetail(q)}
+        {selectedType === 'end-course' && renderEndCourseDetail(q)}
+      </div>
+    );
+  }
+  
+  // Fonction pour rendre le questionnaire 1 (besoins en formation)
+  const renderFormationNeedsDetail = (q) => (
 
         {/* Contenu du questionnaire avec format original */}
         <div className="space-y-6">
