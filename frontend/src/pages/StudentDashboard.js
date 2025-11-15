@@ -500,9 +500,31 @@ export default function StudentDashboard({ user, onLogout }) {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-4">Partagez vos attentes et objectifs de formation</p>
-                <Button onClick={() => setShowNeedsDialog(true)} style={{backgroundColor: TERCIFORM_BLUE}}>
-                  Remplir et soumettre mon questionnaire
-                </Button>
+                <div className="space-y-3">
+                  <Button 
+                    onClick={() => setShowNeedsDialog(true)} 
+                    style={{backgroundColor: TERCIFORM_BLUE}}
+                    className="w-full justify-start"
+                  >
+                    1) Questionnaire de besoin en formation
+                  </Button>
+                  <Button 
+                    onClick={() => setShowMidCourseDialog(true)} 
+                    style={{backgroundColor: TERCIFORM_BLUE}}
+                    className="w-full justify-start"
+                  >
+                    2) Questionnaire à mi-parcours
+                  </Button>
+                  <Button 
+                    onClick={() => setShowEndCourseDialog(true)} 
+                    style={{backgroundColor: TERCIFORM_BLUE}}
+                    className="w-full justify-start"
+                    disabled
+                  >
+                    3) Questionnaire de fin de formation
+                    <span className="ml-2 text-xs opacity-75">(bientôt)</span>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
