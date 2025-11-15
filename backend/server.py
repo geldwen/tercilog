@@ -699,7 +699,7 @@ async def get_formation_needs(
     if current_user.role == "student" and current_user.id != student_id:
         raise HTTPException(status_code=403, detail="Access denied")
     
-    questionnaire = await db.formation_needs.find_one({"student_id": student_id}, {"_id": 0})
+    questionnaire = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
     
     if not questionnaire:
         return {"exists": False}
