@@ -71,19 +71,19 @@ const corrigerStatuts = (questionnaires) => {
 
 const BilanQualitePage = () => {
   const navigate = useNavigate();
-  const [matieres, setMatieres] = useState(["Toutes", "Anglais", "Management", "Bureautique"]);
+  const [parcours, setParcours] = useState(["Toutes", "Anglais", "Management", "Bureautique"]);
   const [filtres, setFiltres] = useState({
-    periodeType: "Mois",
-    mois: new Date().toISOString().slice(0, 7),
-    annee: String(new Date().getFullYear()),
-    matiere: "Toutes",
+    periodeType: "mois",
+    moisIndex: new Date().getMonth(), // 0-11
+    annee: new Date().getFullYear(),
+    parcours: "Toutes",
   });
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const periodeLabel =
-    filtres.periodeType === "Mois"
-      ? new Date(filtres.mois + "-01").toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
+    filtres.periodeType === "mois"
+      ? `${MOIS_FR[filtres.moisIndex]} ${filtres.annee}`
       : `Année ${filtres.annee}`;
 
   // Charger les données
