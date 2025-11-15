@@ -399,8 +399,10 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    loadQuestionnaires();
-  }, [studentId]);
+    if (student && studentId) {
+      loadQuestionnaires();
+    }
+  }, [studentId, student]);
 
   const loadQuestionnaires = async () => {
     try {
