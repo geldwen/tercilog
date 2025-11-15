@@ -1278,6 +1278,56 @@ async def get_qualite_report(
     return result
 
 
+@api_router.post("/questionnaire-templates/init")
+async def init_questionnaire_templates(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Initialiser les templates de questionnaires pour chaque parcours
+    À appeler une seule fois pour créer les templates de base
+    """
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Vérifier si des templates existent déjà
+    existing = await db.questionnaire_templates.count_documents({})
+    if existing > 0:
+        return {"message": f"Templates déjà existants ({existing})", "count": existing}
+    
+    # Créer les templates pour Anglais (déjà existants dans le code)
+    templates = [
+        {
+            "id": str(uuid.uuid4()),
+            "parcours_name": "Anglais",
+            "type": "Q1",
+            "title": "Questionnaire de besoin en formation - Anglais",
+            "description": "Questionnaire initial pour identifier les besoins en formation linguistique",
+            "created_at": datetime.utcnow().isoformat()
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "parcours_name": "Anglais",
+            "type": "Q2",
+            "title": "Questionnaire à mi-parcours - Anglais",
+            "description": "Évaluation intermédiaire de la formation",
+            "created_at": datetime.utcnow().isoformat()
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "parcours_name": "Anglais",
+            "type": "Q3",
+            "title": "Questionnaire de fin de formation - Anglais",
+            "description": "Bilan final et satisfaction de la formation",
+            "created_at": datetime.utcnow().isoformat()
+        }
+    ]
+    
+    await db.questionnaire_templates.insert_many(templates)
+    logger.info(f"Created {len(templates)} questionnaire templates")
+    
+    return {"message": "Templates créés avec succès", "count": len(templates)}
+
+
 @api_router.get("/teachers/qualite-report/debug")
 async def debug_qualite_report(
     current_user: User = Depends(get_current_user)
@@ -1301,6 +1351,9 @@ async def debug_qualite_report(
     q2_count = await db.mid_course_questionnaires.count_documents({})
     q3_count = await db.end_course_questionnaires.count_documents({})
     
+    # Compter les templates
+    templates_count = await db.questionnaire_templates.count_documents({})
+    
     return {
         "teacher_id": current_user.id,
         "teacher_name": current_user.name,
@@ -1312,7 +1365,8 @@ async def debug_qualite_report(
             "q1": q1_count,
             "q2": q2_count,
             "q3": q3_count
-        }
+        },
+        "templates_count": templates_count
     }
 
 
