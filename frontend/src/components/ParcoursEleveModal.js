@@ -1026,7 +1026,6 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
               </CardContent>
             </Card>
           )}
-        </div>
     </div>
   );
   
