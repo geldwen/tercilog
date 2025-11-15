@@ -1281,6 +1281,44 @@ async def get_qualite_report(
     return result
 
 
+@api_router.get("/teachers/qualite-report/debug")
+async def debug_qualite_report(
+    current_user: User = Depends(get_current_user)
+):
+    """Debug endpoint pour vérifier les données du professeur"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Compter les élèves
+    total_students = await db.users.count_documents({"role": "student"})
+    my_students = await db.users.count_documents({"role": "student", "teacher_id": current_user.id})
+    
+    # Lister mes élèves
+    students = await db.users.find(
+        {"role": "student", "teacher_id": current_user.id},
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "matiere": 1}
+    ).to_list(length=10)
+    
+    # Compter les questionnaires
+    q1_count = await db.formation_needs_questionnaires.count_documents({})
+    q2_count = await db.mid_course_questionnaires.count_documents({})
+    q3_count = await db.end_course_questionnaires.count_documents({})
+    
+    return {
+        "teacher_id": current_user.id,
+        "teacher_name": current_user.name,
+        "teacher_email": current_user.email,
+        "total_students_in_db": total_students,
+        "my_students_count": my_students,
+        "my_students": students,
+        "questionnaires_count": {
+            "q1": q1_count,
+            "q2": q2_count,
+            "q3": q3_count
+        }
+    }
+
+
 @api_router.delete("/teachers/qualite-report/{student_id}")
 async def remove_student_from_report(
     student_id: str,
