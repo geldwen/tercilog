@@ -639,7 +639,8 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
   }
   
   // Fonction pour rendre le questionnaire 1 (besoins en formation)
-  const renderFormationNeedsDetail = (q) => (
+  function renderFormationNeedsDetail(q) {
+    return (
     <div className="space-y-6">
       {/* Contenu du questionnaire avec format original */}
           {/* Section 1: Identification */}
