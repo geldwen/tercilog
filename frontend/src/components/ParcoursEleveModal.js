@@ -466,6 +466,20 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
     return value || '—';
   };
 
+  // Helper pour déterminer les endpoints selon le parcours
+  const getQuestionnaireEndpoint = (type) => {
+    const isBureautique = student?.parcours === "Bureautique";
+    
+    if (type === 'formation-needs') {
+      return isBureautique ? 'bureautique-formation-needs' : 'formation-needs';
+    } else if (type === 'mid-course') {
+      return isBureautique ? 'bureautique-mid-course-questionnaire' : 'mid-course-questionnaire';
+    } else if (type === 'end-course') {
+      return isBureautique ? 'bureautique-end-course-questionnaire' : 'end-course-questionnaire';
+    }
+    return '';
+  };
+
   const handleDownloadQuestionnaire = async (type) => {
     try {
       setDownloading(true);
