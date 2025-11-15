@@ -424,8 +424,8 @@ const BilanQualitePage = () => {
                     <tbody>
                       {lignes.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="text-center py-8 text-gray-500">
-                            Aucune donnée disponible pour cette période et cette matière
+                          <td colSpan={9} className="text-center py-8 text-gray-500">
+                            Aucun élève trouvé. Veuillez vérifier que vos élèves ont bien un professeur assigné.
                           </td>
                         </tr>
                       ) : (
@@ -446,6 +446,17 @@ const BilanQualitePage = () => {
                               <Td>{score !== undefined ? `${score}/100` : "—"}</Td>
                               <Td>{sat !== undefined ? `${sat}/100` : "—"}</Td>
                               <Td className="max-w-xs truncate">{rf?.difficultes || "—"}</Td>
+                              <Td>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteStudent(e.id, e.nom)}
+                                  disabled={deleting === e.id}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  {deleting === e.id ? "..." : "🗑️"}
+                                </Button>
+                              </Td>
                             </tr>
                           );
                         })
