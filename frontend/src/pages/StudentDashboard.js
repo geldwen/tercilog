@@ -51,7 +51,29 @@ export default function StudentDashboard({ user, onLogout }) {
   useEffect(() => {
     loadSessions();
     loadTrainingNeeds();
+    loadQuestionnairesStatus();
   }, []);
+
+  const loadQuestionnairesStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { 'Authorization': `Bearer ${token}` };
+      
+      // Vérifier questionnaire de besoins
+      const formationNeedsRes = await axios.get(`${API}/students/${user.id}/formation-needs`, { headers });
+      setFormationNeedsSubmitted(formationNeedsRes.data.exists);
+      
+      // Vérifier questionnaire mi-parcours
+      const midCourseRes = await axios.get(`${API}/students/${user.id}/mid-course-questionnaire`, { headers });
+      setMidCourseSubmitted(midCourseRes.data.exists);
+      
+      // Vérifier questionnaire fin de formation
+      const endCourseRes = await axios.get(`${API}/students/${user.id}/end-course-questionnaire`, { headers });
+      setEndCourseSubmitted(endCourseRes.data.exists);
+    } catch (error) {
+      console.error("Erreur lors du chargement du statut des questionnaires");
+    }
+  };
 
   const loadSessions = async () => {
     try {
