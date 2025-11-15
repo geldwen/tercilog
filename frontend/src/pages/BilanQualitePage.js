@@ -123,24 +123,16 @@ const BilanQualitePage = () => {
       (e) => e.q1?.submitted && e.q2?.submitted && e.q3?.submitted
     );
     const N = eligibles.length;
-    const scores = eligibles.map((e) => scoreProgression(e.questionnaires.reponseFin));
+    // Scores de progression (calculés côté backend)
+    const scores = eligibles.map((e) => e.q3?.score_progression || 0);
     const avgProg = N ? Math.round(scores.reduce((a, b) => a + b, 0) / N) : 0;
 
-    const satisfactions = eligibles.map((e) => {
-      try {
-        const evalGlobale = parseInt(e.questionnaires.reponseFin?.evaluation_globale || 0);
-        return (evalGlobale / 5) * 100;
-      } catch {
-        return 0;
-      }
-    });
+    // Scores de satisfaction (calculés côté backend)
+    const satisfactions = eligibles.map((e) => e.q3?.score_satisfaction || 0);
     const avgSat = N ? Math.round(satisfactions.reduce((a, b) => a + b, 0) / N) : 0;
 
-    // Ressenti positif si progression >= "Satisfaisante"
-    const nbPos = eligibles.filter((e) => {
-      const prog = e.questionnaires.reponseFin?.progression_globale || "";
-      return prog === "Très satisfaisante" || prog === "Satisfaisante";
-    }).length;
+    // Ressenti positif si score >= 51
+    const nbPos = eligibles.filter((e) => (e.q3?.score_progression || 0) >= 51).length;
     const posPct = N ? Math.round((nbPos * 100) / N) : 0;
     const negPct = N ? 100 - posPct : 0;
 
