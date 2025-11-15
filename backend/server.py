@@ -806,6 +806,162 @@ async def send_formation_needs_email(
         raise HTTPException(status_code=500, detail=f"Error sending email: {str(e)}")
 
 
+@api_router.post("/students/{student_id}/mid-course-questionnaire")
+async def submit_mid_course_questionnaire(
+    student_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Soumettre le questionnaire à mi-parcours"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Ajouter l'ID et la date
+    questionnaire = {
+        "id": str(uuid.uuid4()),
+        "student_id": student_id,
+        **data,
+        "submitted_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Vérifier si un questionnaire existe déjà
+    existing = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if existing:
+        # Mettre à jour
+        await db.mid_course_questionnaires.update_one(
+            {"student_id": student_id},
+            {"$set": questionnaire}
+        )
+        logger.info(f"Mid-course questionnaire updated for student {student_id}")
+    else:
+        # Créer
+        await db.mid_course_questionnaires.insert_one(questionnaire)
+        logger.info(f"Mid-course questionnaire submitted for student {student_id}")
+    
+    return {"message": "Questionnaire à mi-parcours soumis avec succès", "questionnaire": questionnaire}
+
+
+@api_router.get("/students/{student_id}/mid-course-questionnaire")
+async def get_mid_course_questionnaire(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer le questionnaire à mi-parcours"""
+    if current_user.role not in ["student", "teacher"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    if current_user.role == "student" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    questionnaire = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if not questionnaire:
+        return {"exists": False}
+    
+    return {"exists": True, "questionnaire": questionnaire}
+
+
+@api_router.get("/students/{student_id}/mid-course-questionnaire/pdf")
+async def download_mid_course_questionnaire_pdf(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Télécharger le questionnaire à mi-parcours en PDF"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Récupérer le questionnaire
+    questionnaire = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    if not questionnaire:
+        raise HTTPException(status_code=404, detail="No mid-course questionnaire found for this student")
+    
+    # Générer le PDF
+    pdf_buffer = generate_mid_course_questionnaire_pdf(student, questionnaire)
+    
+    return StreamingResponse(
+        io.BytesIO(pdf_buffer),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=Questionnaire_MiParcours_{student['name'].replace(' ', '_')}.pdf"
+        }
+    )
+
+
+@api_router.post("/students/{student_id}/mid-course-questionnaire/send-email")
+async def send_mid_course_questionnaire_email(
+    student_id: str,
+    data: dict,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user)
+):
+    """Envoyer le questionnaire à mi-parcours par email"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    to = data.get('to', '')
+    subject = data.get('subject', 'Questionnaire à mi-parcours')
+    body = data.get('body', '')
+    
+    if not to:
+        raise HTTPException(status_code=400, detail="Email recipient is required")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Récupérer le questionnaire
+    questionnaire = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    if not questionnaire:
+        raise HTTPException(status_code=404, detail="No mid-course questionnaire found for this student")
+    
+    # Générer le PDF
+    pdf_bytes = generate_mid_course_questionnaire_pdf(student, questionnaire)
+    
+    # Séparer les emails
+    to_emails = [email.strip() for email in to.replace(';', ',').split(',') if email.strip()]
+    
+    if not to_emails:
+        raise HTTPException(status_code=400, detail="At least one valid email required")
+    
+    # Envoyer l'email avec le PDF en pièce jointe
+    try:
+        gmail_user = os.environ['GMAIL_USER']
+        gmail_password = os.environ['GMAIL_PASSWORD']
+        
+        msg = MIMEMultipart()
+        msg['From'] = gmail_user
+        msg['To'] = ', '.join(to_emails)
+        msg['Subject'] = subject
+        
+        # Corps du message
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Attacher le PDF
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload(pdf_bytes)
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', f'attachment; filename=Questionnaire_MiParcours_{student["name"].replace(" ", "_")}.pdf')
+        msg.attach(part)
+        
+        # Envoyer
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(gmail_user, gmail_password)
+            server.send_message(msg)
+        
+        logger.info(f"Mid-course questionnaire emailed to {to_emails} for student {student_id}")
+        return {"message": "Email sent successfully"}
+    except Exception as e:
+        logger.error(f"Error sending mid-course questionnaire email: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error sending email: {str(e)}")
+
+
 @api_router.post("/sessions/bulk")
 async def create_bulk_sessions(
     data: dict,
