@@ -1180,7 +1180,23 @@ async def get_qualite_report(
     
     logger.info(f"Qualité report requested by teacher {current_user.id}: periodeType={periodeType}, moisIndex={moisIndex}, annee={annee}, parcours={parcours}")
     
-    # Récupérer TOUS les élèves du professeur (SANS FILTRE DE PÉRIODE)
+    # Calculer la période de filtrage pour les questionnaires
+    debut_periode = None
+    fin_periode = None
+    
+    if periodeType == "mois" and moisIndex is not None and annee is not None:
+        debut_periode = datetime(annee, moisIndex + 1, 1)
+        if moisIndex + 1 == 12:
+            fin_periode = datetime(annee + 1, 1, 1) - timedelta(days=1)
+        else:
+            fin_periode = datetime(annee, moisIndex + 2, 1) - timedelta(days=1)
+    elif periodeType == "annee" and annee is not None:
+        debut_periode = datetime(annee, 1, 1)
+        fin_periode = datetime(annee, 12, 31, 23, 59, 59)
+    
+    logger.info(f"Période de filtrage: {debut_periode} -> {fin_periode}")
+    
+    # Récupérer TOUS les élèves du professeur
     query = {"role": "student", "teacher_id": current_user.id}
     students = await db.users.find(query, {"_id": 0}).to_list(length=None)
     
