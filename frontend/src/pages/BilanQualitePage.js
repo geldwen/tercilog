@@ -141,12 +141,13 @@ const BilanQualitePage = () => {
     });
     const avgSat = N ? Math.round(satisfactions.reduce((a, b) => a + b, 0) / N) : 0;
 
+    // Ressenti positif si progression >= "Satisfaisante"
     const nbPos = eligibles.filter((e) => {
       const prog = e.questionnaires.reponseFin?.progression_globale || "";
       return prog === "Très satisfaisante" || prog === "Satisfaisante";
     }).length;
     const posPct = N ? Math.round((nbPos * 100) / N) : 0;
-    const negPct = 100 - posPct;
+    const negPct = N ? 100 - posPct : 0;
 
     // Difficultés top 3
     const freq = new Map();
