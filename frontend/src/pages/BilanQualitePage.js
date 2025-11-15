@@ -413,22 +413,20 @@ const BilanQualitePage = () => {
                         </tr>
                       ) : (
                         lignes.map((e) => {
-                          const q = e.questionnaires;
-                          const rf = q.reponseFin;
-                          const score = rf ? scoreProgression(rf) : undefined;
-                          const sat = rf
-                            ? Math.round((parseInt(rf.evaluation_globale || 0) / 5) * 100)
-                            : undefined;
+                          const score = e.q3?.score_progression;
+                          const sat = e.q3?.score_satisfaction;
+                          const diff = e.q3?.difficulties?.join(", ") || "";
+                          
                           return (
                             <tr key={e.id} className="border-t hover:bg-gray-50">
                               <Td>{e.nom}</Td>
-                              <Td>{e.matiere}</Td>
-                              <Td>{dot(q.q1Statut)}</Td>
-                              <Td>{dot(q.q2Statut)}</Td>
-                              <Td>{dot(q.q3Statut)}</Td>
-                              <Td>{score !== undefined ? `${score}/100` : "—"}</Td>
-                              <Td>{sat !== undefined ? `${sat}/100` : "—"}</Td>
-                              <Td className="max-w-xs truncate">{rf?.difficultes || "—"}</Td>
+                              <Td>{e.parcours}</Td>
+                              <Td>{dot(e.q1?.submitted ? "VERT" : "ROUGE")}</Td>
+                              <Td>{dot(e.q2?.submitted ? "VERT" : "ROUGE")}</Td>
+                              <Td>{dot(e.q3?.submitted ? "VERT" : "ROUGE")}</Td>
+                              <Td>{score !== null && score !== undefined ? `${score}/100` : "—"}</Td>
+                              <Td>{sat !== null && sat !== undefined ? `${sat}/100` : "—"}</Td>
+                              <Td className="max-w-xs truncate">{diff || "—"}</Td>
                               <Td>
                                 <Button
                                   variant="ghost"
