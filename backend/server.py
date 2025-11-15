@@ -1230,6 +1230,33 @@ async def get_qualite_report(
     return result
 
 
+@api_router.delete("/teachers/qualite-report/{student_id}")
+async def remove_student_from_report(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Supprimer un élève du rapport qualité (retirer l'association teacher_id)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Vérifier que l'élève appartient au professeur
+    student = await db.users.find_one(
+        {"id": student_id, "role": "student", "teacher_id": current_user.id},
+        {"_id": 0}
+    )
+    
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found or not assigned to you")
+    
+    # Retirer l'association (mettre teacher_id à None)
+    await db.users.update_one(
+        {"id": student_id},
+        {"$unset": {"teacher_id": ""}}
+    )
+    
+    return {"message": "Student removed from report", "student_id": student_id}
+
+
 @api_router.post("/sessions/bulk")
 async def create_bulk_sessions(
     data: dict,
