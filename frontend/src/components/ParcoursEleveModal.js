@@ -1028,8 +1028,9 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
             </Card>
           )}
         </div>
-      </>
-    );
+      </div>
+    )
+  );
   
   // Fonction pour rendre le questionnaire 2 (mi-parcours)
   const renderMidCourseDetail = (q) => (
