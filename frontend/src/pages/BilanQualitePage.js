@@ -206,17 +206,15 @@ const BilanQualitePage = () => {
 
     // Tableau par élève
     const rows = lignes.map((e) => {
-      const q = e.questionnaires;
-      const rf = q.reponseFin;
-      const score = rf ? scoreProgression(rf) : "-";
-      const sat = rf ? `${Math.round((parseInt(rf.evaluation_globale || 0) / 5) * 100)}` : "-";
-      const diff = rf ? (rf.difficultes || "—") : "—";
+      const score = e.q3?.score_progression !== null && e.q3?.score_progression !== undefined ? e.q3.score_progression : "-";
+      const sat = e.q3?.score_satisfaction !== null && e.q3?.score_satisfaction !== undefined ? e.q3.score_satisfaction : "-";
+      const diff = e.q3?.difficulties?.join(", ") || "—";
       return [
         e.nom,
-        e.matiere,
-        q.q1Statut === "VERT" ? "✓" : "✗",
-        q.q2Statut === "VERT" ? "✓" : "✗",
-        q.q3Statut === "VERT" ? "✓" : "✗",
+        e.parcours,
+        e.q1?.submitted ? "✓" : "✗",
+        e.q2?.submitted ? "✓" : "✗",
+        e.q3?.submitted ? "✓" : "✗",
         String(score),
         String(sat),
         diff,
