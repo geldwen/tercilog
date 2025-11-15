@@ -187,15 +187,15 @@ const BilanQualitePage = () => {
   // Export PDF
   const exportPDF = () => {
     const doc = new jsPDF({ unit: "pt" });
-    const title = `Rapport Qualité — ${periodeLabel} — ${filtres.matiere}`;
+    const title = `Rapport Qualité — ${periodeLabel} — ${filtres.parcours}`;
     doc.setFontSize(14);
     doc.text(title, 40, 40);
 
     doc.setFontSize(11);
-    doc.text(`Élèves évalués : ${agreg.nbEleves}`, 40, 70);
+    doc.text(`Retours élèves (Q1+Q2+Q3 complets) : ${agreg.nbEleves}`, 40, 70);
     doc.text(`Progression moyenne : ${agreg.avgProg}/100 (${agreg.couleur.lib})`, 40, 90);
     doc.text(`Satisfaction moyenne : ${agreg.avgSat}/100`, 40, 110);
-    doc.text(`Ressenti : ${agreg.posPct}% positifs / ${agreg.negPct}% négatifs`, 40, 130);
+    doc.text(`Ressenti global : ${agreg.posPct}% positifs / ${agreg.negPct}% négatifs`, 40, 130);
     doc.text(`Complétion (Q1+Q2+Q3) : ${agreg.completionPct}%`, 40, 150);
     doc.text(`Difficultés récurrentes : ${agreg.top3.join(", ") || "—"}`, 40, 170);
 
