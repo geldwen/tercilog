@@ -10,6 +10,7 @@ import { LogOut, BookOpen, MessageSquare, Download, FileText, TrendingUp, CheckC
 import SignaturePad from "@/components/SignaturePad";
 import FormationNeedsQuestionnaire from "@/components/FormationNeedsQuestionnaire";
 import MidCourseQuestionnaire from "@/components/MidCourseQuestionnaire";
+import EndCourseQuestionnaire from "@/components/EndCourseQuestionnaire";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
