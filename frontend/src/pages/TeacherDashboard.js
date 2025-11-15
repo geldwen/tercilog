@@ -1152,6 +1152,19 @@ export default function TeacherDashboard({ user, onLogout }) {
                     <div className="space-y-2"><Label>Organisme de formation</Label><Input placeholder="ex: Pôle Emploi" value={studentForm.organism} onChange={(e) => setStudentForm({ ...studentForm, organism: e.target.value })} /></div>
                     <div className="space-y-2"><Label>Prise en charge parcours</Label><Input placeholder="ex: CPF" value={studentForm.support_type} onChange={(e) => setStudentForm({ ...studentForm, support_type: e.target.value })} /></div>
                     <div className="space-y-2">
+                      <Label>Parcours / Matière *</Label>
+                      <select 
+                        value={studentForm.parcours} 
+                        onChange={(e) => setStudentForm({ ...studentForm, parcours: e.target.value })} 
+                        className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md"
+                        required
+                      >
+                        <option value="Anglais">Anglais</option>
+                        <option value="Management">Management</option>
+                        <option value="Bureautique">Bureautique</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
                       <Label>Type de séance</Label>
                       <select 
                         value={studentForm.session_type} 
