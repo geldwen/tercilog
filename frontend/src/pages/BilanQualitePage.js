@@ -336,7 +336,7 @@ const BilanQualitePage = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <KpiCard title="Élèves évalués" value={String(agreg.nbEleves)} />
+              <KpiCard title="Retours élèves (Q1+Q2+Q3)" value={String(agreg.nbEleves)} />
               <KpiCard
                 title="Progression moyenne"
                 value={`${agreg.avgProg}/100`}
@@ -344,8 +344,21 @@ const BilanQualitePage = () => {
                 subtitle={agreg.couleur.lib}
               />
               <KpiCard title="Satisfaction moyenne" value={`${agreg.avgSat}/100`} />
-              <KpiCard title="Ressenti positif" value={`${agreg.posPct}%`} />
-              <KpiCard title="Ressenti négatif" value={`${agreg.negPct}%`} />
+              
+              {/* Barre de progression pour le ressenti global */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-sm text-gray-600 mb-1">Ressenti global</div>
+                  <div className="w-full h-3 rounded bg-gray-200 overflow-hidden flex">
+                    <div style={{ width: `${agreg.posPct}%`, height: "100%", background: "#2B8A3E" }} />
+                    <div style={{ width: `${agreg.negPct}%`, height: "100%", background: "#C92A2A" }} />
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2">
+                    {agreg.posPct}% positifs / {agreg.negPct}% négatifs
+                  </div>
+                </CardContent>
+              </Card>
+              
               <KpiCard title="Complétion Q1+Q2+Q3" value={`${agreg.completionPct}%`} />
             </div>
 
