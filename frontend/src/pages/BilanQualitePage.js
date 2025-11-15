@@ -251,53 +251,68 @@ const BilanQualitePage = () => {
             <div className="flex flex-wrap gap-6 items-end">
               <div>
                 <label className="block text-sm font-medium mb-2">Période</label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <select
                     value={filtres.periodeType}
-                    onChange={(e) =>
-                      setFiltres((s) => ({
-                        ...s,
-                        periodeType: e.target.value,
-                        mois: e.target.value === "Mois" ? new Date().toISOString().slice(0, 7) : s.mois,
-                        annee: e.target.value === "AnneeComplete" ? String(new Date().getFullYear()) : s.annee,
-                      }))
-                    }
+                    onChange={(e) => {
+                      const t = e.target.value;
+                      setFiltres((s) =>
+                        t === "mois"
+                          ? { ...s, periodeType: "mois", moisIndex: new Date().getMonth(), annee: new Date().getFullYear() }
+                          : { ...s, periodeType: "annee", annee: new Date().getFullYear() }
+                      );
+                    }}
                     className="border rounded-md px-3 py-2"
                   >
-                    <option value="Mois">Mois</option>
-                    <option value="AnneeComplete">Année complète</option>
+                    <option value="mois">Mois</option>
+                    <option value="annee">Année complète</option>
                   </select>
 
-                  {filtres.periodeType === "Mois" ? (
-                    <input
-                      type="month"
-                      value={filtres.mois}
-                      onChange={(e) => setFiltres((s) => ({ ...s, mois: e.target.value }))}
-                      className="border rounded-md px-3 py-2"
-                    />
+                  {filtres.periodeType === "mois" ? (
+                    <>
+                      <select
+                        value={filtres.moisIndex}
+                        onChange={(e) => setFiltres((s) => ({ ...s, moisIndex: Number(e.target.value) }))}
+                        className="border rounded-md px-3 py-2"
+                      >
+                        {MOIS_FR.map((m, i) => (
+                          <option key={m} value={i}>
+                            {m}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        className="border rounded-md px-3 py-2 w-28"
+                        min={2020}
+                        max={2100}
+                        value={filtres.annee}
+                        onChange={(e) => setFiltres((s) => ({ ...s, annee: Number(e.target.value) }))}
+                      />
+                    </>
                   ) : (
                     <input
                       type="number"
+                      className="border rounded-md px-3 py-2 w-28"
                       min={2020}
                       max={2100}
                       value={filtres.annee}
-                      onChange={(e) => setFiltres((s) => ({ ...s, annee: e.target.value }))}
-                      className="border rounded-md px-3 py-2 w-28"
+                      onChange={(e) => setFiltres((s) => ({ ...s, annee: Number(e.target.value) }))}
                     />
                   )}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Matière</label>
+                <label className="block text-sm font-medium mb-2">Parcours</label>
                 <select
-                  value={filtres.matiere}
-                  onChange={(e) => setFiltres((s) => ({ ...s, matiere: e.target.value }))}
+                  value={filtres.parcours}
+                  onChange={(e) => setFiltres((s) => ({ ...s, parcours: e.target.value }))}
                   className="border rounded-md px-3 py-2"
                 >
-                  {matieres.map((m) => (
-                    <option key={m} value={m}>
-                      {m}
+                  {parcours.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
                     </option>
                   ))}
                 </select>
