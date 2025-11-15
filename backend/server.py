@@ -1121,6 +1121,169 @@ async def send_end_course_questionnaire_email(
         raise HTTPException(status_code=500, detail=f"Error sending email: {str(e)}")
 
 
+# ============================================================================
+# QUESTIONNAIRES BUREAUTIQUE (Q1, Q2, Q3)
+# ============================================================================
+
+@api_router.post("/students/{student_id}/bureautique-formation-needs")
+async def submit_bureautique_formation_needs(
+    student_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Soumettre le questionnaire des besoins en formation - Bureautique"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    questionnaire = {
+        "id": str(uuid.uuid4()),
+        "student_id": student_id,
+        "parcours": "Bureautique",
+        **data,
+        "submitted_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    existing = await db.bureautique_formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if existing:
+        await db.bureautique_formation_needs_questionnaires.update_one(
+            {"student_id": student_id},
+            {"$set": questionnaire}
+        )
+        logger.info(f"Bureautique formation needs questionnaire updated for student {student_id}")
+    else:
+        await db.bureautique_formation_needs_questionnaires.insert_one(questionnaire)
+        logger.info(f"Bureautique formation needs questionnaire submitted for student {student_id}")
+    
+    return {"message": "Questionnaire Bureautique soumis avec succès", "questionnaire": questionnaire}
+
+
+@api_router.get("/students/{student_id}/bureautique-formation-needs")
+async def get_bureautique_formation_needs(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer le questionnaire des besoins en formation - Bureautique"""
+    if current_user.role not in ["student", "teacher"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    if current_user.role == "student" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    questionnaire = await db.bureautique_formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if not questionnaire:
+        return {"exists": False}
+    
+    return {"exists": True, "questionnaire": questionnaire}
+
+
+@api_router.post("/students/{student_id}/bureautique-mid-course-questionnaire")
+async def submit_bureautique_mid_course_questionnaire(
+    student_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Soumettre le questionnaire à mi-parcours - Bureautique"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    questionnaire = {
+        "id": str(uuid.uuid4()),
+        "student_id": student_id,
+        "parcours": "Bureautique",
+        **data,
+        "submitted_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    existing = await db.bureautique_mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if existing:
+        await db.bureautique_mid_course_questionnaires.update_one(
+            {"student_id": student_id},
+            {"$set": questionnaire}
+        )
+        logger.info(f"Bureautique mid-course questionnaire updated for student {student_id}")
+    else:
+        await db.bureautique_mid_course_questionnaires.insert_one(questionnaire)
+        logger.info(f"Bureautique mid-course questionnaire submitted for student {student_id}")
+    
+    return {"message": "Questionnaire Bureautique à mi-parcours soumis avec succès", "questionnaire": questionnaire}
+
+
+@api_router.get("/students/{student_id}/bureautique-mid-course-questionnaire")
+async def get_bureautique_mid_course_questionnaire(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer le questionnaire à mi-parcours - Bureautique"""
+    if current_user.role not in ["student", "teacher"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    if current_user.role == "student" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    questionnaire = await db.bureautique_mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if not questionnaire:
+        return {"exists": False}
+    
+    return {"exists": True, "questionnaire": questionnaire}
+
+
+@api_router.post("/students/{student_id}/bureautique-end-course-questionnaire")
+async def submit_bureautique_end_course_questionnaire(
+    student_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Soumettre le questionnaire de fin de formation - Bureautique"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    questionnaire = {
+        "id": str(uuid.uuid4()),
+        "student_id": student_id,
+        "parcours": "Bureautique",
+        **data,
+        "submitted_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    existing = await db.bureautique_end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if existing:
+        await db.bureautique_end_course_questionnaires.update_one(
+            {"student_id": student_id},
+            {"$set": questionnaire}
+        )
+        logger.info(f"Bureautique end-course questionnaire updated for student {student_id}")
+    else:
+        await db.bureautique_end_course_questionnaires.insert_one(questionnaire)
+        logger.info(f"Bureautique end-course questionnaire submitted for student {student_id}")
+    
+    return {"message": "Questionnaire Bureautique de fin de formation soumis avec succès", "questionnaire": questionnaire}
+
+
+@api_router.get("/students/{student_id}/bureautique-end-course-questionnaire")
+async def get_bureautique_end_course_questionnaire(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer le questionnaire de fin de formation - Bureautique"""
+    if current_user.role not in ["student", "teacher"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    if current_user.role == "student" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    questionnaire = await db.bureautique_end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if not questionnaire:
+        return {"exists": False}
+    
+    return {"exists": True, "questionnaire": questionnaire}
+
+
 @api_router.post("/students/{student_id}/generate-bilan")
 async def generate_student_bilan(
     student_id: str,
