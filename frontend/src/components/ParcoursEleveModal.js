@@ -1373,9 +1373,36 @@ function BeneficiaryDocumentsTab({ studentId, studentName }) {
   return (
     <>
       <div className="space-y-4">
-        <div className="p-4 rounded-lg bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white">
-          <h4 className="font-semibold text-lg">Documents bénéficiaires</h4>
-          <p className="text-sm opacity-90 mt-1">Questionnaires et documents soumis par l'élève</p>
+        <div className="p-4 rounded-lg bg-gradient-to-br from-[#8B5A2B] via-[#7A4F26] to-[#6B4522] text-white flex items-center justify-between">
+          <div>
+            <h4 className="font-semibold text-lg">Documents bénéficiaires</h4>
+            <p className="text-sm opacity-90 mt-1">Questionnaires et documents soumis par l'élève</p>
+          </div>
+          
+          {/* Bouton magique "Générer le Bilan Élève" */}
+          <Button
+            onClick={handleGenerateBilan}
+            disabled={!formationNeedsQ || !midCourseQ || !endCourseQ || downloading}
+            className={`
+              ${formationNeedsQ && midCourseQ && endCourseQ 
+                ? 'bg-gradient-to-r from-[#E8F5E9] to-[#C8E6C9] text-gray-800 hover:from-[#C8E6C9] hover:to-[#A5D6A7] border-2 border-green-300' 
+                : 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'
+              }
+              font-semibold py-2 px-4 rounded-lg shadow-md transition-all duration-200 whitespace-nowrap
+              ${formationNeedsQ && midCourseQ && endCourseQ ? 'hover:scale-105 hover:shadow-lg' : ''}
+            `}
+          >
+            {downloading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Génération...
+              </>
+            ) : (
+              <>
+                🪄 Générer le Bilan Élève
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Questionnaire 1 : Besoins en formation */}
