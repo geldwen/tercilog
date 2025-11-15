@@ -15,6 +15,11 @@ const getAuthHeaders = () => {
   return { Authorization: `Bearer ${token}` };
 };
 
+const MOIS_FR = [
+  "janvier", "février", "mars", "avril", "mai", "juin",
+  "juillet", "août", "septembre", "octobre", "novembre", "décembre"
+];
+
 const COULEUR_FROM_SCORE = (score) => {
   if (score >= 76) return { lib: "Bleu", hex: "#1F4E79" };
   if (score >= 51) return { lib: "Vert", hex: "#2B8A3E" };
