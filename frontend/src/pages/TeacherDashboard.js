@@ -1073,18 +1073,9 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   </div>
                                 )}
                                 
-                                {/* Boutons d'action en grille 2 colonnes */}
-                                <div className="grid grid-cols-2 gap-3 mt-3">
-                                  {session.meeting_link && (
-                                    <Button 
-                                      onClick={() => window.open(session.meeting_link, '_blank')}
-                                      className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-white"
-                                      size="sm"
-                                      style={{ backgroundColor: TERCIFORM_BLUE }}
-                                    >
-                                      🎥 Rejoindre
-                                    </Button>
-                                  )}
+                                {/* Boutons d'action en grille 1 colonne (bouton Rejoindre retiré) */}
+                                <div className="grid grid-cols-1 gap-3 mt-3">
+                                  {/* Bouton "Rejoindre" masqué car inutile pour les séances existantes */}
                                   <Button 
                                     onClick={() => handleResendEmail(session.id)} 
                                     variant="outline" 
