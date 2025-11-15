@@ -1211,11 +1211,11 @@ async def get_qualite_report(
         student_name = student.get("name", "")
         
         # Déterminer la matière/parcours
-        matiere = student.get("matiere", "Non spécifié")
+        student_parcours = student.get("parcours", "Non spécifié")
         
         # Filtrage par parcours (optionnel)
-        if parcours and parcours != "Toutes" and matiere != parcours:
-            logger.debug(f"Student {student_name} filtered out by parcours: {matiere} != {parcours}")
+        if parcours and parcours != "Toutes" and student_parcours != parcours:
+            logger.debug(f"Student {student_name} filtered out by parcours: {student_parcours} != {parcours}")
             continue
         
         # Récupérer les 3 questionnaires
