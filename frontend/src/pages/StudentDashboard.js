@@ -512,72 +512,28 @@ export default function StudentDashboard({ user, onLogout }) {
 
         {activeTab === 'parcours' && (
           <div className="space-y-6">
-            <Card className="shadow-lg">
+            <Card className="shadow-lg border-dashed border-2">
               <CardHeader>
-                <CardTitle style={{color: TERCIFORM_BLUE}}>Mon livret d'accueil</CardTitle>
+                <CardTitle className="text-gray-500">Mes tests</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-4">
-                  <FileText size={48} className="text-gray-400" />
-                  <div className="flex-1">
-                    <p className="text-gray-600">Votre livret d'accueil personnalisé</p>
-                    <p className="text-sm text-gray-500 mt-1">Document disponible prochainement</p>
-                  </div>
-                  <Button disabled variant="outline">
-                    <Download size={16} className="mr-2" />
-                    Télécharger PDF
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle style={{color: TERCIFORM_BLUE}}>Mes besoins en formation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">Partagez vos attentes et objectifs de formation</p>
-                <div className="space-y-3">
-                  <Button 
-                    onClick={() => !formationNeedsSubmitted && setShowNeedsDialog(true)} 
-                    style={{backgroundColor: formationNeedsSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
-                    className="w-full justify-start"
-                    disabled={formationNeedsSubmitted}
-                  >
-                    1) Questionnaire de besoin en formation
-                    {formationNeedsSubmitted && <span className="ml-2 text-xs">✓ Validé</span>}
-                  </Button>
-                  <Button 
-                    onClick={() => !midCourseSubmitted && setShowMidCourseDialog(true)} 
-                    style={{backgroundColor: midCourseSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
-                    className="w-full justify-start"
-                    disabled={midCourseSubmitted}
-                  >
-                    2) Questionnaire à mi-parcours
-                    {midCourseSubmitted && <span className="ml-2 text-xs">✓ Validé</span>}
-                  </Button>
-                  <Button 
-                    onClick={() => !endCourseSubmitted && setShowEndCourseDialog(true)} 
-                    style={{backgroundColor: endCourseSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
-                    className="w-full justify-start"
-                    disabled={endCourseSubmitted}
-                  >
-                    3) Questionnaire de fin de formation
-                    {endCourseSubmitted && <span className="ml-2 text-xs">✓ Validé</span>}
-                  </Button>
-                </div>
+                <p className="text-gray-400 text-center py-8">
+                  Tests de positionnement à venir
+                  <br />
+                  <span className="text-sm">Évaluez vos compétences</span>
+                </p>
               </CardContent>
             </Card>
 
             <Card className="shadow-lg border-dashed border-2">
               <CardHeader>
-                <CardTitle className="text-gray-500">Progression du parcours</CardTitle>
+                <CardTitle className="text-gray-500">Mes ressources pédagogiques</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-400 text-center py-8">
-                  Graphique de progression à venir
+                  Ressources et supports de cours
                   <br />
-                  <span className="text-sm">Heures émargées / Objectif total</span>
+                  <span className="text-sm">Documents, exercices, vidéos</span>
                 </p>
               </CardContent>
             </Card>
