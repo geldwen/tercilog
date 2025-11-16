@@ -552,19 +552,49 @@ export default function StudentDashboard({ user, onLogout }) {
 
         {activeTab === 'parcours' && (
           <div className="space-y-6">
+            {/* Mon test de positionnement */}
             <Card className="shadow-lg border-dashed border-2">
               <CardHeader>
-                <CardTitle className="text-gray-500">Mes tests</CardTitle>
+                <CardTitle className="text-gray-500">Mon test de positionnement</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-400 text-center py-8">
-                  Tests de positionnement à venir
+                  Évaluez votre niveau initial
                   <br />
-                  <span className="text-sm">Évaluez vos compétences</span>
+                  <span className="text-sm">Test disponible prochainement</span>
                 </p>
               </CardContent>
             </Card>
 
+            {/* Mon test de mi-parcours */}
+            <Card className="shadow-lg border-dashed border-2">
+              <CardHeader>
+                <CardTitle className="text-gray-500">Mon test de mi-parcours</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-400 text-center py-8">
+                  Mesurez votre progression
+                  <br />
+                  <span className="text-sm">Test disponible prochainement</span>
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Mon test de fin de formation */}
+            <Card className="shadow-lg border-dashed border-2">
+              <CardHeader>
+                <CardTitle className="text-gray-500">Mon test de fin de formation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-400 text-center py-8">
+                  Validez vos acquis
+                  <br />
+                  <span className="text-sm">Test disponible prochainement</span>
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Mes ressources pédagogiques */}
             <Card className="shadow-lg border-dashed border-2">
               <CardHeader>
                 <CardTitle className="text-gray-500">Mes ressources pédagogiques</CardTitle>
