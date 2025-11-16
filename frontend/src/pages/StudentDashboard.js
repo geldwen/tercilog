@@ -379,6 +379,16 @@ export default function StudentDashboard({ user, onLogout }) {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
+        {/* Bandeau Parcours */}
+        {user?.parcours && (
+          <div className="mb-6 p-4 rounded-lg shadow-md text-center" style={{ backgroundColor: '#8B5A2B', color: 'white' }}>
+            <h2 className="text-2xl font-bold">
+              Parcours : {user.parcours}
+            </h2>
+            <p className="text-sm mt-1 opacity-90">Votre programme de formation personnalisé</p>
+          </div>
+        )}
+
         {/* Tab Navigation - Large Colored Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <button
