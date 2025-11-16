@@ -454,6 +454,46 @@ export default function StudentDashboard({ user, onLogout }) {
               </Card>
             </div>
 
+            {/* Mon livret d'accueil */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle style={{color: TERCIFORM_BLUE}}>Mon livret d'accueil</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-4">
+                  <FileText size={48} className="text-gray-400" />
+                  <div className="flex-1">
+                    <p className="text-gray-600">Votre livret d'accueil personnalisé</p>
+                    <p className="text-sm text-gray-500 mt-1">Document disponible prochainement</p>
+                  </div>
+                  <Button disabled variant="outline">
+                    <Download size={16} className="mr-2" />
+                    Télécharger PDF
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Mon contrat de formation */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle style={{color: TERCIFORM_BLUE}}>Mon contrat de formation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-4">
+                  <FileText size={48} className="text-gray-400" />
+                  <div className="flex-1">
+                    <p className="text-gray-600">Votre contrat de formation</p>
+                    <p className="text-sm text-gray-500 mt-1">Document disponible prochainement</p>
+                  </div>
+                  <Button disabled variant="outline">
+                    <Download size={16} className="mr-2" />
+                    Télécharger PDF
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Sessions Table */}
             <Card className="shadow-lg">
               <CardHeader>
