@@ -676,10 +676,22 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
           }
         `}</style>
         
-        {/* Afficher le contenu selon le type */}
-        {selectedType === 'formation-needs' && renderFormationNeedsDetail(q)}
-        {selectedType === 'mid-course' && renderMidCourseDetail(q)}
-        {selectedType === 'end-course' && renderEndCourseDetail(q)}
+        {/* Afficher le contenu selon le type ET le parcours */}
+        {selectedType === 'formation-needs' && (
+          student?.parcours === "Bureautique" 
+            ? renderBureautiqueFormationNeedsDetail(q)
+            : renderFormationNeedsDetail(q)
+        )}
+        {selectedType === 'mid-course' && (
+          student?.parcours === "Bureautique"
+            ? renderBureautiqueMidCourseDetail(q)
+            : renderMidCourseDetail(q)
+        )}
+        {selectedType === 'end-course' && (
+          student?.parcours === "Bureautique"
+            ? renderBureautiqueEndCourseDetail(q)
+            : renderEndCourseDetail(q)
+        )}
       </div>
     );
   }
