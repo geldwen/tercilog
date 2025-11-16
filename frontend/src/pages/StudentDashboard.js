@@ -584,6 +584,44 @@ export default function StudentDashboard({ user, onLogout }) {
           <div className="space-y-6">
             <Card className="shadow-lg">
               <CardHeader>
+                <CardTitle style={{color: TERCIFORM_BLUE}}>Mes besoins en formation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">Partagez vos attentes et objectifs de formation</p>
+                <div className="space-y-3">
+                  <Button 
+                    onClick={() => !formationNeedsSubmitted && setShowNeedsDialog(true)} 
+                    style={{backgroundColor: formationNeedsSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
+                    className="w-full justify-start"
+                    disabled={formationNeedsSubmitted}
+                  >
+                    1) Questionnaire de besoin en formation
+                    {formationNeedsSubmitted && <span className="ml-2 text-xs">✓ Validé</span>}
+                  </Button>
+                  <Button 
+                    onClick={() => !midCourseSubmitted && setShowMidCourseDialog(true)} 
+                    style={{backgroundColor: midCourseSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
+                    className="w-full justify-start"
+                    disabled={midCourseSubmitted}
+                  >
+                    2) Questionnaire à mi-parcours
+                    {midCourseSubmitted && <span className="ml-2 text-xs">✓ Validé</span>}
+                  </Button>
+                  <Button 
+                    onClick={() => !endCourseSubmitted && setShowEndCourseDialog(true)} 
+                    style={{backgroundColor: endCourseSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
+                    className="w-full justify-start"
+                    disabled={endCourseSubmitted}
+                  >
+                    3) Questionnaire de fin de formation
+                    {endCourseSubmitted && <span className="ml-2 text-xs">✓ Validé</span>}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg">
+              <CardHeader>
                 <CardTitle style={{color: TERCIFORM_BLUE}}>Mon avis sur la formation</CardTitle>
               </CardHeader>
               <CardContent>
