@@ -1394,6 +1394,152 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
     );
   }
 
+  // ============================================================================
+  // FONCTIONS DE RENDU POUR QUESTIONNAIRES BUREAUTIQUE
+  // ============================================================================
+  
+  function renderBureautiqueFormationNeedsDetail(q) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-6">
+            <h4 className="text-2xl font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              📝 Questionnaire Bureautique - Besoins en formation
+            </h4>
+            
+            {/* Affichage générique de toutes les données */}
+            {Object.entries(q).filter(([key]) => !['id', 'student_id', 'submitted_at', 'signature', 'parcours'].includes(key)).map(([key, value]) => {
+              if (!value || value === '' || value === false) return null;
+              
+              const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              const displayValue = typeof value === 'boolean' ? '✓ Oui' : 
+                                 Array.isArray(value) ? value.join(', ') :
+                                 String(value);
+              
+              return (
+                <div key={key} className="space-y-2">
+                  <Label className="text-gray-900 font-semibold">{label}</Label>
+                  <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">
+                    {displayValue}
+                  </p>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+        
+        {/* Signature */}
+        {q.signature && (
+          <Card className="border-2 border-blue-300 bg-blue-50">
+            <CardContent className="pt-6">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">✍️ Signature</h4>
+              <div className="bg-white p-4 rounded-lg border-2 border-gray-300 mt-2">
+                <img src={q.signature} alt="Signature" className="max-h-32 mx-auto" />
+              </div>
+              <p className="text-sm text-gray-600 italic mt-2 text-center font-semibold">
+                ✓ Signé le {formatDateTime(q.submitted_at)}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  function renderBureautiqueMidCourseDetail(q) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-6">
+            <h4 className="text-2xl font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              🧭 Questionnaire Bureautique - Mi-parcours
+            </h4>
+            
+            {/* Affichage générique de toutes les données */}
+            {Object.entries(q).filter(([key]) => !['id', 'student_id', 'submitted_at', 'signature', 'parcours'].includes(key)).map(([key, value]) => {
+              if (!value || value === '' || value === false) return null;
+              
+              const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              const displayValue = typeof value === 'boolean' ? '✓ Oui' : 
+                                 Array.isArray(value) ? value.join(', ') :
+                                 String(value);
+              
+              return (
+                <div key={key} className="space-y-2">
+                  <Label className="text-gray-900 font-semibold">{label}</Label>
+                  <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">
+                    {displayValue}
+                  </p>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+        
+        {q.signature && (
+          <Card className="border-2 border-blue-300 bg-blue-50">
+            <CardContent className="pt-6">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">✍️ Signature</h4>
+              <div className="bg-white p-4 rounded-lg border-2 border-gray-300 mt-2">
+                <img src={q.signature} alt="Signature" className="max-h-32 mx-auto" />
+              </div>
+              <p className="text-sm text-gray-600 italic mt-2 text-center font-semibold">
+                ✓ Signé le {formatDateTime(q.submitted_at)}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  function renderBureautiqueEndCourseDetail(q) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-6">
+            <h4 className="text-2xl font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              ✅ Questionnaire Bureautique - Fin de formation
+            </h4>
+            
+            {/* Affichage générique de toutes les données */}
+            {Object.entries(q).filter(([key]) => !['id', 'student_id', 'submitted_at', 'signature', 'parcours'].includes(key)).map(([key, value]) => {
+              if (!value || value === '' || value === false) return null;
+              
+              const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              const displayValue = typeof value === 'boolean' ? '✓ Oui' : 
+                                 Array.isArray(value) ? value.join(', ') :
+                                 String(value);
+              
+              return (
+                <div key={key} className="space-y-2">
+                  <Label className="text-gray-900 font-semibold">{label}</Label>
+                  <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">
+                    {displayValue}
+                  </p>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+        
+        {q.signature && (
+          <Card className="border-2 border-blue-300 bg-blue-50">
+            <CardContent className="pt-6">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">✍️ Signature</h4>
+              <div className="bg-white p-4 rounded-lg border-2 border-gray-300 mt-2">
+                <img src={q.signature} alt="Signature" className="max-h-32 mx-auto" />
+              </div>
+              <p className="text-sm text-gray-600 italic mt-2 text-center font-semibold">
+                ✓ Signé le {formatDateTime(q.submitted_at)}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
   // Vue liste des questionnaires
   return (
     <>
