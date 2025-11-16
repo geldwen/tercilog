@@ -1711,33 +1711,174 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
   function renderBureautiqueMidCourseDetail(q) {
     return (
       <div className="space-y-6">
+        {/* Section 1: Identification */}
         <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
-          <CardContent className="pt-6 space-y-6">
-            <h4 className="text-2xl font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
-              🧭 Questionnaire Bureautique - Mi-parcours
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              1. Identification
             </h4>
-            
-            {/* Affichage générique de toutes les données */}
-            {Object.entries(q).filter(([key]) => !['id', 'student_id', 'submitted_at', 'signature', 'parcours'].includes(key)).map(([key, value]) => {
-              if (!value || value === '' || value === false) return null;
-              
-              const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-              const displayValue = typeof value === 'boolean' ? '✓ Oui' : 
-                                 Array.isArray(value) ? value.join(', ') :
-                                 String(value);
-              
-              return (
-                <div key={key} className="space-y-2">
-                  <Label className="text-gray-900 font-semibold">{label}</Label>
-                  <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">
-                    {displayValue}
-                  </p>
-                </div>
-              );
-            })}
+            <div className="space-y-2">
+              <Label className="text-gray-900">Nom et prénom</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.nom_prenom || '—'}</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-gray-900">Date</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.date || '—'}</p>
+            </div>
           </CardContent>
         </Card>
-        
+
+        {/* Section 2: Ressenti global */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              2. Ressenti global à mi-parcours
+            </h4>
+            {q.ressenti_global && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Comment ressentez-vous la formation ?</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.ressenti_global}</p>
+              </div>
+            )}
+            {q.correspondance_demande && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Correspond à votre demande ?</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.correspondance_demande}</p>
+              </div>
+            )}
+            {q.rythme && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Le rythme vous convient ?</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.rythme}</p>
+              </div>
+            )}
+            {q.format_convient && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Le format vous convient ?</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.format_convient}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Section 3: Progression */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              3. Progression perçue
+            </h4>
+            {q.progression && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Avez-vous progressé ?</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.progression}</p>
+              </div>
+            )}
+            {q.outils_progres && q.outils_progres.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Outils sur lesquels vous progressez</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.outils_progres.join(', ')}</p>
+              </div>
+            )}
+            {q.outils_progres_autre && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Autre outil</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.outils_progres_autre}</p>
+              </div>
+            )}
+            {q.exemple_tache && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Exemple de tâche mieux maîtrisée</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.exemple_tache}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Section 4: Difficultés */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              4. Difficultés actuelles
+            </h4>
+            {q.rencontre_difficultes && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Rencontrez-vous des difficultés ?</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.rencontre_difficultes}</p>
+              </div>
+            )}
+            {q.rencontre_difficultes === "Oui" && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Lesquelles ?</Label>
+                <div className="space-y-2">
+                  {[
+                    {key: 'difficultes_mise_en_page', label: 'Mise en page'},
+                    {key: 'difficultes_formules', label: 'Formules Excel'},
+                    {key: 'difficultes_filtres', label: 'Filtres / tris / graphiques'},
+                    {key: 'difficultes_diaporama', label: 'Diaporama cohérent'},
+                    {key: 'difficultes_mails', label: 'Gestion des mails'},
+                    {key: 'difficultes_fichiers', label: 'Organisation des fichiers'}
+                  ].map(({key, label}) => (
+                    <label key={key} className="flex items-center gap-2">
+                      <input type="checkbox" checked={q[key]} readOnly className="w-4 h-4 questionnaire-checkbox" />
+                      <span className={q[key] ? 'text-pink-700 font-semibold' : ''}>{label}</span>
+                    </label>
+                  ))}
+                  {q.difficultes_autre && (
+                    <p className="text-pink-700 font-semibold bg-pink-50 p-2 rounded-md border-2 border-pink-200">Autre: {q.difficultes_autre}</p>
+                  )}
+                </div>
+              </div>
+            )}
+            {q.point_approfondir && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Point à approfondir</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.point_approfondir}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Section 5: Ajustements */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              5. Ajustements souhaités
+            </h4>
+            <div className="space-y-2">
+              <Label className="text-gray-900">Suggestions</Label>
+              <div className="space-y-2">
+                {[
+                  {key: 'suggestion_ralentir', label: 'Ralentir le rythme'},
+                  {key: 'suggestion_accelerer', label: 'Accélérer le rythme'},
+                  {key: 'suggestion_exercices', label: 'Plus d\'exercices pratiques'},
+                  {key: 'suggestion_explications', label: 'Plus d\'explications'},
+                  {key: 'suggestion_plus_temps_word', label: 'Plus de temps sur Word'},
+                  {key: 'suggestion_plus_temps_excel', label: 'Plus de temps sur Excel'},
+                  {key: 'suggestion_plus_temps_powerpoint', label: 'Plus de temps sur PowerPoint'}
+                ].map(({key, label}) => (
+                  <label key={key} className="flex items-center gap-2">
+                    <input type="checkbox" checked={q[key]} readOnly className="w-4 h-4 questionnaire-checkbox" />
+                    <span className={q[key] ? 'text-pink-700 font-semibold' : ''}>{label}</span>
+                  </label>
+                ))}
+                {q.suggestion_plus_temps_autre && (
+                  <p className="text-pink-700 font-semibold bg-pink-50 p-2 rounded-md border-2 border-pink-200">Autre logiciel: {q.suggestion_plus_temps_autre}</p>
+                )}
+                {q.suggestion_autre && (
+                  <p className="text-pink-700 font-semibold bg-pink-50 p-2 rounded-md border-2 border-pink-200">Autre suggestion: {q.suggestion_autre}</p>
+                )}
+              </div>
+            </div>
+            {q.accompagnement_suffisant && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Accompagnement suffisant ?</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.accompagnement_suffisant}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Signature */}
         {q.signature && (
           <Card className="border-2 border-blue-300 bg-blue-50">
             <CardContent className="pt-6">
