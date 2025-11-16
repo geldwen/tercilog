@@ -424,9 +424,9 @@ export default function StudentDashboard({ user, onLogout }) {
           >
             <div className="flex items-center gap-3 mb-2">
               <MessageSquare size={28} style={{color: TERCIFORM_BLUE}} />
-              <h2 className="text-xl font-bold" style={{color: TERCIFORM_BLUE}}>Mes avis</h2>
+              <h2 className="text-xl font-bold" style={{color: TERCIFORM_BLUE}}>Mes objectifs</h2>
             </div>
-            <p className="text-sm text-gray-600 mt-1">Je partage mon expérience de formation</p>
+            <p className="text-sm text-gray-600 mt-1">Mes besoins et mon expérience de formation</p>
           </button>
         </div>
 
