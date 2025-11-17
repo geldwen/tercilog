@@ -381,7 +381,7 @@ export default function StudentDashboard({ user, onLogout }) {
       <main className="container mx-auto px-4 py-8">
         {/* Bandeau Parcours */}
         {user?.parcours && (
-          <div className="mb-6 p-4 rounded-lg shadow-md text-center" style={{ backgroundColor: '#8B5A2B', color: 'white' }}>
+          <div className="mb-6 p-4 rounded-lg shadow-md text-center" style={{ backgroundColor: '#1e3a5f', color: 'white' }}>
             <h2 className="text-2xl font-bold">
               Parcours : {user.parcours}
             </h2>
