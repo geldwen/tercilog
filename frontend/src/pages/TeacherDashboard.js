@@ -271,10 +271,25 @@ export default function TeacherDashboard({ user, onLogout }) {
   const handleCreateStudent = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/students`, { ...studentForm, role: "student", credit_hours: studentForm.total_hours });
+      // Préparer les ressources sélectionnées
+      const resources = {
+        tests: includeTests ? selectedTests : null,
+        questionnaires: includeQuestionnaires ? selectedQuestionnaires : null
+      };
+
+      await axios.post(`${API}/students`, { 
+        ...studentForm, 
+        role: "student", 
+        credit_hours: studentForm.total_hours,
+        resources: resources
+      });
       toast.success("Élève créé !");
       setShowCreateStudent(false);
       setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0, parcours: "Anglais" });
+      setIncludeTests(false);
+      setIncludeQuestionnaires(true);
+      setSelectedTests({ positionnement: "", miParcours: "", fin: "" });
+      setSelectedQuestionnaires({ q1: "", q2: "", q3: "" });
       loadData(selectedMonth);
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur");
