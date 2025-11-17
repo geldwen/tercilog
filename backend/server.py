@@ -659,10 +659,15 @@ async def get_students(current_user: User = Depends(get_current_user)):
     return [User(**s) for s in students]
 
 @api_router.post("/students", response_model=User)
-async def create_student(user_data: UserCreate, current_user: User = Depends(get_current_user)):
+async def create_student(data: dict, current_user: User = Depends(get_current_user)):
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
+    # Extraire les ressources si présentes
+    resources = data.pop("resources", None)
+    
+    # Créer l'élève
+    user_data = UserCreate(**data)
     user_data.role = "student"
     student = await register(user_data)
     
@@ -672,6 +677,10 @@ async def create_student(user_data: UserCreate, current_user: User = Depends(get
         {"$set": {"teacher_id": current_user.id}}
     )
     logger.info(f"Student {student.name} automatically assigned to teacher {current_user.id}")
+    
+    # Sauvegarder les ressources sélectionnées
+    if resources:
+        await save_student_resources(student.id, student.parcours, resources)
     
     # Recharger l'élève avec le teacher_id
     updated_student = await db.users.find_one({"id": student.id}, {"_id": 0})
