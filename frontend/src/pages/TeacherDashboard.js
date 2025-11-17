@@ -112,6 +112,44 @@ export default function TeacherDashboard({ user, onLogout }) {
     q3: ""
   });
 
+  // Modèles de tests disponibles par parcours
+  const testModels = {
+    "Anglais": {
+      positionnement: ["Test d'anglais A1", "Test d'anglais A2", "Test d'anglais B1", "Test d'anglais B2"],
+      miParcours: ["Évaluation anglais mi-parcours v1", "Évaluation anglais mi-parcours v2"],
+      fin: ["Test final anglais", "Certification anglais"]
+    },
+    "Bureautique": {
+      positionnement: ["Test bureautique débutant", "Test bureautique intermédiaire", "Test bureautique avancé"],
+      miParcours: ["Évaluation bureautique mi-parcours"],
+      fin: ["Test final bureautique", "Certification TOSA Bureautique"]
+    },
+    "Management": {
+      positionnement: ["Test management initial"],
+      miParcours: ["Évaluation management mi-parcours"],
+      fin: ["Test final management"]
+    }
+  };
+
+  // Modèles de questionnaires Qualiopi disponibles par parcours
+  const questionnaireModels = {
+    "Anglais": {
+      q1: ["Q1 - Besoins anglais v1"],
+      q2: ["Q2 - Mi-parcours anglais v1"],
+      q3: ["Q3 - Fin formation anglais v1"]
+    },
+    "Bureautique": {
+      q1: ["Q1 - Besoins bureautique v1"],
+      q2: ["Q2 - Mi-parcours bureautique v1"],
+      q3: ["Q3 - Fin formation bureautique v1"]
+    },
+    "Management": {
+      q1: ["Q1 - Besoins management v1"],
+      q2: ["Q2 - Mi-parcours management v1"],
+      q3: ["Q3 - Fin formation management v1"]
+    }
+  };
+
   const monthsList = [{ key: '2025-10', label: 'octobre 2025' }, { key: '2025-11', label: 'novembre 2025' }, { key: '2025-12', label: 'décembre 2025' }];
 
   useEffect(() => { setSelectedMonth('2025-10'); }, []);
