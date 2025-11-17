@@ -1381,6 +1381,125 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <option value="Bureautique">Bureautique</option>
                       </select>
                     </div>
+                    {/* BLOC 1 : Tests de parcours */}
+                    <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 space-y-3">
+                      <h4 className="font-bold text-blue-900">🟦 Tests de parcours</h4>
+                      <p className="text-sm text-gray-700">Souhaitez-vous introduire les tests du parcours « {studentForm.parcours} » ?</p>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2">
+                          <input type="radio" name="includeTests" checked={includeTests === true} onChange={() => setIncludeTests(true)} />
+                          <span>Oui</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input type="radio" name="includeTests" checked={includeTests === false} onChange={() => setIncludeTests(false)} />
+                          <span>Non</span>
+                        </label>
+                      </div>
+                      
+                      {includeTests && (
+                        <div className="space-y-3 mt-3 pl-4 border-l-4 border-blue-300">
+                          <div className="space-y-2">
+                            <Label className="text-sm">Test de positionnement du parcours "{studentForm.parcours}"</Label>
+                            <select 
+                              value={selectedTests.positionnement}
+                              onChange={(e) => setSelectedTests({...selectedTests, positionnement: e.target.value})}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                            >
+                              <option value="">-- Choisir un modèle --</option>
+                              {testModels[studentForm.parcours]?.positionnement.map(model => (
+                                <option key={model} value={model}>{model}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm">Évaluation en cours de formation "{studentForm.parcours}"</Label>
+                            <select 
+                              value={selectedTests.miParcours}
+                              onChange={(e) => setSelectedTests({...selectedTests, miParcours: e.target.value})}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                            >
+                              <option value="">-- Choisir un modèle --</option>
+                              {testModels[studentForm.parcours]?.miParcours.map(model => (
+                                <option key={model} value={model}>{model}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm">Test de fin de formation "{studentForm.parcours}"</Label>
+                            <select 
+                              value={selectedTests.fin}
+                              onChange={(e) => setSelectedTests({...selectedTests, fin: e.target.value})}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                            >
+                              <option value="">-- Choisir un modèle --</option>
+                              {testModels[studentForm.parcours]?.fin.map(model => (
+                                <option key={model} value={model}>{model}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* BLOC 2 : Questionnaires Qualiopi */}
+                    <div className="p-4 border-2 border-yellow-200 rounded-lg bg-yellow-50 space-y-3">
+                      <h4 className="font-bold text-yellow-900">🟨 Questionnaires de besoin en formation (Qualiopi)</h4>
+                      <p className="text-sm text-gray-700">Souhaitez-vous introduire les questionnaires de besoin en formation pour le parcours « {studentForm.parcours} » ?</p>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2">
+                          <input type="radio" name="includeQuestionnaires" checked={includeQuestionnaires === true} onChange={() => setIncludeQuestionnaires(true)} />
+                          <span>Oui</span>
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input type="radio" name="includeQuestionnaires" checked={includeQuestionnaires === false} onChange={() => setIncludeQuestionnaires(false)} />
+                          <span>Non</span>
+                        </label>
+                      </div>
+                      
+                      {includeQuestionnaires && (
+                        <div className="space-y-3 mt-3 pl-4 border-l-4 border-yellow-300">
+                          <div className="space-y-2">
+                            <Label className="text-sm">Questionnaire de besoin en formation "{studentForm.parcours}" (avant formation)</Label>
+                            <select 
+                              value={selectedQuestionnaires.q1}
+                              onChange={(e) => setSelectedQuestionnaires({...selectedQuestionnaires, q1: e.target.value})}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                            >
+                              <option value="">-- Choisir un modèle --</option>
+                              {questionnaireModels[studentForm.parcours]?.q1.map(model => (
+                                <option key={model} value={model}>{model}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm">Questionnaire à mi-parcours "{studentForm.parcours}"</Label>
+                            <select 
+                              value={selectedQuestionnaires.q2}
+                              onChange={(e) => setSelectedQuestionnaires({...selectedQuestionnaires, q2: e.target.value})}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                            >
+                              <option value="">-- Choisir un modèle --</option>
+                              {questionnaireModels[studentForm.parcours]?.q2.map(model => (
+                                <option key={model} value={model}>{model}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm">Questionnaire de fin de formation "{studentForm.parcours}"</Label>
+                            <select 
+                              value={selectedQuestionnaires.q3}
+                              onChange={(e) => setSelectedQuestionnaires({...selectedQuestionnaires, q3: e.target.value})}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                            >
+                              <option value="">-- Choisir un modèle --</option>
+                              {questionnaireModels[studentForm.parcours]?.q3.map(model => (
+                                <option key={model} value={model}>{model}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <div className="space-y-2">
                       <Label>Type de séance</Label>
                       <select 
