@@ -97,6 +97,20 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [multiSessions, setMultiSessions] = useState([{ subject: "", date: "", start_time: "", end_time: "", modality: "distanciel", hourly_rate: 0, meeting_link: "" }]);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [studentForm, setStudentForm] = useState({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0, parcours: "Anglais" });
+  
+  // États pour les tests et questionnaires
+  const [includeTests, setIncludeTests] = useState(false);
+  const [includeQuestionnaires, setIncludeQuestionnaires] = useState(true); // Par défaut Oui
+  const [selectedTests, setSelectedTests] = useState({
+    positionnement: "",
+    miParcours: "",
+    fin: ""
+  });
+  const [selectedQuestionnaires, setSelectedQuestionnaires] = useState({
+    q1: "",
+    q2: "",
+    q3: ""
+  });
 
   const monthsList = [{ key: '2025-10', label: 'octobre 2025' }, { key: '2025-11', label: 'novembre 2025' }, { key: '2025-12', label: 'décembre 2025' }];
 
