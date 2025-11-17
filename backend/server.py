@@ -583,6 +583,98 @@ def send_session_reminder_email(to_email: str, student_name: str, subject: str, 
 
 # Routes
 @api_router.post("/auth/register", response_model=User)
+async def save_student_resources(student_id: str, parcours: str, resources: dict):
+    """Sauvegarder les tests et questionnaires sélectionnés pour un élève"""
+    saved_resources = []
+    
+    # Tests de parcours
+    if resources.get("tests"):
+        tests = resources["tests"]
+        if tests.get("positionnement"):
+            resource = StudentResource(
+                student_id=student_id,
+                parcours=parcours,
+                category="TEST_PARCOURS",
+                sub_type="POSITIONNEMENT",
+                template_name=tests["positionnement"],
+                resource_type="FORM"
+            )
+            await db.student_resources.insert_one(resource.dict())
+            saved_resources.append(resource.dict())
+            logger.info(f"Test positionnement '{tests['positionnement']}' assigné à élève {student_id}")
+        
+        if tests.get("miParcours"):
+            resource = StudentResource(
+                student_id=student_id,
+                parcours=parcours,
+                category="TEST_PARCOURS",
+                sub_type="MI_PARCOURS",
+                template_name=tests["miParcours"],
+                resource_type="FORM"
+            )
+            await db.student_resources.insert_one(resource.dict())
+            saved_resources.append(resource.dict())
+            logger.info(f"Test mi-parcours '{tests['miParcours']}' assigné à élève {student_id}")
+        
+        if tests.get("fin"):
+            resource = StudentResource(
+                student_id=student_id,
+                parcours=parcours,
+                category="TEST_PARCOURS",
+                sub_type="FIN",
+                template_name=tests["fin"],
+                resource_type="FORM"
+            )
+            await db.student_resources.insert_one(resource.dict())
+            saved_resources.append(resource.dict())
+            logger.info(f"Test fin '{tests['fin']}' assigné à élève {student_id}")
+    
+    # Questionnaires Qualiopi
+    if resources.get("questionnaires"):
+        questionnaires = resources["questionnaires"]
+        if questionnaires.get("q1"):
+            resource = StudentResource(
+                student_id=student_id,
+                parcours=parcours,
+                category="QUESTIONNAIRE_QUALIOPI",
+                sub_type="POSITIONNEMENT",
+                template_name=questionnaires["q1"],
+                resource_type="FORM"
+            )
+            await db.student_resources.insert_one(resource.dict())
+            saved_resources.append(resource.dict())
+            logger.info(f"Questionnaire Q1 '{questionnaires['q1']}' assigné à élève {student_id}")
+        
+        if questionnaires.get("q2"):
+            resource = StudentResource(
+                student_id=student_id,
+                parcours=parcours,
+                category="QUESTIONNAIRE_QUALIOPI",
+                sub_type="MI_PARCOURS",
+                template_name=questionnaires["q2"],
+                resource_type="FORM"
+            )
+            await db.student_resources.insert_one(resource.dict())
+            saved_resources.append(resource.dict())
+            logger.info(f"Questionnaire Q2 '{questionnaires['q2']}' assigné à élève {student_id}")
+        
+        if questionnaires.get("q3"):
+            resource = StudentResource(
+                student_id=student_id,
+                parcours=parcours,
+                category="QUESTIONNAIRE_QUALIOPI",
+                sub_type="FIN",
+                template_name=questionnaires["q3"],
+                resource_type="FORM"
+            )
+            await db.student_resources.insert_one(resource.dict())
+            saved_resources.append(resource.dict())
+            logger.info(f"Questionnaire Q3 '{questionnaires['q3']}' assigné à élève {student_id}")
+    
+    logger.info(f"Total {len(saved_resources)} ressources assignées à l'élève {student_id}")
+    return saved_resources
+
+
 async def register(user_data: UserCreate):
     # Permettre plusieurs élèves avec le même email (pour les tests)
     # Pas de vérification d'unicité d'email
