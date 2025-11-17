@@ -134,6 +134,20 @@ class Session(BaseModel):
     modality: str = "distanciel"  # distanciel ou présentiel
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class StudentResource(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    student_id: str
+    parcours: str
+    category: str  # "TEST_PARCOURS" ou "QUESTIONNAIRE_QUALIOPI"
+    sub_type: str  # "POSITIONNEMENT" | "MI_PARCOURS" | "FIN"
+    template_name: str  # Nom du modèle choisi
+    resource_type: str = "FORM"  # "FILE" ou "FORM"
+    status: str = "NON_COMMENCE"  # "NON_COMMENCE" | "EN_COURS" | "SOUMIS"
+    score: Optional[float] = None
+    submitted_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 class SessionCreate(BaseModel):
     subject: str
     date: str
