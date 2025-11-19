@@ -86,6 +86,71 @@ function MagicReportButton({ studentId, studentName }) {
 }
 
 
+// Composant pour envoyer le rapport par email
+function MagicReportSendButton({ studentId, studentName }) {
+  const [isSending, setIsSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const handleSendReport = async () => {
+    try {
+      setIsSending(true);
+      setSent(false);
+      toast.info("Envoi du rapport en cours...");
+
+      const response = await axios.post(
+        `${API}/students/${studentId}/send-report`,
+        {},
+        { headers: getAuthHeaders() }
+      );
+
+      if (response.data.success) {
+        toast.success(response.data.message || "Rapport envoyé avec succès!");
+        setSent(true);
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du rapport:", error);
+      if (error.response?.status === 400) {
+        toast.error(error.response.data.detail || "Les 3 tests doivent être complétés");
+      } else if (error.response?.status === 500) {
+        toast.error("Erreur d'envoi - Vérifiez la configuration SMTP");
+      } else {
+        toast.error("Erreur lors de l'envoi du rapport");
+      }
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return (
+    <div className="mt-8 mb-6 flex flex-col items-center">
+      <Button
+        onClick={handleSendReport}
+        disabled={isSending}
+        className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        size="lg"
+      >
+        {isSending ? (
+          <>
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            Envoi en cours...
+          </>
+        ) : (
+          <>
+            <SendHorizonal className="w-5 h-5 mr-2" />
+            Envoyer le rapport par email
+          </>
+        )}
+      </Button>
+      {sent && (
+        <p className="text-green-600 text-sm mt-2 font-medium">
+          ✔ Rapport envoyé avec succès
+        </p>
+      )}
+    </div>
+  );
+}
+
+
 // Composant pour afficher TOUS les tests interactifs soumis (toutes catégories)
 function InteractiveTestsDisplaySection({ studentId }) {
   const [tests, setTests] = useState([]);
