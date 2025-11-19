@@ -594,7 +594,7 @@ async def save_student_resources(student_id: str, parcours: str, resources: dict
         # Mapping des noms de templates vers leurs IDs
         template_id_mapping = {
             "T1 - Test de positionnement": "test-bureautique-positionnement-v1",
-            "T2 - Test à mi-parcours": "test-bureautique-mi-parcours-v1",
+            "T2 - Test à mi parcours": "test-bureautique-mi-parcours-v1",
             "T3 - Test de fin de formation": "test-bureautique-fin-v1"
         }
         
