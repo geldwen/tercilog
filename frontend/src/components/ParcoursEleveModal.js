@@ -3272,11 +3272,8 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
             {/* Tests interactifs - Affichage pour TOUS les parcours */}
             <InteractiveTestsDisplaySection studentId={student.id} />
             
-            {/* Boutons Rapport d'évolution */}
-            <div className="mt-8 mb-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <MagicReportButton studentId={student.id} studentName={student.name} />
-              <MagicReportSendButton studentId={student.id} studentName={student.name} />
-            </div>
+            {/* Section Rapport d'évolution (3 boutons) */}
+            <MagicReportSection studentId={student.id} studentName={student.name} />
           </TabsContent>
 
           {/* Onglet Supports de formation - Pleine largeur (pas de note) */}
