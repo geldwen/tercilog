@@ -6170,6 +6170,309 @@ async def preview_pdf(
     )
 
 
+@api_router.get("/bilan-tests")
+async def get_bilan_tests(
+    periode: str = "mois",
+    mois: str = "11",
+    annee: str = "2025",
+    parcours: str = "tous",
+    matiere: str = "toutes",
+    current_user: User = Depends(get_current_user)
+):
+    """Récupère le bilan global des tests pour tous les élèves du professeur"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer tous les élèves du professeur
+    students = await db.users.find(
+        {"role": "student", "teacher_id": current_user.id},
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    rows = []
+    
+    for student in students:
+        # Filtrer par parcours si nécessaire
+        student_parcours = student.get('parcours', '').lower()
+        if parcours != "tous" and student_parcours != parcours.lower():
+            continue
+        
+        # Récupérer les tests du student
+        resources = await db.student_resources.find(
+            {
+                "student_id": student['id'],
+                "category": "TEST_PARCOURS",
+                "status": "SOUMIS"
+            },
+            {"_id": 0}
+        ).to_list(length=None)
+        
+        if not resources:
+            continue
+        
+        # Organiser par sub_type
+        tests_map = {}
+        for r in resources:
+            tests_map[r['sub_type']] = r
+        
+        t1 = tests_map.get('POSITIONNEMENT')
+        t2 = tests_map.get('MI_PARCOURS')
+        t3 = tests_map.get('FIN')
+        
+        # On ne garde que les élèves ayant au moins un test
+        if not (t1 or t2 or t3):
+            continue
+        
+        t1_score = t1['score'] if t1 else None
+        t2_score = t2['score'] if t2 else None
+        t3_score = t3['score'] if t3 else None
+        
+        # Calculer progression
+        progression = None
+        if t1_score is not None and t3_score is not None:
+            progression = t3_score - t1_score
+        
+        # Niveau final
+        niveau_final = "-"
+        if t3_score is not None:
+            if t3_score >= 60:
+                niveau_final = "Acquis"
+            elif t3_score >= 30:
+                niveau_final = "En cours"
+            else:
+                niveau_final = "Non acquis"
+        
+        # Difficultés principales (analyse simple)
+        difficulte = None
+        remediation = False
+        if t3_score is not None and t3_score < 40:
+            if student_parcours == "bureautique":
+                difficulte = "Fondamentaux bureautiques"
+            elif student_parcours == "management":
+                difficulte = "Situations managériales complexes"
+            elif student_parcours == "anglais":
+                difficulte = "Expression orale et écrite"
+            else:
+                difficulte = "Compétences de base"
+            remediation = True
+        
+        # URL du rapport (si existe)
+        rapport_url = None
+        if t1 and t2 and t3:
+            # Le rapport est disponible si les 3 tests sont faits
+            rapport_url = f"/api/students/{student['id']}/magic-report"
+        
+        row = {
+            "id": student['id'],
+            "eleve": student.get('name', 'N/A'),
+            "parcours": student_parcours.capitalize(),
+            "matiere": student_parcours,  # Pour simplification, matière = parcours
+            "t1": t1_score,
+            "t2": t2_score,
+            "t3": t3_score,
+            "progression": progression,
+            "niveauFinal": niveau_final,
+            "difficultePrincipale": difficulte,
+            "remediation": remediation,
+            "rapportUrl": rapport_url
+        }
+        
+        rows.append(row)
+    
+    # Calculer les indicateurs globaux
+    nb = len(rows)
+    
+    if nb == 0:
+        return {
+            "periodeLabel": f"{mois}/{annee}" if periode == "mois" else annee,
+            "nbEvaluations": 0,
+            "progressionMoyenne": 0,
+            "tauxAcquisition": 0,
+            "tauxDifficulte": 0,
+            "rows": []
+        }
+    
+    # Progression moyenne
+    progressions = [r['progression'] for r in rows if r['progression'] is not None]
+    progression_moyenne = sum(progressions) / len(progressions) if progressions else 0
+    
+    # Taux d'acquisition (élèves avec T3 >= 60%)
+    t3_vals = [r['t3'] for r in rows if r['t3'] is not None]
+    nb_acquis = len([t for t in t3_vals if t >= 60])
+    taux_acquisition = (nb_acquis / len(t3_vals)) * 100 if t3_vals else 0
+    
+    # Taux en difficulté (élèves avec T3 < 40%)
+    nb_difficulte = len([t for t in t3_vals if t < 40])
+    taux_difficulte = (nb_difficulte / len(t3_vals)) * 100 if t3_vals else 0
+    
+    return {
+        "periodeLabel": f"{mois}/{annee}" if periode == "mois" else annee,
+        "nbEvaluations": nb,
+        "progressionMoyenne": progression_moyenne,
+        "tauxAcquisition": taux_acquisition,
+        "tauxDifficulte": taux_difficulte,
+        "rows": rows
+    }
+
+
+@api_router.get("/bilan-tests-pdf")
+async def generate_bilan_tests_pdf(
+    periode: str = "mois",
+    mois: str = "11",
+    annee: str = "2025",
+    parcours: str = "tous",
+    matiere: str = "toutes",
+    current_user: User = Depends(get_current_user)
+):
+    """Génère un PDF du bilan global des tests"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer les données (réutilise la logique de l'endpoint précédent)
+    bilan_data = await get_bilan_tests(periode, mois, annee, parcours, matiere, current_user)
+    
+    # Créer le PDF
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=50,
+        leftMargin=50,
+        topMargin=50,
+        bottomMargin=50
+    )
+    
+    story = []
+    styles = getSampleStyleSheet()
+    
+    # Logo
+    logo_path = ROOT_DIR / "terciform_logo.png"
+    if logo_path.exists():
+        logo = Image(str(logo_path), width=2*inch, height=0.8*inch)
+        story.append(logo)
+        story.append(Spacer(1, 10))
+    
+    # Titre
+    title_style = ParagraphStyle(
+        'BilanTitle',
+        parent=styles['Heading1'],
+        fontSize=20,
+        textColor=colors.HexColor('#7c3aed'),
+        alignment=TA_CENTER,
+        spaceAfter=10,
+        fontName='Helvetica-Bold'
+    )
+    story.append(Paragraph("Bilan Global des Tests", title_style))
+    
+    subtitle_style = ParagraphStyle(
+        'Subtitle',
+        parent=styles['Normal'],
+        fontSize=12,
+        textColor=colors.HexColor('#666666'),
+        alignment=TA_CENTER,
+        spaceAfter=20
+    )
+    story.append(Paragraph(f"Période: {bilan_data['periodeLabel']}", subtitle_style))
+    story.append(Spacer(1, 20))
+    
+    # Indicateurs clés
+    section_style = ParagraphStyle(
+        'SectionTitle',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=colors.HexColor('#7c3aed'),
+        spaceAfter=10,
+        fontName='Helvetica-Bold'
+    )
+    story.append(Paragraph("Indicateurs clés", section_style))
+    
+    indicateurs_data = [
+        ['Évaluations réalisées', str(bilan_data['nbEvaluations'])],
+        ['Progression moyenne T1 → T3', f"{bilan_data['progressionMoyenne']:.1f} points"],
+        ['Taux d\'acquisition final', f"{bilan_data['tauxAcquisition']:.1f}%"],
+        ['Élèves en difficulté', f"{bilan_data['tauxDifficulte']:.1f}%"]
+    ]
+    
+    indicateurs_table = Table(indicateurs_data, colWidths=[3.5*inch, 2*inch])
+    indicateurs_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#F0F0F0')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CCCCCC'))
+    ]))
+    story.append(indicateurs_table)
+    story.append(Spacer(1, 30))
+    
+    # Tableau détaillé
+    story.append(Paragraph("Résultats détaillés par élève", section_style))
+    story.append(Spacer(1, 10))
+    
+    # En-tête du tableau
+    table_data = [['Élève', 'Parcours', 'T1', 'T2', 'T3', 'Progression', 'Niveau']]
+    
+    # Lignes
+    for row in bilan_data['rows']:
+        table_data.append([
+            row['eleve'],
+            row['parcours'],
+            f"{row['t1']:.1f}%" if row['t1'] is not None else "—",
+            f"{row['t2']:.1f}%" if row['t2'] is not None else "—",
+            f"{row['t3']:.1f}%" if row['t3'] is not None else "—",
+            f"{'+' if row['progression'] and row['progression'] > 0 else ''}{row['progression']:.1f}" if row['progression'] is not None else "—",
+            row['niveauFinal']
+        ])
+    
+    results_table = Table(table_data, colWidths=[1.3*inch, 1*inch, 0.7*inch, 0.7*inch, 0.7*inch, 0.8*inch, 1*inch])
+    results_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#7c3aed')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('FONTSIZE', (0, 1), (-1, -1), 9),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#F8F8F8')),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CCCCCC')),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
+    ]))
+    story.append(results_table)
+    story.append(Spacer(1, 20))
+    
+    # Footer
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.HexColor('#888888'),
+        alignment=TA_CENTER
+    )
+    story.append(Spacer(1, 30))
+    story.append(Paragraph(
+        f"Rapport généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')} - Terciform",
+        footer_style
+    ))
+    
+    # Générer
+    doc.build(story)
+    buffer.seek(0)
+    
+    filename = f"Bilan_Tests_{parcours}_{mois}_{annee}.pdf"
+    
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
+
+
 # Include router
 app.include_router(api_router)
 
