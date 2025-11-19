@@ -125,6 +125,16 @@ function App() {
               )
             }
           />
+          <Route
+            path="/student/quiz/:resourceId"
+            element={
+              user && user.role === "student" ? (
+                <QuizRunner />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
         </Routes>
       </BrowserRouter>
     </div>
