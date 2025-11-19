@@ -492,9 +492,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "PDF Preview with Robust 3-Tier Fallback System"
-    - "Student Documents Management - Parcours élève Modal"
-  stuck_tasks: []
+    - "Tests de parcours Display Issue in Documents bénéficiaires Tab"
+  stuck_tasks: 
+    - "Tests de parcours Display Issue in Documents bénéficiaires Tab"
   test_all: false
   test_priority: "high_first"
 
