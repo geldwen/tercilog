@@ -3008,37 +3008,40 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
 
           {/* Onglet Tests et évaluation - Layout HORIZONTAL (3 colonnes) */}
           <TabsContent value="tests" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* 1A - Test de positionnement */}
-              <UploadSectionWithNote
-                studentId={student.id}
-                category="positionnement"
-                title="Test de positionnement"
-                buttonText="Cliquez ici pour télécharger le test de positionnement"
-                showNote={true}
-                onOpenEmailModal={handleOpenEmailModal}
-              />
+            {/* Sections upload PDF - UNIQUEMENT pour le parcours Anglais */}
+            {student.parcours === "Anglais" && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                {/* 1A - Test de positionnement */}
+                <UploadSectionWithNote
+                  studentId={student.id}
+                  category="positionnement"
+                  title="Test de positionnement"
+                  buttonText="Cliquez ici pour télécharger le test de positionnement"
+                  showNote={true}
+                  onOpenEmailModal={handleOpenEmailModal}
+                />
 
-              {/* 2A - Évaluations en cours de formation */}
-              <UploadSectionWithNote
-                studentId={student.id}
-                category="evaluation_cours"
-                title="Évaluations en cours de formation"
-                buttonText="Cliquez ici pour télécharger les évaluations en cours de formation"
-                showNote={true}
-                onOpenEmailModal={handleOpenEmailModal}
-              />
+                {/* 2A - Évaluations en cours de formation */}
+                <UploadSectionWithNote
+                  studentId={student.id}
+                  category="evaluation_cours"
+                  title="Évaluations en cours de formation"
+                  buttonText="Cliquez ici pour télécharger les évaluations en cours de formation"
+                  showNote={true}
+                  onOpenEmailModal={handleOpenEmailModal}
+                />
 
-              {/* 3A - Évaluations de fin de formation */}
-              <UploadSectionWithNote
-                studentId={student.id}
-                category="evaluation_fin"
-                title="Évaluations de fin de formation"
-                buttonText="Cliquez ici pour télécharger les évaluations de fin de formation"
-                showNote={true}
-                onOpenEmailModal={handleOpenEmailModal}
-              />
-            </div>
+                {/* 3A - Évaluations de fin de formation */}
+                <UploadSectionWithNote
+                  studentId={student.id}
+                  category="evaluation_fin"
+                  title="Évaluations de fin de formation"
+                  buttonText="Cliquez ici pour télécharger les évaluations de fin de formation"
+                  showNote={true}
+                  onOpenEmailModal={handleOpenEmailModal}
+                />
+              </div>
+            )}
 
             {/* Tests interactifs - EN DESSOUS de la grille */}
             <div className="mt-6 p-4 bg-red-100 border-2 border-red-500">
