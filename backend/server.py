@@ -1595,7 +1595,7 @@ async def generate_magic_report(
     student_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Génère un rapport PDF synthétique des 3 tests de parcours"""
+    """Génère un rapport PDF Qualiopi avec graphique et analyse IA"""
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
@@ -1629,120 +1629,400 @@ async def generate_magic_report(
             detail=f"Les 3 tests doivent être complétés. Statut: T1={bool(t1)}, T2={bool(t2)}, T3={bool(t3)}"
         )
     
-    # Créer le PDF
+    # Générer l'analyse IA pédagogique
+    ai_analysis = await generate_ai_pedagogical_analysis(
+        student_name=student.get('name', 'N/A'),
+        t1_score=t1['score'],
+        t2_score=t2['score'],
+        t3_score=t3['score'],
+        t1_date=t1['submitted_at'].strftime('%d/%m/%Y'),
+        t2_date=t2['submitted_at'].strftime('%d/%m/%Y'),
+        t3_date=t3['submitted_at'].strftime('%d/%m/%Y')
+    )
+    
+    # Générer le graphique d'évolution
+    graph_buffer = generate_evolution_graph(t1['score'], t2['score'], t3['score'])
+    
+    # Créer le PDF Qualiopi
     buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=72,
+        leftMargin=72,
+        topMargin=72,
+        bottomMargin=72
+    )
     story = []
     styles = getSampleStyleSheet()
     
-    # Titre
+    # En-tête avec logo Terciform (si disponible)
+    logo_path = ROOT_DIR / "terciform_logo.png"
+    if logo_path.exists():
+        logo = Image(str(logo_path), width=2*inch, height=0.8*inch)
+        story.append(logo)
+        story.append(Spacer(1, 10))
+    
+    # Titre principal - Style Qualiopi
     title_style = ParagraphStyle(
-        'CustomTitle',
+        'QualiopiTitle',
         parent=styles['Heading1'],
-        fontSize=24,
-        textColor=colors.HexColor('#6D28D9'),
+        fontSize=20,
+        textColor=colors.HexColor('#5f44ff'),
+        alignment=TA_CENTER,
+        spaceAfter=10,
+        fontName='Helvetica-Bold'
+    )
+    story.append(Paragraph("Rapport d'Évolution des Compétences", title_style))
+    
+    subtitle_style = ParagraphStyle(
+        'Subtitle',
+        parent=styles['Normal'],
+        fontSize=12,
+        textColor=colors.HexColor('#666666'),
         alignment=TA_CENTER,
         spaceAfter=30
     )
-    story.append(Paragraph("📊 Rapport d'Évolution Bureautique", title_style))
-    story.append(Spacer(1, 20))
+    story.append(Paragraph("Parcours Bureautique - Analyse Pédagogique", subtitle_style))
     
-    # Informations élève
-    info_style = styles['Normal']
-    story.append(Paragraph(f"<b>Élève:</b> {student.get('name', student.get('full_name', 'N/A'))}", info_style))
-    story.append(Paragraph(f"<b>Parcours:</b> {student.get('parcours', 'N/A')}", info_style))
-    story.append(Paragraph(f"<b>Date du rapport:</b> {datetime.now().strftime('%d/%m/%Y')}", info_style))
+    # Informations élève - Section Qualiopi
+    info_box_style = ParagraphStyle(
+        'InfoBox',
+        parent=styles['Normal'],
+        fontSize=11,
+        leading=16,
+        leftIndent=10
+    )
+    
+    student_name = student.get('name', student.get('full_name', 'N/A'))
+    parcours = student.get('parcours', 'N/A')
+    report_date = datetime.now().strftime('%d/%m/%Y')
+    
+    info_data = [
+        ['Élève:', student_name],
+        ['Parcours:', parcours],
+        ['Date du rapport:', report_date]
+    ]
+    info_table = Table(info_data, colWidths=[120, 350])
+    info_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#F0F0F0')),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#333333')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+        ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CCCCCC'))
+    ]))
+    story.append(info_table)
     story.append(Spacer(1, 30))
     
-    # Tableau des résultats
-    data = [
-        ['Test', 'Date', 'Score', 'Mention'],
+    # Section: Résultats des évaluations
+    section_style = ParagraphStyle(
+        'SectionTitle',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=colors.HexColor('#5f44ff'),
+        spaceAfter=15,
+        spaceBefore=10,
+        fontName='Helvetica-Bold'
+    )
+    story.append(Paragraph("1. Résultats des évaluations", section_style))
+    
+    # Tableau des résultats avec dates
+    results_data = [
+        ['Évaluation', 'Date', 'Score', 'Niveau'],
         [
             'T1 - Positionnement',
             t1['submitted_at'].strftime('%d/%m/%Y'),
             f"{t1['score']}%",
-            get_mention_label(t1['score'])
+            get_mention_label_text(t1['score'])
         ],
         [
             'T2 - Mi-parcours',
             t2['submitted_at'].strftime('%d/%m/%Y'),
             f"{t2['score']}%",
-            get_mention_label(t2['score'])
+            get_mention_label_text(t2['score'])
         ],
         [
             'T3 - Fin de formation',
             t3['submitted_at'].strftime('%d/%m/%Y'),
             f"{t3['score']}%",
-            get_mention_label(t3['score'])
+            get_mention_label_text(t3['score'])
         ]
     ]
     
-    table = Table(data, colWidths=[200, 100, 80, 150])
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#6D28D9')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+    results_table = Table(results_data, colWidths=[150, 100, 80, 140])
+    results_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#5f44ff')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('FONTSIZE', (0, 1), (-1, -1), 11),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 10),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#F8F8F8')),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#DDDDDD')),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')
     ]))
-    story.append(table)
+    story.append(results_table)
     story.append(Spacer(1, 30))
     
-    # Analyse de l'évolution
-    evolution_text = analyze_evolution(t1['score'], t2['score'], t3['score'])
-    story.append(Paragraph("<b>📈 Analyse de l'évolution:</b>", styles['Heading2']))
-    story.append(Spacer(1, 10))
-    story.append(Paragraph(evolution_text, info_style))
+    # Section: Graphique d'évolution
+    story.append(Paragraph("2. Graphique d'évolution", section_style))
+    graph_img = Image(graph_buffer, width=5*inch, height=3*inch)
+    story.append(graph_img)
+    story.append(Spacer(1, 30))
+    
+    # Section: Analyse pédagogique (IA)
+    story.append(Paragraph("3. Analyse pédagogique", section_style))
+    
+    analysis_style = ParagraphStyle(
+        'Analysis',
+        parent=styles['Normal'],
+        fontSize=11,
+        leading=16,
+        alignment=TA_LEFT,
+        leftIndent=10,
+        rightIndent=10
+    )
+    
+    # Formatter l'analyse IA en paragraphes
+    for paragraph in ai_analysis.split('\n\n'):
+        if paragraph.strip():
+            story.append(Paragraph(paragraph.strip(), analysis_style))
+            story.append(Spacer(1, 10))
+    
+    story.append(Spacer(1, 20))
+    
+    # Footer Qualiopi
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.HexColor('#888888'),
+        alignment=TA_CENTER
+    )
+    story.append(Spacer(1, 30))
+    story.append(Paragraph(
+        "Rapport conforme aux critères Qualiopi - Document utilisable comme preuve de suivi pédagogique",
+        footer_style
+    ))
     
     # Générer le PDF
     doc.build(story)
     buffer.seek(0)
     
+    # Nom du fichier avec date et nom de l'élève
+    filename = f"Rapport_Evolution_{student_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+    
     return Response(
         content=buffer.getvalue(),
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f"attachment; filename=rapport-evolution-{student.get('name', 'eleve')}.pdf"
+            "Content-Disposition": f"attachment; filename={filename}"
         }
     )
 
-def get_mention_label(score):
-    """Retourne la mention selon le score"""
-    if score < 30:
-        return "❌ Non acquis"
-    elif score < 60:
-        return "🟠 En cours d'acquisition"
+
+async def generate_ai_pedagogical_analysis(student_name: str, t1_score: float, t2_score: float, t3_score: float, t1_date: str, t2_date: str, t3_date: str) -> str:
+    """Génère une analyse pédagogique via GPT-5 avec Emergent LLM"""
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        
+        # Récupérer la clé Emergent LLM
+        emergent_key = os.environ.get('EMERGENT_LLM_KEY', 'sk-emergent-e102aC2E3A4C11135A')
+        
+        # Créer le chat
+        chat = LlmChat(
+            api_key=emergent_key,
+            session_id=f"magic-report-{datetime.now().timestamp()}",
+            system_message="Tu es un formateur expert en bureautique qui réalise des analyses pédagogiques pour des rapports Qualiopi. Tu fournis des analyses claires, professionnelles et constructives."
+        )
+        chat.with_model("openai", "gpt-5")
+        
+        # Préparer le message
+        prompt = f"""Analyse l'évolution pédagogique de l'élève {student_name} sur son parcours bureautique.
+
+Résultats des évaluations:
+- Test de positionnement (T1) le {t1_date}: {t1_score}%
+- Test mi-parcours (T2) le {t2_date}: {t2_score}%
+- Test fin de formation (T3) le {t3_date}: {t3_score}%
+
+Fournis une analyse pédagogique structurée en 3 parties:
+
+1. Forces identifiées: Points forts et compétences acquises
+
+2. Difficultés rencontrées: Axes d'amélioration et points de vigilance
+
+3. Progression globale: Synthèse de l'évolution avec recommandations
+
+Reste factuel, professionnel et bienveillant. L'analyse doit être utilisable dans un cadre Qualiopi."""
+
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
+        
+        return response
+        
+    except Exception as e:
+        # Fallback sur analyse simple si l'IA échoue
+        logging.error(f"Erreur lors de l'analyse IA: {e}")
+        return generate_fallback_analysis(t1_score, t2_score, t3_score)
+
+
+def generate_fallback_analysis(t1: float, t2: float, t3: float) -> str:
+    """Analyse de secours si l'IA n'est pas disponible"""
+    diff_t1_t3 = t3 - t1
+    
+    analysis = f"""1. Forces identifiées:
+L'élève a obtenu un score final de {t3}%. """
+    
+    if t3 >= 60:
+        analysis += "Les compétences bureautiques sont acquises avec un niveau satisfaisant."
+    elif t3 >= 30:
+        analysis += "Des compétences bureautiques de base ont été acquises."
     else:
-        return "✅ Acquis"
+        analysis += "L'élève a participé activement à la formation."
+    
+    analysis += f"""
+
+2. Difficultés rencontrées:
+Progression totale: {'+' if diff_t1_t3 >= 0 else ''}{diff_t1_t3:.1f} points entre T1 et T3. """
+    
+    if diff_t1_t3 < 0:
+        analysis += "Une baisse des résultats a été observée, nécessitant un accompagnement renforcé."
+    elif diff_t1_t3 < 10:
+        analysis += "La progression reste modérée, des efforts supplémentaires sont encouragés."
+    else:
+        analysis += "L'évolution est positive."
+    
+    analysis += f"""
+
+3. Progression globale:
+Score initial (T1): {t1}%
+Score intermédiaire (T2): {t2}%
+Score final (T3): {t3}%
+
+"""
+    
+    if diff_t1_t3 > 20:
+        analysis += "Excellente progression observée tout au long de la formation. L'élève a démontré une forte capacité d'apprentissage."
+    elif diff_t1_t3 > 10:
+        analysis += "Bonne progression constatée. L'élève a bien assimilé les compétences enseignées."
+    elif diff_t1_t3 > 0:
+        analysis += "Progression positive. L'élève continue de développer ses compétences."
+    else:
+        analysis += "Un accompagnement personnalisé est recommandé pour consolider les acquis."
+    
+    return analysis
+
+
+def generate_evolution_graph(t1: float, t2: float, t3: float) -> io.BytesIO:
+    """Génère un graphique d'évolution avec matplotlib"""
+    import matplotlib
+    matplotlib.use('Agg')  # Backend non-interactif
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+    
+    # Créer la figure
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    # Données
+    tests = ['T1\nPositionnement', 'T2\nMi-parcours', 'T3\nFin de formation']
+    scores = [t1, t2, t3]
+    
+    # Tracer la courbe
+    ax.plot(tests, scores, marker='o', linewidth=3, markersize=12, 
+            color='#5f44ff', label='Évolution des scores')
+    
+    # Ajouter les valeurs sur les points
+    for i, score in enumerate(scores):
+        ax.annotate(f'{score}%', 
+                   xy=(i, score), 
+                   xytext=(0, 10),
+                   textcoords='offset points',
+                   ha='center',
+                   fontsize=12,
+                   fontweight='bold',
+                   color='#5f44ff')
+    
+    # Zones de compétences
+    ax.axhspan(0, 30, alpha=0.1, color='red', label='Non acquis')
+    ax.axhspan(30, 60, alpha=0.1, color='orange', label='En cours')
+    ax.axhspan(60, 100, alpha=0.1, color='green', label='Acquis')
+    
+    # Configuration
+    ax.set_ylim(0, 100)
+    ax.set_ylabel('Score (%)', fontsize=12, fontweight='bold')
+    ax.set_title('Évolution des compétences bureautiques', 
+                fontsize=14, fontweight='bold', pad=20)
+    ax.grid(True, alpha=0.3, linestyle='--')
+    ax.legend(loc='upper left', fontsize=10)
+    
+    # Style
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    
+    # Sauvegarder dans un buffer
+    buffer = io.BytesIO()
+    plt.tight_layout()
+    plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
+    plt.close(fig)
+    buffer.seek(0)
+    
+    return buffer
+
+
+def get_mention_label(score):
+    """Retourne la mention selon le score (avec emojis)"""
+    if score < 30:
+        return "Non acquis"
+    elif score < 60:
+        return "En cours d'acquisition"
+    else:
+        return "Acquis"
+
+
+def get_mention_label_text(score):
+    """Retourne la mention selon le score (texte seul pour PDF)"""
+    if score < 30:
+        return "Non acquis"
+    elif score < 60:
+        return "En cours"
+    else:
+        return "Acquis"
+
 
 def analyze_evolution(t1, t2, t3):
-    """Analyse l'évolution des scores"""
+    """Analyse l'évolution des scores (fonction conservée pour compatibilité)"""
     diff_t1_t2 = t2 - t1
     diff_t2_t3 = t3 - t2
     diff_t1_t3 = t3 - t1
     
     analysis = f"""
-    <b>Score T1 (Positionnement):</b> {t1}%<br/>
-    <b>Score T2 (Mi-parcours):</b> {t2}% ({'+' if diff_t1_t2 >= 0 else ''}{diff_t1_t2:.2f} points)<br/>
-    <b>Score T3 (Fin):</b> {t3}% ({'+' if diff_t2_t3 >= 0 else ''}{diff_t2_t3:.2f} points)<br/>
-    <br/>
-    <b>Progression globale:</b> {'+' if diff_t1_t3 >= 0 else ''}{diff_t1_t3:.2f} points entre T1 et T3<br/>
-    <br/>
+    Score T1 (Positionnement): {t1}%
+    Score T2 (Mi-parcours): {t2}% ({'+' if diff_t1_t2 >= 0 else ''}{diff_t1_t2:.2f} points)
+    Score T3 (Fin): {t3}% ({'+' if diff_t2_t3 >= 0 else ''}{diff_t2_t3:.2f} points)
+    
+    Progression globale: {'+' if diff_t1_t3 >= 0 else ''}{diff_t1_t3:.2f} points entre T1 et T3
     """
     
     if diff_t1_t3 > 20:
-        analysis += "<b>✅ Excellente progression!</b> L'élève a montré une forte amélioration de ses compétences bureautiques."
+        analysis += "\n\nExcellente progression! L'élève a montré une forte amélioration de ses compétences bureautiques."
     elif diff_t1_t3 > 10:
-        analysis += "<b>👍 Bonne progression.</b> L'élève a progressé de manière satisfaisante."
+        analysis += "\n\nBonne progression. L'élève a progressé de manière satisfaisante."
     elif diff_t1_t3 > 0:
-        analysis += "<b>📈 Progression modérée.</b> L'élève a légèrement progressé."
+        analysis += "\n\nProgression modérée. L'élève a légèrement progressé."
     elif diff_t1_t3 == 0:
-        analysis += "<b>➡️ Stagnation.</b> L'élève maintient son niveau sans progression notable."
+        analysis += "\n\nStagnation. L'élève maintient son niveau sans progression notable."
     else:
-        analysis += "<b>⚠️ Régression.</b> L'élève a obtenu un score inférieur au test initial. Un accompagnement renforcé est recommandé."
+        analysis += "\n\nRégression. L'élève a obtenu un score inférieur au test initial. Un accompagnement renforcé est recommandé."
     
     return analysis
 
