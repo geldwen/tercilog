@@ -1453,6 +1453,129 @@ async def generate_student_bilan(
     )
 
 
+# ===========================
+# QUIZ / TEST TEMPLATES ROUTES
+# ===========================
+
+@api_router.get("/test-templates/{template_id}")
+async def get_test_template(
+    template_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer un template de quiz/test pour affichage à l'élève"""
+    if current_user.role not in ["student", "teacher"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    template = await db.test_templates.find_one({"id": template_id}, {"_id": 0})
+    
+    if not template:
+        raise HTTPException(status_code=404, detail="Test template not found")
+    
+    return template
+
+
+@api_router.post("/student-resources/{resource_id}/submit")
+async def submit_quiz(
+    resource_id: str,
+    answers: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Soumettre un quiz et calculer le score automatiquement
+    answers = {"Q1": ["B", "C"], "Q2": ["B"], ...}
+    """
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer la ressource
+    resource = await db.student_resources.find_one({"id": resource_id}, {"_id": 0})
+    
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    
+    # Vérifier que l'élève est bien le propriétaire
+    if resource.get("student_id") != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer le template du test pour avoir les bonnes réponses
+    # On cherche par template_name qui devrait correspondre
+    template = await db.test_templates.find_one(
+        {"template_name": resource.get("template_name")},
+        {"_id": 0}
+    )
+    
+    if not template:
+        raise HTTPException(status_code=404, detail="Test template not found")
+    
+    # Calculer le score
+    total_score = 0
+    max_score = 0
+    
+    for section in template.get("sections", []):
+        for question in section.get("questions", []):
+            question_id = question.get("id")
+            correct_answers = set(question.get("correctAnswers", []))
+            points = question.get("points", 1)
+            max_score += points
+            
+            # Récupérer les réponses de l'élève
+            student_answers = answers.get("answers", {}).get(question_id, [])
+            if not isinstance(student_answers, list):
+                student_answers = [student_answers]
+            
+            student_answers_set = set(student_answers)
+            
+            # Comparer les réponses
+            if student_answers_set == correct_answers:
+                total_score += points
+    
+    # Calculer le pourcentage
+    score_percentage = (total_score / max_score * 100) if max_score > 0 else 0
+    
+    # Mettre à jour la ressource avec le score et le statut
+    await db.student_resources.update_one(
+        {"id": resource_id},
+        {
+            "$set": {
+                "status": "SOUMIS",
+                "score": round(score_percentage, 2),
+                "submitted_at": datetime.now(timezone.utc)
+            }
+        }
+    )
+    
+    return {
+        "success": True,
+        "score": round(score_percentage, 2),
+        "points": f"{total_score}/{max_score}",
+        "status": "SOUMIS"
+    }
+
+
+@api_router.get("/students/{student_id}/resources")
+async def get_student_resources(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer toutes les ressources assignées à un élève"""
+    if current_user.role == "student" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    if current_user.role == "teacher":
+        # Vérifier que l'élève appartient bien à ce professeur
+        student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+        if not student or student.get("teacher_id") != current_user.id:
+            raise HTTPException(status_code=403, detail="Access denied")
+    
+    resources = await db.student_resources.find(
+        {"student_id": student_id},
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    return {"resources": resources}
+
+
+
 @api_router.get("/teachers/qualite-report")
 async def get_qualite_report(
     periodeType: str,
