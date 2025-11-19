@@ -451,6 +451,18 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
     }
   };
 
+  const loadStudentResources = async () => {
+    try {
+      const response = await axios.get(
+        `${API}/students/${studentId}/resources`,
+        { headers: getAuthHeaders() }
+      );
+      setStudentResources(response.data.resources || []);
+    } catch (error) {
+      console.error("Error loading student resources:", error);
+    }
+  };
+
   const formatDateTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
