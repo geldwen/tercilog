@@ -603,6 +603,11 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
 
       {/* Affichage des tests interactifs soumis si subType est fourni */}
       {subType && <InteractiveTestsDisplay studentId={studentId} subType={subType} />}
+      
+      {/* DEBUG: Afficher subType */}
+      <div className="mt-2 text-xs text-red-600 border border-red-300 p-2 rounded">
+        DEBUG: subType = "{subType || 'undefined'}"
+      </div>
     </div>
   );
 }
