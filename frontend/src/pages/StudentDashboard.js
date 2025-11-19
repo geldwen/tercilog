@@ -607,9 +607,9 @@ export default function StudentDashboard({ user, onLogout }) {
                                     {resource.template_name}
                                   </CardTitle>
                                   <p className="text-sm text-gray-600 mt-1">
-                                    Type: {resource.sub_type === 'POSITIONNEMENT' ? 'Test de positionnement' : 
-                                           resource.sub_type === 'MI_PARCOURS' ? 'Test de mi-parcours' : 
-                                           'Test de fin de formation'}
+                                    Type: {resource.sub_type === 'POSITIONNEMENT' ? 'T1 - Test de positionnement' : 
+                                           resource.sub_type === 'MI_PARCOURS' ? 'T2 - Test à mi parcours' : 
+                                           'T3 - Test de fin de formation'}
                                   </p>
                                 </div>
                                 <div className="text-right">
