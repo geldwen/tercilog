@@ -658,30 +658,6 @@ export default function StudentDashboard({ user, onLogout }) {
                   </div>
                 )}
 
-                {/* Questionnaires Qualiopi */}
-                {studentResources.filter(r => r.category === 'QUESTIONNAIRE_QUALIOPI').length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3 mt-6" style={{color: TERCIFORM_BLUE}}>
-                      Questionnaires de formation
-                    </h3>
-                    <div className="space-y-4">
-                      {studentResources
-                        .filter(r => r.category === 'QUESTIONNAIRE_QUALIOPI')
-                        .map(resource => (
-                          <Card key={resource.id} className="shadow-lg">
-                            <CardHeader>
-                              <CardTitle className="text-lg" style={{color: TERCIFORM_BLUE}}>
-                                {resource.template_name}
-                              </CardTitle>
-                              <p className="text-sm text-gray-600">
-                                À compléter via l'onglet "Mes objectifs"
-                              </p>
-                            </CardHeader>
-                          </Card>
-                        ))}
-                    </div>
-                  </div>
-                )}
               </>
             )}
           </div>
