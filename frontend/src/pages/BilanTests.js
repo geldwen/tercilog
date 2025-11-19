@@ -404,7 +404,7 @@ export default function BilanTests() {
                           onClick={async () => {
                             try {
                               setOpeningId(row.id);
-                              toast.info('Ouverture du rapport...');
+                              toast.info('Génération du rapport...');
                               
                               const response = await axios.get(
                                 `${API}/students/${row.id}/magic-report`,
@@ -424,13 +424,13 @@ export default function BilanTests() {
                                 window.URL.revokeObjectURL(url);
                               }, 100);
                               
-                              toast.success('Rapport ouvert!');
+                              toast.success('Rapport ouvert dans un nouvel onglet!');
                             } catch (error) {
                               console.error('Erreur:', error);
                               if (error.response?.status === 400) {
-                                toast.error('Les 3 tests doivent être complétés pour ce rapport');
+                                toast.error('Les 3 tests doivent être complétés pour générer ce rapport');
                               } else {
-                                toast.error('Erreur lors de l\'ouverture du rapport');
+                                toast.error('Erreur lors de la génération du rapport');
                               }
                             } finally {
                               setOpeningId(null);
@@ -440,7 +440,7 @@ export default function BilanTests() {
                           {openingId === row.id ? (
                             <>
                               <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                              Ouverture...
+                              Génération...
                             </>
                           ) : (
                             'Ouvrir'
