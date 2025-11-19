@@ -20,18 +20,22 @@ const getAuthHeaders = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-// Supprimer l'erreur ResizeObserver qui est un avertissement non critique
-useEffect(() => {
-  const resizeObserverErrHandler = (e) => {
-    if (e.message === 'ResizeObserver loop completed with undelivered notifications.') {
-      e.stopImmediatePropagation();
-    }
-  };
-  window.addEventListener('error', resizeObserverErrHandler);
-  return () => window.removeEventListener('error', resizeObserverErrHandler);
-}, []);
-
 export default function BilanTests() {
+  const navigate = useNavigate();
+  
+  // Supprimer l'erreur ResizeObserver qui est un avertissement non critique
+  useEffect(() => {
+    const resizeObserverErrHandler = (e) => {
+      if (e.message === 'ResizeObserver loop completed with undelivered notifications.') {
+        const resizeObserverErr = e;
+        if (resizeObserverErr) {
+          e.stopImmediatePropagation();
+        }
+      }
+    };
+    window.addEventListener('error', resizeObserverErrHandler);
+    return () => window.removeEventListener('error', resizeObserverErrHandler);
+  }, []);
   const [periode, setPeriode] = useState('mois');
   const [mois, setMois] = useState('11');
   const [annee, setAnnee] = useState('2025');
