@@ -1778,26 +1778,36 @@ async def generate_magic_report(
     story.append(Paragraph("2. Graphique d'évolution", section_style))
     graph_img = Image(graph_buffer, width=5*inch, height=3*inch)
     story.append(graph_img)
+    story.append(Spacer(1, 10))
+    
+    # Indicateur de tendance sous le graphique
+    tendance_text = get_tendance_text(t1['score'], t3['score'])
+    tendance_style = ParagraphStyle(
+        'Tendance',
+        parent=styles['Normal'],
+        fontSize=11,
+        textColor=colors.HexColor('#5f44ff'),
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+    story.append(Paragraph(tendance_text, tendance_style))
     story.append(Spacer(1, 30))
     
-    # Section: Analyse pédagogique (IA)
+    # Section: Analyse pédagogique (IA) - VERSION SYNTHÉTIQUE
     story.append(Paragraph("3. Analyse pédagogique", section_style))
     
     analysis_style = ParagraphStyle(
         'Analysis',
         parent=styles['Normal'],
-        fontSize=11,
-        leading=16,
+        fontSize=10,
+        leading=14,
         alignment=TA_LEFT,
         leftIndent=10,
         rightIndent=10
     )
     
-    # Formatter l'analyse IA en paragraphes
-    for paragraph in ai_analysis.split('\n\n'):
-        if paragraph.strip():
-            story.append(Paragraph(paragraph.strip(), analysis_style))
-            story.append(Spacer(1, 10))
+    # L'analyse IA est déjà formatée et courte (10 lignes max)
+    story.append(Paragraph(ai_analysis.replace('\n', '<br/>'), analysis_style))
     
     story.append(Spacer(1, 20))
     
