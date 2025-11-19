@@ -120,7 +120,7 @@ function MagicReportSendButton({ studentId, studentName }) {
   };
 
   return (
-    <div className="mt-8 mb-6 flex flex-col items-center">
+    <div className="flex flex-col items-center">
       <Button
         onClick={handleSendReport}
         disabled={isSending}
@@ -135,7 +135,7 @@ function MagicReportSendButton({ studentId, studentName }) {
         ) : (
           <>
             <SendHorizonal className="w-5 h-5 mr-2" />
-            Envoyer le rapport par email
+            Envoyer par email
           </>
         )}
       </Button>
