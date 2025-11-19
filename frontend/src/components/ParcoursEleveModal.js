@@ -84,40 +84,64 @@ function InteractiveTestsDisplay({ studentId, subType }) {
     return <div className="text-xs text-gray-500">Aucun test interactif soumis (subType: {subType})</div>;
   }
 
+  // Fonction pour obtenir la mention selon le score
+  const getMention = (score) => {
+    if (score < 30) {
+      return { label: 'Non acquis', color: 'bg-red-100 text-red-800 border-red-300' };
+    } else if (score < 60) {
+      return { label: 'En cours d\'acquisitions', color: 'bg-orange-100 text-orange-800 border-orange-300' };
+    } else {
+      return { label: 'Acquis', color: 'bg-green-100 text-green-800 border-green-300' };
+    }
+  };
+
   return (
     <>
-      <div className="mt-4 space-y-2">
+      <div className="mt-4 space-y-3">
         <h4 className="text-sm font-semibold text-gray-700 mb-2">Tests interactifs soumis:</h4>
-        {tests.map(test => (
-          <div key={test.id} className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex-1">
-              <p className="font-medium text-gray-900">{test.template_name}</p>
-              <div className="flex gap-4 text-sm text-gray-600 mt-1">
-                <span>✓ Complété le {new Date(test.submitted_at).toLocaleDateString('fr-FR')}</span>
-                <span className="font-semibold text-green-600">Score: {test.score}%</span>
+        {tests.map(test => {
+          const mention = getMention(test.score);
+          return (
+            <div key={test.id} className={`p-6 border-2 rounded-xl ${mention.color}`}>
+              {/* Score en gros au centre */}
+              <div className="text-center mb-4">
+                <div className="text-6xl font-bold mb-2">{test.score}%</div>
+                <div className={`inline-block px-4 py-2 rounded-full font-semibold text-lg ${mention.color}`}>
+                  {mention.label}
+                </div>
+              </div>
+              
+              {/* Informations du test */}
+              <div className="text-center mb-4">
+                <p className="font-bold text-gray-900 text-lg mb-1">{test.template_name}</p>
+                <p className="text-sm text-gray-600">
+                  Complété le {new Date(test.submitted_at).toLocaleDateString('fr-FR')}
+                </p>
+              </div>
+              
+              {/* Boutons */}
+              <div className="flex gap-2 justify-center">
+                <Button
+                  onClick={() => handleViewTest(test)}
+                  size="sm"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                >
+                  <FileText className="w-4 h-4 mr-1" />
+                  Visualiser les résultats
+                </Button>
+                <Button
+                  onClick={() => toast.info("Fonction d'envoi par email en cours de développement")}
+                  size="sm"
+                  variant="outline"
+                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                >
+                  <Mail className="w-4 h-4 mr-1" />
+                  Envoyer
+                </Button>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => handleViewTest(test)}
-                size="sm"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-              >
-                <FileText className="w-4 h-4 mr-1" />
-                Consulter
-              </Button>
-              <Button
-                onClick={() => toast.info("Fonction d'envoi par email en cours de développement")}
-                size="sm"
-                variant="outline"
-                className="border-blue-600 text-blue-600 hover:bg-blue-50"
-              >
-                <Mail className="w-4 h-4 mr-1" />
-                Envoyer
-              </Button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Modal de consultation du test avec correction */}
