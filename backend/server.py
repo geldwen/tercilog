@@ -1883,12 +1883,17 @@ async def generate_magic_report(
     )
 
 
+class SendReportRequest(BaseModel):
+    email: str
+
+
 @api_router.post("/students/{student_id}/send-report")
 async def send_magic_report_email(
     student_id: str,
+    request: SendReportRequest,
     current_user: User = Depends(get_current_user)
 ):
-    """Envoie le rapport d'évolution par email à l'étudiant"""
+    """Envoie le rapport d'évolution par email à une adresse spécifiée"""
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
@@ -1901,10 +1906,10 @@ async def send_magic_report_email(
     if student.get("teacher_id") != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
     
-    # Vérifier que l'élève a un email
-    student_email = student.get("email")
-    if not student_email:
-        raise HTTPException(status_code=400, detail="Student has no email address")
+    # Utiliser l'email fourni dans la requête
+    recipient_email = request.email
+    if not recipient_email or '@' not in recipient_email:
+        raise HTTPException(status_code=400, detail="Invalid email address")
     
     # Récupérer les 3 tests
     resources = await db.student_resources.find(
