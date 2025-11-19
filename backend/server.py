@@ -1880,6 +1880,186 @@ async def generate_magic_report(
     )
 
 
+@api_router.post("/students/{student_id}/send-report")
+async def send_magic_report_email(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Envoie le rapport d'évolution par email à l'étudiant"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Vérifier que l'élève appartient au professeur
+    if student.get("teacher_id") != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Vérifier que l'élève a un email
+    student_email = student.get("email")
+    if not student_email:
+        raise HTTPException(status_code=400, detail="Student has no email address")
+    
+    # Récupérer les 3 tests
+    resources = await db.student_resources.find(
+        {"student_id": student_id, "category": "TEST_PARCOURS", "status": "SOUMIS"},
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    # Trier par sub_type
+    tests_map = {}
+    for r in resources:
+        tests_map[r['sub_type']] = r
+    
+    t1 = tests_map.get('POSITIONNEMENT')
+    t2 = tests_map.get('MI_PARCOURS')
+    t3 = tests_map.get('FIN')
+    
+    if not t1 or not t2 or not t3:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Les 3 tests doivent être complétés pour envoyer le rapport. Statut: T1={bool(t1)}, T2={bool(t2)}, T3={bool(t3)}"
+        )
+    
+    # Générer le PDF (réutilisation de la logique existante)
+    try:
+        # Générer l'analyse IA
+        ai_analysis = await generate_ai_pedagogical_analysis(
+            student_name=student.get('name', 'N/A'),
+            t1_score=t1['score'],
+            t2_score=t2['score'],
+            t3_score=t3['score'],
+            t1_date=t1['submitted_at'].strftime('%d/%m/%Y'),
+            t2_date=t2['submitted_at'].strftime('%d/%m/%Y'),
+            t3_date=t3['submitted_at'].strftime('%d/%m/%Y')
+        )
+        
+        # Générer le graphique
+        graph_buffer = generate_evolution_graph(t1['score'], t2['score'], t3['score'])
+        
+        # Créer le PDF complet (code simplifié - réutilise la logique)
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            rightMargin=72,
+            leftMargin=72,
+            topMargin=72,
+            bottomMargin=72
+        )
+        story = []
+        styles = getSampleStyleSheet()
+        
+        # [Code de génération du PDF identique à magic-report - simplifié ici]
+        # On peut appeler une fonction helper pour éviter la duplication
+        
+        # Pour l'instant, générons un PDF simple
+        title_style = ParagraphStyle(
+            'QualiopiTitle',
+            parent=styles['Heading1'],
+            fontSize=20,
+            textColor=colors.HexColor('#5f44ff'),
+            alignment=TA_CENTER,
+            spaceAfter=10,
+            fontName='Helvetica-Bold'
+        )
+        story.append(Paragraph("Rapport d'Évolution des Compétences", title_style))
+        story.append(Spacer(1, 20))
+        
+        # Informations
+        student_name = student.get('name', student.get('full_name', 'N/A'))
+        info_style = styles['Normal']
+        story.append(Paragraph(f"Élève: {student_name}", info_style))
+        story.append(Paragraph(f"Parcours: {student.get('parcours', 'N/A')}", info_style))
+        story.append(Paragraph(f"Date: {datetime.now().strftime('%d/%m/%Y')}", info_style))
+        story.append(Spacer(1, 30))
+        
+        # Résultats
+        results_data = [
+            ['Évaluation', 'Date', 'Score'],
+            ['T1 - Positionnement', t1['submitted_at'].strftime('%d/%m/%Y'), f"{t1['score']}%"],
+            ['T2 - Mi-parcours', t2['submitted_at'].strftime('%d/%m/%Y'), f"{t2['score']}%"],
+            ['T3 - Fin de formation', t3['submitted_at'].strftime('%d/%m/%Y'), f"{t3['score']}%"]
+        ]
+        results_table = Table(results_data)
+        results_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#5f44ff')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        story.append(results_table)
+        story.append(Spacer(1, 20))
+        
+        # Graphique
+        graph_img = Image(graph_buffer, width=5*inch, height=3*inch)
+        story.append(graph_img)
+        story.append(Spacer(1, 10))
+        
+        # Tendance
+        tendance_text = get_tendance_text(t1['score'], t3['score'])
+        tendance_style = ParagraphStyle('Tendance', parent=styles['Normal'], fontSize=11, alignment=TA_CENTER, fontName='Helvetica-Bold')
+        story.append(Paragraph(tendance_text, tendance_style))
+        story.append(Spacer(1, 20))
+        
+        # Analyse IA
+        story.append(Paragraph("Analyse pédagogique", styles['Heading2']))
+        analysis_style = ParagraphStyle('Analysis', parent=styles['Normal'], fontSize=10, leading=14)
+        story.append(Paragraph(ai_analysis.replace('\n', '<br/>'), analysis_style))
+        
+        doc.build(story)
+        buffer.seek(0)
+        pdf_content = buffer.getvalue()
+        
+        # Nom du fichier
+        filename = f"Rapport_Evolution_{student_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+        
+        # Préparer l'email HTML
+        email_body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #5f44ff;">Rapport d'Évolution - Terciform</h2>
+                <p>Bonjour {student_name},</p>
+                <p>Veuillez trouver ci-joint votre rapport d'évolution de compétences pour le parcours <strong>{student.get('parcours', 'Bureautique')}</strong>.</p>
+                <p>Ce rapport synthétise vos résultats aux trois évaluations (T1, T2, T3) et présente une analyse pédagogique de votre progression.</p>
+                <p><strong>Résultats:</strong></p>
+                <ul>
+                    <li>T1 (Positionnement): {t1['score']}%</li>
+                    <li>T2 (Mi-parcours): {t2['score']}%</li>
+                    <li>T3 (Fin de formation): {t3['score']}%</li>
+                </ul>
+                <p>Cordialement,<br/>
+                <strong>L'équipe Terciform</strong></p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Envoyer l'email avec la pièce jointe
+        success = send_email_with_attachment(
+            to_email=student_email,
+            subject=f"Rapport d'évolution - {student.get('parcours', 'Bureautique')} - Terciform",
+            html_body=email_body,
+            pdf_content=pdf_content,
+            filename=filename
+        )
+        
+        if success:
+            return {"success": True, "message": f"Rapport envoyé à {student_email}"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to send email - check SMTP configuration")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error sending report: {e}")
+        raise HTTPException(status_code=500, detail=f"Error generating or sending report: {str(e)}")
+
+
 async def generate_ai_pedagogical_analysis(student_name: str, t1_score: float, t2_score: float, t3_score: float, t1_date: str, t2_date: str, t3_date: str) -> str:
     """Génère une analyse pédagogique SYNTHÉTIQUE via GPT-5 (10 lignes max)"""
     try:
