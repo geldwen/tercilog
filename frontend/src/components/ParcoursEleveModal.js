@@ -62,26 +62,24 @@ function MagicReportButton({ studentId, studentName }) {
   };
 
   return (
-    <div className="mt-8 mb-6 flex justify-center">
-      <Button
-        onClick={handleGenerateReport}
-        disabled={isGenerating}
-        className="bg-gradient-to-r from-[#5f44ff] to-[#8b5cf6] hover:from-[#4f35e6] hover:to-[#7b4ce6] text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-        size="lg"
-      >
-        {isGenerating ? (
-          <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            Génération en cours...
-          </>
-        ) : (
-          <>
-            <Wand2 className="w-5 h-5 mr-2" />
-            Générer le rapport d'évolution
-          </>
-        )}
-      </Button>
-    </div>
+    <Button
+      onClick={handleGenerateReport}
+      disabled={isGenerating}
+      className="bg-gradient-to-r from-[#5f44ff] to-[#8b5cf6] hover:from-[#4f35e6] hover:to-[#7b4ce6] text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+      size="lg"
+    >
+      {isGenerating ? (
+        <>
+          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+          Génération en cours...
+        </>
+      ) : (
+        <>
+          <Wand2 className="w-5 h-5 mr-2" />
+          Générer le rapport d'évolution
+        </>
+      )}
+    </Button>
   );
 }
 
