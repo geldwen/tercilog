@@ -480,6 +480,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Interactive Quiz System for Office Skills Tests"
     - "PDF Preview with Robust 3-Tier Fallback System"
     - "Student Documents Management - Parcours élève Modal"
     - "Documents bénéficiaires - Formation Needs Endpoint"
