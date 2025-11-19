@@ -21,16 +21,15 @@ const getAuthHeaders = () => {
 };
 
 
-// Section complète des rapports magiques avec 3 boutons
+// Section rapports d'évolution (2 boutons simplifiés)
 function MagicReportSection({ studentId, studentName }) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isViewMode, setIsViewMode] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailRecipient, setEmailRecipient] = useState("");
 
   // Générer et Télécharger
-  const handleDownload = async () => {
+  const handleGenerateAndDownload = async () => {
     try {
       setIsGenerating(true);
       toast.info("Génération du rapport en cours...");
@@ -56,42 +55,12 @@ function MagicReportSection({ studentId, studentName }) {
     } catch (error) {
       console.error("Erreur:", error);
       if (error.response?.status === 400) {
-        toast.error("Les 3 tests doivent être complétés");
+        toast.error("Les 3 tests (T1, T2, T3) doivent être complétés");
       } else {
-        toast.error("Erreur lors de la génération");
+        toast.error("Erreur lors de la génération du rapport");
       }
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  // Générer et Visualiser
-  const handleView = async () => {
-    try {
-      setIsViewMode(true);
-      toast.info("Ouverture du rapport...");
-
-      const response = await axios.get(
-        `${API}/students/${studentId}/magic-report`,
-        {
-          headers: getAuthHeaders(),
-          responseType: 'blob'
-        }
-      );
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      window.open(url, '_blank');
-      
-      toast.success("Rapport ouvert dans un nouvel onglet");
-    } catch (error) {
-      console.error("Erreur:", error);
-      if (error.response?.status === 400) {
-        toast.error("Les 3 tests doivent être complétés");
-      } else {
-        toast.error("Erreur lors de l'ouverture");
-      }
-    } finally {
-      setIsViewMode(false);
     }
   };
 
@@ -135,11 +104,11 @@ function MagicReportSection({ studentId, studentName }) {
     <>
       <div className="mt-8 mb-6 space-y-3">
         <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch">
-          {/* Bouton 1: Télécharger */}
+          {/* Bouton 1: Générer & Télécharger */}
           <Button
-            onClick={handleDownload}
+            onClick={handleGenerateAndDownload}
             disabled={isGenerating}
-            className="bg-gradient-to-r from-[#5f44ff] to-[#7c3aed] hover:from-[#4f35e6] hover:to-[#6b29d4] text-white font-semibold py-3 px-5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+            className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
             size="lg"
           >
             {isGenerating ? (
@@ -150,39 +119,19 @@ function MagicReportSection({ studentId, studentName }) {
             ) : (
               <>
                 <Download className="w-5 h-5" />
-                <span>Télécharger le rapport</span>
+                <span>Générer & télécharger le rapport d'évolution</span>
               </>
             )}
           </Button>
 
-          {/* Bouton 2: Visualiser */}
-          <Button
-            onClick={handleView}
-            disabled={isViewMode}
-            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3 px-5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
-            size="lg"
-          >
-            {isViewMode ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Ouverture...</span>
-              </>
-            ) : (
-              <>
-                <FileText className="w-5 h-5" />
-                <span>Visualiser le rapport</span>
-              </>
-            )}
-          </Button>
-
-          {/* Bouton 3: Envoyer par email */}
+          {/* Bouton 2: Envoyer par email */}
           <Button
             onClick={() => setShowEmailModal(true)}
-            className="bg-gradient-to-r from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-white font-semibold py-3 px-5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
             size="lg"
           >
             <SendHorizonal className="w-5 h-5" />
-            <span>Envoyer par email</span>
+            <span>Envoyer le rapport par email</span>
           </Button>
         </div>
       </div>
@@ -191,7 +140,7 @@ function MagicReportSection({ studentId, studentName }) {
       <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-[#5f44ff]">
+            <DialogTitle className="text-xl font-bold text-purple-600">
               Envoyer le rapport par email
             </DialogTitle>
           </DialogHeader>
@@ -199,7 +148,7 @@ function MagicReportSection({ studentId, studentName }) {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="email-recipient" className="text-sm font-medium">
-                Email du destinataire
+                Adresse email du destinataire
               </Label>
               <Input
                 id="email-recipient"
@@ -228,7 +177,7 @@ function MagicReportSection({ studentId, studentName }) {
             <Button
               onClick={handleSendEmail}
               disabled={isSending || !emailRecipient}
-              className="bg-[#5f44ff] hover:bg-[#4f35e6] text-white"
+              className="bg-purple-600 hover:bg-purple-700 text-white"
             >
               {isSending ? (
                 <>
