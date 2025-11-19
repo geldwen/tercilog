@@ -560,6 +560,9 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
           </CardContent>
         </Card>
       )}
+
+      {/* Affichage des tests interactifs soumis si subType est fourni */}
+      {subType && <InteractiveTestsDisplay studentId={studentId} subType={subType} />}
     </div>
   );
 }
