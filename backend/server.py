@@ -142,6 +142,7 @@ class StudentResource(BaseModel):
     category: str  # "TEST_PARCOURS" ou "QUESTIONNAIRE_QUALIOPI"
     sub_type: str  # "POSITIONNEMENT" | "MI_PARCOURS" | "FIN"
     template_name: str  # Nom du modèle choisi
+    template_id: Optional[str] = None  # ID du template dans test_templates
     resource_type: str = "FORM"  # "FILE" ou "FORM"
     status: str = "NON_COMMENCE"  # "NON_COMMENCE" | "EN_COURS" | "SOUMIS"
     score: Optional[float] = None
