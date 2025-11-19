@@ -398,6 +398,45 @@ def send_email(to_email: str, subject: str, html_body: str):
         return False
 
 
+def send_email_with_attachment(to_email: str, subject: str, html_body: str, pdf_content: bytes, filename: str):
+    """Send email with PDF attachment using Gmail SMTP"""
+    try:
+        gmail_user = os.environ.get('GMAIL_USER')
+        gmail_password = os.environ.get('GMAIL_PASSWORD')
+        
+        if not gmail_user or not gmail_password:
+            logger.warning("Gmail credentials not configured")
+            return False
+        
+        msg = MIMEMultipart()
+        msg['From'] = gmail_user
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        
+        # Corps de l'email en HTML
+        html_part = MIMEText(html_body, 'html')
+        msg.attach(html_part)
+        
+        # Pièce jointe PDF
+        pdf_attachment = MIMEBase('application', 'pdf')
+        pdf_attachment.set_payload(pdf_content)
+        encoders.encode_base64(pdf_attachment)
+        pdf_attachment.add_header('Content-Disposition', f'attachment; filename={filename}')
+        msg.attach(pdf_attachment)
+        
+        # Envoi
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login(gmail_user, gmail_password)
+        server.sendmail(gmail_user, to_email, msg.as_string())
+        server.quit()
+        
+        logger.info(f"Email with attachment sent to {to_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send email with attachment: {e}")
+        return False
+
+
 def send_attendance_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str):
     """Envoyer l'email d'émargement après la fin de séance"""
     
