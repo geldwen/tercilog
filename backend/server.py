@@ -6183,6 +6183,27 @@ async def get_bilan_tests(
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
+    # Calculer les dates de début et fin pour le filtrage
+    try:
+        annee_int = int(annee)
+        mois_int = int(mois)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid year or month")
+    
+    if periode == "mois":
+        # Filtrer sur un mois spécifique
+        # Début du mois
+        date_debut = datetime(annee_int, mois_int, 1, tzinfo=timezone.utc)
+        # Fin du mois (dernier jour à 23:59:59)
+        if mois_int == 12:
+            date_fin = datetime(annee_int + 1, 1, 1, tzinfo=timezone.utc)
+        else:
+            date_fin = datetime(annee_int, mois_int + 1, 1, tzinfo=timezone.utc)
+    else:
+        # Filtrer sur toute l'année
+        date_debut = datetime(annee_int, 1, 1, tzinfo=timezone.utc)
+        date_fin = datetime(annee_int + 1, 1, 1, tzinfo=timezone.utc)
+    
     # Récupérer tous les élèves du professeur
     students = await db.users.find(
         {"role": "student", "teacher_id": current_user.id},
@@ -6197,12 +6218,16 @@ async def get_bilan_tests(
         if parcours != "tous" and student_parcours != parcours.lower():
             continue
         
-        # Récupérer les tests du student
+        # Récupérer les tests du student avec filtre de date
         resources = await db.student_resources.find(
             {
                 "student_id": student['id'],
                 "category": "TEST_PARCOURS",
-                "status": "SOUMIS"
+                "status": "SOUMIS",
+                "submitted_at": {
+                    "$gte": date_debut,
+                    "$lt": date_fin
+                }
             },
             {"_id": 0}
         ).to_list(length=None)
