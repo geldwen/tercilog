@@ -579,61 +579,111 @@ export default function StudentDashboard({ user, onLogout }) {
 
         {activeTab === 'parcours' && (
           <div className="space-y-6">
-            {/* Mon test de positionnement */}
-            <Card className="shadow-lg border-dashed border-2">
-              <CardHeader>
-                <CardTitle className="text-gray-500">Mon test de positionnement</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-400 text-center py-8">
-                  Évaluez votre niveau initial
-                  <br />
-                  <span className="text-sm">Test disponible prochainement</span>
-                </p>
-              </CardContent>
-            </Card>
+            {studentResources.length === 0 ? (
+              <Card className="shadow-lg">
+                <CardContent className="py-12">
+                  <p className="text-center text-gray-500">
+                    Aucun test ou ressource n'a été assigné pour le moment.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {/* Tests de parcours */}
+                {studentResources.filter(r => r.category === 'TEST_PARCOURS').length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3" style={{color: TERCIFORM_BLUE}}>
+                      Tests de parcours
+                    </h3>
+                    <div className="space-y-4">
+                      {studentResources
+                        .filter(r => r.category === 'TEST_PARCOURS')
+                        .map(resource => (
+                          <Card key={resource.id} className="shadow-lg">
+                            <CardHeader>
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <CardTitle className="text-lg" style={{color: TERCIFORM_BLUE}}>
+                                    {resource.template_name}
+                                  </CardTitle>
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    Type: {resource.sub_type === 'POSITIONNEMENT' ? 'Test de positionnement' : 
+                                           resource.sub_type === 'MI_PARCOURS' ? 'Test de mi-parcours' : 
+                                           'Test de fin de formation'}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  {resource.status === 'SOUMIS' && (
+                                    <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                                      ✓ Terminé - {resource.score}%
+                                    </div>
+                                  )}
+                                  {resource.status === 'EN_COURS' && (
+                                    <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                      En cours
+                                    </div>
+                                  )}
+                                  {resource.status === 'NON_COMMENCE' && (
+                                    <div className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
+                                      Non commencé
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              {resource.status === 'SOUMIS' ? (
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                  <p className="text-green-800 font-medium">
+                                    Test complété le {new Date(resource.submitted_at).toLocaleDateString('fr-FR')}
+                                  </p>
+                                  <p className="text-green-700 text-sm mt-1">
+                                    Score: {resource.score}%
+                                  </p>
+                                </div>
+                              ) : (
+                                <Button
+                                  onClick={() => navigate(`/student/quiz/${resource.id}`)}
+                                  style={{backgroundColor: TERCIFORM_BLUE}}
+                                  className="w-full"
+                                >
+                                  <FileText size={16} className="mr-2" />
+                                  {resource.status === 'EN_COURS' ? 'Continuer le test' : 'Effectuer mon test'}
+                                </Button>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                    </div>
+                  </div>
+                )}
 
-            {/* Mon test de mi-parcours */}
-            <Card className="shadow-lg border-dashed border-2">
-              <CardHeader>
-                <CardTitle className="text-gray-500">Mon test de mi-parcours</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-400 text-center py-8">
-                  Mesurez votre progression
-                  <br />
-                  <span className="text-sm">Test disponible prochainement</span>
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Mon test de fin de formation */}
-            <Card className="shadow-lg border-dashed border-2">
-              <CardHeader>
-                <CardTitle className="text-gray-500">Mon test de fin de formation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-400 text-center py-8">
-                  Validez vos acquis
-                  <br />
-                  <span className="text-sm">Test disponible prochainement</span>
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Mes ressources pédagogiques */}
-            <Card className="shadow-lg border-dashed border-2">
-              <CardHeader>
-                <CardTitle className="text-gray-500">Mes ressources pédagogiques</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-400 text-center py-8">
-                  Ressources et supports de cours
-                  <br />
-                  <span className="text-sm">Documents, exercices, vidéos</span>
-                </p>
-              </CardContent>
-            </Card>
+                {/* Questionnaires Qualiopi */}
+                {studentResources.filter(r => r.category === 'QUESTIONNAIRE_QUALIOPI').length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 mt-6" style={{color: TERCIFORM_BLUE}}>
+                      Questionnaires de formation
+                    </h3>
+                    <div className="space-y-4">
+                      {studentResources
+                        .filter(r => r.category === 'QUESTIONNAIRE_QUALIOPI')
+                        .map(resource => (
+                          <Card key={resource.id} className="shadow-lg">
+                            <CardHeader>
+                              <CardTitle className="text-lg" style={{color: TERCIFORM_BLUE}}>
+                                {resource.template_name}
+                              </CardTitle>
+                              <p className="text-sm text-gray-600">
+                                À compléter via l'onglet "Mes objectifs"
+                              </p>
+                            </CardHeader>
+                          </Card>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
 
