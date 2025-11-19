@@ -5326,11 +5326,13 @@ def main():
             success = tester.test_pdf_preview_endpoint()
         elif sys.argv[1] == "formation-needs":
             success = tester.test_formation_needs_endpoint()
+        elif sys.argv[1] == "jojo-resources":
+            success = tester.test_documents_beneficiaires_jojo_resources()
         else:
             success = tester.run_full_test()
     else:
-        # Run formation needs test by default (as per review request)
-        success = tester.test_formation_needs_endpoint()
+        # Run JOJO resources test by default (as per review request)
+        success = tester.test_documents_beneficiaires_jojo_resources()
     
     if success:
         print("\n" + "="*50)
