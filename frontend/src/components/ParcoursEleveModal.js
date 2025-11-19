@@ -60,9 +60,10 @@ function InteractiveTestsDisplay({ studentId, subType }) {
 
   const handleViewTest = async (test) => {
     try {
-      // Charger le template du test pour avoir les bonnes réponses
+      // Charger le template du test pour avoir les bonnes réponses en utilisant template_id
+      const templateId = test.template_id || 'test-bureautique-positionnement-v1';
       const templateResponse = await axios.get(
-        `${API}/test-templates/test-bureautique-positionnement-v1`,
+        `${API}/test-templates/${templateId}`,
         { headers: getAuthHeaders() }
       );
       setTestTemplate(templateResponse.data);
