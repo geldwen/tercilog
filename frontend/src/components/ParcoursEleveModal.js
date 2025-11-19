@@ -20,6 +20,187 @@ const getAuthHeaders = () => {
   };
 };
 
+
+// Composant pour afficher les tests interactifs soumis
+function InteractiveTestsDisplay({ studentId, subType }) {
+  const [tests, setTests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [testTemplate, setTestTemplate] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
+  useEffect(() => {
+    loadTests();
+  }, [studentId, subType]);
+
+  const loadTests = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${API}/students/${studentId}/resources`,
+        { headers: getAuthHeaders() }
+      );
+      
+      // Filtrer les tests par sub_type
+      const filteredTests = response.data.resources.filter(
+        r => r.category === 'TEST_PARCOURS' && r.sub_type === subType && r.status === 'SOUMIS'
+      );
+      setTests(filteredTests);
+    } catch (error) {
+      console.error("Error loading tests:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewTest = async (test) => {
+    try {
+      // Charger le template du test pour avoir les bonnes réponses
+      const templateResponse = await axios.get(
+        `${API}/test-templates/test-bureautique-positionnement-v1`,
+        { headers: getAuthHeaders() }
+      );
+      setTestTemplate(templateResponse.data);
+      setSelectedTest(test);
+      setShowDetailModal(true);
+    } catch (error) {
+      console.error("Error loading test template:", error);
+      toast.error("Erreur lors du chargement du test");
+    }
+  };
+
+  if (loading) {
+    return null; // Pas d'affichage pendant le chargement
+  }
+
+  if (tests.length === 0) {
+    return null; // Pas de tests, pas d'affichage
+  }
+
+  return (
+    <>
+      <div className="mt-4 space-y-2">
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">Tests interactifs soumis:</h4>
+        {tests.map(test => (
+          <div key={test.id} className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex-1">
+              <p className="font-medium text-gray-900">{test.template_name}</p>
+              <div className="flex gap-4 text-sm text-gray-600 mt-1">
+                <span>✓ Complété le {new Date(test.submitted_at).toLocaleDateString('fr-FR')}</span>
+                <span className="font-semibold text-green-600">Score: {test.score}%</span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleViewTest(test)}
+                size="sm"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                <FileText className="w-4 h-4 mr-1" />
+                Consulter
+              </Button>
+              <Button
+                onClick={() => toast.info("Fonction d'envoi par email en cours de développement")}
+                size="sm"
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50"
+              >
+                <Mail className="w-4 h-4 mr-1" />
+                Envoyer
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Modal de consultation du test avec correction */}
+      {showDetailModal && selectedTest && testTemplate && (
+        <TestCorrectionModal
+          test={selectedTest}
+          template={testTemplate}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedTest(null);
+            setTestTemplate(null);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+// Modal pour afficher la correction d'un test
+function TestCorrectionModal({ test, template, onClose }) {
+  // TODO: Charger les réponses de l'élève depuis le backend
+  // Pour l'instant, on affiche juste le template
+  
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-indigo-600">
+            {template.title} - Correction
+          </DialogTitle>
+          <div className="flex gap-4 text-sm text-gray-600 mt-2">
+            <span>Élève: {test.student_id}</span>
+            <span>Score: <span className="font-bold text-green-600">{test.score}%</span></span>
+            <span>Soumis le: {new Date(test.submitted_at).toLocaleDateString('fr-FR')}</span>
+          </div>
+        </DialogHeader>
+
+        <div className="mt-4 space-y-6">
+          {template.sections.map((section, sIdx) => (
+            <div key={section.id} className="border-b pb-4">
+              <h3 className="text-lg font-bold text-gray-800 mb-3">{section.title}</h3>
+              
+              {section.questions.map((question, qIdx) => {
+                const questionNumber = template.sections
+                  .slice(0, sIdx)
+                  .reduce((sum, s) => sum + s.questions.length, 0) + qIdx + 1;
+                
+                // TODO: Récupérer la réponse de l'élève
+                // Pour l'instant, on affiche juste les bonnes réponses en vert
+                
+                return (
+                  <div key={question.id} className="mb-4 p-3 bg-gray-50 rounded-lg">
+                    <p className="font-semibold text-gray-900 mb-2">
+                      Question {questionNumber}: {question.text}
+                    </p>
+                    <div className="space-y-1 ml-4">
+                      {question.choices.map(choice => {
+                        const isCorrect = question.correctAnswers.includes(choice.key);
+                        return (
+                          <div
+                            key={choice.key}
+                            className={`p-2 rounded ${
+                              isCorrect ? 'bg-green-100 border border-green-300' : 'bg-white'
+                            }`}
+                          >
+                            <span className={isCorrect ? 'font-semibold text-green-700' : 'text-gray-700'}>
+                              {choice.key}. {choice.label}
+                              {isCorrect && ' ✓'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end gap-2 mt-4">
+          <Button onClick={onClose} variant="outline">
+            Fermer
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // Composant pour une section d'upload avec note GLOBALE par catégorie
 function UploadSectionWithNote({ studentId, category, title, buttonText, showNote = false, onOpenEmailModal }) {
   const [documents, setDocuments] = useState([]);
