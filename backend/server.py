@@ -1590,6 +1590,164 @@ async def get_student_resources(
     return {"resources": resources}
 
 
+@api_router.get("/students/{student_id}/magic-report")
+async def generate_magic_report(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Génère un rapport PDF synthétique des 3 tests de parcours"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Vérifier que l'élève appartient au professeur
+    if student.get("teacher_id") != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer les 3 tests
+    resources = await db.student_resources.find(
+        {"student_id": student_id, "category": "TEST_PARCOURS", "status": "SOUMIS"},
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    # Trier par sub_type
+    tests_map = {}
+    for r in resources:
+        tests_map[r['sub_type']] = r
+    
+    t1 = tests_map.get('POSITIONNEMENT')
+    t2 = tests_map.get('MI_PARCOURS')
+    t3 = tests_map.get('FIN')
+    
+    if not t1 or not t2 or not t3:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Les 3 tests doivent être complétés. Statut: T1={bool(t1)}, T2={bool(t2)}, T3={bool(t3)}"
+        )
+    
+    # Créer le PDF
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    story = []
+    styles = getSampleStyleSheet()
+    
+    # Titre
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#6D28D9'),
+        alignment=TA_CENTER,
+        spaceAfter=30
+    )
+    story.append(Paragraph("📊 Rapport d'Évolution Bureautique", title_style))
+    story.append(Spacer(1, 20))
+    
+    # Informations élève
+    info_style = styles['Normal']
+    story.append(Paragraph(f"<b>Élève:</b> {student.get('name', student.get('full_name', 'N/A'))}", info_style))
+    story.append(Paragraph(f"<b>Parcours:</b> {student.get('parcours', 'N/A')}", info_style))
+    story.append(Paragraph(f"<b>Date du rapport:</b> {datetime.now().strftime('%d/%m/%Y')}", info_style))
+    story.append(Spacer(1, 30))
+    
+    # Tableau des résultats
+    data = [
+        ['Test', 'Date', 'Score', 'Mention'],
+        [
+            'T1 - Positionnement',
+            t1['submitted_at'].strftime('%d/%m/%Y'),
+            f"{t1['score']}%",
+            get_mention_label(t1['score'])
+        ],
+        [
+            'T2 - Mi-parcours',
+            t2['submitted_at'].strftime('%d/%m/%Y'),
+            f"{t2['score']}%",
+            get_mention_label(t2['score'])
+        ],
+        [
+            'T3 - Fin de formation',
+            t3['submitted_at'].strftime('%d/%m/%Y'),
+            f"{t3['score']}%",
+            get_mention_label(t3['score'])
+        ]
+    ]
+    
+    table = Table(data, colWidths=[200, 100, 80, 150])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#6D28D9')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    story.append(table)
+    story.append(Spacer(1, 30))
+    
+    # Analyse de l'évolution
+    evolution_text = analyze_evolution(t1['score'], t2['score'], t3['score'])
+    story.append(Paragraph("<b>📈 Analyse de l'évolution:</b>", styles['Heading2']))
+    story.append(Spacer(1, 10))
+    story.append(Paragraph(evolution_text, info_style))
+    
+    # Générer le PDF
+    doc.build(story)
+    buffer.seek(0)
+    
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=rapport-evolution-{student.get('name', 'eleve')}.pdf"
+        }
+    )
+
+def get_mention_label(score):
+    """Retourne la mention selon le score"""
+    if score < 30:
+        return "❌ Non acquis"
+    elif score < 60:
+        return "🟠 En cours d'acquisition"
+    else:
+        return "✅ Acquis"
+
+def analyze_evolution(t1, t2, t3):
+    """Analyse l'évolution des scores"""
+    diff_t1_t2 = t2 - t1
+    diff_t2_t3 = t3 - t2
+    diff_t1_t3 = t3 - t1
+    
+    analysis = f"""
+    <b>Score T1 (Positionnement):</b> {t1}%<br/>
+    <b>Score T2 (Mi-parcours):</b> {t2}% ({'+' if diff_t1_t2 >= 0 else ''}{diff_t1_t2:.2f} points)<br/>
+    <b>Score T3 (Fin):</b> {t3}% ({'+' if diff_t2_t3 >= 0 else ''}{diff_t2_t3:.2f} points)<br/>
+    <br/>
+    <b>Progression globale:</b> {'+' if diff_t1_t3 >= 0 else ''}{diff_t1_t3:.2f} points entre T1 et T3<br/>
+    <br/>
+    """
+    
+    if diff_t1_t3 > 20:
+        analysis += "<b>✅ Excellente progression!</b> L'élève a montré une forte amélioration de ses compétences bureautiques."
+    elif diff_t1_t3 > 10:
+        analysis += "<b>👍 Bonne progression.</b> L'élève a progressé de manière satisfaisante."
+    elif diff_t1_t3 > 0:
+        analysis += "<b>📈 Progression modérée.</b> L'élève a légèrement progressé."
+    elif diff_t1_t3 == 0:
+        analysis += "<b>➡️ Stagnation.</b> L'élève maintient son niveau sans progression notable."
+    else:
+        analysis += "<b>⚠️ Régression.</b> L'élève a obtenu un score inférieur au test initial. Un accompagnement renforcé est recommandé."
+    
+    return analysis
+
+
+
 
 @api_router.get("/teachers/qualite-report")
 async def get_qualite_report(
