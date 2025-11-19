@@ -492,9 +492,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Tests de parcours Display Issue in Documents bénéficiaires Tab"
-  stuck_tasks: 
-    - "Tests de parcours Display Issue in Documents bénéficiaires Tab"
+    - "All high priority tasks completed"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
