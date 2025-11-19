@@ -400,8 +400,10 @@ export default function BilanTests() {
                         <Button
                           variant="outline"
                           size="sm"
+                          disabled={openingId === row.id}
                           onClick={async () => {
                             try {
+                              setOpeningId(row.id);
                               toast.info('Ouverture du rapport...');
                               
                               const response = await axios.get(
@@ -430,10 +432,19 @@ export default function BilanTests() {
                               } else {
                                 toast.error('Erreur lors de l\'ouverture du rapport');
                               }
+                            } finally {
+                              setOpeningId(null);
                             }
                           }}
                         >
-                          Ouvrir
+                          {openingId === row.id ? (
+                            <>
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              Ouverture...
+                            </>
+                          ) : (
+                            'Ouvrir'
+                          )}
                         </Button>
                       ) : (
                         '—'
