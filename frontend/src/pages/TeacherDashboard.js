@@ -695,6 +695,12 @@ export default function TeacherDashboard({ user, onLogout }) {
             >
               📊 Bilan Qualité
             </Button>
+            <Button
+              onClick={() => window.location.href = '/bilan-tests'}
+              className="inline-flex items-center gap-2 bg-[#7c3aed] hover:bg-[#6b29d4] text-white font-semibold px-4 py-2 rounded-md shadow-sm"
+            >
+              📈 Bilan des tests
+            </Button>
           </div>
         </div>
 
