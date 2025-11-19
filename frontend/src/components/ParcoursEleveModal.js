@@ -131,8 +131,7 @@ function InteractiveTestsDisplay({ studentId, subType }) {
 
 // Modal pour afficher la correction d'un test
 function TestCorrectionModal({ test, template, onClose }) {
-  // TODO: Charger les réponses de l'élève depuis le backend
-  // Pour l'instant, on affiche juste le template
+  const studentAnswers = test.student_answers || {};
   
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -142,7 +141,7 @@ function TestCorrectionModal({ test, template, onClose }) {
             {template.title} - Correction
           </DialogTitle>
           <div className="flex gap-4 text-sm text-gray-600 mt-2">
-            <span>Élève: {test.student_id}</span>
+            <span>Test: {test.template_name}</span>
             <span>Score: <span className="font-bold text-green-600">{test.score}%</span></span>
             <span>Soumis le: {new Date(test.submitted_at).toLocaleDateString('fr-FR')}</span>
           </div>
@@ -158,27 +157,62 @@ function TestCorrectionModal({ test, template, onClose }) {
                   .slice(0, sIdx)
                   .reduce((sum, s) => sum + s.questions.length, 0) + qIdx + 1;
                 
-                // TODO: Récupérer la réponse de l'élève
-                // Pour l'instant, on affiche juste les bonnes réponses en vert
+                // Récupérer les réponses de l'élève pour cette question
+                const studentAnswer = studentAnswers[question.id] || [];
+                const studentAnswerArray = Array.isArray(studentAnswer) ? studentAnswer : [studentAnswer];
+                const correctAnswers = question.correctAnswers || [];
+                
+                // Vérifier si la réponse est correcte
+                const isQuestionCorrect = 
+                  studentAnswerArray.length === correctAnswers.length &&
+                  studentAnswerArray.every(a => correctAnswers.includes(a));
                 
                 return (
                   <div key={question.id} className="mb-4 p-3 bg-gray-50 rounded-lg">
-                    <p className="font-semibold text-gray-900 mb-2">
-                      Question {questionNumber}: {question.text}
-                    </p>
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="font-semibold text-gray-900 flex-1">
+                        Question {questionNumber}: {question.text}
+                      </p>
+                      <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        isQuestionCorrect 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {isQuestionCorrect ? '✓ Correct' : '✗ Incorrect'}
+                      </div>
+                    </div>
+                    
                     <div className="space-y-1 ml-4">
                       {question.choices.map(choice => {
-                        const isCorrect = question.correctAnswers.includes(choice.key);
+                        const isCorrect = correctAnswers.includes(choice.key);
+                        const wasSelected = studentAnswerArray.includes(choice.key);
+                        
+                        // Déterminer le style
+                        let bgClass = 'bg-white border border-gray-200';
+                        let textClass = 'text-gray-700';
+                        let icon = '';
+                        
+                        if (isCorrect && wasSelected) {
+                          // Bonne réponse sélectionnée
+                          bgClass = 'bg-green-100 border-2 border-green-500';
+                          textClass = 'text-green-800 font-semibold';
+                          icon = ' ✓';
+                        } else if (isCorrect && !wasSelected) {
+                          // Bonne réponse non sélectionnée
+                          bgClass = 'bg-green-50 border border-green-300';
+                          textClass = 'text-green-700';
+                          icon = ' ✓ (non sélectionnée)';
+                        } else if (!isCorrect && wasSelected) {
+                          // Mauvaise réponse sélectionnée
+                          bgClass = 'bg-red-100 border-2 border-red-500';
+                          textClass = 'text-red-800 font-semibold';
+                          icon = ' ✗';
+                        }
+                        
                         return (
-                          <div
-                            key={choice.key}
-                            className={`p-2 rounded ${
-                              isCorrect ? 'bg-green-100 border border-green-300' : 'bg-white'
-                            }`}
-                          >
-                            <span className={isCorrect ? 'font-semibold text-green-700' : 'text-gray-700'}>
-                              {choice.key}. {choice.label}
-                              {isCorrect && ' ✓'}
+                          <div key={choice.key} className={`p-2 rounded ${bgClass}`}>
+                            <span className={textClass}>
+                              {choice.key}. {choice.label}{icon}
                             </span>
                           </div>
                         );
