@@ -41,13 +41,18 @@ function InteractiveTestsDisplay({ studentId, subType }) {
         { headers: getAuthHeaders() }
       );
       
+      console.log('[InteractiveTestsDisplay] API response:', response.data);
+      console.log('[InteractiveTestsDisplay] Filtering for subType:', subType);
+      
       // Filtrer les tests par sub_type
       const filteredTests = response.data.resources.filter(
         r => r.category === 'TEST_PARCOURS' && r.sub_type === subType && r.status === 'SOUMIS'
       );
+      
+      console.log('[InteractiveTestsDisplay] Filtered tests:', filteredTests);
       setTests(filteredTests);
     } catch (error) {
-      console.error("Error loading tests:", error);
+      console.error("[InteractiveTestsDisplay] Error loading tests:", error);
     } finally {
       setLoading(false);
     }
@@ -69,12 +74,13 @@ function InteractiveTestsDisplay({ studentId, subType }) {
     }
   };
 
+  // Toujours afficher quelque chose pour déboguer
   if (loading) {
-    return null; // Pas d'affichage pendant le chargement
+    return <div className="text-xs text-gray-500">Chargement des tests interactifs...</div>;
   }
 
   if (tests.length === 0) {
-    return null; // Pas de tests, pas d'affichage
+    return <div className="text-xs text-gray-500">Aucun test interactif soumis (subType: {subType})</div>;
   }
 
   return (
