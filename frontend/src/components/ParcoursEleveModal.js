@@ -21,6 +21,142 @@ const getAuthHeaders = () => {
 };
 
 
+// Composant pour afficher TOUS les tests interactifs soumis (toutes catégories)
+function InteractiveTestsDisplaySection({ studentId }) {
+  const [tests, setTests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [testTemplate, setTestTemplate] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
+  useEffect(() => {
+    loadTests();
+  }, [studentId]);
+
+  const loadTests = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${API}/students/${studentId}/resources`,
+        { headers: getAuthHeaders() }
+      );
+      
+      // Filtrer TOUS les tests soumis
+      const allTests = response.data.resources.filter(
+        r => r.category === 'TEST_PARCOURS' && r.status === 'SOUMIS'
+      );
+      
+      console.log('[InteractiveTestsDisplaySection] Tests trouvés:', allTests);
+      setTests(allTests);
+    } catch (error) {
+      console.error("[InteractiveTestsDisplaySection] Error loading tests:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewTest = async (test) => {
+    try {
+      const templateId = test.template_id || 'test-bureautique-positionnement-v1';
+      const templateResponse = await axios.get(
+        `${API}/test-templates/${templateId}`,
+        { headers: getAuthHeaders() }
+      );
+      setTestTemplate(templateResponse.data);
+      setSelectedTest(test);
+      setShowDetailModal(true);
+    } catch (error) {
+      console.error("Error loading test template:", error);
+      toast.error("Erreur lors du chargement du test");
+    }
+  };
+
+  // Fonction pour obtenir la mention selon le score
+  const getMention = (score) => {
+    if (score < 30) {
+      return { label: 'Non acquis', color: 'bg-red-100 text-red-800 border-red-300' };
+    } else if (score < 60) {
+      return { label: 'En cours d\'acquisitions', color: 'bg-orange-100 text-orange-800 border-orange-300' };
+    } else {
+      return { label: 'Acquis', color: 'bg-green-100 text-green-800 border-green-300' };
+    }
+  };
+
+  if (loading) {
+    return <div className="mt-6 text-center text-gray-500">Chargement des tests...</div>;
+  }
+
+  if (tests.length === 0) {
+    return null; // Pas de tests, pas d'affichage
+  }
+
+  return (
+    <>
+      <div className="mt-8">
+        <h3 className="text-xl font-bold mb-4 text-gray-800">Tests de parcours soumis</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {tests.map(test => {
+            const mention = getMention(test.score);
+            return (
+              <div key={test.id} className={`p-6 border-2 rounded-xl ${mention.color}`}>
+                {/* Score en gros au centre */}
+                <div className="text-center mb-4">
+                  <div className="text-6xl font-bold mb-2">{test.score}%</div>
+                  <div className={`inline-block px-4 py-2 rounded-full font-semibold text-lg ${mention.color}`}>
+                    {mention.label}
+                  </div>
+                </div>
+                
+                {/* Informations du test */}
+                <div className="text-center mb-4">
+                  <p className="font-bold text-gray-900 text-lg mb-1">{test.template_name}</p>
+                  <p className="text-sm text-gray-600">
+                    Complété le {new Date(test.submitted_at).toLocaleDateString('fr-FR')}
+                  </p>
+                </div>
+                
+                {/* Boutons */}
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    onClick={() => handleViewTest(test)}
+                    size="sm"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  >
+                    <FileText className="w-4 h-4 mr-1" />
+                    Visualiser les résultats
+                  </Button>
+                  <Button
+                    onClick={() => toast.info("Fonction d'envoi par email en cours de développement")}
+                    size="sm"
+                    variant="outline"
+                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                  >
+                    <Mail className="w-4 h-4 mr-1" />
+                    Envoyer
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Modal de consultation du test avec correction */}
+      {showDetailModal && selectedTest && testTemplate && (
+        <TestCorrectionModal
+          test={selectedTest}
+          template={testTemplate}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedTest(null);
+            setTestTemplate(null);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
 // Composant pour afficher les tests interactifs soumis
 function InteractiveTestsDisplay({ studentId, subType }) {
   const [tests, setTests] = useState([]);
