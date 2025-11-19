@@ -762,14 +762,6 @@ function UploadSectionWithNote({ studentId, category, title, buttonText, showNot
         </Card>
       )}
 
-      {/* Affichage des tests interactifs soumis si subType est fourni */}
-      {subType && (
-        <div className="mt-4 p-4 bg-yellow-100 border-2 border-yellow-500 rounded">
-          <p className="font-bold text-red-600">TEST DEBUG: subType = {subType}</p>
-          <p>StudentId = {studentId}</p>
-        </div>
-      )}
-      {subType && <InteractiveTestsDisplay studentId={studentId} subType={subType} />}
     </div>
   );
 }
