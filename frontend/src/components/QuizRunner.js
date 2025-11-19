@@ -204,7 +204,7 @@ const QuizRunner = () => {
           </div>
 
           <button
-            onClick={() => navigate('/student/dashboard')}
+            onClick={() => navigate('/student')}
             className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
           >
             Retour au tableau de bord
