@@ -2049,7 +2049,7 @@ async def send_magic_report_email(
         
         # Envoyer l'email avec la pièce jointe
         success = send_email_with_attachment(
-            to_email=student_email,
+            to_email=recipient_email,
             subject=f"Rapport d'évolution - {student.get('parcours', 'Bureautique')} - Terciform",
             html_body=email_body,
             pdf_content=pdf_content,
@@ -2057,7 +2057,7 @@ async def send_magic_report_email(
         )
         
         if success:
-            return {"success": True, "message": f"Rapport envoyé à {student_email}"}
+            return {"success": True, "message": f"Rapport envoyé à {recipient_email}"}
         else:
             raise HTTPException(status_code=500, detail="Failed to send email - check SMTP configuration")
             
