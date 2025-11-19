@@ -22,6 +22,7 @@ const API = `${BACKEND_URL}/api`;
 const TERCIFORM_BLUE = '#0D2040';
 
 export default function StudentDashboard({ user, onLogout }) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('formation');
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
