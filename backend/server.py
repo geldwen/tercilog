@@ -1889,50 +1889,78 @@ IMPORTANT: Respecte strictement la limite de 10 lignes. Pas de phrases trop long
 
 
 def generate_fallback_analysis(t1: float, t2: float, t3: float) -> str:
-    """Analyse de secours si l'IA n'est pas disponible"""
+    """Analyse de secours SYNTHÉTIQUE (10 lignes max) si l'IA n'est pas disponible"""
     diff_t1_t3 = t3 - t1
     
-    analysis = f"""1. Forces identifiées:
-L'élève a obtenu un score final de {t3}%. """
-    
+    # Déterminer les points forts
     if t3 >= 60:
-        analysis += "Les compétences bureautiques sont acquises avec un niveau satisfaisant."
+        points_forts = f"Score final de {t3}%, compétences acquises. Bonne maîtrise des outils bureautiques."
     elif t3 >= 30:
-        analysis += "Des compétences bureautiques de base ont été acquises."
+        points_forts = f"Score final de {t3}%, bases acquises. Participation active et régulière."
     else:
-        analysis += "L'élève a participé activement à la formation."
+        points_forts = f"Score final de {t3}%. Engagement dans la formation et assiduité constatée."
     
-    analysis += f"""
-
-2. Difficultés rencontrées:
-Progression totale: {'+' if diff_t1_t3 >= 0 else ''}{diff_t1_t3:.1f} points entre T1 et T3. """
-    
+    # Déterminer les points faibles
     if diff_t1_t3 < 0:
-        analysis += "Une baisse des résultats a été observée, nécessitant un accompagnement renforcé."
+        points_faibles = f"Baisse de {abs(diff_t1_t3):.0f} points entre T1 et T3. Difficulté à maintenir le niveau initial."
     elif diff_t1_t3 < 10:
-        analysis += "La progression reste modérée, des efforts supplémentaires sont encouragés."
+        points_faibles = f"Progression limitée ({diff_t1_t3:.0f} points). Certaines notions restent à consolider."
     else:
-        analysis += "L'évolution est positive."
+        points_faibles = "Rythme d'apprentissage à maintenir. Quelques axes restent perfectibles."
     
-    analysis += f"""
-
-3. Progression globale:
-Score initial (T1): {t1}%
-Score intermédiaire (T2): {t2}%
-Score final (T3): {t3}%
-
-"""
+    # Axes d'amélioration
+    if diff_t1_t3 < 0:
+        axes = "Reprendre les bases. Renforcer pratique quotidienne. Proposer exercices adaptés."
+    elif t3 < 60:
+        axes = "Approfondir les fonctionnalités avancées. Multiplier mises en situation. Suivis réguliers."
+    else:
+        axes = "Continuer montée en compétences. Explorer fonctions expertes. Autonomie renforcée."
     
+    # Solutions proposées
+    if diff_t1_t3 < 0:
+        solutions = "Accompagnement individuel renforcé. Révisions ciblées sur points bloquants."
+    else:
+        solutions = "Parcours complémentaire optionnel. Ateliers pratiques thématiques."
+    
+    # Conclusion
     if diff_t1_t3 > 20:
-        analysis += "Excellente progression observée tout au long de la formation. L'élève a démontré une forte capacité d'apprentissage."
+        conclusion = "Excellente progression, objectifs atteints."
     elif diff_t1_t3 > 10:
-        analysis += "Bonne progression constatée. L'élève a bien assimilé les compétences enseignées."
+        conclusion = "Bonne évolution, formation réussie."
     elif diff_t1_t3 > 0:
-        analysis += "Progression positive. L'élève continue de développer ses compétences."
+        conclusion = "Progression positive, à poursuivre."
     else:
-        analysis += "Un accompagnement personnalisé est recommandé pour consolider les acquis."
+        conclusion = "Accompagnement à renforcer pour consolider."
+    
+    # Format strict (10 lignes)
+    analysis = f"""1. Points forts
+{points_forts}
+
+2. Points faibles
+{points_faibles}
+
+3. Axes d'amélioration
+{axes}
+
+4. Solutions proposées
+{solutions}
+
+5. Conclusion
+{conclusion}"""
     
     return analysis
+
+
+def get_tendance_text(t1_score: float, t3_score: float) -> str:
+    """Génère le texte de tendance avec icône"""
+    if t3_score > t1_score:
+        diff = t3_score - t1_score
+        return f"📈 Tendance générale : Progression des résultats entre T1 et T3 (+{diff:.0f} points)"
+    elif t3_score < t1_score:
+        diff = t1_score - t3_score
+        return f"📉 Tendance générale : Baisse des résultats entre T1 et T3 (-{diff:.0f} points)"
+    else:
+        return "➖ Tendance générale : Stable (résultats équivalents T1 et T3)"
 
 
 def generate_evolution_graph(t1: float, t2: float, t3: float) -> io.BytesIO:
