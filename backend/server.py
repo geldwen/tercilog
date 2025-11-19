@@ -1842,7 +1842,7 @@ async def generate_magic_report(
 
 
 async def generate_ai_pedagogical_analysis(student_name: str, t1_score: float, t2_score: float, t3_score: float, t1_date: str, t2_date: str, t3_date: str) -> str:
-    """Génère une analyse pédagogique via GPT-5 avec Emergent LLM"""
+    """Génère une analyse pédagogique SYNTHÉTIQUE via GPT-5 (10 lignes max)"""
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
         
@@ -1853,27 +1853,29 @@ async def generate_ai_pedagogical_analysis(student_name: str, t1_score: float, t
         chat = LlmChat(
             api_key=emergent_key,
             session_id=f"magic-report-{datetime.now().timestamp()}",
-            system_message="Tu es un formateur expert en bureautique qui réalise des analyses pédagogiques pour des rapports Qualiopi. Tu fournis des analyses claires, professionnelles et constructives."
+            system_message="Tu es un formateur certifié Qualiopi. Tu dois produire une analyse pédagogique très synthétique (10 lignes maximum), structurée, claire et exploitable par un auditeur."
         )
         chat.with_model("openai", "gpt-5")
         
-        # Préparer le message
-        prompt = f"""Analyse l'évolution pédagogique de l'élève {student_name} sur son parcours bureautique.
+        # Nouveau prompt SYNTHÉTIQUE (V2)
+        prompt = f"""Élève : {student_name}
+Parcours : Bureautique
 
-Résultats des évaluations:
-- Test de positionnement (T1) le {t1_date}: {t1_score}%
-- Test mi-parcours (T2) le {t2_date}: {t2_score}%
-- Test fin de formation (T3) le {t3_date}: {t3_score}%
+Scores :
+- T1 : {t1_score}%
+- T2 : {t2_score}%
+- T3 : {t3_score}%
 
-Fournis une analyse pédagogique structurée en 3 parties:
+Génère une analyse selon le format ci-dessous, en 10 lignes maximum :
 
-1. Forces identifiées: Points forts et compétences acquises
+1. Points forts (2 lignes max)
+2. Points faibles (2 lignes max)
+3. Axes d'amélioration (3 lignes max)
+4. Solutions proposées (2 lignes max)
+5. Conclusion (1 phrase max)
 
-2. Difficultés rencontrées: Axes d'amélioration et points de vigilance
-
-3. Progression globale: Synthèse de l'évolution avec recommandations
-
-Reste factuel, professionnel et bienveillant. L'analyse doit être utilisable dans un cadre Qualiopi."""
+Style : professionnel, clair, bienveillant, très synthétique, aligné Qualiopi.
+IMPORTANT: Respecte strictement la limite de 10 lignes. Pas de phrases trop longues. Pas d'analyse inutile."""
 
         user_message = UserMessage(text=prompt)
         response = await chat.send_message(user_message)
