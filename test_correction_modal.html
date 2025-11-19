@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Modal de Correction</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .correct-selected { background: #d1f4d1; border: 2px solid #4caf50; padding: 10px; margin: 5px 0; border-radius: 5px; font-weight: bold; color: #2e7d32; }
+        .correct-not-selected { background: #e8f5e9; border: 1px solid #81c784; padding: 10px; margin: 5px 0; border-radius: 5px; color: #388e3c; }
+        .incorrect-selected { background: #ffcdd2; border: 2px solid #f44336; padding: 10px; margin: 5px 0; border-radius: 5px; font-weight: bold; color: #c62828; }
+        .normal { background: white; border: 1px solid #ddd; padding: 10px; margin: 5px 0; border-radius: 5px; }
+        .question { margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px; }
+        .badge-correct { background: #4caf50; color: white; padding: 5px 10px; border-radius: 20px; }
+        .badge-incorrect { background: #f44336; color: white; padding: 5px 10px; border-radius: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Test d'entrée en bureautique - Correction</h1>
+    <p>Test: Test bureautique débutant | Score: <strong>10%</strong> | Soumis le: 19/11/2025</p>
+    
+    <div class="question">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <strong>Question 1: Quelle touche permet de mettre un texte en gras dans Word ?</strong>
+            <span class="badge-correct">✓ Correct</span>
+        </div>
+        <div class="correct-selected">B. Ctrl + B ✓</div>
+        <div class="correct-selected">C. Ctrl + G ✓</div>
+        <div class="normal">A. Ctrl + I</div>
+        <div class="normal">D. Ctrl + U</div>
+    </div>
+    
+    <div class="question">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <strong>Question 2: Comment insérer un saut de page dans Word ?</strong>
+            <span class="badge-correct">✓ Correct</span>
+        </div>
+        <div class="correct-selected">B. Ctrl + Entrée ✓</div>
+        <div class="correct-not-selected">A. Insertion > Saut de page ✓ (non sélectionnée)</div>
+        <div class="normal">C. Alt + Entrée</div>
+        <div class="normal">D. Aucune de ces réponses</div>
+    </div>
+    
+    <div class="question">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <strong>Question 3 (exemple avec erreur): Quelle formule Excel calcule une somme ?</strong>
+            <span class="badge-incorrect">✗ Incorrect</span>
+        </div>
+        <div class="incorrect-selected">A. =TOTAL(A1:A10) ✗</div>
+        <div class="correct-not-selected">B. =SOMME(A1:A10) ✓ (non sélectionnée)</div>
+        <div class="normal">C. =ADDITION(A1:A10)</div>
+        <div class="normal">D. =CALCUL(A1:A10)</div>
+    </div>
+    
+    <h2>Légende des couleurs:</h2>
+    <ul>
+        <li><strong>Vert foncé avec bordure</strong> = Bonne réponse sélectionnée par l'élève ✓</li>
+        <li><strong>Vert clair</strong> = Bonne réponse que l'élève n'a pas sélectionnée</li>
+        <li><strong>Rouge avec bordure</strong> = Mauvaise réponse sélectionnée par l'élève ✗</li>
+        <li><strong>Blanc</strong> = Mauvaise réponse non sélectionnée</li>
+    </ul>
+</body>
+</html>
