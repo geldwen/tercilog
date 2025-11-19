@@ -125,12 +125,23 @@ export default function BilanTests() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
+        {/* Header avec bouton retour */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <LineChart className="h-8 w-8 text-purple-700" />
-            Bilan des tests
-          </h1>
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => navigate('/teacher')}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Retour au tableau de bord
+            </Button>
+            
+            <h1 className="text-3xl font-bold flex items-center gap-3">
+              <LineChart className="h-8 w-8 text-purple-700" />
+              Bilan des tests
+            </h1>
+          </div>
 
           <Button
             onClick={handleExportPdf}
