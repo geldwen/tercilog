@@ -494,7 +494,6 @@ test_plan:
   current_focus:
     - "PDF Preview with Robust 3-Tier Fallback System"
     - "Student Documents Management - Parcours élève Modal"
-    - "Documents bénéficiaires - Formation Needs Endpoint"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
