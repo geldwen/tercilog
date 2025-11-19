@@ -21,11 +21,16 @@ const getAuthHeaders = () => {
 };
 
 
-// Composant Bouton Magique pour générer le rapport d'évolution
-function MagicReportButton({ studentId, studentName }) {
+// Section complète des rapports magiques avec 3 boutons
+function MagicReportSection({ studentId, studentName }) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isViewMode, setIsViewMode] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailRecipient, setEmailRecipient] = useState("");
 
-  const handleGenerateReport = async () => {
+  // Générer et Télécharger
+  const handleDownload = async () => {
     try {
       setIsGenerating(true);
       toast.info("Génération du rapport en cours...");
@@ -38,7 +43,6 @@ function MagicReportButton({ studentId, studentName }) {
         }
       );
 
-      // Créer un lien de téléchargement
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -48,71 +52,79 @@ function MagicReportButton({ studentId, studentName }) {
       link.remove();
       window.URL.revokeObjectURL(url);
 
-      toast.success("Rapport généré avec succès!");
+      toast.success("Rapport téléchargé avec succès!");
     } catch (error) {
-      console.error("Erreur lors de la génération du rapport:", error);
+      console.error("Erreur:", error);
       if (error.response?.status === 400) {
-        toast.error("Les 3 tests (T1, T2, T3) doivent être complétés pour générer le rapport");
+        toast.error("Les 3 tests doivent être complétés");
       } else {
-        toast.error("Erreur lors de la génération du rapport");
+        toast.error("Erreur lors de la génération");
       }
     } finally {
       setIsGenerating(false);
     }
   };
 
-  return (
-    <Button
-      onClick={handleGenerateReport}
-      disabled={isGenerating}
-      className="bg-gradient-to-r from-[#5f44ff] to-[#8b5cf6] hover:from-[#4f35e6] hover:to-[#7b4ce6] text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-      size="lg"
-    >
-      {isGenerating ? (
-        <>
-          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-          Génération en cours...
-        </>
-      ) : (
-        <>
-          <Wand2 className="w-5 h-5 mr-2" />
-          Générer le rapport d'évolution
-        </>
-      )}
-    </Button>
-  );
-}
+  // Générer et Visualiser
+  const handleView = async () => {
+    try {
+      setIsViewMode(true);
+      toast.info("Ouverture du rapport...");
 
+      const response = await axios.get(
+        `${API}/students/${studentId}/magic-report`,
+        {
+          headers: getAuthHeaders(),
+          responseType: 'blob'
+        }
+      );
 
-// Composant pour envoyer le rapport par email
-function MagicReportSendButton({ studentId, studentName }) {
-  const [isSending, setIsSending] = useState(false);
-  const [sent, setSent] = useState(false);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      window.open(url, '_blank');
+      
+      toast.success("Rapport ouvert dans un nouvel onglet");
+    } catch (error) {
+      console.error("Erreur:", error);
+      if (error.response?.status === 400) {
+        toast.error("Les 3 tests doivent être complétés");
+      } else {
+        toast.error("Erreur lors de l'ouverture");
+      }
+    } finally {
+      setIsViewMode(false);
+    }
+  };
 
-  const handleSendReport = async () => {
+  // Envoyer par email
+  const handleSendEmail = async () => {
+    if (!emailRecipient || !emailRecipient.includes('@')) {
+      toast.error("Veuillez saisir une adresse email valide");
+      return;
+    }
+
     try {
       setIsSending(true);
-      setSent(false);
       toast.info("Envoi du rapport en cours...");
 
       const response = await axios.post(
         `${API}/students/${studentId}/send-report`,
-        {},
+        { email: emailRecipient },
         { headers: getAuthHeaders() }
       );
 
       if (response.data.success) {
-        toast.success(response.data.message || "Rapport envoyé avec succès!");
-        setSent(true);
+        toast.success("Rapport envoyé avec succès!");
+        setShowEmailModal(false);
+        setEmailRecipient("");
       }
     } catch (error) {
-      console.error("Erreur lors de l'envoi du rapport:", error);
+      console.error("Erreur:", error);
       if (error.response?.status === 400) {
         toast.error(error.response.data.detail || "Les 3 tests doivent être complétés");
       } else if (error.response?.status === 500) {
         toast.error("Erreur d'envoi - Vérifiez la configuration SMTP");
       } else {
-        toast.error("Erreur lors de l'envoi du rapport");
+        toast.error("Erreur lors de l'envoi");
       }
     } finally {
       setIsSending(false);
@@ -120,31 +132,117 @@ function MagicReportSendButton({ studentId, studentName }) {
   };
 
   return (
-    <div className="flex flex-col items-center">
-      <Button
-        onClick={handleSendReport}
-        disabled={isSending}
-        className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-        size="lg"
-      >
-        {isSending ? (
-          <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            Envoi en cours...
-          </>
-        ) : (
-          <>
-            <SendHorizonal className="w-5 h-5 mr-2" />
-            Envoyer par email
-          </>
-        )}
-      </Button>
-      {sent && (
-        <p className="text-green-600 text-sm mt-2 font-medium">
-          ✔ Rapport envoyé avec succès
-        </p>
-      )}
-    </div>
+    <>
+      <div className="mt-8 mb-6 space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch">
+          {/* Bouton 1: Télécharger */}
+          <Button
+            onClick={handleDownload}
+            disabled={isGenerating}
+            className="bg-gradient-to-r from-[#5f44ff] to-[#7c3aed] hover:from-[#4f35e6] hover:to-[#6b29d4] text-white font-semibold py-3 px-5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+            size="lg"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Génération...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5" />
+                <span>Télécharger le rapport</span>
+              </>
+            )}
+          </Button>
+
+          {/* Bouton 2: Visualiser */}
+          <Button
+            onClick={handleView}
+            disabled={isViewMode}
+            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3 px-5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+            size="lg"
+          >
+            {isViewMode ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Ouverture...</span>
+              </>
+            ) : (
+              <>
+                <FileText className="w-5 h-5" />
+                <span>Visualiser le rapport</span>
+              </>
+            )}
+          </Button>
+
+          {/* Bouton 3: Envoyer par email */}
+          <Button
+            onClick={() => setShowEmailModal(true)}
+            className="bg-gradient-to-r from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-white font-semibold py-3 px-5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+            size="lg"
+          >
+            <SendHorizonal className="w-5 h-5" />
+            <span>Envoyer par email</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Modal pour saisir l'email */}
+      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-[#5f44ff]">
+              Envoyer le rapport par email
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="email-recipient" className="text-sm font-medium">
+                Email du destinataire
+              </Label>
+              <Input
+                id="email-recipient"
+                type="email"
+                placeholder="exemple@entreprise.com"
+                value={emailRecipient}
+                onChange={(e) => setEmailRecipient(e.target.value)}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500">
+                Le rapport sera envoyé à cette adresse avec le PDF en pièce jointe
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEmailModal(false);
+                setEmailRecipient("");
+              }}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handleSendEmail}
+              disabled={isSending || !emailRecipient}
+              className="bg-[#5f44ff] hover:bg-[#4f35e6] text-white"
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Envoi...
+                </>
+              ) : (
+                "Envoyer"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
