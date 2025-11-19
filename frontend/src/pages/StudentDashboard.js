@@ -58,7 +58,21 @@ export default function StudentDashboard({ user, onLogout }) {
     loadSessions();
     loadTrainingNeeds();
     loadQuestionnairesStatus();
+    loadStudentResources();
   }, []);
+
+  const loadStudentResources = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `${API}/students/${user.id}/resources`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setStudentResources(response.data.resources || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement des ressources:', error);
+    }
+  };
 
   const loadQuestionnairesStatus = async () => {
     try {
