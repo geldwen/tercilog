@@ -1060,7 +1060,29 @@ export default function TeacherDashboard({ user, onLogout }) {
               </Dialog>
 
 
-            <div className="grid gap-4">
+            <SessionsByDay
+              sessions={filteredSessions.map(s => ({
+                id: s.id,
+                title: `${s.subject} - ${s.student_name}`,
+                date: s.date,
+                status: s.status === 'confirmed' ? 'Confirmée' : s.status === 'rejected' ? 'Refusée' : 'En attente'
+              }))}
+              year={parseInt(selectedMonth.split('-')[0])}
+              month={parseInt(selectedMonth.split('-')[1]) - 1}
+              onOpenSession={(session) => {
+                const fullSession = filteredSessions.find(s => s.id === session.id);
+                if (fullSession) handleEditSession(fullSession);
+              }}
+              onEditSession={(session) => {
+                const fullSession = filteredSessions.find(s => s.id === session.id);
+                if (fullSession) handleEditSession(fullSession);
+              }}
+              onDeleteSession={(session) => {
+                handleDeleteSession(session.id);
+              }}
+            />
+
+            <div className="grid gap-4 mt-8" style={{ display: 'none' }}>
               {groupedSessionsList.length === 0 ? (
                 <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucune séance</CardContent></Card>
               ) : (
