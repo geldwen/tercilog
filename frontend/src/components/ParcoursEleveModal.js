@@ -2698,6 +2698,45 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
           </Card>
         )}
 
+        {/* Tests de parcours - TEMPORAIRE en attendant fix */}
+        {studentResources.filter(r => r.category === 'TEST_PARCOURS').length > 0 && (
+          <div className="mt-6 p-4 rounded-lg bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-800 text-white">
+            <h4 className="font-semibold text-lg mb-3">📝 Tests de parcours (VISIBLE ICI temporairement)</h4>
+            <p className="text-sm text-yellow-200 mb-3">⚠️ Ces tests devraient apparaître dans "Tests et évaluation" mais il y a un bug d'affichage</p>
+            <div className="space-y-3">
+              {studentResources
+                .filter(r => r.category === 'TEST_PARCOURS' && r.status === 'SOUMIS')
+                .map(resource => {
+                  // Fonction pour obtenir la mention
+                  const getMention = (score) => {
+                    if (score < 30) return { label: 'Non acquis', color: 'bg-red-100 text-red-800 border-red-300' };
+                    if (score < 60) return { label: 'En cours d\'acquisitions', color: 'bg-orange-100 text-orange-800 border-orange-300' };
+                    return { label: 'Acquis', color: 'bg-green-100 text-green-800 border-green-300' };
+                  };
+                  const mention = getMention(resource.score);
+                  
+                  return (
+                    <Card key={resource.id} className={`border-2 ${mention.color}`}>
+                      <CardContent className="pt-6">
+                        <div className="text-center mb-4">
+                          <div className="text-5xl font-bold mb-2 text-gray-900">{resource.score}%</div>
+                          <div className={`inline-block px-4 py-2 rounded-full font-semibold ${mention.color}`}>
+                            {mention.label}
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <h5 className="font-bold text-gray-900 mb-1">{resource.template_name}</h5>
+                          <p className="text-sm text-gray-600">
+                            Complété le {new Date(resource.submitted_at).toLocaleDateString('fr-FR')}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal d'envoi par email */}
