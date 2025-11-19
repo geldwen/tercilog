@@ -636,12 +636,12 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
     );
   }
 
-  if (!formationNeedsQ && !midCourseQ && !endCourseQ) {
+  if (!formationNeedsQ && !midCourseQ && !endCourseQ && studentResources.length === 0) {
     return (
       <div className="text-center py-12">
         <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-        <p className="text-gray-600 text-lg">Aucun questionnaire soumis pour le moment</p>
-        <p className="text-gray-500 text-sm mt-2">L'élève n'a pas encore rempli de questionnaires</p>
+        <p className="text-gray-600 text-lg">Aucun document soumis pour le moment</p>
+        <p className="text-gray-500 text-sm mt-2">L'élève n'a pas encore rempli de questionnaires ni complété de tests</p>
       </div>
     );
   }
