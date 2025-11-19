@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import { LineChart, FileDown, Loader2 } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
