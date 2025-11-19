@@ -499,6 +499,18 @@ test_plan:
   test_priority: "high_first"
 
 frontend:
+  - task: "Tests de parcours Display Issue in Documents bénéficiaires Tab"
+    implemented: true
+    working: false
+    file: "ParcoursEleveModal.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUE: Tests de parcours section not displaying despite successful API calls. DETAILED INVESTIGATION: 1) Teacher login successful (terciform@gmail.com), 2) JOJO student found in November 2025 (ID: 5048760c-f368-4763-89b8-17b4a85259cc), 3) Parcours élève modal opens correctly, 4) Documents bénéficiaires tab clicks successfully, 5) API calls to GET /api/students/{id}/resources made successfully (2 calls, both HTTP 200), 6) Backend returns correct data: category=TEST_PARCOURS, template_name=Test bureautique débutant, status=SOUMIS, score=10.0, 7) Frontend displays 'Aucun questionnaire soumis pour le moment' instead of Tests de parcours section. ROOT CAUSE: Frontend component not processing API response correctly - either state update failing or filtering condition 'studentResources.filter(r => r.category === TEST_PARCOURS)' not working. REQUIRES frontend debugging of state management and rendering logic in ParcoursEleveModal.js BeneficiaryDocumentsTab component."
+
   - task: "Parcours émargé Modal - 3 Radio Options with FULL mode"
     implemented: true
     working: "unknown"
