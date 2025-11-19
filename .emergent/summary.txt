@@ -1,88 +1,151 @@
-<analysis>
-The trajectory documents a multi-stage feature development and debugging process for the TerciLog application. The initial task was to expand a single student questionnaire into a three-part system (besoin, mi-parcours, fin). This involved creating new frontend components, backend endpoints, database models, and PDF generation logic.
+<analysis>**original_problem_statement**: The initial goal was to fix a filtering issue on the Bilan Qualité (Quality Report) page where changing the period or parcours (course) did not update the displayed data. This was traced to the fact that students did not have an associated parcours field.
 
-Subsequent user requests led to the creation of two major new features:
-1.  **Bilan Élève:** An AI-powered feature to generate a summary PDF from a student's three completed questionnaires.
-2.  **Bilan Qualité:** A comprehensive analytics dashboard for teachers, featuring student progress tracking, aggregated KPIs, and filtering by period and parcours (course).
+This led to a series of feature requests:
+1.  **Add parcours to Students**: A parcours field must be added to the student model and included in the creation form. All existing students should be updated to Anglais.
+2.  **Dynamic Questionnaires**: The three questionnaires (needs, mid-course, final) shown to a student must be specific to their assigned parcours (e.g., Bureautique students see Bureautique questionnaires, Anglais students see Anglais questionnaires).
+3.  **Student Dashboard Refactor**: A complete reorganization of the student-facing dashboard, changing tab names, moving content blocks, and adding new placeholders.
+4.  **Dynamic Resource Assignment**: A major new feature where, upon student creation, the teacher can select specific test templates and questionnaire templates from dropdown lists based on the student's parcours. These selections should then appear in the student's dashboard and be trackable in the teacher's dashboard.
+5.  **Interactive Quiz System**: As part of the resource assignment, implement an interactive quiz feature. The user provided a 30-question JSON for a Bureautique placement test, specifying that students should be able to take the test online, submit it, have it auto-graded, and the score should be visible to the teacher.
 
-The development was characterized by extensive debugging cycles. Key issues resolved include:
-*   A frontend crash due to a JavaScript hoisting error ().
-*   Data visibility problems caused by database name mismatches ( vs. ) and missing  assignments for students.
-*   A critical bug where questionnaires were saved to the wrong MongoDB collection.
-*   A persistent issue where the Bilan Qualité page filters were not being applied by the backend.
+**User's preferred language**: French
 
-The work was interrupted while the AI engineer was actively fixing this final filtering bug in the backend.
+**what currently exists?**
+The application now has a  field on the  model, which is set during student creation. The student and teacher dashboards now display questionnaires dynamically based on this  (currently implemented for Anglais and Bureautique). The student dashboard's UI has been completely reorganized as per user specifications. The student creation form has been updated to include two new sections (Tests de parcours and Questionnaires de besoin) with checkboxes and dropdowns to select templates. The backend has been updated to save these selections into a new  collection. The foundation for the interactive quiz system has just been started.
 
-The user's primary language is French. The next agent must respond in French.
-</analysis>
+**Last working item**:
+-   **Last item agent was working**: Implementing the interactive quiz system. The user provided a detailed 30-question JSON for a Bureautique placement test. The agent's last action was to create a Python script () to insert this quiz definition into the MongoDB database in a new  collection and was about to execute it.
+-   **Status**: IN PROGRESS
+-   **Agent Testing Done**: N
+-   **Which testing method agent to use?**: both
+-   **User Testing Done**: N
 
-<product_requirements>
-The TerciLog application requires a robust student progress tracking and quality analysis module.
+**All Pending/In progress Issue list**:
+-   **Issue 1**: The interactive quiz system is not yet functional. (Priority: P0)
 
-1.  **Three-Part Questionnaire System**: Students must have access to three distinct questionnaires: besoin en formation, à mi-parcours, and fin de formation. Teachers must be able to view all submitted questionnaires for their assigned students, with options to consult, download a PDF, and email the results. When consulting, student answers must have a dark pink background.
+**Issues Detail**:
+-   **Issue 1**:
+    -   **Attempted fixes**: The agent created a script () to seed the first quiz template into the database. This is the first step.
+    -   **Next debug checklist**:
+        1.  Execute the  script to populate the  collection.
+        2.  Create a new backend endpoint (e.g., ) to fetch the quiz JSON for the student.
+        3.  Create a new frontend component (e.g., ) that fetches the quiz data and renders the questions, choices, and a Submit button.
+        4.  In , when a student clicks Effectuer mon test for an assigned quiz, navigate them to this new component.
+        5.  Create a new backend endpoint (e.g., ) to receive the student's answers, calculate the score based on the  in the template, and update the  document with the score, status 'SOUMIS', and submission date.
+        6.  Update the teacher's  to display the score for completed quizzes.
+    -   **Why fix this issue and what will be achieved with the fix?**: This will implement a core feature requested by the user, allowing for auto-graded online tests and providing a much richer pedagogical tool.
+    -   **Status**: IN PROGRESS
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Blocked on other issue**: None
 
-2.  **Générer le Bilan Élève Feature**: On the teacher's view of a student's documents, a button should allow the generation of an AI-powered summary PDF. This PDF synthesizes data from the three completed questionnaires, calculates a progression score, and provides a textual summary. The button should be visible but disabled if the three questionnaires are not complete.
+**In progress Task List**: None
 
-3.  **Bilan Qualité Dashboard**: A new page accessible to teachers that provides an aggregated view of student quality metrics.
-    *   **Filtering**: Users must be able to filter the data by period (month/year) and by Parcours (e.g., Anglais, Bureautique).
-    *   **KPIs**: The dashboard must display key performance indicators like the number of evaluated students, average progression, average satisfaction, and a visual bar for overall sentiment.
-    *   **Student Table**: A detailed table listing all students matching the filters, showing the submission status (Green/Red dots) for each of the three questionnaires, and a button to remove a student from the report.
-    *   **Data Logic**: The KPIs and table data must update dynamically when filters are changed.
-</product_requirements>
+**Upcoming and Future Tasks**
+-   **Upcoming Tasks**:
+    -   **P0**: Complete the Interactive Quiz System as detailed in the Pending Issues section.
+    -   **P1**: Make the resource selection dropdowns in  dynamic. They should fetch available templates from the  and  collections, filtered by the selected .
+    -   **P2**: Implement handling for  type resources. This involves adding upload/download functionality for students in  and a way for teachers to view the uploaded files in .
+-   **Future Tasks**:
+    -   **P3**: Implement the memory feature where the system remembers the last template selected for a specific parcours and pre-selects it for the next student.
+    -   **P4**: Create a full CRUD interface for teachers to manage test and questionnaire templates, so they don't have to be hardcoded or added via scripts.
+    -   **P5**: Add templates for the Management parcours and any other future parcours.
 
-<key_technical_concepts>
-- **Backend**: Python (FastAPI), MongoDB (with  driver), ReportLab (for PDF generation), Pydantic.
-- **Frontend**: JavaScript (React), Axios (for API calls),  and  (for client-side PDF generation).
-- **Architecture**: RESTful API, client-server architecture.
-- **Debugging & Data Management**: Use of custom Python scripts to directly interact with MongoDB for seeding, diagnostics (), and data migration.
-- **Feature Development**: Iterative implementation of complex features (analytics dashboard) based on detailed user feedback and mockups.
-</key_technical_concepts>
+**Completed work in this session**
+-   Added  field to the  model and integrated it into the student creation/editing flow (, ).
+-   Fixed bug where new students were not assigned a .
+-   Implemented dynamic, parcours-based questionnaires for both the student view () and teacher view ().
+-   Created new frontend components for Bureautique questionnaires (, , ).
+-   Created new backend endpoints and database collections for Bureautique questionnaires.
+-   Fixed multiple critical backend bugs related to date/timezone comparisons in the Bilan Qualité report logic.
+-   Completely refactored the UI/layout of the  page based on user mockups (new tabs, moved sections).
+-   Added a banner to the student dashboard to display their current .
+-   Designed and implemented the UI for the new Dynamic Resource Assignment feature in the student creation form.
+-   Created the backend model () and API logic to save the teacher's test/questionnaire selections for a new student.
+-   Implemented fully formatted display modals for Bureautique questionnaires in the teacher view ().
 
-<code_architecture>
-The application follows a standard MERN-like stack with a React frontend and a Python/FastAPI backend.
+**Earlier issues found/mentioned but not fixed**: None
 
-**Directory Structure:**
+**Known issue recurrence from previous fork**: None
+
+**Code Architecture**
 
 
-- ****
-  - **Importance**: The application's monolithic backend, handling all API logic, database interaction, and PDF generation. It's the single source of truth for business logic.
-  - **Summary of Changes**: This file has undergone massive expansion. It now includes endpoints for all three questionnaire types, the Bilan Élève generation (), and the complex Bilan Qualité report (). The latter was significantly refactored multiple times to fix critical bugs related to data filtering, data structure, and business logic (e.g., ensuring all students are returned regardless of questionnaire status, while filtering KPIs by period). A  model was also introduced.
+**Key Technical Concepts**
+-   **Backend**: Python (FastAPI), MongoDB (Motor driver), Pydantic for data modeling.
+-   **Frontend**: React, Axios, Conditional Rendering, State Management (, ).
+-   **Architecture**: Monolithic backend with a REST API, separate React frontend.
+-   **Development Pattern**: Iterative development based on detailed user feedback. Features are planned, implemented, and then refined based on bug reports and new requests. Extensive use of one-off Python scripts for data migration and seeding.
 
-- ****
-  - **Importance**: A new, feature-rich dashboard page for teachers to analyze student quality metrics. It is the primary focus of the most recent development efforts.
-  - **Summary of Changes**: Created from scratch and heavily modified. It includes state management for filters, fetching and displaying aggregated KPIs and a detailed student table. It was refactored multiple times to:
-    - Fix API call parameters ( dependencies).
-    - Adapt to a new, more detailed data structure from the backend.
-    - Improve the UI/UX based on user feedback (e.g., new period selector, visual progress bar, clearer legends).
-    - Add a delete student functionality.
+**key DB schema**
+-   **users**: 
+-   **sessions**: 
+-   **formation_needs_questionnaires**:  (for Anglais)
+-   **bureautique_formation_needs_questionnaires**:  (New, for Bureautique)
+-   (and similarly for mid-course and end-course questionnaires for each parcours)
+-   **student_resources**: (New) 
+-   **quiz_templates**: (New) 
 
-- ****
-  - **Importance**: The modal where teachers view an individual student's records.
-  - **Summary of Changes**: Initially modified to show the three new questionnaires, it was later debugged to fix a critical JavaScript hoisting error. The Générer le Bilan Élève button was added here, with its position being corrected based on specific user feedback and an annotated screenshot.
+**changes in tech stack**: None
 
-- ** and **
-  - **Importance**: These scripts were created for essential one-off data management and debugging tasks.
-  - **Summary of Changes**:
-    -  was created to diagnose and fix the critical issue of students not being assigned to the correct teacher, which was preventing any data from showing on the user's real account.
-    -  was created to implement the user's request for a system where questionnaires are templated per parcours. It seeds the database with initial templates.
-</code_architecture>
+**All files**
+-   **Created Files**:
+    -   : To assign a default  to all existing students.
+    -   : Frontend for the Bureautique Q1.
+    -   : Frontend for the Bureautique Q2.
+    -   : Frontend for the Bureautique Q3.
+    -   : To seed the first interactive quiz template into the database.
+-   **Updated Files**:
+    -   : Major changes. Added  to User model, new endpoints for Bureautique questionnaires, new  model, logic to save student resources, and fixed date/timezone bugs in the quality report endpoint.
+    -   : Major changes. Added  to student creation/edit forms, added the entire Dynamic Resource Assignment UI.
+    -   : Major changes. Complete UI refactor, conditional rendering of questionnaires based on , and addition of a  banner.
+    -   : Major changes. Added logic to dynamically load/display/download questionnaires based on , and added detailed rendering functions for Bureautique questionnaires.
 
-<pending_tasks>
-The user's request in message #459 contains three main tasks. Two have been addressed, but the most important one (filtering) was not fully fixed.
-- **Fix Bilan Qualité filters**: The core pending task is to ensure the period and parcours filters correctly update the KPIs and the student list on the Bilan Qualité page.
-- **Questionnaire Templates by Parcours**: While an initial script was created, the full logic for automatically assigning questionnaires to new students based on their parcours needs to be implemented and verified.
-</pending_tasks>
+**Areas that need refactoring**: None at the moment.
 
-<current_work>
-The AI engineer was in the final stages of debugging a critical bug on the Bilan Qualité page.
+**key api endpoints**
+-   : (POST) Modified to accept  and  and create  entries.
+-   : (GET) Modified to correctly filter by date (handling timezones) and fetch questionnaire data based on each student's .
+-   : A new pattern of endpoints was established for parcours-specific data (e.g., ).
 
-**The Problem:** The user reported that changing the filters (e.g., setting the year to 2026) did not change the data displayed in the table or the KPIs. The data remained static.
+**Critical Info for New Agent**
+-   The user is highly engaged and provides detailed, multi-part requirements. It is crucial to break down these large requests into smaller, verifiable steps and confirm the plan before coding.
+-   The application now has two parallel systems for student evaluations:
+    1.  The original Qualiopi questionnaires (Q1, Q2, Q3), which are now parcours-specific.
+    2.  The new Tests de parcours (positionnement, mi-parcours, fin), which are being introduced with the interactive quiz feature.
+-   The immediate next task is to build out the interactive quiz functionality, starting with running the  script.
+-   Be prepared for extensive frontend work to create the quiz interface and backend work to handle submissions and grading.
 
-**The Diagnosis:** The AI correctly determined that the frontend was sending the filter parameters correctly, but the backend endpoint ( in ) was completely ignoring them. The endpoint was returning all students assigned to the teacher, regardless of the selected period or parcours.
+**documents created in this job**: None
 
-**The Action Taken:** The engineer began correcting the backend logic. The last actions were two consecutive file edits to  to add date-based filtering to the database queries that fetch questionnaires. The goal was to ensure that while all students assigned to the teacher are always *listed*, the questionnaire data and derived KPIs would be filtered based on the  date falling within the selected period. The backend service was restarted to apply these changes. The work was interrupted immediately after the restart, before the fix could be verified.
-</current_work>
+**Last 5 User Messages and any pending user messages**
+1.  **User (Msg 427):** Reports invalid credential when trying to create/login with .
+    -   **Status**: Resolved. Agent explained the email was already in use and provided the correct password.
+2.  **User (Msg 431):** Provides the complete JSON structure for a 30-question interactive Bureautique placement test and lists the requirements for the quiz system (take test -> submit -> lock -> auto-grade -> show score to teacher).
+    -   **Status**: In Progress. This is the current main task.
+3.  **User (Msg 391):** Asks the agent to start with the student creation form modification and confirms they are open to a complete system if it's not too difficult.
+    -   **Status**: Completed. The agent modified the form as requested.
+4.  **User (Msg 406):** Approves the new form. Confirms they have the English Qualiopi tests. States that if a test is selected during creation, it must appear in the student's space. Asks about the agent's ability to handle quizzes.
+    -   **Status**: Acknowledged. This is part of the current implementation work.
+5.  **User (Msg 387):** Provides a very large feature request for dynamic resource assignment at student creation, including two selection blocks, template types (FILE/FORM), and tracking in both student and teacher views. Also requests a banner color change.
+    -   **Status**: Partially complete. The UI for the form is done, the backend saves the choices, and the banner color was changed. The full display/interaction logic is the main upcoming task.
 
-<optional_next_step>
-Test the API endpoint  with a period filter for the year 2026 to confirm that it now correctly returns an empty list of questionnaires, which will validate the backend fix.
-</optional_next_step>
+**Project Health Check:**
+-   **Broken**: The interactive quiz feature is non-existent. The broader dynamic resource assignment feature is only partially implemented (UI is there, but student/teacher views don't show the assigned resources yet).
+-   **Mocked**: The test/questionnaire templates in the student creation form are currently hardcoded in . They need to be fetched from the database.
+
+**Testing status**
+-   **Testing agent used after significant changes**: NO
+-   **Troubleshoot agent used after agent stuck in loop**: NO
+-   **Test files created**: None
+-   **Known regressions**: None identified.
+
+**Credentials to test flow:**
+-   **Teacher Account**:
+    -   Email: 
+    -   Password: 
+-   **Student Account (Bureautique)**:
+    -   Email: 
+    -   Password: 
+
+**What agent forgot to execute**
+- The agent created the  script but was interrupted before executing it. This is the immediate next step.</analysis>
