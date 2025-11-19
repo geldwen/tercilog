@@ -127,6 +127,16 @@ function App() {
             }
           />
           <Route
+            path="/bilan-tests"
+            element={
+              user && user.role === "teacher" ? (
+                <BilanTests user={user} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
             path="/student/quiz/:resourceId"
             element={
               user && user.role === "student" ? (
