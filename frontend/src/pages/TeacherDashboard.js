@@ -1250,7 +1250,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                       {includeTests && (
                         <div className="space-y-3 mt-3 pl-4 border-l-4 border-blue-300">
                           <div className="space-y-2">
-                            <Label className="text-sm">Test de positionnement du parcours "{studentForm.parcours}"</Label>
+                            <Label className="text-sm">T1 - Test de positionnement</Label>
                             <select 
                               value={selectedTests.positionnement}
                               onChange={(e) => setSelectedTests({...selectedTests, positionnement: e.target.value})}
@@ -1263,7 +1263,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                             </select>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-sm">Évaluation en cours de formation "{studentForm.parcours}"</Label>
+                            <Label className="text-sm">T2 - Test à mi parcours</Label>
                             <select 
                               value={selectedTests.miParcours}
                               onChange={(e) => setSelectedTests({...selectedTests, miParcours: e.target.value})}
@@ -1276,7 +1276,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                             </select>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-sm">Test de fin de formation "{studentForm.parcours}"</Label>
+                            <Label className="text-sm">T3 - Test de fin de formation</Label>
                             <select 
                               value={selectedTests.fin}
                               onChange={(e) => setSelectedTests({...selectedTests, fin: e.target.value})}
@@ -1414,7 +1414,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                       {includeTests && (
                         <div className="space-y-3 mt-3 pl-4 border-l-4 border-blue-300">
                           <div className="space-y-2">
-                            <Label className="text-sm">Test de positionnement du parcours "{studentForm.parcours}"</Label>
+                            <Label className="text-sm">T1 - Test de positionnement</Label>
                             <select 
                               value={selectedTests.positionnement}
                               onChange={(e) => setSelectedTests({...selectedTests, positionnement: e.target.value})}
@@ -1427,7 +1427,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                             </select>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-sm">Évaluation en cours de formation "{studentForm.parcours}"</Label>
+                            <Label className="text-sm">T2 - Test à mi parcours</Label>
                             <select 
                               value={selectedTests.miParcours}
                               onChange={(e) => setSelectedTests({...selectedTests, miParcours: e.target.value})}
@@ -1440,7 +1440,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                             </select>
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-sm">Test de fin de formation "{studentForm.parcours}"</Label>
+                            <Label className="text-sm">T3 - Test de fin de formation</Label>
                             <select 
                               value={selectedTests.fin}
                               onChange={(e) => setSelectedTests({...selectedTests, fin: e.target.value})}
