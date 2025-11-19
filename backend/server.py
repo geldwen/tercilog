@@ -591,13 +591,22 @@ async def save_student_resources(student_id: str, parcours: str, resources: dict
     # Tests de parcours
     if resources.get("tests"):
         tests = resources["tests"]
+        # Mapping des noms de templates vers leurs IDs
+        template_id_mapping = {
+            "T1 - Test de positionnement": "test-bureautique-positionnement-v1",
+            "T2 - Test à mi parcours": "test-bureautique-mi-parcours-v1",
+            "T3 - Test de fin de formation": "test-bureautique-fin-v1"
+        }
+        
         if tests.get("positionnement"):
+            template_id = template_id_mapping.get(tests["positionnement"])
             resource = StudentResource(
                 student_id=student_id,
                 parcours=parcours,
                 category="TEST_PARCOURS",
                 sub_type="POSITIONNEMENT",
                 template_name=tests["positionnement"],
+                template_id=template_id,
                 resource_type="FORM"
             )
             await db.student_resources.insert_one(resource.dict())
@@ -605,12 +614,14 @@ async def save_student_resources(student_id: str, parcours: str, resources: dict
             logger.info(f"Test positionnement '{tests['positionnement']}' assigné à élève {student_id}")
         
         if tests.get("miParcours"):
+            template_id = template_id_mapping.get(tests["miParcours"])
             resource = StudentResource(
                 student_id=student_id,
                 parcours=parcours,
                 category="TEST_PARCOURS",
                 sub_type="MI_PARCOURS",
                 template_name=tests["miParcours"],
+                template_id=template_id,
                 resource_type="FORM"
             )
             await db.student_resources.insert_one(resource.dict())
@@ -618,12 +629,14 @@ async def save_student_resources(student_id: str, parcours: str, resources: dict
             logger.info(f"Test mi-parcours '{tests['miParcours']}' assigné à élève {student_id}")
         
         if tests.get("fin"):
+            template_id = template_id_mapping.get(tests["fin"])
             resource = StudentResource(
                 student_id=student_id,
                 parcours=parcours,
                 category="TEST_PARCOURS",
                 sub_type="FIN",
                 template_name=tests["fin"],
+                template_id=template_id,
                 resource_type="FORM"
             )
             await db.student_resources.insert_one(resource.dict())
