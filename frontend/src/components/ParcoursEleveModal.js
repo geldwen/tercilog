@@ -83,11 +83,16 @@ function InteractiveTestsDisplaySection({ studentId }) {
   };
 
   if (loading) {
-    return <div className="mt-6 text-center text-gray-500">Chargement des tests...</div>;
+    return <div className="mt-6 p-4 bg-blue-100 border-2 border-blue-500">
+      <p className="font-bold">⏳ Chargement des tests...</p>
+    </div>;
   }
 
   if (tests.length === 0) {
-    return null; // Pas de tests, pas d'affichage
+    return <div className="mt-6 p-4 bg-yellow-100 border-2 border-yellow-500">
+      <p className="font-bold">⚠️ Aucun test soumis trouvé pour cet élève</p>
+      <p className="text-sm">StudentId: {studentId}</p>
+    </div>;
   }
 
   return (
