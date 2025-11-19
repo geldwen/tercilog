@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import BilanQualitePage from "./pages/BilanQualitePage";
+import BilanTests from "./pages/BilanTests";
 import QuizRunner from "./components/QuizRunner";
 import { Toaster } from "./components/ui/sonner";
 
