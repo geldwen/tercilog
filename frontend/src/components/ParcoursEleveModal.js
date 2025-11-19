@@ -2685,6 +2685,7 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
                 buttonText="Cliquez ici pour télécharger le test de positionnement"
                 showNote={true}
                 onOpenEmailModal={handleOpenEmailModal}
+                subType="POSITIONNEMENT"
               />
 
               {/* 2A - Évaluations en cours de formation */}
@@ -2695,6 +2696,7 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
                 buttonText="Cliquez ici pour télécharger les évaluations en cours de formation"
                 showNote={true}
                 onOpenEmailModal={handleOpenEmailModal}
+                subType="MI_PARCOURS"
               />
 
               {/* 3A - Évaluations de fin de formation */}
@@ -2705,11 +2707,9 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
                 buttonText="Cliquez ici pour télécharger les évaluations de fin de formation"
                 showNote={true}
                 onOpenEmailModal={handleOpenEmailModal}
+                subType="FIN"
               />
             </div>
-
-            {/* Tests de parcours interactifs soumis par l'élève */}
-            <TestsParcoursSection studentId={student.id} studentName={student.name} />
           </TabsContent>
 
           {/* Onglet Supports de formation - Pleine largeur (pas de note) */}
