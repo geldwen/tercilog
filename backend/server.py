@@ -1736,11 +1736,14 @@ async def generate_magic_report(
     student_name = student.get('name', student.get('full_name', 'N/A'))
     parcours = student.get('parcours', 'N/A')
     report_date = datetime.now().strftime('%d/%m/%Y')
+    report_time = datetime.now().strftime('%H:%M:%S')
+    report_timestamp = f"{report_date} à {report_time}"
     
     info_data = [
         ['Élève:', student_name],
         ['Parcours:', parcours],
-        ['Date du rapport:', report_date]
+        ['Date du rapport:', report_date],
+        ['Horodatage:', report_timestamp]
     ]
     info_table = Table(info_data, colWidths=[120, 350])
     info_table.setStyle(TableStyle([
