@@ -25,17 +25,31 @@ export default function BilanTests() {
   
   // Supprimer l'erreur ResizeObserver qui est un avertissement non critique
   useEffect(() => {
+    const resizeObserverErrMsg = 'ResizeObserver loop completed with undelivered notifications.';
+    
     const resizeObserverErrHandler = (e) => {
-      if (e.message === 'ResizeObserver loop completed with undelivered notifications.') {
-        const resizeObserverErr = e;
-        if (resizeObserverErr) {
-          e.stopImmediatePropagation();
-        }
+      if (e.message === resizeObserverErrMsg) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
       }
     };
+    
+    const unhandledRejectionHandler = (event) => {
+      if (event.reason && event.reason.message === resizeObserverErrMsg) {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+      }
+    };
+    
     window.addEventListener('error', resizeObserverErrHandler);
-    return () => window.removeEventListener('error', resizeObserverErrHandler);
+    window.addEventListener('unhandledrejection', unhandledRejectionHandler);
+    
+    return () => {
+      window.removeEventListener('error', resizeObserverErrHandler);
+      window.removeEventListener('unhandledrejection', unhandledRejectionHandler);
+    };
   }, []);
+
   const [periode, setPeriode] = useState('mois');
   const [mois, setMois] = useState('11');
   const [annee, setAnnee] = useState('2025');
@@ -45,6 +59,7 @@ export default function BilanTests() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [openingId, setOpeningId] = useState(null);
 
   const fetchData = async () => {
     try {
