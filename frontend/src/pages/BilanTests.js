@@ -52,16 +52,21 @@ export default function BilanTests() {
       setData(response.data);
     } catch (error) {
       console.error('Erreur:', error);
-      toast.error('Erreur lors du chargement des données');
+      if (error.response?.status === 400) {
+        toast.error('Paramètres de filtre invalides');
+      } else {
+        toast.error('Erreur lors du chargement des données');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // Charger les données au montage ET quand les filtres changent
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line
-  }, []);
+  }, [periode, mois, annee, parcours, matiere]);
 
   const handleExportPdf = async () => {
     try {
