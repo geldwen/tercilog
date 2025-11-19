@@ -3036,6 +3036,10 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
             </div>
 
             {/* Tests interactifs - EN DESSOUS de la grille */}
+            <div className="mt-6 p-4 bg-red-100 border-2 border-red-500">
+              <p className="font-bold">DEBUG: Appel InteractiveTestsDisplaySection</p>
+              <p>StudentId: {student.id}</p>
+            </div>
             <InteractiveTestsDisplaySection studentId={student.id} />
           </TabsContent>
 
