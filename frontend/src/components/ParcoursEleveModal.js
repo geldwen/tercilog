@@ -202,7 +202,7 @@ function TestCorrectionModal({ test, template, onClose }) {
 }
 
 // Composant pour une section d'upload avec note GLOBALE par catégorie
-function UploadSectionWithNote({ studentId, category, title, buttonText, showNote = false, onOpenEmailModal }) {
+function UploadSectionWithNote({ studentId, category, title, buttonText, showNote = false, onOpenEmailModal, subType = null }) {
   const [documents, setDocuments] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
