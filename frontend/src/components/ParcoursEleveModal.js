@@ -388,6 +388,7 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
   const [formationNeedsQ, setFormationNeedsQ] = useState(null);
   const [midCourseQ, setMidCourseQ] = useState(null);
   const [endCourseQ, setEndCourseQ] = useState(null);
+  const [studentResources, setStudentResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedQuestionnaire, setSelectedQuestionnaire] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
@@ -401,6 +402,7 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
   useEffect(() => {
     if (student && studentId) {
       loadQuestionnaires();
+      loadStudentResources();
     }
   }, [studentId, student]);
 
