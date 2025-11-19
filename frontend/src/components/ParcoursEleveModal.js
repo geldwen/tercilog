@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Upload, Download, Trash2, FileText, Image as ImageIcon, FileSpreadsheet, Loader2, Mail, Send } from "lucide-react";
+import { Upload, Download, Trash2, FileText, Image as ImageIcon, FileSpreadsheet, Loader2, Mail, Send, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 
