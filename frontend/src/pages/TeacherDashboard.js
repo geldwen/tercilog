@@ -11,6 +11,7 @@ import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle
 import PlanningView from "@/components/PlanningView";
 import BillingView from "@/components/BillingView";
 import ParcoursEleveModal from "@/components/ParcoursEleveModal";
+import SessionsByDay from "@/components/SessionsByDay";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
