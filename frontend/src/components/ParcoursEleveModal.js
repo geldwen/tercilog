@@ -2707,6 +2707,9 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
                 onOpenEmailModal={handleOpenEmailModal}
               />
             </div>
+
+            {/* Tests de parcours interactifs soumis par l'élève */}
+            <TestsParcoursSection studentId={student.id} studentName={student.name} />
           </TabsContent>
 
           {/* Onglet Supports de formation - Pleine largeur (pas de note) */}
