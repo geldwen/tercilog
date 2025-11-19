@@ -22,33 +22,6 @@ const getAuthHeaders = () => {
 
 export default function BilanTests() {
   const navigate = useNavigate();
-  
-  // Supprimer l'erreur ResizeObserver qui est un avertissement non critique
-  useEffect(() => {
-    const resizeObserverErrMsg = 'ResizeObserver loop completed with undelivered notifications.';
-    
-    const resizeObserverErrHandler = (e) => {
-      if (e.message === resizeObserverErrMsg) {
-        e.stopImmediatePropagation();
-        e.preventDefault();
-      }
-    };
-    
-    const unhandledRejectionHandler = (event) => {
-      if (event.reason && event.reason.message === resizeObserverErrMsg) {
-        event.stopImmediatePropagation();
-        event.preventDefault();
-      }
-    };
-    
-    window.addEventListener('error', resizeObserverErrHandler);
-    window.addEventListener('unhandledrejection', unhandledRejectionHandler);
-    
-    return () => {
-      window.removeEventListener('error', resizeObserverErrHandler);
-      window.removeEventListener('unhandledrejection', unhandledRejectionHandler);
-    };
-  }, []);
 
   const [periode, setPeriode] = useState('mois');
   const [mois, setMois] = useState('11');
