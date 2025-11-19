@@ -22,10 +22,19 @@ const QuizRunner = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       
+      // D'abord récupérer l'utilisateur actuel
+      const userResponse = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/auth/me`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      
+      const currentUser = userResponse.data;
+      
       // Récupérer les ressources de l'élève
-      const user = JSON.parse(localStorage.getItem('user'));
       const resourcesResponse = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/students/${user.id}/resources`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/students/${currentUser.id}/resources`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
