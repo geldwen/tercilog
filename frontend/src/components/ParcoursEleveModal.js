@@ -21,6 +21,71 @@ const getAuthHeaders = () => {
 };
 
 
+// Composant Bouton Magique pour générer le rapport d'évolution
+function MagicReportButton({ studentId, studentName }) {
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateReport = async () => {
+    try {
+      setIsGenerating(true);
+      toast.info("Génération du rapport en cours...");
+
+      const response = await axios.get(
+        `${API}/students/${studentId}/magic-report`,
+        {
+          headers: getAuthHeaders(),
+          responseType: 'blob'
+        }
+      );
+
+      // Créer un lien de téléchargement
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Rapport_Evolution_${studentName.replace(/ /g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Rapport généré avec succès!");
+    } catch (error) {
+      console.error("Erreur lors de la génération du rapport:", error);
+      if (error.response?.status === 400) {
+        toast.error("Les 3 tests (T1, T2, T3) doivent être complétés pour générer le rapport");
+      } else {
+        toast.error("Erreur lors de la génération du rapport");
+      }
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <div className="mt-8 mb-6 flex justify-center">
+      <Button
+        onClick={handleGenerateReport}
+        disabled={isGenerating}
+        className="bg-gradient-to-r from-[#5f44ff] to-[#8b5cf6] hover:from-[#4f35e6] hover:to-[#7b4ce6] text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        size="lg"
+      >
+        {isGenerating ? (
+          <>
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            Génération en cours...
+          </>
+        ) : (
+          <>
+            <Wand2 className="w-5 h-5 mr-2" />
+            Générer le rapport d'évolution
+          </>
+        )}
+      </Button>
+    </div>
+  );
+}
+
+
 // Composant pour afficher TOUS les tests interactifs soumis (toutes catégories)
 function InteractiveTestsDisplaySection({ studentId }) {
   const [tests, setTests] = useState([]);
