@@ -61,10 +61,10 @@ const QuizRunner = () => {
         return;
       }
 
-      // Charger le template du quiz
-      // On doit trouver le template_id - cherchons par template_name
+      // Charger le template du quiz en utilisant le template_id de la ressource
+      const templateId = foundResource.template_id || 'test-bureautique-positionnement-v1';
       const templatesResponse = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URL}/api/test-templates/test-bureautique-positionnement-v1`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/test-templates/${templateId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
