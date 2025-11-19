@@ -2698,62 +2698,6 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
           </Card>
         )}
 
-        {/* Tests de parcours */}
-        {studentResources.filter(r => r.category === 'TEST_PARCOURS').length > 0 && (
-          <div className="mt-6 p-4 rounded-lg bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-800 text-white">
-            <h4 className="font-semibold text-lg mb-3">📝 Tests de parcours</h4>
-            <div className="space-y-3">
-              {studentResources
-                .filter(r => r.category === 'TEST_PARCOURS')
-                .map(resource => (
-                  <Card key={resource.id} className="border-2 border-indigo-200">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-start gap-4 flex-1">
-                          <FileText className="w-10 h-10 text-indigo-600" />
-                          <div className="flex-1">
-                            <h5 className="font-bold text-gray-900">{resource.template_name}</h5>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Type: {resource.sub_type === 'POSITIONNEMENT' ? 'Test de positionnement' : 
-                                     resource.sub_type === 'MI_PARCOURS' ? 'Test de mi-parcours' : 
-                                     'Test de fin de formation'}
-                            </p>
-                            {resource.status === 'SOUMIS' && (
-                              <>
-                                <p className="text-sm text-gray-500 mt-1">
-                                  📅 Complété le {new Date(resource.submitted_at).toLocaleDateString('fr-FR')}
-                                </p>
-                                <p className="text-sm font-semibold text-green-600 mt-1">
-                                  Score: {resource.score}%
-                                </p>
-                              </>
-                            )}
-                            {resource.status !== 'SOUMIS' && (
-                              <p className="text-sm text-orange-600 mt-1">
-                                ⏳ En attente de complétion
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          {resource.status === 'SOUMIS' && (
-                            <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-medium">
-                              ✓ Terminé
-                            </div>
-                          )}
-                          {resource.status !== 'SOUMIS' && (
-                            <div className="bg-orange-100 text-orange-800 px-4 py-2 rounded-lg font-medium">
-                              En attente
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Modal d'envoi par email */}
