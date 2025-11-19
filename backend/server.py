@@ -1532,13 +1532,14 @@ async def submit_quiz(
     # Calculer le pourcentage
     score_percentage = (total_score / max_score * 100) if max_score > 0 else 0
     
-    # Mettre à jour la ressource avec le score et le statut
+    # Mettre à jour la ressource avec le score, le statut ET les réponses
     await db.student_resources.update_one(
         {"id": resource_id},
         {
             "$set": {
                 "status": "SOUMIS",
                 "score": round(score_percentage, 2),
+                "student_answers": answers.get("answers", {}),
                 "submitted_at": datetime.now(timezone.utc)
             }
         }
