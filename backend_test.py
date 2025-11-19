@@ -5141,6 +5141,143 @@ class TerciFormTester:
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_documents_beneficiaires_jojo_resources(self):
+        """Test du système d'affichage des tests de parcours dans la vue enseignant - JOJO student resources"""
+        self.log("🎯 Testing Documents Bénéficiaires - JOJO Student Resources")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher (terciform@gmail.com / Geldwen1982*+)
+            self.log("=== STEP 1: Teacher Login (terciform@gmail.com) ===")
+            teacher_login_data = {
+                "email": "terciform@gmail.com",
+                "password": "Geldwen1982*+"
+            }
+            
+            response = self.make_request("POST", "/auth/login", teacher_login_data)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Teacher login failed", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            data = response.json()
+            teacher_token = data["access_token"]
+            teacher_info = data["user"]
+            self.log(f"✅ Teacher login successful: {teacher_info['name']} ({teacher_info['email']})")
+            
+            # Step 2: Test the specific endpoint GET /api/students/{student_id}/resources
+            self.log("=== STEP 2: Testing Student Resources Endpoint ===")
+            student_id = "5048760c-f368-4763-89b8-17b4a85259cc"  # JOJO student ID
+            expected_resource_id = "2de482bb-4404-410e-8949-c963aac96129"
+            
+            self.log(f"Testing endpoint: GET /api/students/{student_id}/resources")
+            self.log(f"Expected resource ID: {expected_resource_id}")
+            self.log(f"Expected status: SOUMIS")
+            self.log(f"Expected score: 10%")
+            self.log(f"Expected template: Test bureautique débutant")
+            
+            response = self.make_request("GET", f"/students/{student_id}/resources", token=teacher_token)
+            
+            if not response:
+                self.log("❌ No response received from server", "ERROR")
+                return False
+            
+            self.log(f"Response Status Code: {response.status_code}")
+            
+            if response.status_code != 200:
+                self.log("❌ Failed to get student resources", "ERROR")
+                self.log(f"HTTP Status Code: {response.status_code}")
+                self.log(f"Response Body: {response.text}")
+                return False
+            
+            # Step 3: Parse and display the JSON structure
+            self.log("=== STEP 3: Analyzing JSON Response Structure ===")
+            try:
+                resources_data = response.json()
+                self.log("✅ JSON Response Structure:")
+                self.log(json.dumps(resources_data, indent=2, ensure_ascii=False))
+            except Exception as e:
+                self.log(f"❌ Failed to parse response JSON: {e}", "ERROR")
+                self.log(f"Response text: {response.text}")
+                return False
+            
+            # Step 4: Verify the expected resource exists
+            self.log("=== STEP 4: Verifying Expected Resource ===")
+            resources = resources_data.get("resources", [])
+            self.log(f"Found {len(resources)} resources for student {student_id}")
+            
+            target_resource = None
+            for resource in resources:
+                if resource.get("id") == expected_resource_id:
+                    target_resource = resource
+                    break
+            
+            if not target_resource:
+                self.log(f"❌ Expected resource {expected_resource_id} not found", "ERROR")
+                self.log("Available resources:")
+                for i, resource in enumerate(resources, 1):
+                    self.log(f"   Resource {i}:")
+                    self.log(f"     ID: {resource.get('id', 'N/A')}")
+                    self.log(f"     Template: {resource.get('template_name', 'N/A')}")
+                    self.log(f"     Status: {resource.get('status', 'N/A')}")
+                    self.log(f"     Score: {resource.get('score', 'N/A')}")
+                return False
+            
+            # Step 5: Verify resource details
+            self.log("=== STEP 5: Verifying Resource Details ===")
+            self.log(f"✅ Found target resource:")
+            self.log(f"   ID: {target_resource.get('id', 'N/A')}")
+            self.log(f"   Student ID: {target_resource.get('student_id', 'N/A')}")
+            self.log(f"   Template Name: {target_resource.get('template_name', 'N/A')}")
+            self.log(f"   Status: {target_resource.get('status', 'N/A')}")
+            self.log(f"   Score: {target_resource.get('score', 'N/A')}%")
+            self.log(f"   Category: {target_resource.get('category', 'N/A')}")
+            self.log(f"   Sub Type: {target_resource.get('sub_type', 'N/A')}")
+            self.log(f"   Submitted At: {target_resource.get('submitted_at', 'N/A')}")
+            
+            # Step 6: Verification checks
+            self.log("=== STEP 6: Verification Checks ===")
+            checks = []
+            checks.append(("✅ Resource ID matches", target_resource.get('id') == expected_resource_id))
+            checks.append(("✅ Student ID matches", target_resource.get('student_id') == student_id))
+            checks.append(("✅ Status is SOUMIS", target_resource.get('status') == 'SOUMIS'))
+            checks.append(("✅ Score is 10%", target_resource.get('score') == 10.0))
+            checks.append(("✅ Template is Test bureautique débutant", 
+                          target_resource.get('template_name') == 'Test bureautique débutant'))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Step 7: Final summary
+            self.log("=== STEP 7: Test Summary ===")
+            self.log(f"Endpoint tested: GET /api/students/{student_id}/resources")
+            self.log(f"Teacher authentication: ✅ terciform@gmail.com")
+            self.log(f"Student: JOJO (ID: {student_id})")
+            self.log(f"Resource found: ✅ {expected_resource_id}")
+            self.log(f"Status: {target_resource.get('status', 'N/A')}")
+            self.log(f"Score: {target_resource.get('score', 'N/A')}%")
+            self.log(f"Template: {target_resource.get('template_name', 'N/A')}")
+            
+            if all_passed:
+                self.log("🎉 DOCUMENTS BÉNÉFICIAIRES TEST COMPLETED SUCCESSFULLY!")
+                self.log("✅ L'endpoint retourne bien la ressource avec le bon statut et score")
+            else:
+                self.log("❌ Some verification checks failed", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
 
 def main():
     """Main test execution"""
