@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import {
@@ -9,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
-import { LineChart, FileDown, Loader2 } from 'lucide-react';
+import { LineChart, FileDown, Loader2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -18,6 +19,17 @@ const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
+
+// Supprimer l'erreur ResizeObserver qui est un avertissement non critique
+useEffect(() => {
+  const resizeObserverErrHandler = (e) => {
+    if (e.message === 'ResizeObserver loop completed with undelivered notifications.') {
+      e.stopImmediatePropagation();
+    }
+  };
+  window.addEventListener('error', resizeObserverErrHandler);
+  return () => window.removeEventListener('error', resizeObserverErrHandler);
+}, []);
 
 export default function BilanTests() {
   const [periode, setPeriode] = useState('mois');
