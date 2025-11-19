@@ -387,19 +387,34 @@ export default function BilanTests() {
                           size="sm"
                           onClick={async () => {
                             try {
+                              toast.info('Ouverture du rapport...');
+                              
                               const response = await axios.get(
-                                row.rapportUrl,
+                                `${API}/students/${row.id}/magic-report`,
                                 {
                                   headers: getAuthHeaders(),
                                   responseType: 'blob',
                                 }
                               );
-                              const url = window.URL.createObjectURL(
-                                new Blob([response.data])
-                              );
+                              
+                              // Créer une URL blob et l'ouvrir
+                              const blob = new Blob([response.data], { type: 'application/pdf' });
+                              const url = window.URL.createObjectURL(blob);
                               window.open(url, '_blank');
+                              
+                              // Nettoyer après un délai
+                              setTimeout(() => {
+                                window.URL.revokeObjectURL(url);
+                              }, 100);
+                              
+                              toast.success('Rapport ouvert!');
                             } catch (error) {
-                              toast.error('Erreur lors de l\'ouverture du rapport');
+                              console.error('Erreur:', error);
+                              if (error.response?.status === 400) {
+                                toast.error('Les 3 tests doivent être complétés pour ce rapport');
+                              } else {
+                                toast.error('Erreur lors de l\'ouverture du rapport');
+                              }
                             }
                           }}
                         >
