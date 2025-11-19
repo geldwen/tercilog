@@ -120,9 +120,9 @@ export default function TeacherDashboard({ user, onLogout }) {
       fin: ["Test final anglais", "Certification anglais"]
     },
     "Bureautique": {
-      positionnement: ["Test bureautique débutant", "Test bureautique intermédiaire", "Test bureautique avancé"],
-      miParcours: ["Évaluation bureautique mi-parcours"],
-      fin: ["Test final bureautique", "Certification TOSA Bureautique"]
+      positionnement: ["Test bureautique débutant"],
+      miParcours: ["Test T2 mi parcours"],
+      fin: ["T3 test de fin de formation"]
     },
     "Management": {
       positionnement: ["Test management initial"],
