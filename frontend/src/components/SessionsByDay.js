@@ -5,13 +5,13 @@ import React from "react";
  *   {
  *     id: string | number,
  *     title: string,
- *     date: string,    // "2025-11-19" ou ISO
- *     status?: string, // optionnel
+ *     date: string,    // "2025-11-19" or ISO string
+ *     status?: string, // optional
  *   }
  * ]
  *
  * year: number
- * month: number // 0 = janvier, 11 = décembre
+ * month: number // 0 = January, 11 = December
  *
  * onOpenSession?: (session) => void
  * onEditSession?: (session) => void
@@ -32,14 +32,14 @@ export default function SessionsByDay({
   onEditSession,
   onDeleteSession,
 }) {
-  // Filtrer les séances qui appartiennent au mois / année donnés
+  // Filter sessions that belong to the given month/year
   const filtered = sessions.filter((session) => {
     const d = parseDate(session.date);
     if (!d) return false;
     return d.getFullYear() === year && d.getMonth() === month;
   });
 
-  // Regrouper par jour (clé = "YYYY-MM-DD")
+  // Group by day key = "YYYY-MM-DD"
   const groupsMap = filtered.reduce((acc, session) => {
     const d = parseDate(session.date);
     if (!d) return acc;
@@ -49,7 +49,7 @@ export default function SessionsByDay({
     return acc;
   }, {});
 
-  // Transformer en tableau et trier par date
+  // Turn into array and sort by date
   const groups = Object.values(groupsMap).sort(
     (a, b) => a.date.getTime() - b.date.getTime()
   );
@@ -65,13 +65,10 @@ export default function SessionsByDay({
         <h2 className="text-lg font-semibold text-slate-900">
           Séances – {monthLabel}
         </h2>
-        {/* Ici plus tard tu pourras ajouter des boutons mois précédent / suivant */}
       </header>
 
       {groups.length === 0 && (
-        <p className="text-sm text-slate-600">
-          Aucune séance pour ce mois.
-        </p>
+        <p className="text-sm text-slate-600">Aucune séance pour ce mois.</p>
       )}
 
       <div className="space-y-5">
@@ -84,7 +81,7 @@ export default function SessionsByDay({
 
           return (
             <div key={date.toISOString()} className="space-y-2">
-              {/* Titre du jour */}
+              {/* Day separator */}
               <div className="flex items-center gap-2">
                 <div className="h-[1px] flex-1 bg-slate-200" />
                 <div className="text-sm font-semibold text-slate-800 whitespace-nowrap">
@@ -93,7 +90,7 @@ export default function SessionsByDay({
                 <div className="h-[1px] flex-1 bg-slate-200" />
               </div>
 
-              {/* Cartes de séances du jour : GRANDES et cliquables */}
+              {/* BIG clickable cards for each session of the day */}
               <div className="space-y-3">
                 {daySessions.map((session) => (
                   <div
@@ -101,7 +98,6 @@ export default function SessionsByDay({
                     className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between"
                   >
                     <div className="space-y-1 flex-1">
-                      {/* Titre cliquable pour ouvrir la séance */}
                       <button
                         type="button"
                         onClick={() =>
@@ -118,7 +114,6 @@ export default function SessionsByDay({
                       )}
                     </div>
 
-                    {/* Boutons bien larges */}
                     <div className="flex flex-wrap gap-2 mt-2 md:mt-0 md:ml-4">
                       {onEditSession && (
                         <button
