@@ -71,7 +71,8 @@ export const savePlanningEvent = async (event) => {
           date: event.date,
           start_time: event.start_time,
           end_time: event.end_time,
-          organism: event.organism || ''
+          organism: event.organism || '',
+          color: event.color || '#3B82F6'
         },
         { headers: getAuthHeaders() }
       );
@@ -85,7 +86,8 @@ export const savePlanningEvent = async (event) => {
           date: event.date,
           start_time: event.start_time,
           end_time: event.end_time,
-          organism: event.organism || ''
+          organism: event.organism || '',
+          color: event.color || '#3B82F6'
         },
         { headers: getAuthHeaders() }
       );
