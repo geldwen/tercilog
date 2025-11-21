@@ -27,7 +27,7 @@ except ImportError as e:
     sys.exit(1)
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://test-results-view.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://student-report-dash.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class URLManagementTester:
@@ -125,7 +125,7 @@ class URLManagementTester:
                     'REACT_APP_FRONTEND_URL': None,
                     'REACT_APP_BACKEND_URL': None
                 },
-                "expected": "https://test-results-view.preview.emergentagent.com"
+                "expected": "https://student-report-dash.preview.emergentagent.com"
             }
         ]
         
