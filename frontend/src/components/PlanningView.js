@@ -98,7 +98,8 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
     ...planningEvents.filter(e => e.date && e.date.startsWith(activeMonth)).map(e => ({
       ...e,
       origin: 'local',
-      participant: e.center
+      participant: e.center,
+      color: e.color || getCenterColor(e.organism || e.center || '')
     }))
   ];
 
