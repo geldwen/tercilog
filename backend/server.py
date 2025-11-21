@@ -227,6 +227,7 @@ class PlanningEvent(BaseModel):
     start_time: str
     end_time: str
     organism: str = ""
+    color: str = "#3B82F6"  # Couleur de l'événement
     teacher_id: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -237,6 +238,7 @@ class PlanningEventCreate(BaseModel):
     start_time: str
     end_time: str
     organism: str = ""
+    color: str = "#3B82F6"  # Couleur de l'événement
 
 # Helper functions
 def verify_password(plain_password, hashed_password):
