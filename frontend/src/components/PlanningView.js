@@ -99,9 +99,9 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
       ...e,
       origin: 'local',
       participant: e.center,
-      // Toujours utiliser getCenterColor qui gère la logique de couleur par organisme
-      // (Zepartner = bleu, autres = couleur du localStorage ou bleu par défaut)
-      color: getCenterColor(e.organism || e.center || '')
+      // Utiliser la couleur sauvegardée dans l'événement
+      // (elle contient déjà la bonne couleur choisie lors de la création)
+      color: e.color || '#3B82F6'
     }))
   ];
 
