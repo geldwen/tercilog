@@ -99,7 +99,8 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
       ...e,
       origin: 'local',
       participant: e.center,
-      color: e.color || getCenterColor(e.organism || e.center || '')
+      // Utiliser la couleur sauvegardée dans l'événement en priorité
+      color: e.color
     }))
   ];
 
