@@ -509,6 +509,17 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                                 </button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCurrentEvent(event);
+                                    setShowModal(true);
+                                  }}
+                                  className="text-blue-600"
+                                >
+                                  <Edit size={14} className="mr-2" />
+                                  Modifier
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={(e) => handleDuplicateClick(event, e)}>
                                   <Copy size={14} className="mr-2" />
                                   Dupliquer
