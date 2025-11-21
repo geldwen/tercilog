@@ -798,7 +798,8 @@ async def get_students(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Access denied")
     
     students = await db.users.find({"role": "student"}, {"_id": 0, "password_hash": 0}).to_list(1000)
-    return [User(**s) for s in students]
+    # Inclure le champ password (mot de passe en clair) s'il existe
+    return students
 
 @api_router.post("/students", response_model=User)
 async def create_student(data: dict, current_user: User = Depends(get_current_user)):
