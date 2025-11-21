@@ -3157,6 +3157,11 @@ export default function ParcoursEleveModal({ open, onOpenChange, student }) {
           <DialogTitle className="text-2xl font-bold text-[#8B5A2B]">
             Parcours élève — {student.name}
           </DialogTitle>
+          {student.password && (
+            <div className="mt-2 text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded px-3 py-2 inline-block">
+              🔑 Mot de passe : <span className="font-mono font-semibold text-gray-900">{student.password}</span>
+            </div>
+          )}
         </DialogHeader>
 
         <Tabs defaultValue="tests" className="w-full">
