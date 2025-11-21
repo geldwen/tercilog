@@ -99,9 +99,9 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
       ...e,
       origin: 'local',
       participant: e.center,
-      // Si l'événement a une couleur ET ce n'est pas le bleu par défaut, l'utiliser
-      // Sinon, utiliser la couleur du centre depuis localStorage
-      color: (e.color && e.color !== '#3B82F6') ? e.color : getCenterColor(e.organism || e.center || '')
+      // Toujours utiliser getCenterColor qui gère la logique de couleur par organisme
+      // (Zepartner = bleu, autres = couleur du localStorage ou bleu par défaut)
+      color: getCenterColor(e.organism || e.center || '')
     }))
   ];
 
