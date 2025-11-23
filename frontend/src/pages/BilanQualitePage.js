@@ -484,13 +484,13 @@ const BilanQualitePage = () => {
               {/* Retours élèves avec 2 compteurs et complétion */}
               <Card>
                 <CardContent className="pt-6">
-                  <div className="text-sm text-gray-600 mb-3">Retours élèves (questionnaires)</div>
-                  <div className="flex gap-4 mb-3">
-                    <div className="flex-1">
+                  <div className="text-sm text-gray-600 mb-3 text-center">Retours élèves (questionnaires)</div>
+                  <div className="flex gap-6 mb-3 justify-center">
+                    <div className="flex-1 text-center max-w-[120px]">
                       <div className="text-sm font-medium text-green-700 mb-1">Soumis</div>
                       <div className="text-3xl font-bold text-green-600">{agreg.nbSoumis}</div>
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 text-center max-w-[120px]">
                       <div className="text-sm font-medium text-red-700 mb-1">En attente</div>
                       <div className="text-3xl font-bold text-red-600">{agreg.nbEnAttente}</div>
                     </div>
