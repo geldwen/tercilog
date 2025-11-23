@@ -522,7 +522,7 @@ function dot(stat) {
   };
   return (
     <span>
-      <i style={style} /> {ok ? "Vert" : "Rouge"}
+      <i style={style} /> {ok ? "Soumis" : "En attente"}
     </span>
   );
 }
