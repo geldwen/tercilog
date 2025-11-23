@@ -520,7 +520,64 @@ const BilanQualitePage = () => {
                   </div>
                 </CardContent>
               </Card>
-              <KpiCard title="Satisfaction moyenne" value={`${agreg.avgSat}/100`} />
+              {/* Satisfaction parcours élève avec graphique */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-sm text-gray-600 mb-1">Satisfaction parcours élève (moyenne)</div>
+                  <div className="text-3xl font-bold mb-3">
+                    {agreg.avgSat}/100
+                  </div>
+                  
+                  {/* Mini graphique par mois */}
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="text-xs text-gray-600 mb-2">Évolution {filtres.annee}</div>
+                    <div className="relative h-16">
+                      <svg width="100%" height="100%" className="overflow-visible">
+                        {/* Ligne de base */}
+                        <line x1="0" y1="60" x2="100%" y2="60" stroke="#e5e7eb" strokeWidth="1" />
+                        
+                        {/* Courbe de satisfaction */}
+                        {satisfactionParMois.length > 1 && (
+                          <polyline
+                            points={satisfactionParMois
+                              .map((m, i) => {
+                                const x = (i / (satisfactionParMois.length - 1)) * 100;
+                                const y = m.moyenne !== null ? 60 - (m.moyenne * 0.5) : null;
+                                return y !== null ? `${x},${y}` : null;
+                              })
+                              .filter(p => p !== null)
+                              .join(' ')}
+                            fill="none"
+                            stroke="#2563eb"
+                            strokeWidth="2"
+                          />
+                        )}
+                        
+                        {/* Points */}
+                        {satisfactionParMois.map((m, i) => {
+                          if (m.moyenne === null) return null;
+                          const x = (i / (satisfactionParMois.length - 1)) * 100;
+                          const y = 60 - (m.moyenne * 0.5);
+                          return (
+                            <circle
+                              key={i}
+                              cx={`${x}%`}
+                              cy={y}
+                              r="3"
+                              fill="#2563eb"
+                            />
+                          );
+                        })}
+                      </svg>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      {satisfactionParMois.map((m, i) => (
+                        <span key={i} className="truncate">{m.mois.substring(0, 3)}</span>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
               
               {/* Barre de progression pour le ressenti global */}
               <Card>
