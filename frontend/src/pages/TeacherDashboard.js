@@ -1588,7 +1588,30 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <div className="space-y-4">
                           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                             <div className="space-y-2 flex-1">
-                              <h3 className="text-lg font-semibold text-gray-900">{student.name}</h3>
+                              <div className="flex items-center gap-3">
+                                <h3 className="text-lg font-semibold text-gray-900">{student.name}</h3>
+                                {student.parcours && (
+                                  <span 
+                                    className="px-3 py-1 rounded-full text-sm font-bold"
+                                    style={{
+                                      backgroundColor: 
+                                        student.parcours === 'Anglais' ? '#FFE4F0' :
+                                        student.parcours === 'Bureautique' ? '#D1FAE5' :
+                                        student.parcours === 'Management' ? '#DBEAFE' :
+                                        student.parcours === 'Informatique' ? '#F3E8FF' :
+                                        '#F3F4F6',
+                                      color: 
+                                        student.parcours === 'Anglais' ? '#DB2777' :
+                                        student.parcours === 'Bureautique' ? '#059669' :
+                                        student.parcours === 'Management' ? '#2563EB' :
+                                        student.parcours === 'Informatique' ? '#9333EA' :
+                                        '#6B7280'
+                                    }}
+                                  >
+                                    {student.parcours}
+                                  </span>
+                                )}
+                              </div>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
                                 <p><span className="font-medium">Email:</span> {student.email}</p>
                                 {student.phone && <p><span className="font-medium">Tél:</span> {student.phone}</p>}
