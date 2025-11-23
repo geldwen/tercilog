@@ -158,6 +158,9 @@ const BilanQualitePage = () => {
     });
     const completionPct = nbTotal > 0 ? Math.round((nbSoumis * 100) / nbTotal) : 0;
 
+    // Calcul pour la bulle "Retours élèves"
+    const nbEnAttente = nbTotal - nbSoumis;
+
     return {
       nbEleves: N,
       avgProg,
@@ -166,6 +169,8 @@ const BilanQualitePage = () => {
       negPct,
       top3,
       completionPct,
+      nbSoumis,
+      nbEnAttente,
       couleur: COULEUR_FROM_SCORE(avgProg),
     };
   }, [lignes]);
