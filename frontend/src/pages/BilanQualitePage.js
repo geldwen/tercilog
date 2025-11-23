@@ -160,8 +160,8 @@ const BilanQualitePage = () => {
       (e) => e.q1?.submitted && e.q2?.submitted && e.q3?.submitted
     );
     const N = eligibles.length;
-    // Scores de progression (calculés côté backend)
-    const scores = eligibles.map((e) => e.q3?.score_progression || 0);
+    // Scores de ressenti de progression (calculés côté backend)
+    const scores = eligibles.map((e) => e.q3?.score_ressenti_progression || 0);
     const avgProg = N ? Math.round(scores.reduce((a, b) => a + b, 0) / N) : 0;
 
     // Scores de satisfaction (calculés côté backend)
