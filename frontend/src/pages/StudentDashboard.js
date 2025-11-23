@@ -668,8 +668,8 @@ export default function StudentDashboard({ user, onLogout }) {
                 )}
 
                 {/* Bulle : Mes ressources pédagogiques et mes supports */}
-                <Card className="shadow-lg border-2 border-blue-200">
-                  <CardHeader style={{backgroundColor: '#E6F0FF'}}>
+                <Card className="shadow-lg border-2 border-green-200">
+                  <CardHeader style={{backgroundColor: '#E9F8EF'}}>
                     <CardTitle className="text-xl flex items-center gap-2" style={{color: TERCIFORM_BLUE}}>
                       <BookOpen size={24} />
                       Mes ressources pédagogiques et mes supports
