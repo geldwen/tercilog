@@ -591,8 +591,8 @@ export default function StudentDashboard({ user, onLogout }) {
               <>
                 {/* Bulle globale : Tests de positionnement */}
                 {studentResources.filter(r => r.category === 'TEST_PARCOURS').length > 0 && (
-                  <Card className="shadow-lg border-2 border-blue-200">
-                    <CardHeader style={{backgroundColor: '#E6F0FF'}}>
+                  <Card className="shadow-lg border-2 border-green-200">
+                    <CardHeader style={{backgroundColor: '#E9F8EF'}}>
                       <CardTitle className="text-xl flex items-center gap-2" style={{color: TERCIFORM_BLUE}}>
                         <TrendingUp size={24} />
                         Tests de positionnement (T1, T2, T3)
