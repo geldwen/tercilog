@@ -352,11 +352,11 @@ const BilanQualitePage = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              {/* Retours élèves avec 2 compteurs */}
+              {/* Retours élèves avec 2 compteurs et complétion */}
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-sm text-gray-600 mb-3">Retours élèves (questionnaires)</div>
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 mb-3">
                     <div className="flex-1">
                       <div className="text-sm font-medium text-green-700 mb-1">Soumis</div>
                       <div className="text-3xl font-bold text-green-600">{agreg.nbSoumis}</div>
@@ -365,6 +365,10 @@ const BilanQualitePage = () => {
                       <div className="text-sm font-medium text-red-700 mb-1">En attente</div>
                       <div className="text-3xl font-bold text-red-600">{agreg.nbEnAttente}</div>
                     </div>
+                  </div>
+                  <div className="text-center pt-2 border-t">
+                    <div className="text-sm text-gray-500">Complétion</div>
+                    <div className="text-2xl font-bold text-blue-600">{agreg.completionPct}%</div>
                   </div>
                 </CardContent>
               </Card>
@@ -390,8 +394,6 @@ const BilanQualitePage = () => {
                   </div>
                 </CardContent>
               </Card>
-              
-              <KpiCard title="Complétion Q1+Q2+Q3" value={`${agreg.completionPct}%`} />
             </div>
 
             {/* Difficultés récurrentes */}
