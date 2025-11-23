@@ -462,12 +462,65 @@ const BilanQualitePage = () => {
                 </CardContent>
               </Card>
               
-              <KpiCard
-                title="Progression moyenne"
-                value={`${agreg.avgProg}/100`}
-                color={agreg.couleur.hex}
-                subtitle={agreg.couleur.lib}
-              />
+              {/* Progression moyenne avec graphique */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-sm text-gray-600 mb-1">Progression moyenne (ressenti)</div>
+                  <div className="text-3xl font-bold mb-3" style={{ color: agreg.couleur.hex }}>
+                    {agreg.avgProg}/100
+                  </div>
+                  <div className="text-xs text-gray-500 mb-3">{agreg.couleur.lib}</div>
+                  
+                  {/* Mini graphique par mois */}
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="text-xs text-gray-600 mb-2">Évolution {filtres.annee}</div>
+                    <div className="relative h-16">
+                      <svg width="100%" height="100%" className="overflow-visible">
+                        {/* Ligne de base */}
+                        <line x1="0" y1="60" x2="100%" y2="60" stroke="#e5e7eb" strokeWidth="1" />
+                        
+                        {/* Courbe de progression */}
+                        {progressionParMois.length > 1 && (
+                          <polyline
+                            points={progressionParMois
+                              .map((m, i) => {
+                                const x = (i / (progressionParMois.length - 1)) * 100;
+                                const y = m.moyenne !== null ? 60 - (m.moyenne * 0.5) : null;
+                                return y !== null ? `${x},${y}` : null;
+                              })
+                              .filter(p => p !== null)
+                              .join(' ')}
+                            fill="none"
+                            stroke={agreg.couleur.hex}
+                            strokeWidth="2"
+                          />
+                        )}
+                        
+                        {/* Points */}
+                        {progressionParMois.map((m, i) => {
+                          if (m.moyenne === null) return null;
+                          const x = (i / (progressionParMois.length - 1)) * 100;
+                          const y = 60 - (m.moyenne * 0.5);
+                          return (
+                            <circle
+                              key={i}
+                              cx={`${x}%`}
+                              cy={y}
+                              r="3"
+                              fill={agreg.couleur.hex}
+                            />
+                          );
+                        })}
+                      </svg>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      {progressionParMois.map((m, i) => (
+                        <span key={i} className="truncate">{m.mois.substring(0, 3)}</span>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
               <KpiCard title="Satisfaction moyenne" value={`${agreg.avgSat}/100`} />
               
               {/* Barre de progression pour le ressenti global */}
