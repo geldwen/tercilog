@@ -81,6 +81,7 @@ const BilanQualitePage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(null);
+  const [parcoursFilter, setParcoursFilter] = useState("Toutes"); // Filtre pour difficultés/éléments maîtrisés
 
   const periodeLabel =
     filtres.periodeType === "mois"
