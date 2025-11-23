@@ -710,6 +710,7 @@ const BilanQualitePage = () => {
                         <Th>Q3</Th>
                         <Th>Ressenti progression</Th>
                         <Th>Satisfaction</Th>
+                        <Th>Éléments maîtrisés</Th>
                         <Th>Difficultés</Th>
                         <Th>Actions</Th>
                       </tr>
@@ -717,7 +718,7 @@ const BilanQualitePage = () => {
                     <tbody>
                       {lignes.length === 0 ? (
                         <tr>
-                          <td colSpan={9} className="text-center py-8 text-gray-500">
+                          <td colSpan={10} className="text-center py-8 text-gray-500">
                             Aucun élève trouvé. Veuillez vérifier que vos élèves ont bien un professeur assigné.
                           </td>
                         </tr>
@@ -725,6 +726,7 @@ const BilanQualitePage = () => {
                         lignes.map((e) => {
                           const score = e.q3?.score_ressenti_progression;
                           const sat = e.q3?.score_satisfaction;
+                          const mastered = e.q3?.mastered_skills?.join(", ") || "";
                           const diff = e.q3?.difficulties?.join(", ") || "";
                           
                           return (
@@ -736,6 +738,7 @@ const BilanQualitePage = () => {
                               <Td>{dot(e.q3?.submitted ? "VERT" : "ROUGE")}</Td>
                               <Td>{score !== null && score !== undefined ? `${score}/100` : "—"}</Td>
                               <Td>{sat !== null && sat !== undefined ? `${sat}/100` : "—"}</Td>
+                              <Td className="max-w-xs truncate">{mastered || "—"}</Td>
                               <Td className="max-w-xs truncate">{diff || "—"}</Td>
                               <Td>
                                 <Button
