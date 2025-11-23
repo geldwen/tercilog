@@ -2418,41 +2418,21 @@ async def get_qualite_report(
         if not q2_data["submitted"]:
             q3_submitted = False
         
-        # Calculer les scores pour Q3
+        # Calculer les scores avec l'agent IA qualité
         score_progression = None
         score_satisfaction = None
         difficulties = []
         
-        if q3 and q3_submitted:
-            # Score progression (0-100)
-            prog_val = q3.get("progression_globale", "")
-            prog_score = 0
-            if prog_val == "Très satisfaisante": prog_score = 100
-            elif prog_val == "Satisfaisante": prog_score = 75
-            elif prog_val == "Moyenne": prog_score = 50
-            elif prog_val == "Insuffisante": prog_score = 25
-            
-            obj_val = q3.get("objectifs_atteints", "")
-            obj_score = 0
-            if obj_val == "Oui": obj_score = 100
-            elif obj_val == "Partiellement": obj_score = 66
-            
+        # Utiliser l'agent IA pour calculer les scores basés sur les réponses à échelle
+        if q3_submitted:
             try:
-                eval_globale = int(q3.get("evaluation_globale", 0))
-                sat_score = (eval_globale / 5) * 100
-            except:
-                sat_score = 0
-            
-            rec_val = q3.get("recommandation", "")
-            rec_score = 100 if rec_val == "Oui" else 50 if rec_val == "Peut-être" else 0
-            
-            score_progression = round(prog_score * 0.4 + obj_score * 0.3 + sat_score * 0.2 + rec_score * 0.1)
-            score_satisfaction = round(sat_score)
-            
-            # Difficultés
-            diff_str = q3.get("difficultes", "")
-            if diff_str:
-                difficulties = [d.strip() for d in diff_str.split(",") if d.strip()]
+                quality_scores = calculate_quality_scores(q1, q2, q3)
+                score_progression = quality_scores['score_progression']
+                score_satisfaction = quality_scores['score_satisfaction']
+                difficulties = quality_scores['difficulties']
+            except Exception as e:
+                logger.warning(f"Error calculating quality scores for student {student_name}: {e}")
+                # En cas d'erreur, garder les valeurs None
         
         q3_data = {
             "submitted": q3_submitted,
