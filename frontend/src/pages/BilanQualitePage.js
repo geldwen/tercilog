@@ -147,11 +147,16 @@ const BilanQualitePage = () => {
       .slice(0, 3)
       .map(([k]) => k);
 
-    // Complétion (Q1+Q2+Q3 soumis)
-    const nbComplets = lignes.filter(
-      (e) => e.q1?.submitted && e.q2?.submitted && e.q3?.submitted
-    ).length;
-    const completionPct = lignes.length ? Math.round((nbComplets * 100) / lignes.length) : 0;
+    // Complétion (ratio questionnaires soumis / total)
+    let nbSoumis = 0;
+    let nbTotal = 0;
+    lignes.forEach((e) => {
+      if (e.q1?.submitted) nbSoumis++;
+      if (e.q2?.submitted) nbSoumis++;
+      if (e.q3?.submitted) nbSoumis++;
+      nbTotal += 3; // Chaque élève a 3 questionnaires (Q1, Q2, Q3)
+    });
+    const completionPct = nbTotal > 0 ? Math.round((nbSoumis * 100) / nbTotal) : 0;
 
     return {
       nbEleves: N,
