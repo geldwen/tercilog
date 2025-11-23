@@ -196,8 +196,44 @@ def calculate_quality_scores(q1_data, q2_data, q3_data):
     # Limiter à 5 difficultés maximum
     difficulties = difficulties[:5]
     
+    # === ÉLÉMENTS MAÎTRISÉS ===
+    mastered_skills = []
+    
+    # Q2 - Outils avec lesquels l'élève a progressé
+    if q2_data:
+        outils_progres = q2_data.get('outils_progres', [])
+        if isinstance(outils_progres, list):
+            mastered_skills.extend(outils_progres)
+        elif isinstance(outils_progres, str) and outils_progres:
+            mastered_skills.append(outils_progres)
+    
+    # Q3 - Tâches maîtrisées
+    if q3_data:
+        tache_maitrisee = q3_data.get('exemple_tache_maitrisee', '')
+        if tache_maitrisee and tache_maitrisee.strip():
+            mastered_skills.append(tache_maitrisee.strip())
+        
+        # Q3 - Progressions spécifiques fortes
+        prog_skills = []
+        if q3_data.get('progression_word') == 'Forte':
+            prog_skills.append('Word')
+        if q3_data.get('progression_excel') == 'Forte':
+            prog_skills.append('Excel')
+        if q3_data.get('progression_powerpoint') == 'Forte':
+            prog_skills.append('PowerPoint')
+        if q3_data.get('progression_messagerie') == 'Forte':
+            prog_skills.append('Messagerie')
+        if q3_data.get('progression_fichiers') == 'Forte':
+            prog_skills.append('Gestion de fichiers')
+        
+        mastered_skills.extend(prog_skills)
+    
+    # Limiter à 5 éléments maîtrisés maximum
+    mastered_skills = list(set(mastered_skills))[:5]  # Dédupliquer et limiter
+    
     return {
         'score_progression': score_progression,
         'score_satisfaction': score_satisfaction,
-        'difficulties': difficulties
+        'difficulties': difficulties,
+        'mastered_skills': mastered_skills
     }
