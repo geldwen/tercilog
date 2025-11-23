@@ -518,7 +518,7 @@ const BilanQualitePage = () => {
                         <Th>Q1</Th>
                         <Th>Q2</Th>
                         <Th>Q3</Th>
-                        <Th>Score progression</Th>
+                        <Th>Ressenti progression</Th>
                         <Th>Satisfaction</Th>
                         <Th>Difficultés</Th>
                         <Th>Actions</Th>
@@ -533,7 +533,7 @@ const BilanQualitePage = () => {
                         </tr>
                       ) : (
                         lignes.map((e) => {
-                          const score = e.q3?.score_progression;
+                          const score = e.q3?.score_ressenti_progression;
                           const sat = e.q3?.score_satisfaction;
                           const diff = e.q3?.difficulties?.join(", ") || "";
                           
