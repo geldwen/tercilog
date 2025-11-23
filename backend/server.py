@@ -2419,7 +2419,7 @@ async def get_qualite_report(
             q3_submitted = False
         
         # Calculer les scores avec l'agent IA qualité
-        score_progression = None
+        score_ressenti_progression = None
         score_satisfaction = None
         difficulties = []
         mastered_skills = []
@@ -2428,7 +2428,7 @@ async def get_qualite_report(
         if q3_submitted:
             try:
                 quality_scores = calculate_quality_scores(q1, q2, q3)
-                score_progression = quality_scores['score_progression']
+                score_ressenti_progression = quality_scores['score_ressenti_progression']
                 score_satisfaction = quality_scores['score_satisfaction']
                 difficulties = quality_scores['difficulties']
                 mastered_skills = quality_scores.get('mastered_skills', [])
@@ -2439,7 +2439,7 @@ async def get_qualite_report(
         q3_data = {
             "submitted": q3_submitted,
             "submitted_at": q3.get("submitted_at") if (q3 and q3_submitted) else None,
-            "score_progression": score_progression,
+            "score_ressenti_progression": score_ressenti_progression,
             "score_satisfaction": score_satisfaction,
             "difficulties": difficulties,
             "mastered_skills": mastered_skills,
