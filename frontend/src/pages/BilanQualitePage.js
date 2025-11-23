@@ -461,29 +461,8 @@ const BilanQualitePage = () => {
               </select>
             </div>
 
-            {/* Bandeaux : Difficultés et Éléments maîtrisés */}
+            {/* Bandeaux : Éléments maîtrisés et Difficultés (inversé) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {/* Difficultés récurrentes */}
-              <Card className="border-orange-200">
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <span className="text-2xl">⚠️</span>
-                    Difficultés récurrentes (Top 3)
-                  </h3>
-                  {filteredTop3.length > 0 ? (
-                    <div className="flex gap-2 flex-wrap">
-                      {filteredTop3.map((diff, i) => (
-                        <span key={i} className="px-3 py-2 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
-                          {diff}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm italic">Aucune difficulté récurrente pour ce parcours</p>
-                  )}
-                </CardContent>
-              </Card>
-
               {/* Éléments maîtrisés */}
               <Card className="border-green-200">
                 <CardContent className="pt-6">
@@ -501,6 +480,27 @@ const BilanQualitePage = () => {
                     </div>
                   ) : (
                     <p className="text-gray-500 text-sm italic">Aucun élément maîtrisé pour ce parcours</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Difficultés récurrentes */}
+              <Card className="border-orange-200">
+                <CardContent className="pt-6">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <span className="text-2xl">⚠️</span>
+                    Difficultés récurrentes (Top 3)
+                  </h3>
+                  {filteredTop3.length > 0 ? (
+                    <div className="flex gap-2 flex-wrap">
+                      {filteredTop3.map((diff, i) => (
+                        <span key={i} className="px-3 py-2 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                          {diff}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm italic">Aucune difficulté récurrente pour ce parcours</p>
                   )}
                 </CardContent>
               </Card>
