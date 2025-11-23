@@ -219,11 +219,11 @@ def calculate_quality_scores(q1_data, q2_data, q3_data):
     # Q3 - Progressions moyennes (si pas assez de fortes)
     if q3_data and len(mastered_skills) < 3:
         if q3_data.get('progression_word') == 'Moyenne' and 'Word' not in mastered_skills:
-            mastered_skills.append('Word (niveau moyen)')
+            mastered_skills.append('Word')
         if q3_data.get('progression_excel') == 'Moyenne' and 'Excel' not in mastered_skills:
-            mastered_skills.append('Excel (niveau moyen)')
+            mastered_skills.append('Excel')
         if q3_data.get('progression_powerpoint') == 'Moyenne' and 'PowerPoint' not in mastered_skills:
-            mastered_skills.append('PowerPoint (niveau moyen)')
+            mastered_skills.append('PowerPoint')
     
     # Q3 - Objectifs atteints
     if q3_data and len(mastered_skills) < 3:
