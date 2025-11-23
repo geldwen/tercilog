@@ -445,21 +445,66 @@ const BilanQualitePage = () => {
               </Card>
             </div>
 
-            {/* Difficultés récurrentes */}
-            {agreg.top3.length > 0 && (
-              <Card className="mb-6">
+            {/* Filtre par parcours pour les bandeaux */}
+            <div className="mb-4 flex items-center gap-3">
+              <label className="text-sm font-medium">Filtrer par parcours :</label>
+              <select
+                value={parcoursFilter}
+                onChange={(e) => setParcoursFilter(e.target.value)}
+                className="border rounded-md px-3 py-2 text-sm"
+              >
+                {parcours.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Bandeaux : Difficultés et Éléments maîtrisés */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {/* Difficultés récurrentes */}
+              <Card className="border-orange-200">
                 <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">🎯 Difficultés récurrentes (Top 3)</h3>
-                  <div className="flex gap-2 flex-wrap">
-                    {agreg.top3.map((diff, i) => (
-                      <span key={i} className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">
-                        {diff}
-                      </span>
-                    ))}
-                  </div>
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <span className="text-2xl">⚠️</span>
+                    Difficultés récurrentes (Top 3)
+                  </h3>
+                  {filteredTop3.length > 0 ? (
+                    <div className="flex gap-2 flex-wrap">
+                      {filteredTop3.map((diff, i) => (
+                        <span key={i} className="px-3 py-2 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                          {diff}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm italic">Aucune difficulté récurrente pour ce parcours</p>
+                  )}
                 </CardContent>
               </Card>
-            )}
+
+              {/* Éléments maîtrisés */}
+              <Card className="border-green-200">
+                <CardContent className="pt-6">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <span className="text-2xl">✅</span>
+                    Éléments maîtrisés (Top 3)
+                  </h3>
+                  {filteredTop3Mastered.length > 0 ? (
+                    <div className="flex gap-2 flex-wrap">
+                      {filteredTop3Mastered.map((skill, i) => (
+                        <span key={i} className="px-3 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm italic">Aucun élément maîtrisé pour ce parcours</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Tableau */}
             <Card>
