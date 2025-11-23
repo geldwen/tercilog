@@ -116,6 +116,42 @@ const BilanQualitePage = () => {
 
   // Pas de filtrage côté client, le backend fait tout
   const lignes = useMemo(() => data, [data]);
+  
+  // Difficultés et éléments maîtrisés filtrés par parcours
+  const { filteredTop3, filteredTop3Mastered } = useMemo(() => {
+    const eligibles = lignes.filter(
+      (e) => e.q1?.submitted && e.q2?.submitted && e.q3?.submitted
+    );
+    
+    // Filtrer par parcours sélectionné
+    const filtered = parcoursFilter === "Toutes" 
+      ? eligibles 
+      : eligibles.filter(e => e.parcours === parcoursFilter);
+    
+    // Difficultés top 3
+    const freq = new Map();
+    filtered.forEach((e) => {
+      const difficulties = e.q3?.difficulties || [];
+      difficulties.forEach((d) => freq.set(d, (freq.get(d) || 0) + 1));
+    });
+    const filteredTop3 = Array.from(freq.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([k]) => k);
+    
+    // Éléments maîtrisés top 3
+    const freqMastered = new Map();
+    filtered.forEach((e) => {
+      const mastered = e.q3?.mastered_skills || [];
+      mastered.forEach((m) => freqMastered.set(m, (freqMastered.get(m) || 0) + 1));
+    });
+    const filteredTop3Mastered = Array.from(freqMastered.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([k]) => k);
+    
+    return { filteredTop3, filteredTop3Mastered };
+  }, [lignes, parcoursFilter]);
 
   // Agrégation des KPIs
   const agreg = useMemo(() => {
