@@ -233,7 +233,7 @@ def calculate_quality_scores(q1_data, q2_data, q3_data):
     mastered_skills = list(set(mastered_skills))[:5]  # Dédupliquer et limiter
     
     return {
-        'score_progression': score_progression,
+        'score_ressenti_progression': score_progression,
         'score_satisfaction': score_satisfaction,
         'difficulties': difficulties,
         'mastered_skills': mastered_skills
