@@ -115,9 +115,9 @@ export default function TeacherDashboard({ user, onLogout }) {
   // Modèles de tests disponibles par parcours
   const testModels = {
     "Anglais": {
-      positionnement: ["Test d'anglais A1", "Test d'anglais A2", "Test d'anglais B1", "Test d'anglais B2"],
+      positionnement: ["Évaluation anglais initial", "Test anglais de positionnement v2"],
       miParcours: ["Évaluation anglais mi-parcours v1", "Évaluation anglais mi-parcours v2"],
-      fin: ["Test final anglais", "Certification anglais"]
+      fin: ["Évaluation anglais final v1", "Évaluation anglais final v2"]
     },
     "Bureautique": {
       positionnement: ["T1 - Test de positionnement"],
@@ -130,9 +130,9 @@ export default function TeacherDashboard({ user, onLogout }) {
       fin: ["Test final management"]
     },
     "Informatique": {
-      positionnement: ["Test informatique initial"],
-      miParcours: ["Évaluation informatique mi-parcours"],
-      fin: ["Test final informatique"]
+      positionnement: ["T1 - Test de positionnement informatique"],
+      miParcours: ["T2 - Test à mi-parcours informatique"],
+      fin: ["T3 - Test de fin de formation informatique"]
     }
   };
 
