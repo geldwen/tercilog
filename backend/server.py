@@ -2422,6 +2422,7 @@ async def get_qualite_report(
         score_progression = None
         score_satisfaction = None
         difficulties = []
+        mastered_skills = []
         
         # Utiliser l'agent IA pour calculer les scores basés sur les réponses à échelle
         if q3_submitted:
@@ -2430,6 +2431,7 @@ async def get_qualite_report(
                 score_progression = quality_scores['score_progression']
                 score_satisfaction = quality_scores['score_satisfaction']
                 difficulties = quality_scores['difficulties']
+                mastered_skills = quality_scores.get('mastered_skills', [])
             except Exception as e:
                 logger.warning(f"Error calculating quality scores for student {student_name}: {e}")
                 # En cas d'erreur, garder les valeurs None
@@ -2440,6 +2442,7 @@ async def get_qualite_report(
             "score_progression": score_progression,
             "score_satisfaction": score_satisfaction,
             "difficulties": difficulties,
+            "mastered_skills": mastered_skills,
         }
         
         result.append({
