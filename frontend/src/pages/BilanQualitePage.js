@@ -179,6 +179,7 @@ const BilanQualitePage = () => {
       posPct,
       negPct,
       top3,
+      top3Mastered,
       completionPct,
       nbSoumis,
       nbEnAttente,
