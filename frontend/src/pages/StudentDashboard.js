@@ -693,12 +693,18 @@ export default function StudentDashboard({ user, onLogout }) {
 
         {activeTab === 'avis' && (
           <div className="space-y-6">
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle style={{color: TERCIFORM_BLUE}}>Mes besoins en formation</CardTitle>
+            {/* Bandeau ROUGE : Mes besoins en formation */}
+            <Card className="shadow-lg border-2 border-red-200">
+              <CardHeader style={{backgroundColor: '#FDE7F3'}}>
+                <CardTitle className="text-xl flex items-center gap-2" style={{color: TERCIFORM_BLUE}}>
+                  <MessageSquare size={24} />
+                  Mes besoins en formation
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  Partagez vos attentes et objectifs de formation
+                </p>
               </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">Partagez vos attentes et objectifs de formation</p>
+              <CardContent className="pt-6">
                 <div className="space-y-3">
                   <Button 
                     onClick={() => !formationNeedsSubmitted && setShowNeedsDialog(true)} 
@@ -731,13 +737,23 @@ export default function StudentDashboard({ user, onLogout }) {
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle style={{color: TERCIFORM_BLUE}}>Mon avis sur la formation</CardTitle>
+            {/* Bandeau ROUGE : Mon avis sur la formation */}
+            <Card className="shadow-lg border-2 border-red-200">
+              <CardHeader style={{backgroundColor: '#FDE7F3'}}>
+                <CardTitle className="text-xl flex items-center gap-2" style={{color: TERCIFORM_BLUE}}>
+                  <MessageSquare size={24} />
+                  Mon avis sur la formation
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  Votre retour est précieux pour améliorer nos formations
+                </p>
               </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">Votre retour est précieux pour améliorer nos formations</p>
-                <Button onClick={() => setShowFeedbackDialog(true)} style={{backgroundColor: TERCIFORM_BLUE}}>
+              <CardContent className="pt-6">
+                <Button 
+                  onClick={() => setShowFeedbackDialog(true)} 
+                  style={{backgroundColor: TERCIFORM_BLUE}}
+                  className="w-full"
+                >
                   <MessageSquare size={16} className="mr-2" />
                   Donner mon avis
                 </Button>
