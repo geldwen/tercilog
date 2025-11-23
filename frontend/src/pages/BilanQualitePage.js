@@ -695,9 +695,10 @@ const BilanQualitePage = () => {
               </Card>
             </div>
 
-            {/* Tableau */}
+            {/* Tableau Parcours qualité */}
             <Card>
               <CardContent className="pt-6">
+                <h2 className="text-2xl font-bold mb-6" style={{ color: '#2B8A3E' }}>Parcours qualité</h2>
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
                     <thead className="bg-gray-50">
