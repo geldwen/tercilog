@@ -668,8 +668,8 @@ export default function StudentDashboard({ user, onLogout }) {
                 )}
 
                 {/* Bulle : Mes ressources pédagogiques et mes supports */}
-                <Card className="shadow-lg border-2 border-green-200">
-                  <CardHeader style={{backgroundColor: '#E9F8EF'}}>
+                <Card className="shadow-lg border-2 border-blue-200">
+                  <CardHeader style={{backgroundColor: '#E6F0FF'}}>
                     <CardTitle className="text-xl flex items-center gap-2" style={{color: TERCIFORM_BLUE}}>
                       <BookOpen size={24} />
                       Mes ressources pédagogiques et mes supports
@@ -679,43 +679,11 @@ export default function StudentDashboard({ user, onLogout }) {
                     </p>
                   </CardHeader>
                   <CardContent className="pt-6">
-                    {studentResources.filter(r => r.category !== 'TEST_PARCOURS').length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <BookOpen size={48} className="mx-auto mb-3 text-gray-300" />
-                        <p>Aucune ressource pédagogique disponible pour le moment.</p>
-                        <p className="text-sm mt-2">Vos supports de cours apparaîtront ici.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {studentResources
-                          .filter(r => r.category !== 'TEST_PARCOURS')
-                          .map(resource => (
-                            <div key={resource.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <FileText size={20} className="text-gray-400" />
-                                  <div>
-                                    <h4 className="font-medium" style={{color: TERCIFORM_BLUE}}>
-                                      {resource.title || resource.template_name}
-                                    </h4>
-                                    <p className="text-sm text-gray-600">
-                                      {resource.description || 'Support de cours'}
-                                    </p>
-                                  </div>
-                                </div>
-                                <Button
-                                  onClick={() => navigate(`/student/resource/${resource.id}`)}
-                                  variant="outline"
-                                  size="sm"
-                                >
-                                  <Download size={16} className="mr-2" />
-                                  Accéder
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    )}
+                    <div className="text-center py-8 text-gray-500">
+                      <BookOpen size={48} className="mx-auto mb-3 text-gray-300" />
+                      <p>Aucune ressource pédagogique disponible pour le moment.</p>
+                      <p className="text-sm mt-2">Vos supports de cours apparaîtront ici une fois téléchargés par votre formateur.</p>
+                    </div>
                   </CardContent>
                 </Card>
               </>
