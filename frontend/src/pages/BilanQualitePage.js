@@ -469,7 +469,6 @@ const BilanQualitePage = () => {
                   <div className="text-3xl font-bold mb-3" style={{ color: agreg.couleur.hex }}>
                     {agreg.avgProg}/100
                   </div>
-                  <div className="text-xs text-gray-500 mb-3">{agreg.couleur.lib}</div>
                   
                   {/* Mini graphique par mois */}
                   <div className="mt-4 pt-4 border-t">
