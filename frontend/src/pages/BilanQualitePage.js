@@ -153,6 +153,46 @@ const BilanQualitePage = () => {
     return { filteredTop3, filteredTop3Mastered };
   }, [lignes, parcoursFilter]);
 
+  // Calcul de la progression moyenne par mois
+  const progressionParMois = useMemo(() => {
+    const annee = filtres.annee;
+    const moisDebut = annee === 2025 ? 10 : 0; // Nov = 10 pour 2025, sinon 0 (janvier)
+    const moisFin = 11; // Décembre
+    
+    const result = [];
+    
+    for (let mois = moisDebut; mois <= moisFin; mois++) {
+      const debutMois = new Date(annee, mois, 1);
+      const finMois = new Date(annee, mois + 1, 0, 23, 59, 59);
+      
+      // Filtrer les élèves qui ont soumis Q3 dans ce mois
+      const elevesDuMois = lignes.filter((e) => {
+        if (!e.q3?.submitted || !e.q3?.submitted_at) return false;
+        
+        try {
+          const dateQ3 = new Date(e.q3.submitted_at);
+          return dateQ3 >= debutMois && dateQ3 <= finMois;
+        } catch {
+          return false;
+        }
+      });
+      
+      // Calculer la moyenne pour ce mois
+      const scores = elevesDuMois.map(e => e.q3?.score_ressenti_progression || 0);
+      const moyenne = scores.length > 0 
+        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) 
+        : null;
+      
+      result.push({
+        mois: MOIS_FR[mois],
+        moyenne: moyenne,
+        nbEleves: elevesDuMois.length
+      });
+    }
+    
+    return result;
+  }, [lignes, filtres.annee]);
+
   // Agrégation des KPIs
   const agreg = useMemo(() => {
     // Retour élève = Q1 ET Q2 ET Q3 soumis
