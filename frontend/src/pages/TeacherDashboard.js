@@ -128,6 +128,11 @@ export default function TeacherDashboard({ user, onLogout }) {
       positionnement: ["Test management initial"],
       miParcours: ["Évaluation management mi-parcours"],
       fin: ["Test final management"]
+    },
+    "Informatique": {
+      positionnement: ["Test informatique initial"],
+      miParcours: ["Évaluation informatique mi-parcours"],
+      fin: ["Test final informatique"]
     }
   };
 
