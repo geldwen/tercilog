@@ -1236,6 +1236,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <option value="Anglais">Anglais</option>
                         <option value="Management">Management</option>
                         <option value="Bureautique">Bureautique</option>
+                        <option value="Informatique">Informatique</option>
                       </select>
                     </div>
                     {/* BLOC 1 : Tests de parcours */}
@@ -1400,6 +1401,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <option value="Anglais">Anglais</option>
                         <option value="Management">Management</option>
                         <option value="Bureautique">Bureautique</option>
+                        <option value="Informatique">Informatique</option>
                       </select>
                     </div>
                     {/* BLOC 1 : Tests de parcours */}
