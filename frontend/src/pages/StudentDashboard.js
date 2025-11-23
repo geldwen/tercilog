@@ -589,30 +589,40 @@ export default function StudentDashboard({ user, onLogout }) {
               </Card>
             ) : (
               <>
-                {/* Tests de parcours */}
+                {/* Bulle globale : Tests de positionnement */}
                 {studentResources.filter(r => r.category === 'TEST_PARCOURS').length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3" style={{color: TERCIFORM_BLUE}}>
-                      Tests de parcours
-                    </h3>
-                    <div className="space-y-4">
-                      {studentResources
-                        .filter(r => r.category === 'TEST_PARCOURS')
-                        .map(resource => (
-                          <Card key={resource.id} className="shadow-lg">
-                            <CardHeader>
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <CardTitle className="text-lg" style={{color: TERCIFORM_BLUE}}>
-                                    {resource.template_name}
-                                  </CardTitle>
+                  <Card className="shadow-lg border-2 border-blue-200">
+                    <CardHeader style={{backgroundColor: '#E6F0FF'}}>
+                      <CardTitle className="text-xl flex items-center gap-2" style={{color: TERCIFORM_BLUE}}>
+                        <TrendingUp size={24} />
+                        Tests de positionnement (T1, T2, T3)
+                      </CardTitle>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Évaluez votre progression tout au long du parcours
+                      </p>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="space-y-4">
+                        {studentResources
+                          .filter(r => r.category === 'TEST_PARCOURS')
+                          .sort((a, b) => {
+                            const order = { 'POSITIONNEMENT': 1, 'MI_PARCOURS': 2, 'FIN_FORMATION': 3 };
+                            return (order[a.sub_type] || 99) - (order[b.sub_type] || 99);
+                          })
+                          .map(resource => (
+                            <div key={resource.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                              <div className="flex justify-between items-start mb-3">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-base" style={{color: TERCIFORM_BLUE}}>
+                                    {resource.sub_type === 'POSITIONNEMENT' ? '📝 T1 - Test de positionnement' : 
+                                     resource.sub_type === 'MI_PARCOURS' ? '📊 T2 - Test à mi-parcours' : 
+                                     '🎯 T3 - Test de fin de formation'}
+                                  </h4>
                                   <p className="text-sm text-gray-600 mt-1">
-                                    Type: {resource.sub_type === 'POSITIONNEMENT' ? 'T1 - Test de positionnement' : 
-                                           resource.sub_type === 'MI_PARCOURS' ? 'T2 - Test à mi parcours' : 
-                                           'T3 - Test de fin de formation'}
+                                    {resource.template_name}
                                   </p>
                                 </div>
-                                <div className="text-right">
+                                <div className="text-right ml-4">
                                   {resource.status === 'SOUMIS' && (
                                     <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
                                       ✓ Terminé - {resource.score}%
@@ -630,34 +640,84 @@ export default function StudentDashboard({ user, onLogout }) {
                                   )}
                                 </div>
                               </div>
-                            </CardHeader>
-                            <CardContent>
+                              
                               {resource.status === 'SOUMIS' ? (
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                  <p className="text-green-800 font-medium">
-                                    Test complété le {new Date(resource.submitted_at).toLocaleDateString('fr-FR')}
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                  <p className="text-green-800 font-medium text-sm">
+                                    ✓ Test complété le {new Date(resource.submitted_at).toLocaleDateString('fr-FR')}
                                   </p>
                                   <p className="text-green-700 text-sm mt-1">
-                                    Score: {resource.score}%
+                                    Score obtenu : {resource.score}%
                                   </p>
                                 </div>
                               ) : (
                                 <Button
                                   onClick={() => navigate(`/student/quiz/${resource.id}`)}
                                   style={{backgroundColor: TERCIFORM_BLUE}}
-                                  className="w-full"
+                                  className="w-full mt-2"
                                 >
                                   <FileText size={16} className="mr-2" />
-                                  {resource.status === 'EN_COURS' ? 'Continuer le test' : 'Effectuer mon test'}
+                                  {resource.status === 'EN_COURS' ? 'Continuer le test' : 'Commencer le test'}
                                 </Button>
                               )}
-                            </CardContent>
-                          </Card>
-                        ))}
-                    </div>
-                  </div>
+                            </div>
+                          ))}
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
 
+                {/* Bulle : Mes ressources pédagogiques et mes supports */}
+                <Card className="shadow-lg border-2 border-green-200">
+                  <CardHeader style={{backgroundColor: '#E9F8EF'}}>
+                    <CardTitle className="text-xl flex items-center gap-2" style={{color: TERCIFORM_BLUE}}>
+                      <BookOpen size={24} />
+                      Mes ressources pédagogiques et mes supports
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Documents, exercices et supports de cours
+                    </p>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    {studentResources.filter(r => r.category !== 'TEST_PARCOURS').length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <BookOpen size={48} className="mx-auto mb-3 text-gray-300" />
+                        <p>Aucune ressource pédagogique disponible pour le moment.</p>
+                        <p className="text-sm mt-2">Vos supports de cours apparaîtront ici.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {studentResources
+                          .filter(r => r.category !== 'TEST_PARCOURS')
+                          .map(resource => (
+                            <div key={resource.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <FileText size={20} className="text-gray-400" />
+                                  <div>
+                                    <h4 className="font-medium" style={{color: TERCIFORM_BLUE}}>
+                                      {resource.title || resource.template_name}
+                                    </h4>
+                                    <p className="text-sm text-gray-600">
+                                      {resource.description || 'Support de cours'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  onClick={() => navigate(`/student/resource/${resource.id}`)}
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  <Download size={16} className="mr-2" />
+                                  Accéder
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </>
             )}
           </div>
