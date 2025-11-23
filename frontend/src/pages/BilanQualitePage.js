@@ -169,7 +169,7 @@ const BilanQualitePage = () => {
     const avgSat = N ? Math.round(satisfactions.reduce((a, b) => a + b, 0) / N) : 0;
 
     // Ressenti positif si score >= 51
-    const nbPos = eligibles.filter((e) => (e.q3?.score_progression || 0) >= 51).length;
+    const nbPos = eligibles.filter((e) => (e.q3?.score_ressenti_progression || 0) >= 51).length;
     const posPct = N ? Math.round((nbPos * 100) / N) : 0;
     const negPct = N ? 100 - posPct : 0;
 
