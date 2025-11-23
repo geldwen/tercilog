@@ -28,6 +28,7 @@ from reportlab.pdfgen import canvas as pdf_canvas
 import io
 import fitz  # PyMuPDF - pas besoin de poppler !
 from PIL import Image as PILImage
+from quality_ai_agent import calculate_quality_scores
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
