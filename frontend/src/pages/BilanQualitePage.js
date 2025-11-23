@@ -352,7 +352,23 @@ const BilanQualitePage = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <KpiCard title="Retours élèves (Q1+Q2+Q3)" value={String(agreg.nbEleves)} />
+              {/* Retours élèves avec 2 compteurs */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-sm text-gray-600 mb-3">Retours élèves (questionnaires)</div>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-green-700 mb-1">Soumis</div>
+                      <div className="text-3xl font-bold text-green-600">{agreg.nbSoumis}</div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-red-700 mb-1">En attente</div>
+                      <div className="text-3xl font-bold text-red-600">{agreg.nbEnAttente}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
               <KpiCard
                 title="Progression moyenne"
                 value={`${agreg.avgProg}/100`}
