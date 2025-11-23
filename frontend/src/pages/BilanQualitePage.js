@@ -146,6 +146,17 @@ const BilanQualitePage = () => {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
       .map(([k]) => k);
+    
+    // Éléments maîtrisés top 3
+    const freqMastered = new Map();
+    eligibles.forEach((e) => {
+      const mastered = e.q3?.mastered_skills || [];
+      mastered.forEach((m) => freqMastered.set(m, (freqMastered.get(m) || 0) + 1));
+    });
+    const top3Mastered = Array.from(freqMastered.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([k]) => k);
 
     // Complétion (ratio questionnaires soumis / total)
     let nbSoumis = 0;
