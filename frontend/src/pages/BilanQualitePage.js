@@ -473,15 +473,15 @@ const BilanQualitePage = () => {
                 {/* Légende enrichie */}
                 <div className="mt-4 text-xs text-gray-500 border-t pt-4 space-y-1">
                   <div className="flex gap-4 items-center">
-                    <span>{dot("VERT")} soumis par l'élève</span>
+                    <span>{dot("VERT")} par l'élève</span>
                     <span>·</span>
-                    <span>{dot("ROUGE")} en attente d'envoi</span>
+                    <span>{dot("ROUGE")} d'envoi</span>
                   </div>
                   <div>
                     <strong>Q1</strong> = besoin · <strong>Q2</strong> = mi-parcours · <strong>Q3</strong> = fin (progressif)
                   </div>
                   <div className="italic">
-                    Règle : si Q2 est rouge, Q3 est forcément rouge (progressif).
+                    Règle : si Q2 est en attente, Q3 est forcément en attente (progressif).
                   </div>
                 </div>
               </CardContent>
