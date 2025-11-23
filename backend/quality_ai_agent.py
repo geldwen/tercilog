@@ -12,13 +12,14 @@ def calculate_quality_scores(q1_data, q2_data, q3_data):
     
     Returns:
         dict: {
-            'score_progression': int (0-100),
+            'score_ressenti_progression': int (0-100),
             'score_satisfaction': int (0-100),
-            'difficulties': list[str]
+            'difficulties': list[str],
+            'mastered_skills': list[str]
         }
     """
     
-    # === SCORE DE PROGRESSION (0-100) ===
+    # === SCORE DE RESSENTI DE PROGRESSION (0-100) ===
     # Basé sur Q2 (mi-parcours) et Q3 (fin)
     progression_points = []
     
