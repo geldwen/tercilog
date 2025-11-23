@@ -152,6 +152,11 @@ export default function TeacherDashboard({ user, onLogout }) {
       q1: ["Q1 - Besoins management v1"],
       q2: ["Q2 - Mi-parcours management v1"],
       q3: ["Q3 - Fin formation management v1"]
+    },
+    "Informatique": {
+      q1: ["Q1 - Besoins informatique v1"],
+      q2: ["Q2 - Mi-parcours informatique v1"],
+      q3: ["Q3 - Fin formation informatique v1"]
     }
   };
 
