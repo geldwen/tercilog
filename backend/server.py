@@ -268,6 +268,16 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
+    
+    # Recalculer les heures restantes pour les élèves
+    if user.get('role') == 'student':
+        total_hours = user.get('total_hours', 0)
+        # Calculer la somme des heures de toutes les sessions confirmées
+        sessions = await db.sessions.find({"student_id": user_id}, {"_id": 0}).to_list(10000)
+        confirmed_hours = sum(s.get('duration_hours', 0) for s in sessions)
+        # Heures restantes = total - heures confirmées
+        user['credit_hours'] = max(0, total_hours - confirmed_hours)
+    
     return User(**user)
 
 def normalize_subject(subject: str) -> str:
