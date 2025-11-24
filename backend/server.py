@@ -801,7 +801,20 @@ async def get_students(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Access denied")
     
     students = await db.users.find({"role": "student"}, {"_id": 0, "password_hash": 0}).to_list(1000)
-    # Inclure le champ password (mot de passe en clair) s'il existe
+    
+    # Recalculer les heures restantes pour chaque élève
+    for student in students:
+        student_id = student.get('id')
+        total_hours = student.get('total_hours', 0)
+        
+        # Calculer la somme des heures de toutes les sessions confirmées (peu importe le mois)
+        sessions = await db.sessions.find({"student_id": student_id}, {"_id": 0}).to_list(10000)
+        confirmed_hours = sum(s.get('duration_hours', 0) for s in sessions)
+        
+        # Heures restantes = total - heures confirmées
+        credit_hours = max(0, total_hours - confirmed_hours)
+        student['credit_hours'] = credit_hours
+    
     return students
 
 @api_router.post("/students", response_model=User)
