@@ -275,7 +275,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         # Calculer la somme des heures ÉMARGÉES uniquement (sessions signées par l'élève)
         sessions = await db.sessions.find({
             "student_id": user_id,
-            "student_signature_status": "signed"
+            "signature_status": "signed"
         }, {"_id": 0}).to_list(10000)
         emargees_hours = sum(s.get('duration_hours', 0) for s in sessions)
         # Heures restantes = total - heures émargées
