@@ -65,7 +65,7 @@ export default function BilanTests() {
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line
-  }, [periode, mois, annee, parcours, matiere]);
+  }, [periode, mois, annee, parcours]);
 
   const handleExportPdf = async () => {
     try {
