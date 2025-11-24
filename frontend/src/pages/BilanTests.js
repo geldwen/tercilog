@@ -27,7 +27,6 @@ export default function BilanTests() {
   const [mois, setMois] = useState('11');
   const [annee, setAnnee] = useState('2025');
   const [parcours, setParcours] = useState('tous');
-  const [matiere, setMatiere] = useState('toutes');
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
