@@ -42,7 +42,6 @@ export default function BilanTests() {
         mois,
         annee,
         parcours,
-        matiere,
       });
 
       const response = await axios.get(`${API}/bilan-tests?${params.toString()}`, {
