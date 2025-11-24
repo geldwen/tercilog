@@ -223,22 +223,6 @@ export default function BilanTests() {
               </Select>
             </div>
 
-            {/* Matière */}
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">Matière</span>
-              <Select value={matiere} onValueChange={setMatiere}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="toutes">Toutes</SelectItem>
-                  <SelectItem value="bureautique">Bureautique</SelectItem>
-                  <SelectItem value="management">Management</SelectItem>
-                  <SelectItem value="anglais">Anglais</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <Button onClick={fetchData} disabled={loading}>
               {loading ? (
                 <>
