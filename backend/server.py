@@ -817,12 +817,15 @@ async def get_students(current_user: User = Depends(get_current_user)):
         student_id = student.get('id')
         total_hours = student.get('total_hours', 0)
         
-        # Calculer la somme des heures de toutes les sessions confirmées (peu importe le mois)
-        sessions = await db.sessions.find({"student_id": student_id}, {"_id": 0}).to_list(10000)
-        confirmed_hours = sum(s.get('duration_hours', 0) for s in sessions)
+        # Calculer la somme des heures ÉMARGÉES uniquement (sessions signées par l'élève)
+        sessions = await db.sessions.find({
+            "student_id": student_id,
+            "student_signature_status": "signed"
+        }, {"_id": 0}).to_list(10000)
+        emargees_hours = sum(s.get('duration_hours', 0) for s in sessions)
         
-        # Heures restantes = total - heures confirmées
-        credit_hours = max(0, total_hours - confirmed_hours)
+        # Heures restantes = total - heures émargées
+        credit_hours = max(0, total_hours - emargees_hours)
         student['credit_hours'] = credit_hours
     
     return students
