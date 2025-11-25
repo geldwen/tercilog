@@ -529,7 +529,7 @@ export default function StudentDashboard({ user, onLogout }) {
                         variant="outline" 
                         className="w-full text-sm" 
                         style={{borderColor: TERCIFORM_BLUE, color: TERCIFORM_BLUE}}
-                        onClick={() => {/* TODO: logique contact formateur */}}
+                        onClick={() => setShowContactTeacherDialog(true)}
                       >
                         <span className="mr-2">✉️</span>
                         Contacter mon formateur
