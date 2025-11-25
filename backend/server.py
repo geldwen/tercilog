@@ -66,7 +66,6 @@ class User(BaseModel):
     role: str  # "teacher" or "student"
     credit_hours: float = 0.0
     total_hours: float = 0.0
-    plain_password: str = ""  # Mot de passe en clair pour l'email
     phone: str = ""
     organism: str = ""
     support_type: str = ""
