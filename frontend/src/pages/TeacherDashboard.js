@@ -1294,7 +1294,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <div className="grid grid-cols-3 gap-3">
                           <div 
                             className={`cursor-pointer border-2 rounded-lg p-3 text-center ${studentForm.profile_picture_type === 'homme' ? 'border-indigo-500 bg-indigo-100' : 'border-gray-300'}`}
-                            onClick={() => setStudentForm({ ...studentForm, profile_picture_type: 'homme', profile_picture: '/static/profile_pictures/homme_default.png' })}
+                            onClick={() => setStudentForm({ ...studentForm, profile_picture_type: 'homme', profile_picture: '/api/profile-pictures/homme_default.png' })}
                           >
                             <img src={`${process.env.REACT_APP_BACKEND_URL}/api/profile-pictures/homme_default.png`} alt="Homme" className="w-16 h-16 mx-auto mb-2 rounded-full object-cover" />
                             <p className="text-xs">Homme</p>
@@ -1622,7 +1622,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <div className="grid grid-cols-3 gap-3">
                           <div 
                             className={`cursor-pointer border-2 rounded-lg p-3 text-center ${studentForm.profile_picture_type === 'homme' ? 'border-indigo-500 bg-indigo-100' : 'border-gray-300'}`}
-                            onClick={() => setStudentForm({ ...studentForm, profile_picture_type: 'homme', profile_picture: '/static/profile_pictures/homme_default.png' })}
+                            onClick={() => setStudentForm({ ...studentForm, profile_picture_type: 'homme', profile_picture: '/api/profile-pictures/homme_default.png' })}
                           >
                             <img src={`${process.env.REACT_APP_BACKEND_URL}/api/profile-pictures/homme_default.png`} alt="Homme" className="w-16 h-16 mx-auto mb-2 rounded-full object-cover" />
                             <p className="text-xs">Homme</p>
