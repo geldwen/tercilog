@@ -108,6 +108,7 @@ export default function TeacherDashboard({ user, onLogout }) {
     end_date: "", 
     total_hours: 0, 
     parcours: "Anglais",
+    teacher_name: "",
     formation_address: "",
     formation_building: "",
     formation_street: "",
