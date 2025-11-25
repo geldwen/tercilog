@@ -1398,6 +1398,68 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <option value="présentiel">Présentiel</option>
                       </select>
                     </div>
+                    
+                    {/* Champs d'adresse si Présentiel */}
+                    {studentForm.session_type === "présentiel" && (
+                      <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 space-y-3">
+                        <h4 className="font-bold text-blue-900">📍 Lieu de formation</h4>
+                        <div className="space-y-2">
+                          <Label>Adresse complète</Label>
+                          <Input 
+                            placeholder="10 Rue de la Paix" 
+                            value={studentForm.formation_address} 
+                            onChange={(e) => setStudentForm({ ...studentForm, formation_address: e.target.value })} 
+                          />
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="space-y-2 col-span-2">
+                            <Label>Rue</Label>
+                            <Input 
+                              placeholder="Rue" 
+                              value={studentForm.formation_street} 
+                              onChange={(e) => setStudentForm({ ...studentForm, formation_street: e.target.value })} 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Code postal</Label>
+                            <Input 
+                              placeholder="75000" 
+                              value={studentForm.formation_postal_code} 
+                              onChange={(e) => setStudentForm({ ...studentForm, formation_postal_code: e.target.value })} 
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-2">
+                            <Label>Ville</Label>
+                            <Input 
+                              placeholder="Paris" 
+                              value={studentForm.formation_city} 
+                              onChange={(e) => setStudentForm({ ...studentForm, formation_city: e.target.value })} 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Pays</Label>
+                            <Input 
+                              placeholder="France" 
+                              value={studentForm.formation_country} 
+                              onChange={(e) => setStudentForm({ ...studentForm, formation_country: e.target.value })} 
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Transports à proximité (optionnel)</Label>
+                          <textarea 
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                            placeholder="Ex: Métro Ligne 1 - Station République (5 min à pied)"
+                            rows={2}
+                            value={studentForm.formation_transports} 
+                            onChange={(e) => setStudentForm({ ...studentForm, formation_transports: e.target.value })} 
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2"><Label>Date d'entrée</Label><Input type="date" value={studentForm.start_date} onChange={(e) => setStudentForm({ ...studentForm, start_date: e.target.value })} /></div>
                       <div className="space-y-2"><Label>Date de sortie</Label><Input type="date" value={studentForm.end_date} onChange={(e) => setStudentForm({ ...studentForm, end_date: e.target.value })} /></div>
@@ -1563,6 +1625,68 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <option value="présentiel">Présentiel</option>
                       </select>
                     </div>
+                    
+                    {/* Champs d'adresse si Présentiel */}
+                    {studentForm.session_type === "présentiel" && (
+                      <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 space-y-3">
+                        <h4 className="font-bold text-blue-900">📍 Lieu de formation</h4>
+                        <div className="space-y-2">
+                          <Label>Adresse complète</Label>
+                          <Input 
+                            placeholder="10 Rue de la Paix" 
+                            value={studentForm.formation_address} 
+                            onChange={(e) => setStudentForm({ ...studentForm, formation_address: e.target.value })} 
+                          />
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="space-y-2 col-span-2">
+                            <Label>Rue</Label>
+                            <Input 
+                              placeholder="Rue" 
+                              value={studentForm.formation_street} 
+                              onChange={(e) => setStudentForm({ ...studentForm, formation_street: e.target.value })} 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Code postal</Label>
+                            <Input 
+                              placeholder="75000" 
+                              value={studentForm.formation_postal_code} 
+                              onChange={(e) => setStudentForm({ ...studentForm, formation_postal_code: e.target.value })} 
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-2">
+                            <Label>Ville</Label>
+                            <Input 
+                              placeholder="Paris" 
+                              value={studentForm.formation_city} 
+                              onChange={(e) => setStudentForm({ ...studentForm, formation_city: e.target.value })} 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Pays</Label>
+                            <Input 
+                              placeholder="France" 
+                              value={studentForm.formation_country} 
+                              onChange={(e) => setStudentForm({ ...studentForm, formation_country: e.target.value })} 
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Transports à proximité (optionnel)</Label>
+                          <textarea 
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                            placeholder="Ex: Métro Ligne 1 - Station République (5 min à pied)"
+                            rows={2}
+                            value={studentForm.formation_transports} 
+                            onChange={(e) => setStudentForm({ ...studentForm, formation_transports: e.target.value })} 
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2"><Label>Date d'entrée</Label><Input type="date" value={studentForm.start_date} onChange={(e) => setStudentForm({ ...studentForm, start_date: e.target.value })} /></div>
                       <div className="space-y-2"><Label>Date de sortie</Label><Input type="date" value={studentForm.end_date} onChange={(e) => setStudentForm({ ...studentForm, end_date: e.target.value })} /></div>
