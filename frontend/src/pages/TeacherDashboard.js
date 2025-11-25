@@ -1515,28 +1515,32 @@ export default function TeacherDashboard({ user, onLogout }) {
                     {/* Champs d'adresse si Présentiel */}
                     {studentForm.session_type === "présentiel" && (
                       <div className="p-4 border-2 border-purple-200 rounded-lg bg-purple-50 space-y-3">
-                        <h4 className="font-bold text-purple-900">📍 Lieu de formation</h4>
-                        <div className="space-y-2">
-                          <Label>Adresse complète</Label>
-                          <Input 
-                            placeholder="10 Rue de la Paix, 75002 Paris" 
-                            value={studentForm.formation_address} 
-                            onChange={(e) => setStudentForm({ ...studentForm, formation_address: e.target.value })} 
-                          />
+                        <h4 className="font-bold text-purple-900">📍 Adresse de la formation</h4>
+                        
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="space-y-2 col-span-2">
+                            <Label>Établissement / Bâtiment</Label>
+                            <Input 
+                              placeholder="Ex: Campus Emergent - Bâtiment A" 
+                              value={studentForm.formation_building} 
+                              onChange={(e) => setStudentForm({ ...studentForm, formation_building: e.target.value })} 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>N° de rue</Label>
+                            <Input 
+                              placeholder="10" 
+                              value={studentForm.formation_street_number} 
+                              onChange={(e) => setStudentForm({ ...studentForm, formation_street_number: e.target.value })} 
+                            />
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label>Bâtiment / Lieu</Label>
-                          <Input 
-                            placeholder="Ex: Bâtiment A - Salle 203" 
-                            value={studentForm.formation_building} 
-                            onChange={(e) => setStudentForm({ ...studentForm, formation_building: e.target.value })} 
-                          />
-                        </div>
+                        
                         <div className="grid grid-cols-3 gap-2">
                           <div className="space-y-2 col-span-2">
                             <Label>Rue</Label>
                             <Input 
-                              placeholder="10 Rue de la Paix" 
+                              placeholder="Rue de la Paix" 
                               value={studentForm.formation_street} 
                               onChange={(e) => setStudentForm({ ...studentForm, formation_street: e.target.value })} 
                             />
@@ -1550,29 +1554,21 @@ export default function TeacherDashboard({ user, onLogout }) {
                             />
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="space-y-2">
-                            <Label>Ville</Label>
-                            <Input 
-                              placeholder="Paris" 
-                              value={studentForm.formation_city} 
-                              onChange={(e) => setStudentForm({ ...studentForm, formation_city: e.target.value })} 
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Pays</Label>
-                            <Input 
-                              placeholder="France" 
-                              value={studentForm.formation_country} 
-                              onChange={(e) => setStudentForm({ ...studentForm, formation_country: e.target.value })} 
-                            />
-                          </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Ville</Label>
+                          <Input 
+                            placeholder="Paris" 
+                            value={studentForm.formation_city} 
+                            onChange={(e) => setStudentForm({ ...studentForm, formation_city: e.target.value })} 
+                          />
                         </div>
+                        
                         <div className="space-y-2">
                           <Label>Transports à proximité (optionnel)</Label>
                           <textarea 
                             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                            placeholder="Ex: Métro Ligne 1 - Station République (5 min à pied)"
+                            placeholder="Ex: Métro Ligne 4 – Porte de Clignancourt (5 min à pied)"
                             rows={2}
                             value={studentForm.formation_transports} 
                             onChange={(e) => setStudentForm({ ...studentForm, formation_transports: e.target.value })} 
@@ -1843,28 +1839,32 @@ export default function TeacherDashboard({ user, onLogout }) {
                     {/* Champs d'adresse si Présentiel */}
                     {studentForm.session_type === "présentiel" && (
                       <div className="p-4 border-2 border-purple-200 rounded-lg bg-purple-50 space-y-3">
-                        <h4 className="font-bold text-purple-900">📍 Lieu de formation</h4>
-                        <div className="space-y-2">
-                          <Label>Adresse complète</Label>
-                          <Input 
-                            placeholder="10 Rue de la Paix, 75002 Paris" 
-                            value={studentForm.formation_address} 
-                            onChange={(e) => setStudentForm({ ...studentForm, formation_address: e.target.value })} 
-                          />
+                        <h4 className="font-bold text-purple-900">📍 Adresse de la formation</h4>
+                        
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="space-y-2 col-span-2">
+                            <Label>Établissement / Bâtiment</Label>
+                            <Input 
+                              placeholder="Ex: Campus Emergent - Bâtiment A" 
+                              value={studentForm.formation_building} 
+                              onChange={(e) => setStudentForm({ ...studentForm, formation_building: e.target.value })} 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>N° de rue</Label>
+                            <Input 
+                              placeholder="10" 
+                              value={studentForm.formation_street_number} 
+                              onChange={(e) => setStudentForm({ ...studentForm, formation_street_number: e.target.value })} 
+                            />
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label>Bâtiment / Lieu</Label>
-                          <Input 
-                            placeholder="Ex: Bâtiment A - Salle 203" 
-                            value={studentForm.formation_building} 
-                            onChange={(e) => setStudentForm({ ...studentForm, formation_building: e.target.value })} 
-                          />
-                        </div>
+                        
                         <div className="grid grid-cols-3 gap-2">
                           <div className="space-y-2 col-span-2">
                             <Label>Rue</Label>
                             <Input 
-                              placeholder="10 Rue de la Paix" 
+                              placeholder="Rue de la Paix" 
                               value={studentForm.formation_street} 
                               onChange={(e) => setStudentForm({ ...studentForm, formation_street: e.target.value })} 
                             />
@@ -1878,29 +1878,21 @@ export default function TeacherDashboard({ user, onLogout }) {
                             />
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="space-y-2">
-                            <Label>Ville</Label>
-                            <Input 
-                              placeholder="Paris" 
-                              value={studentForm.formation_city} 
-                              onChange={(e) => setStudentForm({ ...studentForm, formation_city: e.target.value })} 
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Pays</Label>
-                            <Input 
-                              placeholder="France" 
-                              value={studentForm.formation_country} 
-                              onChange={(e) => setStudentForm({ ...studentForm, formation_country: e.target.value })} 
-                            />
-                          </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Ville</Label>
+                          <Input 
+                            placeholder="Paris" 
+                            value={studentForm.formation_city} 
+                            onChange={(e) => setStudentForm({ ...studentForm, formation_city: e.target.value })} 
+                          />
                         </div>
+                        
                         <div className="space-y-2">
                           <Label>Transports à proximité (optionnel)</Label>
                           <textarea 
                             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                            placeholder="Ex: Métro Ligne 1 - Station République (5 min à pied)"
+                            placeholder="Ex: Métro Ligne 4 – Porte de Clignancourt (5 min à pied)"
                             rows={2}
                             value={studentForm.formation_transports} 
                             onChange={(e) => setStudentForm({ ...studentForm, formation_transports: e.target.value })} 
