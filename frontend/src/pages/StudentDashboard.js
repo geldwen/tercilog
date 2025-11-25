@@ -229,6 +229,34 @@ export default function StudentDashboard({ user, onLogout }) {
     }
   };
 
+  // Contact Teacher function
+  const handleContactTeacher = async (e) => {
+    e.preventDefault();
+    
+    if (!contactTeacher.subject.trim() || !contactTeacher.message.trim()) {
+      toast.error("Veuillez remplir tous les champs");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API}/students/${user.id}/contact-teacher`,
+        {
+          subject: contactTeacher.subject,
+          message: contactTeacher.message
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success("Votre message a été envoyé avec succès !");
+      setShowContactTeacherDialog(false);
+      setContactTeacher({ subject: '', message: '' });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erreur lors de l'envoi du message");
+    }
+  };
+
   const formatFrDate = (dateStr) => {
     const daysFr = {
       'Monday': 'lundi', 'Tuesday': 'mardi', 'Wednesday': 'mercredi',
