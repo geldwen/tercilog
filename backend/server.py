@@ -99,6 +99,7 @@ class UserCreate(BaseModel):
     start_date: str = ""
     end_date: str = ""
     parcours: str = ""  # Matière/Parcours de l'élève
+    teacher_name: str = ""  # Nom du formateur
     # Champs pour le lieu de formation (si présentiel)
     formation_address: str = ""
     formation_building: str = ""
