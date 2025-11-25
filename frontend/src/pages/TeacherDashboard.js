@@ -1408,21 +1408,29 @@ export default function TeacherDashboard({ user, onLogout }) {
                     
                     {/* Champs d'adresse si Présentiel */}
                     {studentForm.session_type === "présentiel" && (
-                      <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 space-y-3">
-                        <h4 className="font-bold text-blue-900">📍 Lieu de formation</h4>
+                      <div className="p-4 border-2 border-purple-200 rounded-lg bg-purple-50 space-y-3">
+                        <h4 className="font-bold text-purple-900">📍 Lieu de formation</h4>
                         <div className="space-y-2">
                           <Label>Adresse complète</Label>
                           <Input 
-                            placeholder="10 Rue de la Paix" 
+                            placeholder="10 Rue de la Paix, 75002 Paris" 
                             value={studentForm.formation_address} 
                             onChange={(e) => setStudentForm({ ...studentForm, formation_address: e.target.value })} 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Bâtiment / Lieu</Label>
+                          <Input 
+                            placeholder="Ex: Bâtiment A - Salle 203" 
+                            value={studentForm.formation_building} 
+                            onChange={(e) => setStudentForm({ ...studentForm, formation_building: e.target.value })} 
                           />
                         </div>
                         <div className="grid grid-cols-3 gap-2">
                           <div className="space-y-2 col-span-2">
                             <Label>Rue</Label>
                             <Input 
-                              placeholder="Rue" 
+                              placeholder="10 Rue de la Paix" 
                               value={studentForm.formation_street} 
                               onChange={(e) => setStudentForm({ ...studentForm, formation_street: e.target.value })} 
                             />
@@ -1430,7 +1438,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                           <div className="space-y-2">
                             <Label>Code postal</Label>
                             <Input 
-                              placeholder="75000" 
+                              placeholder="75002" 
                               value={studentForm.formation_postal_code} 
                               onChange={(e) => setStudentForm({ ...studentForm, formation_postal_code: e.target.value })} 
                             />
@@ -1635,21 +1643,29 @@ export default function TeacherDashboard({ user, onLogout }) {
                     
                     {/* Champs d'adresse si Présentiel */}
                     {studentForm.session_type === "présentiel" && (
-                      <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 space-y-3">
-                        <h4 className="font-bold text-blue-900">📍 Lieu de formation</h4>
+                      <div className="p-4 border-2 border-purple-200 rounded-lg bg-purple-50 space-y-3">
+                        <h4 className="font-bold text-purple-900">📍 Lieu de formation</h4>
                         <div className="space-y-2">
                           <Label>Adresse complète</Label>
                           <Input 
-                            placeholder="10 Rue de la Paix" 
+                            placeholder="10 Rue de la Paix, 75002 Paris" 
                             value={studentForm.formation_address} 
                             onChange={(e) => setStudentForm({ ...studentForm, formation_address: e.target.value })} 
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Bâtiment / Lieu</Label>
+                          <Input 
+                            placeholder="Ex: Bâtiment A - Salle 203" 
+                            value={studentForm.formation_building} 
+                            onChange={(e) => setStudentForm({ ...studentForm, formation_building: e.target.value })} 
                           />
                         </div>
                         <div className="grid grid-cols-3 gap-2">
                           <div className="space-y-2 col-span-2">
                             <Label>Rue</Label>
                             <Input 
-                              placeholder="Rue" 
+                              placeholder="10 Rue de la Paix" 
                               value={studentForm.formation_street} 
                               onChange={(e) => setStudentForm({ ...studentForm, formation_street: e.target.value })} 
                             />
@@ -1657,7 +1673,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                           <div className="space-y-2">
                             <Label>Code postal</Label>
                             <Input 
-                              placeholder="75000" 
+                              placeholder="75002" 
                               value={studentForm.formation_postal_code} 
                               onChange={(e) => setStudentForm({ ...studentForm, formation_postal_code: e.target.value })} 
                             />
