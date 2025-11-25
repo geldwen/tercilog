@@ -847,9 +847,11 @@ async def create_student(data: dict, current_user: User = Depends(get_current_us
     # Extraire les ressources si présentes
     resources = data.pop("resources", None)
     
+    # Ajouter le role avant la création
+    data['role'] = "student"
+    
     # Créer l'élève
     user_data = UserCreate(**data)
-    user_data.role = "student"
     student = await register(user_data)
     
     # OBLIGATOIRE : Assigner automatiquement l'élève au professeur qui le crée
