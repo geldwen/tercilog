@@ -1045,7 +1045,7 @@ export default function StudentDashboard({ user, onLogout }) {
 
       {/* Dialog Contacter mon formateur */}
       <Dialog open={showContactTeacherDialog} onOpenChange={setShowContactTeacherDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md sm:max-w-lg" style={{margin: 'auto'}}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <span>✉️</span>
