@@ -590,6 +590,8 @@ export default function TeacherDashboard({ user, onLogout }) {
       teacher_name: student.teacher_name || "",
       teacher_email: student.teacher_email || "",
       teacher_phone: student.teacher_phone || "",
+      profile_picture: student.profile_picture || "/static/profile_pictures/homme_default.png",
+      profile_picture_type: student.profile_picture?.includes('homme_default') ? 'homme' : student.profile_picture?.includes('femme_default') ? 'femme' : 'custom',
       formation_address: student.formation_address || "",
       formation_building: student.formation_building || "",
       formation_street: student.formation_street || "",
