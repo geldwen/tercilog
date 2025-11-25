@@ -4851,6 +4851,65 @@ async def get_student_feedback(student_id: str, current_user: User = Depends(get
     return [StudentFeedback(**f) for f in feedbacks]
 
 
+@api_router.post("/students/{student_id}/contact-teacher")
+async def contact_teacher(student_id: str, data: dict, current_user: User = Depends(get_current_user)):
+    """Envoyer un email au formateur assigné à l'élève"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Vérifier que le formateur est assigné
+    if not student.get('teacher_email'):
+        raise HTTPException(status_code=400, detail="Aucun formateur assigné ou email non renseigné")
+    
+    subject = data.get('subject', 'Pas d\'objet')
+    message = data.get('message', '')
+    
+    # Construire l'email
+    email_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb; border-radius: 10px;">
+            <h2 style="color: #0D2040; border-bottom: 2px solid #2763FF; padding-bottom: 10px;">
+                📩 Message d'un élève
+            </h2>
+            
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0 0 10px 0;"><strong>De :</strong> {student.get('name', 'Élève')} ({student.get('email', '')})</p>
+                <p style="margin: 0 0 10px 0;"><strong>Parcours :</strong> {student.get('parcours', 'Non spécifié')}</p>
+                <p style="margin: 0 0 10px 0;"><strong>Objet :</strong> {subject}</p>
+            </div>
+            
+            <div style="background-color: #EEF4FF; padding: 20px; border-radius: 8px; border-left: 4px solid #2763FF;">
+                <h3 style="margin-top: 0; color: #2763FF;">Message :</h3>
+                <p style="white-space: pre-line;">{message}</p>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background-color: #ffffff; border-radius: 8px; text-align: center;">
+                <p style="margin: 0; font-size: 12px; color: #6b7280;">
+                    Cet email a été envoyé automatiquement depuis la plateforme TerciForm.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    # Envoyer l'email
+    email_subject = f"Message de {student.get('name', 'Élève')} - {subject}"
+    email_sent = send_email(student.get('teacher_email'), email_subject, email_body)
+    
+    if email_sent:
+        logger.info(f"Email envoyé au formateur {student.get('teacher_email')} par l'élève {student.get('name')}")
+        return {"message": "Votre message a été envoyé avec succès à votre formateur"}
+    else:
+        raise HTTPException(status_code=500, detail="Erreur lors de l'envoi de l'email")
+
+
 @api_router.get("/students/{student_id}/download-planning-pdf")
 async def download_planning_pdf(student_id: str, current_user: User = Depends(get_current_user)):
     """Télécharger le planning PDF pour l'élève"""
