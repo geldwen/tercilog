@@ -1287,6 +1287,71 @@ export default function TeacherDashboard({ user, onLogout }) {
                     </div>
                     <div className="p-4 border-2 border-indigo-200 rounded-lg bg-indigo-50 space-y-3">
                       <h4 className="font-bold text-indigo-900">👤 Assigner un formateur</h4>
+                      
+                      {/* Sélection photo de profil */}
+                      <div className="space-y-2">
+                        <Label>Photo de profil</Label>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div 
+                            className={`cursor-pointer border-2 rounded-lg p-3 text-center ${studentForm.profile_picture_type === 'homme' ? 'border-indigo-500 bg-indigo-100' : 'border-gray-300'}`}
+                            onClick={() => setStudentForm({ ...studentForm, profile_picture_type: 'homme', profile_picture: '/static/profile_pictures/homme_default.png' })}
+                          >
+                            <img src={`${process.env.REACT_APP_BACKEND_URL}/static/profile_pictures/homme_default.png`} alt="Homme" className="w-16 h-16 mx-auto mb-2 rounded-full object-cover" />
+                            <p className="text-xs">Homme</p>
+                          </div>
+                          <div 
+                            className={`cursor-pointer border-2 rounded-lg p-3 text-center ${studentForm.profile_picture_type === 'femme' ? 'border-indigo-500 bg-indigo-100' : 'border-gray-300'}`}
+                            onClick={() => setStudentForm({ ...studentForm, profile_picture_type: 'femme', profile_picture: '/static/profile_pictures/femme_default.png' })}
+                          >
+                            <img src={`${process.env.REACT_APP_BACKEND_URL}/static/profile_pictures/femme_default.png`} alt="Femme" className="w-16 h-16 mx-auto mb-2 rounded-full object-cover" />
+                            <p className="text-xs">Femme</p>
+                          </div>
+                          <div 
+                            className={`cursor-pointer border-2 rounded-lg p-3 text-center ${studentForm.profile_picture_type === 'custom' ? 'border-indigo-500 bg-indigo-100' : 'border-gray-300'}`}
+                          >
+                            <label className="cursor-pointer">
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                onChange={async (e) => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    const file = e.target.files[0];
+                                    const formData = new FormData();
+                                    formData.append('file', file);
+                                    
+                                    try {
+                                      const token = localStorage.getItem('token');
+                                      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/upload-profile-picture`, formData, {
+                                        headers: { 
+                                          'Authorization': `Bearer ${token}`,
+                                          'Content-Type': 'multipart/form-data'
+                                        }
+                                      });
+                                      setStudentForm({ 
+                                        ...studentForm, 
+                                        profile_picture_type: 'custom', 
+                                        profile_picture: response.data.url 
+                                      });
+                                    } catch (error) {
+                                      alert('Erreur lors de l\'upload de l\'image');
+                                    }
+                                  }
+                                }}
+                              />
+                              {studentForm.profile_picture_type === 'custom' && studentForm.profile_picture && studentForm.profile_picture !== '/static/profile_pictures/homme_default.png' ? (
+                                <img src={`${process.env.REACT_APP_BACKEND_URL}${studentForm.profile_picture}`} alt="Personnalisée" className="w-16 h-16 mx-auto mb-2 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gray-200 flex items-center justify-center">
+                                  <span className="text-2xl">📷</span>
+                                </div>
+                              )}
+                              <p className="text-xs">Photo personnelle</p>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      
                       <div className="space-y-2">
                         <Label>Nom du formateur</Label>
                         <Input 
@@ -1550,6 +1615,71 @@ export default function TeacherDashboard({ user, onLogout }) {
                     </div>
                     <div className="p-4 border-2 border-indigo-200 rounded-lg bg-indigo-50 space-y-3">
                       <h4 className="font-bold text-indigo-900">👤 Assigner un formateur</h4>
+                      
+                      {/* Sélection photo de profil */}
+                      <div className="space-y-2">
+                        <Label>Photo de profil</Label>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div 
+                            className={`cursor-pointer border-2 rounded-lg p-3 text-center ${studentForm.profile_picture_type === 'homme' ? 'border-indigo-500 bg-indigo-100' : 'border-gray-300'}`}
+                            onClick={() => setStudentForm({ ...studentForm, profile_picture_type: 'homme', profile_picture: '/static/profile_pictures/homme_default.png' })}
+                          >
+                            <img src={`${process.env.REACT_APP_BACKEND_URL}/static/profile_pictures/homme_default.png`} alt="Homme" className="w-16 h-16 mx-auto mb-2 rounded-full object-cover" />
+                            <p className="text-xs">Homme</p>
+                          </div>
+                          <div 
+                            className={`cursor-pointer border-2 rounded-lg p-3 text-center ${studentForm.profile_picture_type === 'femme' ? 'border-indigo-500 bg-indigo-100' : 'border-gray-300'}`}
+                            onClick={() => setStudentForm({ ...studentForm, profile_picture_type: 'femme', profile_picture: '/static/profile_pictures/femme_default.png' })}
+                          >
+                            <img src={`${process.env.REACT_APP_BACKEND_URL}/static/profile_pictures/femme_default.png`} alt="Femme" className="w-16 h-16 mx-auto mb-2 rounded-full object-cover" />
+                            <p className="text-xs">Femme</p>
+                          </div>
+                          <div 
+                            className={`cursor-pointer border-2 rounded-lg p-3 text-center ${studentForm.profile_picture_type === 'custom' ? 'border-indigo-500 bg-indigo-100' : 'border-gray-300'}`}
+                          >
+                            <label className="cursor-pointer">
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                onChange={async (e) => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    const file = e.target.files[0];
+                                    const formData = new FormData();
+                                    formData.append('file', file);
+                                    
+                                    try {
+                                      const token = localStorage.getItem('token');
+                                      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/upload-profile-picture`, formData, {
+                                        headers: { 
+                                          'Authorization': `Bearer ${token}`,
+                                          'Content-Type': 'multipart/form-data'
+                                        }
+                                      });
+                                      setStudentForm({ 
+                                        ...studentForm, 
+                                        profile_picture_type: 'custom', 
+                                        profile_picture: response.data.url 
+                                      });
+                                    } catch (error) {
+                                      alert('Erreur lors de l\'upload de l\'image');
+                                    }
+                                  }
+                                }}
+                              />
+                              {studentForm.profile_picture_type === 'custom' && studentForm.profile_picture && studentForm.profile_picture !== '/static/profile_pictures/homme_default.png' ? (
+                                <img src={`${process.env.REACT_APP_BACKEND_URL}${studentForm.profile_picture}`} alt="Personnalisée" className="w-16 h-16 mx-auto mb-2 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gray-200 flex items-center justify-center">
+                                  <span className="text-2xl">📷</span>
+                                </div>
+                              )}
+                              <p className="text-xs">Photo personnelle</p>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      
                       <div className="space-y-2">
                         <Label>Nom du formateur</Label>
                         <Input 
