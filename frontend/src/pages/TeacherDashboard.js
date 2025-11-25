@@ -319,7 +319,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       });
       toast.success("Élève créé !");
       setShowCreateStudent(false);
-      setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0, parcours: "Anglais", teacher_name: "", teacher_email: "", teacher_phone: "", formation_address: "", formation_building: "", formation_street: "", formation_postal_code: "", formation_city: "", formation_country: "France", formation_transports: "" });
+      setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0, parcours: "Anglais", teacher_name: "", teacher_email: "", teacher_phone: "", profile_picture: "/static/profile_pictures/homme_default.png", profile_picture_type: "homme", formation_address: "", formation_building: "", formation_street: "", formation_postal_code: "", formation_city: "", formation_country: "France", formation_transports: "" });
       setIncludeTests(false);
       setIncludeQuestionnaires(true);
       setSelectedTests({ positionnement: "", miParcours: "", fin: "" });
@@ -612,7 +612,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       toast.success("Élève modifié !");
       setShowEditStudent(false);
       setEditingStudent(null);
-      setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0, parcours: "Anglais", teacher_name: "", teacher_email: "", teacher_phone: "", formation_address: "", formation_building: "", formation_street: "", formation_postal_code: "", formation_city: "", formation_country: "France", formation_transports: "" });
+      setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0, parcours: "Anglais", teacher_name: "", teacher_email: "", teacher_phone: "", profile_picture: "/static/profile_pictures/homme_default.png", profile_picture_type: "homme", formation_address: "", formation_building: "", formation_street: "", formation_postal_code: "", formation_city: "", formation_country: "France", formation_transports: "" });
       loadData(selectedMonth);
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur");
