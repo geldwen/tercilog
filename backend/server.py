@@ -97,6 +97,13 @@ class UserCreate(BaseModel):
     start_date: str = ""
     end_date: str = ""
     parcours: str = ""  # Matière/Parcours de l'élève
+    # Champs pour le lieu de formation (si présentiel)
+    formation_address: str = ""
+    formation_street: str = ""
+    formation_postal_code: str = ""
+    formation_city: str = ""
+    formation_country: str = ""
+    formation_transports: str = ""
 
 class UserLogin(BaseModel):
     email: EmailStr
