@@ -1,144 +1,186 @@
-<analysis>**original_problem_statement**: The initial goal was to fix a filtering issue. This evolved into a series of feature requests:
-1.  **Add parcours to Students**: Add a parcours field to students for course-specific logic.
-2.  **Dynamic Questionnaires**: Link questionnaires to a student's .
-3.  **Student Dashboard Refactor**: Reorganize the student dashboard UI.
-4.  **Dynamic Resource Assignment**: Allow teachers to assign specific tests (T1, T2, T3) and questionnaires to students upon creation, based on their .
-5.  **Interactive Quiz System**: Implement an online quiz system where students can take assigned tests, which are then auto-graded, with scores and submission status visible to the teacher. This includes seeding three specific Bureautique tests (T1, T2, T3) provided by the user.
-6.  **Quiz Result Visualization**: The teacher must be able to see the submitted test results in their dashboard. This has been a major point of focus and difficulty. The results should show the score prominently with a color-coded status (Non acquis, En cours, Acquis).
-7.  **View Corrected Quiz**: The teacher must be able to view a student's submitted quiz with correct/incorrect answers highlighted.
-8.  **Final Report Generation**: A magic button should generate a PDF report summarizing the results of the three tests (T1, T2, T3) for a student, including a graph and AI-powered analysis.
+<analysis>**original_problem_statement**: The user wants to implement a new feature for student creation and management.
+
+PRODUCT REQUIREMENTS:
+1.  **Student Creation Form**: Add a choice between Distanciel (Remote) and Présentiel (In-person) when creating a new student.
+2.  **Address Fields for Présentiel**: If Présentiel is selected, display fields for a manual address entry:
+    *   Full Address
+    *   Street
+    *   Postal Code
+    *   City
+    *   Country
+    *   Nearby Transports (optional notes)
+3.  **Student Dashboard Banner**: In the student's own dashboard, under the Ma formation tab, add a new banner called Mon lieu de formation.
+    *   For Distanciel students, it should show a simple message indicating the training is remote.
+    *   For Présentiel students, it should display the registered address details.
+
+The user provided a complete code module, including Google Places Autocomplete functionality. However, they opted for a simpler implementation with manual address entry, as no Google API key was available.
 
 **User's preferred language**: French
 
 **what currently exists?**
-The application has a  field on the  model that drives dynamic content. The student creation form allows teachers to select and assign three types of tests (T1, T2, T3) for the Bureautique parcours from hardcoded dropdowns. The backend saves these selections in the  collection. A complete interactive quiz system is in place: students can see their assigned tests, take them via the  component, and submit them. The backend processes submissions, calculates scores, and stores the results, including the student's answers. The quiz templates for T1, T2, and T3 have been seeded into the database. The teacher's modal () has been repeatedly modified to display these results, but it remains a persistent bug. A skeleton for a final PDF report endpoint has been added.
+The application is a full-stack platform for managing students, training sessions, and quality feedback. Key features include: PDF report generation with AI analysis, an aggregated test results dashboard (Bilan des tests), and a detailed quality analysis dashboard (Bilan Qualité).
+
+The Bilan Qualité page has been significantly enhanced with an AI agent () that analyzes questionnaire responses to automatically calculate scores for student progression, satisfaction, and extract lists of difficulties and mastered skills. This page also includes filterable KPI cards and trend graphs.
+
+The planning view color bug has been fixed, and student cards on the teacher dashboard now display a colored badge corresponding to their . A critical bug in calculating remaining student hours has been fixed; the calculation is now correctly based only on sessions marked as  (signed by the student).
+
+The agent has started implementing the new Distanciel/Présentiel feature. The backend  model has been updated with the new address fields, and the student creation form in  has been modified to include the new radio buttons and conditional address fields.
 
 **Last working item**:
--   **Last item agent was working**: Implementing the Magic Button feature to generate a final PDF report summarizing a student's performance on tests T1, T2, and T3. The agent created a skeleton backend endpoint () and was about to start the frontend component after receiving React code for it from the user.
+-   **Last item agent was working**: The agent was implementing the Distanciel/Présentiel feature. The last concrete actions were:
+    1.  Adding the address fields (, , , , , ) to the  model in .
+    2.  Updating the student creation/edition form state in .
+    3.  Adding the conditional UI fields for address entry to the student creation modal in .
+    4.  The agent's next step was to create the Mon lieu de formation banner in  to display this new information to the student.
 -   **Status**: IN PROGRESS
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: both
 -   **User Testing Done**: N
+-   **Which testing method agent to use?**: frontend testing agent
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: Submitted interactive tests do not appear in the teacher's dashboard. (Priority: P0)
+-   **Issue 1**: **CRITICAL SECURITY VULNERABILITY**: Student passwords are still stored and fetched in plaintext. (Priority: P0)
+-   **Issue 2**: The Modifier (Edit) button for planning events is not functional. (Priority: P1)
+-   **Issue 3**: User LAURA LENFANT's hour count needs to be verified. (Priority: P2)
 
 **Issues Detail**:
 -   **Issue 1**:
-    -   **Description**: In the teacher dashboard, when opening a student's detail modal (), the submitted interactive tests (e.g., T1, T2) are not displayed under the Tests et évaluation tab as intended. The user has repeatedly reported this issue with screenshots showing an empty section. The data exists in the backend, and the agent temporarily made it appear in the wrong tab (Documents bénéficiaires), confirming the data-fetching part works, but the display in the correct location is broken.
-    -   **Attempted fixes**:
-        -   Placed display logic in the wrong tab (), which worked but was incorrect.
-        -   Created a new component  to render the tests in the correct tab (Tests et évaluation).
-        -   Added multiple debug messages (console logs and visible colored boxes), which did not appear, indicating the component or its parent  was not rendering, likely due to a silent JavaScript error.
-        -   Restarted the frontend service and asked the user to hard-refresh/clear cache multiple times, assuming a caching issue.
-        -   The agent last made the sections for Bureautique and Management conditional, which may be compounding the issue.
+    -   **Description**: The previous agent modified the user creation logic to save passwords in plaintext to display them to the teacher. The user has since said to leave them invisible, but the underlying security flaw of storing passwords in plaintext in the database remains. This is a critical vulnerability.
+    -   **Attempted fixes**: None. The agent has followed the user's latest instruction to just not display them, but has not fixed the root cause.
     -   **Next debug checklist**:
-        1.  The issue is almost certainly a frontend rendering problem within .
-        2.  Focus on the  for . The user confirmed seeing a debug message here once, meaning the component *is* called.
-        3.  Examine the  component. It fetches data via . Add extensive  statements to trace the execution: log the  prop, the API response (), the array after filtering for , and the final  state.
-        4.  Use the browser's developer tools (Network tab) to confirm the API call is being made and is returning the expected array of test resources.
-        5.  The component returns  if  is true or if the  array is empty. The debugging should focus on why the  array remains empty.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical bug blocking the core quiz feature. The teacher has no way to see the results of the tests students have taken. Fixing this will make the quiz system functional from end to end.
-    -   **Status**: IN PROGRESS
+        1.  Modify the user creation endpoint () in  to stop saving the plaintext  field. The  is sufficient.
+        2.  Run a migration script to remove the plaintext  field from all existing documents in the  collection.
+        3.  Modify any endpoint that fetches user data (e.g., ) to ensure the  field is never returned.
+    -   **Why fix this issue and what will be achieved with the fix?**: Resolves a critical security vulnerability and protects user data integrity.
+    -   **Status**: NOT STARTED
     -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: backend
+    -   **Blocked on other issue**: None
+-   **Issue 2**:
+    -   **Description**: In the  component, a Modifier (Edit) button was added to the dropdown menu for each event, but the  function is empty. The functionality to open a modal and edit the event is missing.
+    -   **Attempted fixes**: None. The task was left incomplete.
+    -   **Next debug checklist**:
+        1.  Implement the  function in .
+        2.  This function should open the , pre-filled with the data of the selected event.
+        3.  Ensure the save logic in the modal correctly calls an update endpoint (e.g., ).
+    -   **Why fix this issue and what will be achieved with the fix?**: This will provide core CRUD functionality for managing planning events.
+    -   **Status**: NOT STARTED
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Blocked on other issue**: None
+-   **Issue 3**:
+    -   **Description**: The original handoff mentioned that student LAURA LENFANT had an incorrect hour count that needed a manual reset. While the global hour calculation logic has been fixed, it's worth verifying if this specific user's data is now correct.
+    -   **Attempted fixes**: An initial database query failed. The issue was not revisited.
+    -   **Next debug checklist**:
+        1.  Check the Heures restantes for LAURA LENFANT on the teacher dashboard UI.
+        2.  Compare this with the user's expectation or a manual calculation of  minus  hours from the database.
+    -   **Why fix this issue and what will be achieved with the fix?**: Ensures data integrity for a specific user as requested.
+    -   **Status**: NOT STARTED
+    -   **Is recurring issue?**: N
     -   **Should Test frontend/backend/both after fix?**: frontend
     -   **Blocked on other issue**: None
 
 **In progress Task List**:
--   **Task 1**: Implement the Magic Button for final report generation. (Priority: P1)
+-   **Task 1**: Complete the Distanciel/Présentiel feature. (Priority: P0)
     -   **Where to resume**:
-        -   **Backend**: The endpoint  in  is a skeleton. It needs to be implemented to fetch the scores for T1, T2, and T3 for a given student, generate a PDF using ReportLab, potentially embed a graph (using a Python library like ), and return the URL to the generated PDF. The user provided sample code with OpenAI integration for analysis, which should be implemented using .
-        -   **Frontend**: Create the  component based on the user-provided code. This component needs to be integrated into the teacher's modal (), likely within the Tests et évaluation tab.
-    -   **What will be achieved with this?**: A key feature allowing teachers to get a consolidated, AI-enhanced summary of a student's progress.
+        1.  Add the new address fields to the **student editing modal** in  to ensure consistency with the creation modal.
+        2.  Implement the Mon lieu de formation banner in  to display the  and  information.
+        3.  Test the complete end-to-end flow: create a présentiel student, verify the data is saved, check their student dashboard, and edit their details.
+    -   **What will be achieved with this?**: Fulfills the user's latest feature request for managing student location details.
     -   **Status**: IN PROGRESS
     -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on something**: Blocked by **Issue 1**, as the button should logically be placed where the tests are displayed.
+    -   **Blocked on something**: None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **P0**: Implement the View Correction feature. The teacher must be able to click a Visualiser les résultats button on a submitted test and see a modal () showing all questions with the student's answers, highlighting correct answers in green and incorrect ones in red.
-    -   **P1**: Implement Send by Email functionality for both individual corrected tests and the final summary report.
-    -   **P2**: Make the test selection dropdowns in  dynamic. They should fetch available templates from the  collection instead of being hardcoded.
+    -   **P0**: Create the new  Intro Informatique by adding the T1, T2, T3 tests and Q1, Q2, Q3 quizzes once the user provides the content.
+    -   **P1**: Re-integrate the new UI components (, , ) to refactor the teacher dashboard and session views.
+    -   **P2**: Make the test selection dropdowns in  dynamic by fetching from the  collection.
 -   **Future Tasks**:
-    -   **P3**: Implement handling for  type resources (upload/download functionality).
+    -   **P3**: Implement handling for  type resources (upload/download).
     -   **P4**: Implement the memory feature where the system pre-selects the last template used for a .
     -   **P5**: Build a full CRUD interface for teachers to manage quiz templates.
 
 **Completed work in this session**
--   Seeded the database with three Bureautique quiz templates (T1, T2, T3) using Python scripts.
--   Implemented the full student-side quiz flow: viewing assigned tests, taking them in , and submitting answers.
--   The backend now stores the student's full set of answers on submission, not just the score.
--   Refactored the resource assignment logic to use a dynamic  instead of hardcoded names.
--   Updated various UI labels and dropdown options in the student and teacher dashboards per user requests.
--   Fixed a navigation bug in the  component's return to dashboard button.
--   Removed an obsolete Questionnaires de formation section from the student dashboard.
--   Identified and corrected a bug where actions were being performed on the wrong student due to a mix-up of s.
+-   Fixed the planning color bug by adding a  field to the backend model and ensuring it's used for rendering.
+-   Refactored the student dashboard UI () with colored cards for tests and resources.
+-   Significantly enhanced the Bilan Qualité page ():
+    -   Created a Python AI agent () to analyze questionnaires and generate scores/keywords for progression, satisfaction, difficulties, and mastered skills.
+    -   Added new KPI cards for Éléments maîtrisés and Difficultés récurrentes, with a  filter.
+    -   Added monthly trend-line graphs to the progression and satisfaction KPI cards.
+    -   Corrected all calculations and labels as per user requests.
+-   Added colored  badges to student cards on the teacher dashboard ().
+-   Fixed the remaining hours calculation to be correctly based on  (signed) sessions, not all sessions.
+-   Fixed a bug where the  status was read from the wrong DB field ( vs ).
+-   Removed a duplicate Matière filter from the Bilan des tests page ().
 
 **Earlier issues found/mentioned but not fixed**
--   The main recurring issue (display of tests in the teacher modal) is listed as the P0 priority issue above.
+-   **Issue 1**: The critical P0 security vulnerability of storing plaintext passwords in the database. The user has only requested it be hidden from the UI, but the backend vulnerability persists.
+-   **Issue 2**: The Modifier (Edit) functionality for planning events is incomplete. The button exists, but has no logic.
+-   **Issue 3**: The specific hour count for student LAURA LENFANT was requested to be reset but was never explicitly addressed.
 
 **Known issue recurrence from previous fork**
--   None
+-   None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend**: Python (FastAPI), MongoDB (Motor), ReportLab for PDF generation.
--   **Frontend**: React, Axios for API calls, React Router for navigation, / for state management.
--   **Architecture**: REST API with a separate React single-page application (SPA).
+-   **Backend**: Python (FastAPI), MongoDB (Motor),  for LLM calls (in ).
+-   **Frontend**: React, Axios, React Router, Recharts for graphs.
+-   **AI**: A custom Python script () uses an LLM to perform NLP tasks (analysis, keyword extraction, scoring) on student feedback.
 
 **key DB schema**
 -   **users**: 
--   **student_resources**: 
--   **quiz_templates**: 
+-   **sessions**: 
+-   **planning_events**: 
 
 **changes in tech stack**
--   None
+-    library is now used on the frontend () for rendering the trend-line graphs.
 
 **All files**
 -   **Created Files**:
-    -   : The UI for students to take interactive quizzes.
-    -   , , : Scripts to seed the T2 and T3 quizzes.
-    -   Various other single-use scripts for data manipulation.
+    -   : A new module containing the AI logic to analyze student questionnaire responses and generate quality metrics.
 -   **Updated Files**:
-    -   : Major changes. Added endpoints for fetching/submitting quizzes, a skeleton for the report endpoint, and logic to map template names to IDs.
-    -   : Very significant changes. This file is the source of the main bug. It has been repeatedly modified to try and display test results.
-    -   : Updated to fetch and display the list of assigned tests.
-    -   : Updated to clean up hardcoded test names and improve labels.
-    -   : Added the route for the  component.
+    -   : Major changes. Integrated the , fixed the remaining hours calculation logic twice, added address fields to the User model, and added a  field to the PlanningEvent model.
+    -   : Major overhaul. Integrated data from the new AI agent, added new KPI cards, filters, trend graphs, and updated all labels and layouts per user requests.
+    -   : UI refactored into colored cards. To be updated with the Mon lieu de formation banner.
+    -   : Added colored  badges to student lists and added new fields to the student creation/edit form for the distanciel/présentiel feature.
+    -   : Fixed the event color rendering bug.
+    -   : Removed a redundant Matière filter.
 
 **Areas that need refactoring**:
--   ****: This file is over 3000 lines long and extremely complex. It defines multiple components inside itself and handles a large amount of state and conditional logic. It is the source of the recurring display bug and is very difficult to debug. It should be broken down into several smaller, independent components, each with its own file (e.g., , , ).
+-   **Plaintext Password Storage**: The entire logic for storing plaintext passwords must be removed immediately from .
+-   **Unused UI Components**: , , etc. still exist and are unused. A plan to integrate or remove them is needed.
 
 **key api endpoints**
--   : Fetches a specific quiz template.
--   : Submits a student's quiz answers and calculates the score.
--   : Fetches all assigned resources for a student.
--   : (New, Skeleton) Endpoint intended to generate the final PDF report.
+-   : Heavily modified to integrate the  and return new metrics like , , and monthly trend data.
+-   : Modified to dynamically recalculate remaining hours based on  sessions.
+-   : Modified to do the same dynamic hour calculation for the logged-in student.
+-   : Now accepts and saves a  field.
 
 **Critical Info for New Agent**
--   **The P0 Bug**: Your absolute first priority is to fix the recurring issue where submitted tests do not appear in the teacher's Tests et évaluation tab. The user is very frustrated with this. The problem is in the frontend, specifically within the  component. Do not get distracted by caching issues; focus on systematically debugging the React component's rendering lifecycle and state.
--   **Component Hell**: The  file is unmanageably large. Be prepared to navigate a complex component. The best long-term solution is to refactor it, but the immediate goal is to fix the bug.
--   **User-Provided Code**: The user may provide code snippets (e.g., for the magic button). Note that their code might be for a different tech stack (e.g., Next.js) and will need to be adapted to the project's React + FastAPI stack.
--   **Data Integrity**: There was a previous issue where the agent was using a hardcoded  instead of fetching the correct one for the logged-in user. Always verify you are acting on the correct data entities.
+-   **CRITICAL SECURITY ALERT**: Your absolute first priority must be to fix the severe security vulnerability of storing student passwords in plaintext. The user asked to leave them invisible, but you must fix the backend storage in  and run a migration to clean the database. This is a non-negotiable P0 task.
+-   **Current Task**: You are in the middle of implementing the Distanciel/Présentiel feature. You need to complete the student edit modal and add the display banner to the student dashboard.
+-   **User Collaboration**: The user is highly engaged and provides detailed feedback and even code. Always confirm your plan before implementing and be prepared for iterative refinements.
 
 **documents created in this job**
 -   None.
 
 **Last 5 User Messages and any pending user messages**
-1.  **User (Msg 479):** Provided JSON for the T3 quiz and requested the magic button feature to generate a final summary report for the 3 tests. **Status: In Progress**.
-2.  **User (Msg 494):** Reported that the T3 test was not appearing in the student's (GOUGOU) dashboard. **Status: Resolved** (Agent found they were assigning it to the wrong student ID).
-3.  **User (Msg 501):** Reported that T3 was still not visible. **Status: Resolved** (Agent was still using the wrong student ID).
-4.  **User (Msg 509):** Provided detailed feedback after following the agent's instructions (clearing cache, etc.), confirming T3 was still not visible and the other tests had the wrong status. This led the agent to discover the  mismatch. **Status: Resolved**.
-5.  **User (Msg 516):** Provided React/Next.js code for the magic button and its backend logic. **Status: In Progress**.
+1.  **User (Msg 465)**: Requested to remove a duplicate Matière filter on the Bilan des tests page. **Status: Completed**.
+2.  **User (Msg 484)**: Provided a large code block for a new feature to handle Distanciel vs Présentiel students, including address capture using Google Places. **Status: In Progress**.
+3.  **User (Msg 485/487)**: After being asked for a Google Maps API key, the user opted for a simpler manual address entry implementation instead. **Status: Acknowledged**.
+4.  **User (Msg 488-512)**: The agent started implementing the manual address feature, modifying the backend and frontend forms. **Status: In Progress**.
+5.  **This is the last message.** The conversation is paused mid-implementation of this feature.
 
 **Project Health Check:**
--   **Broken**: The teacher's view of submitted interactive test results is fundamentally broken. This is the highest priority issue.
--   **Mocked**: The test selection dropdowns in the teacher's creation form are still using a hardcoded object in  rather than fetching templates from the database.
+-   **Broken**:
+    -   The Modifier (Edit) button on planning events is non-functional.
+-   **Critical Vulnerability**:
+    -   Plaintext storage and retrieval of user passwords is a severe, unpatched security risk.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES
+-   **Testing agent used after significant changes**: NO
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: None
 -   **Known regressions**: None
@@ -152,5 +194,7 @@ The application has a  field on the  model that drives dynamic content. The stud
     -   Password: 
 
 **What agent forgot to execute**
--   The agent has not successfully resolved the P0 bug related to displaying test results for the teacher, despite multiple attempts and it being the main source of user friction.
--   The feature to view the corrected quiz (with red/green answers) was started () but never completed or tested.</analysis>
+-   **Critical Security Fix**: The agent did not address the root cause of the plaintext password storage vulnerability on the backend, despite it being a P0 issue from the previous handoff.
+-   **Modifier button**: The implementation of the Modifier button in the planning view is still incomplete from the previous handoff.
+-   **LAURA LENFANT Hour Reset**: The specific request to check/reset this student's hours was not explicitly addressed.
+-   **UI Refactor**: The integration of the user-provided  and  components remains pending.</analysis>
