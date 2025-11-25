@@ -76,6 +76,13 @@ class User(BaseModel):
     parcours: str = ""  # Matière/Parcours de l'élève (ex: Anglais, Management, Bureautique)
     welcome_email_sent: bool = False  # Email de bienvenue envoyé ou non
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    # Champs pour le lieu de formation (si présentiel)
+    formation_address: str = ""  # Adresse complète
+    formation_street: str = ""
+    formation_postal_code: str = ""
+    formation_city: str = ""
+    formation_country: str = ""
+    formation_transports: str = ""  # Infos transports pour s'y rendre
 
 class UserCreate(BaseModel):
     email: EmailStr
