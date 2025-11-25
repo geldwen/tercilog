@@ -753,10 +753,9 @@ async def register(user_data: UserCreate):
     
     # Create user
     user_dict = user_data.model_dump()
-    plain_password = user_dict['password']  # Sauvegarder le mot de passe en clair
+    temp_password = user_dict['password']  # Sauvegarder temporairement pour l'email uniquement
     hashed_password = get_password_hash(user_dict.pop('password'))
     user_dict['password_hash'] = hashed_password
-    user_dict['plain_password'] = plain_password  # Stocker le mot de passe en clair
     user_dict['welcome_email_sent'] = False  # Flag pour l'email de bienvenue
     
     # Initialize credit_hours = total_hours for new students
@@ -767,7 +766,6 @@ async def register(user_data: UserCreate):
     doc = user.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
     doc['password_hash'] = hashed_password
-    doc['plain_password'] = plain_password
     doc['welcome_email_sent'] = False
     
     await db.users.insert_one(doc)
@@ -779,7 +777,7 @@ async def register(user_data: UserCreate):
                 user_dict['email'],
                 user_dict['name'],
                 user_dict['email'],
-                plain_password
+                temp_password
             )
             if email_sent:
                 # Mettre à jour le flag d'envoi
