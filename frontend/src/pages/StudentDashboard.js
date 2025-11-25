@@ -481,6 +481,65 @@ export default function StudentDashboard({ user, onLogout }) {
               </Card>
             </div>
 
+            {/* Bandeau Mon lieu de formation */}
+            <Card className="shadow-lg border-2 border-purple-200">
+              <CardHeader style={{backgroundColor: '#F3E8FF'}}>
+                <CardTitle className="flex items-center gap-2" style={{color: TERCIFORM_BLUE}}>
+                  <span className="text-2xl">📍</span>
+                  Mon lieu de formation
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                {user.session_type === 'distanciel' ? (
+                  <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-5xl">💻</div>
+                    <div>
+                      <p className="font-bold text-lg" style={{color: TERCIFORM_BLUE}}>À distance</p>
+                      <p className="text-sm text-gray-600 mt-1">La formation se déroule intégralement en distanciel.</p>
+                    </div>
+                  </div>
+                ) : user.session_type === 'présentiel' ? (
+                  <div>
+                    <p className="font-bold text-lg mb-3" style={{color: TERCIFORM_BLUE}}>En présentiel</p>
+                    
+                    {(user.formation_address || user.formation_city) ? (
+                      <div className="space-y-3">
+                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          {user.formation_address && (
+                            <p className="font-medium mb-2">{user.formation_address}</p>
+                          )}
+                          {!user.formation_address && (
+                            <>
+                              {user.formation_street && <p>{user.formation_street}</p>}
+                              {(user.formation_postal_code || user.formation_city) && (
+                                <p>{user.formation_postal_code} {user.formation_city}</p>
+                              )}
+                            </>
+                          )}
+                          {user.formation_country && user.formation_country !== 'France' && (
+                            <p className="text-sm text-gray-600">{user.formation_country}</p>
+                          )}
+                        </div>
+                        
+                        {user.formation_transports && (
+                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <p className="font-semibold text-sm mb-2" style={{color: TERCIFORM_BLUE}}>
+                              🚇 Pour s'y rendre plus facilement
+                            </p>
+                            <p className="text-sm text-gray-700 whitespace-pre-line">{user.formation_transports}</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">Aucune adresse n'a été renseignée pour le moment.</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">Mode de formation non défini.</p>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Sessions Table - Planning complet */}
             <Card className="shadow-lg">
               <CardHeader>
