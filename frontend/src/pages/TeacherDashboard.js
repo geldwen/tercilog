@@ -1339,7 +1339,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   }
                                 }}
                               />
-                              {studentForm.profile_picture_type === 'custom' && studentForm.profile_picture && studentForm.profile_picture !== '/static/profile_pictures/homme_default.png' ? (
+                              {studentForm.profile_picture_type === 'custom' && studentForm.profile_picture && studentForm.profile_picture !== '/api/profile-pictures/homme_default.png' ? (
                                 <img src={`${process.env.REACT_APP_BACKEND_URL}${studentForm.profile_picture}`} alt="Personnalisée" className="w-16 h-16 mx-auto mb-2 rounded-full object-cover" />
                               ) : (
                                 <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gray-200 flex items-center justify-center">
@@ -1667,7 +1667,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   }
                                 }}
                               />
-                              {studentForm.profile_picture_type === 'custom' && studentForm.profile_picture && studentForm.profile_picture !== '/static/profile_pictures/homme_default.png' ? (
+                              {studentForm.profile_picture_type === 'custom' && studentForm.profile_picture && studentForm.profile_picture !== '/api/profile-pictures/homme_default.png' ? (
                                 <img src={`${process.env.REACT_APP_BACKEND_URL}${studentForm.profile_picture}`} alt="Personnalisée" className="w-16 h-16 mx-auto mb-2 rounded-full object-cover" />
                               ) : (
                                 <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gray-200 flex items-center justify-center">
