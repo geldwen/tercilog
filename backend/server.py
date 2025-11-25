@@ -4857,6 +4857,30 @@ async def get_student_feedback(student_id: str, current_user: User = Depends(get
     return [StudentFeedback(**f) for f in feedbacks]
 
 
+@api_router.post("/upload-profile-picture")
+async def upload_profile_picture(file: UploadFile = FastAPIFile(...), current_user: User = Depends(get_current_user)):
+    """Upload une photo de profil personnalisée"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Vérifier que c'est une image
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="Le fichier doit être une image")
+    
+    # Générer un nom de fichier unique
+    file_extension = file.filename.split('.')[-1]
+    unique_filename = f"custom_{uuid.uuid4()}.{file_extension}"
+    file_path = f"/app/backend/static/profile_pictures/{unique_filename}"
+    
+    # Sauvegarder le fichier
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+    
+    # Retourner l'URL relative
+    return {"url": f"/static/profile_pictures/{unique_filename}"}
+
+
 @api_router.post("/students/{student_id}/contact-teacher")
 async def contact_teacher(student_id: str, data: dict, current_user: User = Depends(get_current_user)):
     """Envoyer un email au formateur assigné à l'élève"""
