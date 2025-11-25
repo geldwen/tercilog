@@ -77,6 +77,7 @@ class User(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     # Champs pour le lieu de formation (si présentiel)
     formation_address: str = ""  # Adresse complète
+    formation_building: str = ""  # Nom du bâtiment / lieu
     formation_street: str = ""
     formation_postal_code: str = ""
     formation_city: str = ""
