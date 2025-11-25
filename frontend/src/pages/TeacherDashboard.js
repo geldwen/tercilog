@@ -580,7 +580,13 @@ export default function TeacherDashboard({ user, onLogout }) {
       start_date: student.start_date || "",
       end_date: student.end_date || "",
       total_hours: student.total_hours || student.credit_hours || 0,
-      parcours: student.parcours || "Anglais"
+      parcours: student.parcours || "Anglais",
+      formation_address: student.formation_address || "",
+      formation_street: student.formation_street || "",
+      formation_postal_code: student.formation_postal_code || "",
+      formation_city: student.formation_city || "",
+      formation_country: student.formation_country || "France",
+      formation_transports: student.formation_transports || ""
     });
     setShowEditStudent(true);
   };
