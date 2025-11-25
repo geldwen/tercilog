@@ -84,9 +84,10 @@ class User(BaseModel):
     welcome_email_sent: bool = False  # Email de bienvenue envoyé ou non
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     # Champs pour le lieu de formation (si présentiel)
-    formation_address: str = ""  # Adresse complète
-    formation_building: str = ""  # Nom du bâtiment / lieu
-    formation_street: str = ""
+    formation_address: str = ""  # Adresse complète (générée automatiquement)
+    formation_building: str = ""  # Établissement / Bâtiment
+    formation_street_number: str = ""  # N° de rue
+    formation_street: str = ""  # Nom de la rue
     formation_postal_code: str = ""
     formation_city: str = ""
     formation_country: str = ""
