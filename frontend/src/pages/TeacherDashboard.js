@@ -1279,13 +1279,33 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <option value="Informatique">Informatique</option>
                       </select>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Formateur</Label>
-                      <Input 
-                        placeholder="ex: M. Dupont, Mme Martin" 
-                        value={studentForm.teacher_name} 
-                        onChange={(e) => setStudentForm({ ...studentForm, teacher_name: e.target.value })} 
-                      />
+                    <div className="p-4 border-2 border-indigo-200 rounded-lg bg-indigo-50 space-y-3">
+                      <h4 className="font-bold text-indigo-900">👤 Assigner un formateur</h4>
+                      <div className="space-y-2">
+                        <Label>Nom du formateur</Label>
+                        <Input 
+                          placeholder="ex: M. Dupont, Mme Martin" 
+                          value={studentForm.teacher_name} 
+                          onChange={(e) => setStudentForm({ ...studentForm, teacher_name: e.target.value })} 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Email du formateur</Label>
+                        <Input 
+                          type="email"
+                          placeholder="ex: formateur@email.com" 
+                          value={studentForm.teacher_email} 
+                          onChange={(e) => setStudentForm({ ...studentForm, teacher_email: e.target.value })} 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Numéro de téléphone du formateur</Label>
+                        <Input 
+                          placeholder="ex: 06 12 34 56 78" 
+                          value={studentForm.teacher_phone} 
+                          onChange={(e) => setStudentForm({ ...studentForm, teacher_phone: e.target.value })} 
+                        />
+                      </div>
                     </div>
                     {/* BLOC 1 : Tests de parcours */}
                     <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 space-y-3">
@@ -1522,13 +1542,33 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <option value="Informatique">Informatique</option>
                       </select>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Formateur</Label>
-                      <Input 
-                        placeholder="ex: M. Dupont, Mme Martin" 
-                        value={studentForm.teacher_name} 
-                        onChange={(e) => setStudentForm({ ...studentForm, teacher_name: e.target.value })} 
-                      />
+                    <div className="p-4 border-2 border-indigo-200 rounded-lg bg-indigo-50 space-y-3">
+                      <h4 className="font-bold text-indigo-900">👤 Assigner un formateur</h4>
+                      <div className="space-y-2">
+                        <Label>Nom du formateur</Label>
+                        <Input 
+                          placeholder="ex: M. Dupont, Mme Martin" 
+                          value={studentForm.teacher_name} 
+                          onChange={(e) => setStudentForm({ ...studentForm, teacher_name: e.target.value })} 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Email du formateur</Label>
+                        <Input 
+                          type="email"
+                          placeholder="ex: formateur@email.com" 
+                          value={studentForm.teacher_email} 
+                          onChange={(e) => setStudentForm({ ...studentForm, teacher_email: e.target.value })} 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Numéro de téléphone du formateur</Label>
+                        <Input 
+                          placeholder="ex: 06 12 34 56 78" 
+                          value={studentForm.teacher_phone} 
+                          onChange={(e) => setStudentForm({ ...studentForm, teacher_phone: e.target.value })} 
+                        />
+                      </div>
                     </div>
                     {/* BLOC 1 : Tests de parcours */}
                     <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 space-y-3">
