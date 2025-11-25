@@ -525,16 +525,20 @@ export default function StudentDashboard({ user, onLogout }) {
                 <CardContent>
                   {user.teacher_name ? (
                     <>
-                      <div className="flex flex-col items-center mb-3">
+                      <div className="flex items-center gap-4 mb-3">
                         <img 
                           src={user.profile_picture ? `${process.env.REACT_APP_BACKEND_URL}${user.profile_picture}` : `${process.env.REACT_APP_BACKEND_URL}/api/profile-pictures/homme_default.png`}
                           alt={user.teacher_name}
-                          className="w-20 h-20 rounded-full object-cover border-2 border-blue-200 mb-2"
+                          className="rounded-full object-cover border-3"
+                          style={{width: '130px', height: '130px', borderColor: '#2763FF', borderWidth: '3px'}}
                           onError={(e) => {
                             e.target.src = `${process.env.REACT_APP_BACKEND_URL}/api/profile-pictures/homme_default.png`;
                           }}
                         />
-                        <p className="text-xl font-bold text-center" style={{color: TERCIFORM_BLUE}}>{user.teacher_name}</p>
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">Mon formateur</p>
+                          <p className="text-2xl font-bold" style={{color: '#1e2749'}}>{user.teacher_name}</p>
+                        </div>
                       </div>
                       <Button 
                         variant="outline" 
