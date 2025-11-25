@@ -1029,6 +1029,61 @@ export default function StudentDashboard({ user, onLogout }) {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Contacter mon formateur */}
+      <Dialog open={showContactTeacherDialog} onOpenChange={setShowContactTeacherDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span>✉️</span>
+              Contacter mon formateur
+            </DialogTitle>
+            <DialogDescription>
+              Envoyez un message à {user.teacher_name || 'votre formateur'}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleContactTeacher} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="subject">Objet *</Label>
+              <Input
+                id="subject"
+                placeholder="Ex: Question sur le planning"
+                value={contactTeacher.subject}
+                onChange={(e) => setContactTeacher({ ...contactTeacher, subject: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="message">Ma demande *</Label>
+              <Textarea
+                id="message"
+                placeholder="Décrivez votre demande..."
+                rows={6}
+                value={contactTeacher.message}
+                onChange={(e) => setContactTeacher({ ...contactTeacher, message: e.target.value })}
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowContactTeacherDialog(false)}
+              >
+                Annuler
+              </Button>
+              <Button
+                type="submit"
+                style={{ backgroundColor: TERCIFORM_BLUE }}
+                className="text-white"
+              >
+                <span className="mr-2">📨</span>
+                Envoyer ma demande à mon formateur
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
