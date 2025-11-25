@@ -114,6 +114,7 @@ class UserCreate(BaseModel):
     # Champs pour le lieu de formation (si présentiel)
     formation_address: str = ""
     formation_building: str = ""
+    formation_street_number: str = ""
     formation_street: str = ""
     formation_postal_code: str = ""
     formation_city: str = ""
