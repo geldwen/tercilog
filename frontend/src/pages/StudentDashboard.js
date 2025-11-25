@@ -896,41 +896,41 @@ export default function StudentDashboard({ user, onLogout }) {
                 <div className="space-y-3">
                   <Button 
                     onClick={() => !formationNeedsSubmitted && setShowNeedsDialog(true)} 
-                    style={{backgroundColor: formationNeedsSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
-                    className="w-full justify-between items-center"
+                    style={{backgroundColor: formationNeedsSubmitted ? '#22c55e' : '#0D2040', padding: '20px 24px'}}
+                    className="w-full justify-between items-center text-base"
                     disabled={formationNeedsSubmitted}
                   >
-                    <span>1) Questionnaire de besoin en formation</span>
+                    <span className="text-base font-medium">1) Questionnaire de besoin en formation</span>
                     {formationNeedsSubmitted ? (
-                      <span className="text-xs bg-white text-green-600 px-2 py-1 rounded-full font-semibold">✓ Validé</span>
+                      <span className="text-sm bg-white text-green-600 px-3 py-1.5 rounded-full font-semibold">✓ Validé</span>
                     ) : (
-                      <span className="text-xs bg-orange-500 text-white px-2 py-1 rounded-full font-semibold">À valider</span>
+                      <span className="text-sm bg-orange-500 text-white px-3 py-1.5 rounded-full font-semibold">À valider</span>
                     )}
                   </Button>
                   <Button 
                     onClick={() => !midCourseSubmitted && setShowMidCourseDialog(true)} 
-                    style={{backgroundColor: midCourseSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
-                    className="w-full justify-between items-center"
+                    style={{backgroundColor: midCourseSubmitted ? '#22c55e' : '#0D2040', padding: '20px 24px'}}
+                    className="w-full justify-between items-center text-base"
                     disabled={midCourseSubmitted}
                   >
-                    <span>2) Questionnaire à mi-parcours</span>
+                    <span className="text-base font-medium">2) Questionnaire à mi-parcours</span>
                     {midCourseSubmitted ? (
-                      <span className="text-xs bg-white text-green-600 px-2 py-1 rounded-full font-semibold">✓ Validé</span>
+                      <span className="text-sm bg-white text-green-600 px-3 py-1.5 rounded-full font-semibold">✓ Validé</span>
                     ) : (
-                      <span className="text-xs bg-orange-500 text-white px-2 py-1 rounded-full font-semibold">À valider</span>
+                      <span className="text-sm bg-orange-500 text-white px-3 py-1.5 rounded-full font-semibold">À valider</span>
                     )}
                   </Button>
                   <Button 
                     onClick={() => !endCourseSubmitted && setShowEndCourseDialog(true)} 
-                    style={{backgroundColor: endCourseSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
-                    className="w-full justify-between items-center"
+                    style={{backgroundColor: endCourseSubmitted ? '#22c55e' : '#0D2040', padding: '20px 24px'}}
+                    className="w-full justify-between items-center text-base"
                     disabled={endCourseSubmitted}
                   >
-                    <span>3) Questionnaire de fin de formation</span>
+                    <span className="text-base font-medium">3) Questionnaire de fin de formation</span>
                     {endCourseSubmitted ? (
-                      <span className="text-xs bg-white text-green-600 px-2 py-1 rounded-full font-semibold">✓ Validé</span>
+                      <span className="text-sm bg-white text-green-600 px-3 py-1.5 rounded-full font-semibold">✓ Validé</span>
                     ) : (
-                      <span className="text-xs bg-orange-500 text-white px-2 py-1 rounded-full font-semibold">À valider</span>
+                      <span className="text-sm bg-orange-500 text-white px-3 py-1.5 rounded-full font-semibold">À valider</span>
                     )}
                   </Button>
                 </div>
