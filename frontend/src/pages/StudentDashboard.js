@@ -496,23 +496,37 @@ export default function StudentDashboard({ user, onLogout }) {
         {/* Tab Content */}
         {activeTab === 'formation' && (
           <div className="space-y-6">
-            {/* Stats Cards */}
+            {/* Nom de l'élève en GROS en haut à gauche */}
+            <div className="mb-6">
+              <h1 className="text-4xl font-bold" style={{color: TERCIFORM_BLUE}}>
+                {user.name}
+              </h1>
+              <p className="text-gray-600 text-sm mt-1">{user.email}</p>
+            </div>
+
+            {/* Stats Cards avec GRANDES heures et icônes */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="shadow-lg">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg" style={{color: TERCIFORM_BLUE}}>Total heures du parcours</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-4xl font-bold" style={{color: TERCIFORM_BLUE}}>{totalHours}h</p>
+              <Card className="shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
+                <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center text-center">
+                  <div className="mb-3">
+                    <svg className="w-16 h-16 mx-auto" fill="none" stroke="#2763FF" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Total heures du parcours</p>
+                  <p className="text-6xl font-extrabold" style={{color: TERCIFORM_BLUE}}>{totalHours}h</p>
                 </CardContent>
               </Card>
 
-              <Card className="shadow-lg">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg" style={{color: TERCIFORM_BLUE}}>Heures restantes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-4xl font-bold text-green-600">{remainingHours}h</p>
+              <Card className="shadow-lg bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200">
+                <CardContent className="pt-6 pb-6 flex flex-col items-center justify-center text-center">
+                  <div className="mb-3">
+                    <svg className="w-16 h-16 mx-auto" fill="none" stroke="#16A34A" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Heures restantes</p>
+                  <p className="text-6xl font-extrabold text-green-600">{remainingHours}h</p>
                 </CardContent>
               </Card>
 
