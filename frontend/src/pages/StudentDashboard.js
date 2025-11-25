@@ -481,10 +481,10 @@ export default function StudentDashboard({ user, onLogout }) {
               </Card>
             </div>
 
-            {/* Bandeau Mon lieu de formation */}
+            {/* Bandeau Mon lieu de formation - VIOLET */}
             <Card className="shadow-lg border-2 border-purple-200">
-              <CardHeader style={{backgroundColor: '#F3E8FF'}}>
-                <CardTitle className="flex items-center gap-2" style={{color: TERCIFORM_BLUE}}>
+              <CardHeader style={{backgroundColor: '#E9D5FF', borderTopLeftRadius: '0.5rem', borderTopRightRadius: '0.5rem'}}>
+                <CardTitle className="flex items-center gap-2" style={{color: '#7C3AED'}}>
                   <span className="text-2xl">📍</span>
                   Mon lieu de formation
                 </CardTitle>
@@ -500,33 +500,62 @@ export default function StudentDashboard({ user, onLogout }) {
                   </div>
                 ) : user.session_type === 'présentiel' ? (
                   <div>
-                    <p className="font-bold text-lg mb-3" style={{color: TERCIFORM_BLUE}}>En présentiel</p>
+                    <p className="font-bold text-lg mb-4" style={{color: TERCIFORM_BLUE}}>En présentiel</p>
                     
-                    {(user.formation_address || user.formation_city) ? (
-                      <div className="space-y-3">
-                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          {user.formation_address && (
-                            <p className="font-medium mb-2">{user.formation_address}</p>
+                    {(user.formation_address || user.formation_city || user.formation_building) ? (
+                      <div className="space-y-4">
+                        {/* Carte d'adresse jolie et lisible */}
+                        <div className="p-5 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 shadow-sm">
+                          {user.formation_building && (
+                            <p className="font-bold text-base mb-2" style={{color: '#7C3AED'}}>
+                              🏢 {user.formation_building}
+                            </p>
                           )}
-                          {!user.formation_address && (
-                            <>
-                              {user.formation_street && <p>{user.formation_street}</p>}
-                              {(user.formation_postal_code || user.formation_city) && (
-                                <p>{user.formation_postal_code} {user.formation_city}</p>
-                              )}
-                            </>
+                          {user.formation_street && (
+                            <p className="text-gray-700 mb-1">{user.formation_street}</p>
+                          )}
+                          {(user.formation_postal_code || user.formation_city) && (
+                            <p className="text-gray-700 font-medium">
+                              {user.formation_postal_code} {user.formation_city}
+                            </p>
                           )}
                           {user.formation_country && user.formation_country !== 'France' && (
-                            <p className="text-sm text-gray-600">{user.formation_country}</p>
+                            <p className="text-sm text-gray-600 mt-1">{user.formation_country}</p>
                           )}
                         </div>
+
+                        {/* Carte Google Maps */}
+                        {(user.formation_address || user.formation_street || user.formation_city) && (
+                          <div className="rounded-xl overflow-hidden border-2 border-purple-200 shadow-md" style={{height: '250px'}}>
+                            <iframe
+                              title="Localisation du lieu de formation"
+                              width="100%"
+                              height="100%"
+                              style={{border: 0}}
+                              loading="lazy"
+                              allowFullScreen
+                              src={`https://www.google.com/maps?q=${encodeURIComponent(
+                                user.formation_address || 
+                                [user.formation_building, user.formation_street, user.formation_postal_code, user.formation_city, user.formation_country]
+                                  .filter(Boolean)
+                                  .join(', ')
+                              )}&output=embed`}
+                            />
+                          </div>
+                        )}
                         
+                        {/* Bloc transports - VERT */}
                         {user.formation_transports && (
-                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                            <p className="font-semibold text-sm mb-2" style={{color: TERCIFORM_BLUE}}>
-                              🚇 Pour s'y rendre plus facilement
-                            </p>
-                            <p className="text-sm text-gray-700 whitespace-pre-line">{user.formation_transports}</p>
+                          <div className="p-4 rounded-xl border-2 shadow-sm" style={{backgroundColor: '#DCFCE7', borderColor: '#86EFAC'}}>
+                            <div className="flex items-start gap-3">
+                              <span className="text-2xl">🚇</span>
+                              <div>
+                                <p className="font-bold text-sm mb-1" style={{color: '#16A34A'}}>
+                                  Pour s'y rendre plus facilement
+                                </p>
+                                <p className="text-sm text-gray-700 whitespace-pre-line">{user.formation_transports}</p>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
