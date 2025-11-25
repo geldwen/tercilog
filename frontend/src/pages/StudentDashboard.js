@@ -527,11 +527,11 @@ export default function StudentDashboard({ user, onLogout }) {
                     <>
                       <div className="flex flex-col items-center mb-3">
                         <img 
-                          src={user.profile_picture ? `${process.env.REACT_APP_BACKEND_URL}${user.profile_picture}` : `${process.env.REACT_APP_BACKEND_URL}/static/profile_pictures/homme_default.png`}
+                          src={user.profile_picture ? `${process.env.REACT_APP_BACKEND_URL}${user.profile_picture}` : `${process.env.REACT_APP_BACKEND_URL}/api/profile-pictures/homme_default.png`}
                           alt={user.teacher_name}
                           className="w-20 h-20 rounded-full object-cover border-2 border-blue-200 mb-2"
                           onError={(e) => {
-                            e.target.src = `${process.env.REACT_APP_BACKEND_URL}/static/profile_pictures/homme_default.png`;
+                            e.target.src = `${process.env.REACT_APP_BACKEND_URL}/api/profile-pictures/homme_default.png`;
                           }}
                         />
                         <p className="text-xl font-bold text-center" style={{color: TERCIFORM_BLUE}}>{user.teacher_name}</p>
