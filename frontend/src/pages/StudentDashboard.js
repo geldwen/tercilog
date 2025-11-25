@@ -878,29 +878,41 @@ export default function StudentDashboard({ user, onLogout }) {
                   <Button 
                     onClick={() => !formationNeedsSubmitted && setShowNeedsDialog(true)} 
                     style={{backgroundColor: formationNeedsSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
-                    className="w-full justify-start"
+                    className="w-full justify-between items-center"
                     disabled={formationNeedsSubmitted}
                   >
-                    1) Questionnaire de besoin en formation
-                    {formationNeedsSubmitted && <span className="ml-2 text-xs">✓ Validé</span>}
+                    <span>1) Questionnaire de besoin en formation</span>
+                    {formationNeedsSubmitted ? (
+                      <span className="text-xs bg-white text-green-600 px-2 py-1 rounded-full font-semibold">✓ Validé</span>
+                    ) : (
+                      <span className="text-xs bg-orange-500 text-white px-2 py-1 rounded-full font-semibold">À valider</span>
+                    )}
                   </Button>
                   <Button 
                     onClick={() => !midCourseSubmitted && setShowMidCourseDialog(true)} 
                     style={{backgroundColor: midCourseSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
-                    className="w-full justify-start"
+                    className="w-full justify-between items-center"
                     disabled={midCourseSubmitted}
                   >
-                    2) Questionnaire à mi-parcours
-                    {midCourseSubmitted && <span className="ml-2 text-xs">✓ Validé</span>}
+                    <span>2) Questionnaire à mi-parcours</span>
+                    {midCourseSubmitted ? (
+                      <span className="text-xs bg-white text-green-600 px-2 py-1 rounded-full font-semibold">✓ Validé</span>
+                    ) : (
+                      <span className="text-xs bg-orange-500 text-white px-2 py-1 rounded-full font-semibold">À valider</span>
+                    )}
                   </Button>
                   <Button 
                     onClick={() => !endCourseSubmitted && setShowEndCourseDialog(true)} 
                     style={{backgroundColor: endCourseSubmitted ? '#22c55e' : TERCIFORM_BLUE}}
-                    className="w-full justify-start"
+                    className="w-full justify-between items-center"
                     disabled={endCourseSubmitted}
                   >
-                    3) Questionnaire de fin de formation
-                    {endCourseSubmitted && <span className="ml-2 text-xs">✓ Validé</span>}
+                    <span>3) Questionnaire de fin de formation</span>
+                    {endCourseSubmitted ? (
+                      <span className="text-xs bg-white text-green-600 px-2 py-1 rounded-full font-semibold">✓ Validé</span>
+                    ) : (
+                      <span className="text-xs bg-orange-500 text-white px-2 py-1 rounded-full font-semibold">À valider</span>
+                    )}
                   </Button>
                 </div>
               </CardContent>
