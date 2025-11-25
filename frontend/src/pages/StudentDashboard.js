@@ -481,10 +481,10 @@ export default function StudentDashboard({ user, onLogout }) {
               </Card>
             </div>
 
-            {/* Bandeau Mon lieu de formation - VIOLET */}
-            <Card className="shadow-lg border-2 border-purple-200">
-              <CardHeader style={{backgroundColor: '#E9D5FF', borderTopLeftRadius: '0.5rem', borderTopRightRadius: '0.5rem'}}>
-                <CardTitle className="flex items-center gap-2" style={{color: '#7C3AED'}}>
+            {/* Bandeau Mon lieu de formation - BLEU */}
+            <Card className="shadow-lg border-2 border-blue-200">
+              <CardHeader style={{backgroundColor: '#EEF4FF', borderTopLeftRadius: '0.5rem', borderTopRightRadius: '0.5rem'}}>
+                <CardTitle className="flex items-center gap-2" style={{color: '#2763FF'}}>
                   <span className="text-2xl">📍</span>
                   Mon lieu de formation
                 </CardTitle>
@@ -499,34 +499,27 @@ export default function StudentDashboard({ user, onLogout }) {
                     </div>
                   </div>
                 ) : user.session_type === 'présentiel' ? (
-                  <div>
-                    <p className="font-bold text-lg mb-4" style={{color: TERCIFORM_BLUE}}>En présentiel</p>
+                  <div className="flex flex-col gap-3">
+                    <p className="font-bold text-sm mb-0" style={{color: TERCIFORM_BLUE}}>En présentiel</p>
                     
                     {(user.formation_address || user.formation_city || user.formation_building) ? (
-                      <div className="space-y-4">
-                        {/* Carte d'adresse jolie et lisible */}
-                        <div className="p-5 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 shadow-sm">
-                          {user.formation_building && (
-                            <p className="font-bold text-base mb-2" style={{color: '#7C3AED'}}>
-                              🏢 {user.formation_building}
-                            </p>
-                          )}
-                          {user.formation_street && (
-                            <p className="text-gray-700 mb-1">{user.formation_street}</p>
-                          )}
-                          {(user.formation_postal_code || user.formation_city) && (
-                            <p className="text-gray-700 font-medium">
-                              {user.formation_postal_code} {user.formation_city}
-                            </p>
-                          )}
-                          {user.formation_country && user.formation_country !== 'France' && (
-                            <p className="text-sm text-gray-600 mt-1">{user.formation_country}</p>
-                          )}
-                        </div>
-
-                        {/* Carte Google Maps */}
-                        {(user.formation_address || user.formation_street || user.formation_city) && (
-                          <div className="rounded-xl overflow-hidden border-2 border-purple-200 shadow-md" style={{height: '250px'}}>
+                      <div className="space-y-3">
+                        {/* Bloc adresse + carte : adresse EN ENTIER au-dessus */}
+                        <div className="rounded-xl bg-white border border-blue-200 p-3 shadow-sm">
+                          <p className="text-sm font-medium mb-2 text-gray-800">
+                            {[
+                              user.formation_building,
+                              user.formation_street,
+                              user.formation_postal_code,
+                              user.formation_city,
+                              user.formation_country !== 'France' ? user.formation_country : null
+                            ]
+                              .filter(Boolean)
+                              .join(', ')}
+                          </p>
+                          
+                          {/* Carte Google Maps */}
+                          <div className="rounded-lg overflow-hidden border border-blue-200" style={{height: '220px'}}>
                             <iframe
                               title="Localisation du lieu de formation"
                               width="100%"
@@ -542,18 +535,18 @@ export default function StudentDashboard({ user, onLogout }) {
                               )}&output=embed`}
                             />
                           </div>
-                        )}
+                        </div>
                         
-                        {/* Bloc transports - VERT */}
+                        {/* Sous-bandeau transports - BLEU */}
                         {user.formation_transports && (
-                          <div className="p-4 rounded-xl border-2 shadow-sm" style={{backgroundColor: '#DCFCE7', borderColor: '#86EFAC'}}>
-                            <div className="flex items-start gap-3">
-                              <span className="text-2xl">🚇</span>
+                          <div className="p-3 rounded-xl border shadow-sm" style={{backgroundColor: '#E5EDFF', borderColor: '#C0D0FF'}}>
+                            <div className="flex items-start gap-2">
+                              <span className="text-lg">🚇</span>
                               <div>
-                                <p className="font-bold text-sm mb-1" style={{color: '#16A34A'}}>
+                                <p className="font-semibold text-xs mb-1" style={{color: '#2763FF'}}>
                                   Pour s'y rendre plus facilement
                                 </p>
-                                <p className="text-sm text-gray-700 whitespace-pre-line">{user.formation_transports}</p>
+                                <p className="text-xs text-gray-700 whitespace-pre-line">{user.formation_transports}</p>
                               </div>
                             </div>
                           </div>
