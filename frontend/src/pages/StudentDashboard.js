@@ -561,6 +561,87 @@ export default function StudentDashboard({ user, onLogout }) {
               </CardContent>
             </Card>
 
+            {/* Bandeau Mon lieu de formation - BLEU - JUSTE APRÈS Planning */}
+            <Card className="shadow-lg border-2 border-blue-200">
+              <CardHeader style={{backgroundColor: '#EEF4FF', borderTopLeftRadius: '0.5rem', borderTopRightRadius: '0.5rem'}}>
+                <CardTitle className="flex items-center gap-2" style={{color: '#2763FF'}}>
+                  <span className="text-2xl">📍</span>
+                  Mon lieu de formation
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                {user.session_type === 'distanciel' ? (
+                  <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-5xl">💻</div>
+                    <div>
+                      <p className="font-bold text-lg" style={{color: TERCIFORM_BLUE}}>À distance</p>
+                      <p className="text-sm text-gray-600 mt-1">La formation se déroule intégralement en distanciel.</p>
+                    </div>
+                  </div>
+                ) : user.session_type === 'présentiel' ? (
+                  <div className="flex flex-col gap-3">
+                    <p className="font-bold text-sm mb-0" style={{color: TERCIFORM_BLUE}}>En présentiel</p>
+                    
+                    {(user.formation_address || user.formation_city || user.formation_building) ? (
+                      <div className="space-y-3">
+                        {/* Bloc adresse + carte : adresse EN ENTIER au-dessus */}
+                        <div className="rounded-xl bg-white border border-blue-200 p-3 shadow-sm">
+                          <p className="text-sm font-medium mb-2 text-gray-800">
+                            {[
+                              user.formation_building,
+                              user.formation_street,
+                              user.formation_postal_code,
+                              user.formation_city,
+                              user.formation_country !== 'France' ? user.formation_country : null
+                            ]
+                              .filter(Boolean)
+                              .join(', ')}
+                          </p>
+                          
+                          {/* Carte Google Maps */}
+                          <div className="rounded-lg overflow-hidden border border-blue-200" style={{height: '220px'}}>
+                            <iframe
+                              title="Localisation du lieu de formation"
+                              width="100%"
+                              height="100%"
+                              style={{border: 0}}
+                              loading="lazy"
+                              allowFullScreen
+                              src={`https://www.google.com/maps?q=${encodeURIComponent(
+                                user.formation_address || 
+                                [user.formation_building, user.formation_street, user.formation_postal_code, user.formation_city, user.formation_country]
+                                  .filter(Boolean)
+                                  .join(', ')
+                              )}&output=embed`}
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Sous-bandeau transports - BLEU */}
+                        {user.formation_transports && (
+                          <div className="p-3 rounded-xl border shadow-sm" style={{backgroundColor: '#E5EDFF', borderColor: '#C0D0FF'}}>
+                            <div className="flex items-start gap-2">
+                              <span className="text-lg">🚇</span>
+                              <div>
+                                <p className="font-semibold text-xs mb-1" style={{color: '#2763FF'}}>
+                                  Pour s'y rendre plus facilement
+                                </p>
+                                <p className="text-xs text-gray-700 whitespace-pre-line">{user.formation_transports}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">Aucune adresse n'a été renseignée pour le moment.</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">Mode de formation non défini.</p>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Mon livret d'accueil */}
             <Card className="shadow-lg">
               <CardHeader>
