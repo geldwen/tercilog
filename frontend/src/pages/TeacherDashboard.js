@@ -111,7 +111,7 @@ export default function TeacherDashboard({ user, onLogout }) {
     teacher_name: "",
     teacher_email: "",
     teacher_phone: "",
-    profile_picture: "/static/profile_pictures/homme_default.png",
+    profile_picture: "/api/profile-pictures/homme_default.png",
     profile_picture_type: "homme",
     formation_address: "",
     formation_building: "",
