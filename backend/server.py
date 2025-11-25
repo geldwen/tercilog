@@ -3222,14 +3222,13 @@ async def update_student(student_id: str, data: dict, current_user: User = Depen
         update_data["credit_hours"] = data["credit_hours"]
     if "password" in data and data["password"]:
         # Hasher le nouveau mot de passe
-        update_data["hashed_password"] = pwd_context.hash(data["password"])
-        update_data["plain_password"] = data["password"]
+        update_data["password_hash"] = pwd_context.hash(data["password"])
     
     # Mettre à jour l'élève
     await db.users.update_one({"id": student_id}, {"$set": update_data})
     
     # Récupérer l'élève mis à jour
-    updated_student = await db.users.find_one({"id": student_id})
+    updated_student = await db.users.find_one({"id": student_id}, {"_id": 0, "password_hash": 0})
     return User(**updated_student)
 
 @api_router.delete("/students/{student_id}")
