@@ -804,6 +804,8 @@ async def login(credentials: UserLogin):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     access_token = create_access_token(data={"sub": user_doc['id']})
+    # Supprimer password_hash avant de créer l'objet User
+    user_doc.pop('password_hash', None)
     user = User(**user_doc)
     
     return Token(access_token=access_token, token_type="bearer", user=user)
