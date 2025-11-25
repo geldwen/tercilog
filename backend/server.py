@@ -4857,6 +4857,26 @@ async def get_student_feedback(student_id: str, current_user: User = Depends(get
     return [StudentFeedback(**f) for f in feedbacks]
 
 
+@api_router.get("/profile-pictures/{filename}")
+async def get_profile_picture(filename: str):
+    """Servir une photo de profil"""
+    file_path = f"/app/backend/static/profile_pictures/{filename}"
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    # Déterminer le content-type
+    content_type = "image/png"
+    if filename.endswith('.jpg') or filename.endswith('.jpeg'):
+        content_type = "image/jpeg"
+    elif filename.endswith('.gif'):
+        content_type = "image/gif"
+    elif filename.endswith('.webp'):
+        content_type = "image/webp"
+    
+    return FileResponse(file_path, media_type=content_type)
+
+
 @api_router.post("/upload-profile-picture")
 async def upload_profile_picture(file: UploadFile = FastAPIFile(...), current_user: User = Depends(get_current_user)):
     """Upload une photo de profil personnalisée"""
@@ -4878,7 +4898,7 @@ async def upload_profile_picture(file: UploadFile = FastAPIFile(...), current_us
         f.write(content)
     
     # Retourner l'URL relative
-    return {"url": f"/static/profile_pictures/{unique_filename}"}
+    return {"url": f"/api/profile-pictures/{unique_filename}"}
 
 
 @api_router.post("/students/{student_id}/contact-teacher")
