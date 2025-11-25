@@ -38,6 +38,13 @@ export default function StudentDashboard({ user, onLogout }) {
   const [showSignatureDialog, setShowSignatureDialog] = useState(false);
   const [currentSessionToSign, setCurrentSessionToSign] = useState(null);
   const [studentResources, setStudentResources] = useState([]);
+  
+  // Contact Teacher state
+  const [showContactTeacherDialog, setShowContactTeacherDialog] = useState(false);
+  const [contactTeacher, setContactTeacher] = useState({
+    subject: '',
+    message: ''
+  });
 
   // Training Needs state
   const [trainingNeeds, setTrainingNeeds] = useState({
