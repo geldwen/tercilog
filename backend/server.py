@@ -53,6 +53,10 @@ security = HTTPBearer()
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# Mount static files for profile pictures
+from fastapi.staticfiles import StaticFiles
+app.mount("/static", StaticFiles(directory="/app/backend/static"), name="static")
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
