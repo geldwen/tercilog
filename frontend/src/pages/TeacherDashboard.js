@@ -595,6 +595,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       profile_picture_type: student.profile_picture?.includes('homme_default') ? 'homme' : student.profile_picture?.includes('femme_default') ? 'femme' : 'custom',
       formation_address: student.formation_address || "",
       formation_building: student.formation_building || "",
+      formation_street_number: student.formation_street_number || "",
       formation_street: student.formation_street || "",
       formation_postal_code: student.formation_postal_code || "",
       formation_city: student.formation_city || "",
