@@ -634,22 +634,20 @@ export default function StudentDashboard({ user, onLogout }) {
                     
                     {(user.formation_address || user.formation_city || user.formation_building) ? (
                       <div className="space-y-3">
-                        {/* Bloc adresse + carte : adresse EN ENTIER au-dessus */}
+                        {/* Bloc adresse + carte : adresse EN GROS multiline au-dessus */}
                         <div className="rounded-xl bg-white border border-blue-200 p-3 shadow-sm">
-                          <p className="text-sm font-medium mb-2 text-gray-800">
+                          <p className="text-base font-semibold mb-3 text-gray-900 whitespace-pre-line" style={{lineHeight: '1.6'}}>
                             {[
                               user.formation_building,
-                              user.formation_street,
-                              user.formation_postal_code,
-                              user.formation_city,
-                              user.formation_country !== 'France' ? user.formation_country : null
+                              [user.formation_street_number, user.formation_street].filter(Boolean).join(' '),
+                              [user.formation_postal_code, user.formation_city].filter(Boolean).join(' ')
                             ]
                               .filter(Boolean)
-                              .join(', ')}
+                              .join('\n')}
                           </p>
                           
-                          {/* Carte Google Maps */}
-                          <div className="rounded-lg overflow-hidden border border-blue-200" style={{height: '220px'}}>
+                          {/* Carte Google Maps PLUS GRANDE - carré/rectangle épais */}
+                          <div className="rounded-lg overflow-hidden border border-blue-200" style={{height: '320px', maxWidth: '420px'}}>
                             <iframe
                               title="Localisation du lieu de formation"
                               width="100%"
@@ -659,7 +657,7 @@ export default function StudentDashboard({ user, onLogout }) {
                               allowFullScreen
                               src={`https://www.google.com/maps?q=${encodeURIComponent(
                                 user.formation_address || 
-                                [user.formation_building, user.formation_street, user.formation_postal_code, user.formation_city, user.formation_country]
+                                [user.formation_building, user.formation_street_number, user.formation_street, user.formation_postal_code, user.formation_city]
                                   .filter(Boolean)
                                   .join(', ')
                               )}&output=embed`}
