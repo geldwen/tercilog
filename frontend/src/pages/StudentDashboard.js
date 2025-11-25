@@ -739,9 +739,14 @@ export default function StudentDashboard({ user, onLogout }) {
             </Card>
 
             {/* Mon contrat de formation */}
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle style={{color: TERCIFORM_BLUE}}>Mon contrat de formation</CardTitle>
+            <Card className="shadow-lg border-2 border-blue-200">
+              <CardHeader style={{backgroundColor: '#EEF4FF'}}>
+                <CardTitle className="flex items-center gap-3" style={{color: TERCIFORM_BLUE}}>
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Mon contrat de formation
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-4">
