@@ -115,6 +115,7 @@ export default function TeacherDashboard({ user, onLogout }) {
     profile_picture_type: "homme",
     formation_address: "",
     formation_building: "",
+    formation_street_number: "",
     formation_street: "",
     formation_postal_code: "",
     formation_city: "",
