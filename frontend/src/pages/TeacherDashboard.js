@@ -96,7 +96,25 @@ export default function TeacherDashboard({ user, onLogout }) {
   });
   const [multiSessions, setMultiSessions] = useState([{ subject: "", date: "", start_time: "", end_time: "", modality: "distanciel", hourly_rate: 0, meeting_link: "" }]);
   const [selectedStudents, setSelectedStudents] = useState([]);
-  const [studentForm, setStudentForm] = useState({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0, parcours: "Anglais" });
+  const [studentForm, setStudentForm] = useState({ 
+    name: "", 
+    phone: "", 
+    email: "", 
+    password: "", 
+    organism: "", 
+    support_type: "", 
+    session_type: "distanciel", 
+    start_date: "", 
+    end_date: "", 
+    total_hours: 0, 
+    parcours: "Anglais",
+    formation_address: "",
+    formation_street: "",
+    formation_postal_code: "",
+    formation_city: "",
+    formation_country: "France",
+    formation_transports: ""
+  });
   
   // États pour les tests et questionnaires
   const [includeTests, setIncludeTests] = useState(false);
