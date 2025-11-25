@@ -3251,6 +3251,34 @@ async def update_student(student_id: str, data: dict, current_user: User = Depen
         # Hasher le nouveau mot de passe
         update_data["password_hash"] = pwd_context.hash(data["password"])
     
+    # Champs du formateur
+    if "teacher_name" in data:
+        update_data["teacher_name"] = data["teacher_name"]
+    if "teacher_email" in data:
+        update_data["teacher_email"] = data["teacher_email"]
+    if "teacher_phone" in data:
+        update_data["teacher_phone"] = data["teacher_phone"]
+    if "profile_picture" in data:
+        update_data["profile_picture"] = data["profile_picture"]
+    
+    # Champs de l'adresse de formation
+    if "formation_address" in data:
+        update_data["formation_address"] = data["formation_address"]
+    if "formation_building" in data:
+        update_data["formation_building"] = data["formation_building"]
+    if "formation_street_number" in data:
+        update_data["formation_street_number"] = data["formation_street_number"]
+    if "formation_street" in data:
+        update_data["formation_street"] = data["formation_street"]
+    if "formation_postal_code" in data:
+        update_data["formation_postal_code"] = data["formation_postal_code"]
+    if "formation_city" in data:
+        update_data["formation_city"] = data["formation_city"]
+    if "formation_country" in data:
+        update_data["formation_country"] = data["formation_country"]
+    if "formation_transports" in data:
+        update_data["formation_transports"] = data["formation_transports"]
+    
     # Mettre à jour l'élève
     await db.users.update_one({"id": student_id}, {"$set": update_data})
     
