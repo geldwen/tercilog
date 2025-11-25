@@ -656,20 +656,21 @@ export default function StudentDashboard({ user, onLogout }) {
                     
                     {(user.formation_address || user.formation_city || user.formation_building) ? (
                       <div className="space-y-3">
-                        {/* Bloc adresse + carte : adresse EN GROS multiline au-dessus */}
-                        <div className="rounded-xl bg-white border border-blue-200 p-3 shadow-sm">
-                          <p className="text-base font-semibold mb-3 text-gray-900 whitespace-pre-line" style={{lineHeight: '1.6'}}>
-                            {[
-                              user.formation_building,
-                              [user.formation_street_number, user.formation_street].filter(Boolean).join(' '),
-                              [user.formation_postal_code, user.formation_city].filter(Boolean).join(' ')
-                            ]
-                              .filter(Boolean)
-                              .join('\n')}
-                          </p>
-                          
-                          {/* Carte Google Maps PLUS GRANDE - carré/rectangle épais */}
-                          <div className="rounded-lg overflow-hidden border border-blue-200" style={{height: '320px', maxWidth: '420px'}}>
+                        {/* Adresse EN GROS */}
+                        <p className="text-base font-semibold mb-3 text-gray-900 whitespace-pre-line" style={{lineHeight: '1.6'}}>
+                          {[
+                            user.formation_building,
+                            [user.formation_street_number, user.formation_street].filter(Boolean).join(' '),
+                            [user.formation_postal_code, user.formation_city].filter(Boolean).join(' ')
+                          ]
+                            .filter(Boolean)
+                            .join('\n')}
+                        </p>
+                        
+                        {/* Carte + Transports côte à côte */}
+                        <div className="flex gap-4 items-start">
+                          {/* Carte Google Maps */}
+                          <div className="rounded-lg overflow-hidden border border-blue-200 shadow-sm" style={{height: '280px', width: '420px', flexShrink: 0}}>
                             <iframe
                               title="Localisation du lieu de formation"
                               width="100%"
@@ -685,22 +686,22 @@ export default function StudentDashboard({ user, onLogout }) {
                               )}&output=embed`}
                             />
                           </div>
-                        </div>
-                        
-                        {/* Sous-bandeau transports - BLEU */}
-                        {user.formation_transports && (
-                          <div className="p-3 rounded-xl border shadow-sm" style={{backgroundColor: '#E5EDFF', borderColor: '#C0D0FF'}}>
-                            <div className="flex items-start gap-2">
-                              <span className="text-lg">🚇</span>
-                              <div>
-                                <p className="font-semibold text-xs mb-1" style={{color: '#2763FF'}}>
-                                  Pour s'y rendre plus facilement
-                                </p>
-                                <p className="text-xs text-gray-700 whitespace-pre-line">{user.formation_transports}</p>
+                          
+                          {/* Bloc transports À DROITE en plus gros */}
+                          {user.formation_transports && (
+                            <div className="flex-1 p-4 rounded-xl border-2 shadow-sm" style={{backgroundColor: '#E5EDFF', borderColor: '#C0D0FF', minHeight: '280px'}}>
+                              <div className="flex items-start gap-3 mb-3">
+                                <span className="text-3xl">🚇</span>
+                                <div>
+                                  <p className="font-bold text-base mb-2" style={{color: '#2763FF'}}>
+                                    Pour s'y rendre plus facilement
+                                  </p>
+                                </div>
                               </div>
+                              <p className="text-base text-gray-800 whitespace-pre-line leading-relaxed">{user.formation_transports}</p>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     ) : (
                       <p className="text-sm text-gray-500 italic">Aucune adresse n'a été renseignée pour le moment.</p>
