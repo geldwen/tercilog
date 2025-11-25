@@ -845,19 +845,15 @@ async def create_student(data: dict, current_user: User = Depends(get_current_us
     # Extraire les ressources si présentes
     resources = data.pop("resources", None)
     
-    # Sauvegarder le mot de passe en clair pour l'affichage au professeur
-    plain_password = data.get("password", "")
-    
     # Créer l'élève
     user_data = UserCreate(**data)
     user_data.role = "student"
     student = await register(user_data)
     
     # OBLIGATOIRE : Assigner automatiquement l'élève au professeur qui le crée
-    # ET sauvegarder le mot de passe en clair
     await db.users.update_one(
         {"id": student.id},
-        {"$set": {"teacher_id": current_user.id, "password": plain_password}}
+        {"$set": {"teacher_id": current_user.id}}
     )
     logger.info(f"Student {student.name} automatically assigned to teacher {current_user.id}")
     
@@ -866,7 +862,7 @@ async def create_student(data: dict, current_user: User = Depends(get_current_us
         await save_student_resources(student.id, student.parcours, resources)
     
     # Recharger l'élève avec le teacher_id
-    updated_student = await db.users.find_one({"id": student.id}, {"_id": 0})
+    updated_student = await db.users.find_one({"id": student.id}, {"_id": 0, "password_hash": 0})
     return User(**updated_student)
 
 @api_router.post("/students/{student_id}/formation-needs")
