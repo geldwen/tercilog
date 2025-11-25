@@ -461,7 +461,7 @@ export default function StudentDashboard({ user, onLogout }) {
         {activeTab === 'formation' && (
           <div className="space-y-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="shadow-lg">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg" style={{color: TERCIFORM_BLUE}}>Total heures du parcours</CardTitle>
@@ -477,6 +477,32 @@ export default function StudentDashboard({ user, onLogout }) {
                 </CardHeader>
                 <CardContent>
                   <p className="text-4xl font-bold text-green-600">{remainingHours}h</p>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg border-2 border-blue-100">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base" style={{color: TERCIFORM_BLUE}}>
+                    {user.teacher_name ? (user.teacher_name.toLowerCase().includes('mme') || user.teacher_name.toLowerCase().includes('mlle') || user.teacher_name.toLowerCase().includes('madame') ? 'Ma formatrice' : 'Mon formateur') : 'Mon formateur'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {user.teacher_name ? (
+                    <>
+                      <p className="text-xl font-bold mb-3" style={{color: TERCIFORM_BLUE}}>{user.teacher_name}</p>
+                      <Button 
+                        variant="outline" 
+                        className="w-full text-sm" 
+                        style={{borderColor: TERCIFORM_BLUE, color: TERCIFORM_BLUE}}
+                        onClick={() => {/* TODO: logique contact formateur */}}
+                      >
+                        <span className="mr-2">✉️</span>
+                        Contacter mon formateur
+                      </Button>
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">Non assigné</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
