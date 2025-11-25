@@ -1276,6 +1276,14 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <option value="Informatique">Informatique</option>
                       </select>
                     </div>
+                    <div className="space-y-2">
+                      <Label>Formateur</Label>
+                      <Input 
+                        placeholder="ex: M. Dupont, Mme Martin" 
+                        value={studentForm.teacher_name} 
+                        onChange={(e) => setStudentForm({ ...studentForm, teacher_name: e.target.value })} 
+                      />
+                    </div>
                     {/* BLOC 1 : Tests de parcours */}
                     <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 space-y-3">
                       <h4 className="font-bold text-blue-900">🟦 Tests de parcours</h4>
