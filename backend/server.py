@@ -2687,8 +2687,6 @@ async def create_bulk_sessions(
             ])
             
             portal_url = get_student_portal_url()
-            student_password = student.get('plain_password', '***')
-            
             email_body = f"""
     <html>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -2704,9 +2702,8 @@ async def create_bulk_sessions(
                 <a href="{portal_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Accédez à TerciLog</a>
             </div>
             <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Rappel de vos identifiants :</p>
+                <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Identifiant de connexion :</p>
                 <p style="margin: 5px 0;"><strong>Identifiant :</strong> {student['email']}</p>
-                <p style="margin: 5px 0;"><strong>Mot de passe :</strong> {student_password}</p>
             </div>
             <p style="color: #dc2626; font-weight: bold;">⚠️ Important : En cas d'absence d'une séance validée, les heures de formation seront perdues.</p>
             <p>Cordialement,<br>Votre formateur</p>
