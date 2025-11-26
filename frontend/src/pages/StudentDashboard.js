@@ -897,7 +897,18 @@ export default function StudentDashboard({ user, onLogout }) {
               <CardContent className="pt-6">
                 <div className="space-y-3">
                   <Button 
-                    onClick={() => !formationNeedsSubmitted && setShowNeedsDialog(true)} 
+                    onClick={() => {
+                      if (!formationNeedsSubmitted) {
+                        if (user?.parcours === 'Informatique') {
+                          const q1Resource = studentResources.find(r => r.category === 'QUESTIONNAIRE_QUALIOPI' && r.sub_type === 'POSITIONNEMENT');
+                          if (q1Resource) {
+                            setActiveQuestionnaire({ resourceId: q1Resource.id, templateId: q1Resource.template_id });
+                          }
+                        } else {
+                          setShowNeedsDialog(true);
+                        }
+                      }
+                    }} 
                     style={{backgroundColor: formationNeedsSubmitted ? '#22c55e' : '#0D2040', padding: '20px 24px'}}
                     className="w-full justify-between items-center text-base"
                     disabled={formationNeedsSubmitted}
@@ -910,7 +921,18 @@ export default function StudentDashboard({ user, onLogout }) {
                     )}
                   </Button>
                   <Button 
-                    onClick={() => !midCourseSubmitted && setShowMidCourseDialog(true)} 
+                    onClick={() => {
+                      if (!midCourseSubmitted) {
+                        if (user?.parcours === 'Informatique') {
+                          const q2Resource = studentResources.find(r => r.category === 'QUESTIONNAIRE_QUALIOPI' && r.sub_type === 'MI_PARCOURS');
+                          if (q2Resource) {
+                            setActiveQuestionnaire({ resourceId: q2Resource.id, templateId: q2Resource.template_id });
+                          }
+                        } else {
+                          setShowMidCourseDialog(true);
+                        }
+                      }
+                    }} 
                     style={{backgroundColor: midCourseSubmitted ? '#22c55e' : '#0D2040', padding: '20px 24px'}}
                     className="w-full justify-between items-center text-base"
                     disabled={midCourseSubmitted}
@@ -923,7 +945,18 @@ export default function StudentDashboard({ user, onLogout }) {
                     )}
                   </Button>
                   <Button 
-                    onClick={() => !endCourseSubmitted && setShowEndCourseDialog(true)} 
+                    onClick={() => {
+                      if (!endCourseSubmitted) {
+                        if (user?.parcours === 'Informatique') {
+                          const q3Resource = studentResources.find(r => r.category === 'QUESTIONNAIRE_QUALIOPI' && r.sub_type === 'FIN');
+                          if (q3Resource) {
+                            setActiveQuestionnaire({ resourceId: q3Resource.id, templateId: q3Resource.template_id });
+                          }
+                        } else {
+                          setShowEndCourseDialog(true);
+                        }
+                      }
+                    }} 
                     style={{backgroundColor: endCourseSubmitted ? '#22c55e' : '#0D2040', padding: '20px 24px'}}
                     className="w-full justify-between items-center text-base"
                     disabled={endCourseSubmitted}
