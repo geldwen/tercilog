@@ -5836,7 +5836,8 @@ class TerciFormTester:
                 self.log("❌ Failed to get updated resources", "ERROR")
                 return False
             
-            updated_resources = response.json()
+            updated_resources_data = response.json()
+            updated_resources = updated_resources_data.get('resources', [])
             updated_t1_resource = None
             
             for resource in updated_resources:
