@@ -898,18 +898,7 @@ export default function StudentDashboard({ user, onLogout }) {
               <CardContent className="pt-6">
                 <div className="space-y-3">
                   <Button 
-                    onClick={() => {
-                      if (!formationNeedsSubmitted) {
-                        if (user?.parcours === 'Informatique') {
-                          const q1Resource = studentResources.find(r => r.category === 'QUESTIONNAIRE_QUALIOPI' && r.sub_type === 'POSITIONNEMENT');
-                          if (q1Resource) {
-                            setActiveQuestionnaire({ resourceId: q1Resource.id, templateId: q1Resource.template_id });
-                          }
-                        } else {
-                          setShowNeedsDialog(true);
-                        }
-                      }
-                    }} 
+                    onClick={() => !formationNeedsSubmitted && setShowNeedsDialog(true)} 
                     style={{backgroundColor: formationNeedsSubmitted ? '#22c55e' : '#0D2040', padding: '20px 24px'}}
                     className="w-full justify-between items-center text-base"
                     disabled={formationNeedsSubmitted}
