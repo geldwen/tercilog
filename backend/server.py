@@ -2517,6 +2517,23 @@ async def get_qualite_report(
     return result
 
 
+
+@api_router.get("/questionnaire-templates/{template_id}")
+async def get_questionnaire_template(
+    template_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer un template de questionnaire par son ID"""
+    template = await db.questionnaire_templates.find_one(
+        {"id": template_id},
+        {"_id": 0}
+    )
+    
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    return template
+
 @api_router.post("/questionnaire-templates/init")
 async def init_questionnaire_templates(
     current_user: User = Depends(get_current_user)
