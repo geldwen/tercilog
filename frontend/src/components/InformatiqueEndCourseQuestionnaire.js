@@ -33,6 +33,7 @@ export default function InformatiqueEndCourseQuestionnaire({ open, onClose, stud
   
   const [signature, setSignature] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showSignaturePad, setShowSignaturePad] = useState(false);
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -389,7 +390,29 @@ export default function InformatiqueEndCourseQuestionnaire({ open, onClose, stud
             
             <div>
               <Label>Signature du stagiaire (horodatée) *</Label>
-              <SignaturePad value={signature} onChange={setSignature} />
+              {!signature ? (
+                <div>
+                  <Button type="button" onClick={() => setShowSignaturePad(true)} className="mb-2">
+                    Signer
+                  </Button>
+                  {showSignaturePad && (
+                    <SignaturePad
+                      onSave={(sig) => {
+                        setSignature(sig);
+                        setShowSignaturePad(false);
+                      }}
+                      onCancel={() => setShowSignaturePad(false)}
+                    />
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <img src={signature} alt="Signature" className="border rounded p-2 max-w-md" />
+                  <Button type="button" onClick={() => setSignature('')} variant="outline" className="mt-2">
+                    Effacer la signature
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
