@@ -5719,6 +5719,8 @@ def main():
             success = tester.test_quiz_system_with_correction()
         elif sys.argv[1] == "informatique-debutant":
             success = tester.test_informatique_debutant_pathway()
+        elif sys.argv[1] == "quiz-submission":
+            success = tester.test_quiz_submission_informatique_debutant()
         else:
             success = tester.run_full_test()
     else:
