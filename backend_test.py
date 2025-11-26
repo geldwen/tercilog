@@ -6005,7 +6005,7 @@ class TerciFormTester:
                 self.log("❌ Failed to get student resources", "ERROR")
                 return False
             
-            resources = response.json()
+            response_data = response.json(); resources = response_data.get("resources", [])
             self.log(f"Found {len(resources)} resources for student")
             
             # Check for the 3 expected tests
@@ -6078,7 +6078,7 @@ class TerciFormTester:
                 self.log("❌ Failed to get student resources from student perspective", "ERROR")
                 return False
             
-            student_resources = response.json()
+            student_response_data = response.json(); resources = response_data.get("resources", [])
             test_resources = [r for r in student_resources if r.get('category') == 'TEST_PARCOURS']
             
             self.log(f"✅ Student can see {len(test_resources)} test resources:")
@@ -6691,7 +6691,7 @@ def main():
                 self.log("❌ Failed to get student resources", "ERROR")
                 return False
             
-            resources = response.json()
+            response_data = response.json(); resources = response_data.get("resources", [])
             self.log(f"Found {len(resources)} resources for student")
             
             # Check for the 3 expected tests
@@ -6764,7 +6764,7 @@ def main():
                 self.log("❌ Failed to get student resources from student perspective", "ERROR")
                 return False
             
-            student_resources = response.json()
+            student_response_data = response.json(); resources = response_data.get("resources", [])
             test_resources = [r for r in student_resources if r.get('category') == 'TEST_PARCOURS']
             
             self.log(f"✅ Student can see {len(test_resources)} test resources:")
