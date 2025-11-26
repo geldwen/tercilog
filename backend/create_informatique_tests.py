@@ -17,7 +17,7 @@ async def create_informatique_tests():
     # Connexion MongoDB
     mongo_url = os.environ['MONGO_URL']
     client = AsyncIOMotorClient(mongo_url)
-    db = client[os.environ['DB_NAME']]
+    db = client['tercilog']  # Utiliser la vraie base de données
     
     # T1 - Test de positionnement
     t1_questions = [
