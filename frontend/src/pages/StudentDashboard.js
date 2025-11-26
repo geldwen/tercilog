@@ -989,7 +989,35 @@ export default function StudentDashboard({ user, onLogout }) {
       </main>
 
       {/* Training Needs Questionnaires - Affichage selon le parcours */}
-      {user?.parcours === "Bureautique" ? (
+      {user?.parcours === 'Informatique' ? (
+        <>
+          <InformatiqueFormationNeedsQuestionnaire
+            open={showNeedsDialog}
+            onClose={() => {
+              setShowNeedsDialog(false);
+              loadQuestionnairesStatus();
+            }}
+            studentId={user?.id}
+            resourceId={studentResources.find(r => r.category === 'QUESTIONNAIRE_QUALIOPI' && r.sub_type === 'POSITIONNEMENT')?.id}
+          />
+          <MidCourseQuestionnaire
+            open={showMidCourseDialog}
+            onClose={() => {
+              setShowMidCourseDialog(false);
+              loadQuestionnairesStatus();
+            }}
+            studentId={user?.id}
+          />
+          <EndCourseQuestionnaire
+            open={showEndCourseDialog}
+            onClose={() => {
+              setShowEndCourseDialog(false);
+              loadQuestionnairesStatus();
+            }}
+            studentId={user?.id}
+          />
+        </>
+      ) : user?.parcours === 'Bureautique' ? (
         <>
           <BureautiqueFormationNeedsQuestionnaire
             open={showNeedsDialog}
