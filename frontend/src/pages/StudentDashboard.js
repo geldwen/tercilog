@@ -1002,21 +1002,23 @@ export default function StudentDashboard({ user, onLogout }) {
             studentId={user?.id}
             resourceId={studentResources.find(r => r.category === 'QUESTIONNAIRE_QUALIOPI' && r.sub_type === 'POSITIONNEMENT')?.id}
           />
-          <MidCourseQuestionnaire
+          <InformatiqueMidCourseQuestionnaire
             open={showMidCourseDialog}
             onClose={() => {
               setShowMidCourseDialog(false);
               loadQuestionnairesStatus();
             }}
             studentId={user?.id}
+            resourceId={studentResources.find(r => r.category === 'QUESTIONNAIRE_QUALIOPI' && r.sub_type === 'MI_PARCOURS')?.id}
           />
-          <EndCourseQuestionnaire
+          <InformatiqueEndCourseQuestionnaire
             open={showEndCourseDialog}
             onClose={() => {
               setShowEndCourseDialog(false);
               loadQuestionnairesStatus();
             }}
             studentId={user?.id}
+            resourceId={studentResources.find(r => r.category === 'QUESTIONNAIRE_QUALIOPI' && r.sub_type === 'FIN')?.id}
           />
         </>
       ) : user?.parcours === 'Bureautique' ? (
