@@ -892,7 +892,7 @@ async def create_student(data: dict, current_user: User = Depends(get_current_us
         await save_student_resources(student.id, student.parcours, resources)
     
     # Assigner automatiquement les tests selon le parcours
-    if student.parcours == "Informatique débutant":
+    if student.parcours == "Informatique":
         # Créer les 3 tests automatiquement
         
         tests_to_assign = [
