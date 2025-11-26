@@ -5778,7 +5778,7 @@ class TerciFormTester:
             self.log(f"   Status: {t1_resource.get('status')}")
             
             # Step 5: Submit the T1 test with answers (all "A" as requested)
-            self.log("=== STEP 6: Submitting T1 Test with Answers ===")
+            self.log("=== STEP 5: Submitting T1 Test with Answers ===")
             
             # Create answers for all 30 questions (Q1 to Q30) with answer "A"
             answers = {}
