@@ -1077,20 +1077,6 @@ export default function StudentDashboard({ user, onLogout }) {
         </>
       )}
 
-      {/* Dynamic Questionnaire for Informatique and other parcours */}
-      {activeQuestionnaire && (
-        <DynamicQuestionnaire
-          open={!!activeQuestionnaire}
-          onClose={() => {
-            setActiveQuestionnaire(null);
-            loadQuestionnairesStatus();
-          }}
-          resourceId={activeQuestionnaire.resourceId}
-          templateId={activeQuestionnaire.templateId}
-          studentId={user?.id}
-        />
-      )}
-
       {/* Feedback Dialog */}
       <Dialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
