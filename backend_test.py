@@ -6232,7 +6232,7 @@ class TerciFormTester:
             student_token = data["access_token"]
             self.log("✅ Student login successful")
             
-            # Get student resources
+            # Get student resources (using teacher token since teacher created the student)
             response = self.make_request("GET", f"/students/{student_id}/resources", token=student_token)
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get student resources", "ERROR")
