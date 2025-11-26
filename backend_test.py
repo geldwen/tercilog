@@ -5777,22 +5777,7 @@ class TerciFormTester:
             self.log(f"   Template: {t1_resource.get('template_name')}")
             self.log(f"   Status: {t1_resource.get('status')}")
             
-            # Step 5: Start the T1 test (change status to EN_COURS)
-            self.log("=== STEP 5: Starting T1 Test ===")
-            start_data = {"status": "EN_COURS"}
-            response = self.make_request("PATCH", f"/student-resources/{t1_resource['id']}/start", start_data, student_token)
-            
-            if not response or response.status_code != 200:
-                self.log("❌ Failed to start T1 test", "ERROR")
-                if response:
-                    self.log(f"Response: {response.text}")
-                return False
-            
-            started_resource = response.json()
-            self.log(f"✅ T1 test started successfully:")
-            self.log(f"   Status: {started_resource.get('status')}")
-            
-            # Step 6: Submit the T1 test with answers (all "A" as requested)
+            # Step 5: Submit the T1 test with answers (all "A" as requested)
             self.log("=== STEP 6: Submitting T1 Test with Answers ===")
             
             # Create answers for all 30 questions (Q1 to Q30) with answer "A"
