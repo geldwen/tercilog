@@ -179,9 +179,9 @@ export default function TeacherDashboard({ user, onLogout }) {
       q3: ["Q3 - Fin formation management v1"]
     },
     "Informatique": {
-      q1: ["Q1 - Besoins informatique v1"],
-      q2: ["Q2 - Mi-parcours informatique v1"],
-      q3: ["Q3 - Fin formation informatique v1"]
+      q1: ["Q1 – Questionnaire d'entrée informatique – Besoins et identification"],
+      q2: ["Q2 – Questionnaire mi-parcours – Informatique"],
+      q3: ["Q3 – Questionnaire fin de formation – Informatique"]
     }
   };
 
