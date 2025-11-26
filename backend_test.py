@@ -5422,6 +5422,245 @@ class TerciFormTester:
             return False
 
 
+    def test_informatique_debutant_pathway(self):
+        """Test the complete 'Informatique débutant' pathway with T1, T2, T3 tests"""
+        self.log("🎯 Testing Informatique Débutant Pathway with T1, T2, T3 Tests")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher (terciform@gmail.com / Geldwen1982*+)
+            self.log("=== STEP 1: Teacher Login (terciform@gmail.com) ===")
+            teacher_login_data = {
+                "email": "terciform@gmail.com",
+                "password": "Geldwen1982*+"
+            }
+            
+            response = self.make_request("POST", "/auth/login", teacher_login_data)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Teacher login failed", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            data = response.json()
+            self.teacher_token = data["access_token"]
+            teacher_info = data["user"]
+            self.log(f"✅ Teacher login successful: {teacher_info['name']} ({teacher_info['email']})")
+            
+            # Step 2: Create student "Test Senior Info" with specific details
+            self.log("=== STEP 2: Creating Student 'Test Senior Info' ===")
+            student_data = {
+                "name": "Test Senior Info",
+                "email": "senior.info@test.com",
+                "password": "senior123",
+                "phone": "06 12 34 56 78",
+                "organism": "Formation Seniors",
+                "support_type": "CPF",
+                "session_type": "distanciel",
+                "start_date": "2025-11-01",
+                "end_date": "2025-12-31",
+                "parcours": "Informatique débutant",
+                "total_hours": 20,
+                "role": "student",
+                "resources": {
+                    "tests": {
+                        "positionnement": "T1 – Test de positionnement pratique informatique – Seniors débutants",
+                        "miParcours": "T2 – Test à mi-parcours pratique informatique – Seniors",
+                        "fin": "T3 – Test de fin de parcours pratique informatique – Seniors"
+                    }
+                }
+            }
+            
+            self.log(f"Creating student with:")
+            self.log(f"   Name: {student_data['name']}")
+            self.log(f"   Email: {student_data['email']}")
+            self.log(f"   Password: {student_data['password']}")
+            self.log(f"   Parcours: {student_data['parcours']}")
+            self.log(f"   Total Hours: {student_data['total_hours']}")
+            self.log(f"   Selected Tests:")
+            for test_type, test_name in student_data['resources']['tests'].items():
+                self.log(f"     {test_type}: {test_name}")
+            
+            response = self.make_request("POST", "/students", student_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Student creation failed", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            created_student = response.json()
+            student_id = created_student.get('id')
+            self.log(f"✅ Student created successfully:")
+            self.log(f"   ID: {student_id}")
+            self.log(f"   Name: {created_student.get('name')}")
+            self.log(f"   Email: {created_student.get('email')}")
+            self.log(f"   Parcours: {created_student.get('parcours')}")
+            self.log(f"   Total Hours: {created_student.get('total_hours')}")
+            
+            # Step 3: Verify student resources were created in database
+            self.log("=== STEP 3: Verifying Student Resources in Database ===")
+            response = self.make_request("GET", f"/students/{student_id}/resources", token=self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get student resources", "ERROR")
+                return False
+            
+            resources = response.json()
+            self.log(f"Found {len(resources)} resources for student")
+            
+            # Verify the 3 test resources
+            expected_tests = [
+                {"sub_type": "POSITIONNEMENT", "template_name": "T1 – Test de positionnement pratique informatique – Seniors débutants"},
+                {"sub_type": "MI_PARCOURS", "template_name": "T2 – Test à mi-parcours pratique informatique – Seniors"},
+                {"sub_type": "FIN", "template_name": "T3 – Test de fin de parcours pratique informatique – Seniors"}
+            ]
+            
+            found_tests = []
+            for resource in resources:
+                if resource.get('category') == 'TEST_PARCOURS':
+                    found_tests.append({
+                        'sub_type': resource.get('sub_type'),
+                        'template_name': resource.get('template_name'),
+                        'template_id': resource.get('template_id'),
+                        'status': resource.get('status')
+                    })
+            
+            self.log(f"Found {len(found_tests)} TEST_PARCOURS resources:")
+            for i, test in enumerate(found_tests, 1):
+                self.log(f"   Test {i}:")
+                self.log(f"     Sub Type: {test['sub_type']}")
+                self.log(f"     Template Name: {test['template_name']}")
+                self.log(f"     Template ID: {test['template_id']}")
+                self.log(f"     Status: {test['status']}")
+            
+            # Step 4: Login as student
+            self.log("=== STEP 4: Student Login (senior.info@test.com) ===")
+            student_login_data = {
+                "email": "senior.info@test.com",
+                "password": "senior123"
+            }
+            
+            response = self.make_request("POST", "/auth/login", student_login_data)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Student login failed", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            data = response.json()
+            self.student_token = data["access_token"]
+            student_info = data["user"]
+            self.log(f"✅ Student login successful: {student_info['name']} ({student_info['email']})")
+            
+            # Step 5: Get student resources from student perspective
+            self.log("=== STEP 5: Verifying Student Dashboard Resources ===")
+            response = self.make_request("GET", f"/students/{student_id}/resources", token=self.student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get student resources from student perspective", "ERROR")
+                return False
+            
+            student_resources = response.json()
+            test_resources = [r for r in student_resources if r.get('category') == 'TEST_PARCOURS']
+            
+            self.log(f"Student can see {len(test_resources)} test resources:")
+            for i, test in enumerate(test_resources, 1):
+                self.log(f"   Test {i}: {test.get('template_name')} - Status: {test.get('status')}")
+            
+            # Step 6: Try to get T1 test template
+            self.log("=== STEP 6: Testing T1 Test Template Access ===")
+            t1_resource = None
+            for resource in test_resources:
+                if resource.get('sub_type') == 'POSITIONNEMENT':
+                    t1_resource = resource
+                    break
+            
+            if not t1_resource:
+                self.log("❌ T1 test resource not found", "ERROR")
+                return False
+            
+            t1_template_id = t1_resource.get('template_id')
+            self.log(f"T1 Template ID: {t1_template_id}")
+            
+            if t1_template_id:
+                response = self.make_request("GET", f"/test-templates/{t1_template_id}", token=self.student_token)
+                
+                if response and response.status_code == 200:
+                    template = response.json()
+                    questions = template.get('questions', [])
+                    self.log(f"✅ T1 test template retrieved successfully:")
+                    self.log(f"   Title: {template.get('title', 'N/A')}")
+                    self.log(f"   Number of questions: {len(questions)}")
+                    self.log(f"   Expected: 30 questions")
+                else:
+                    self.log("❌ Failed to get T1 test template", "ERROR")
+                    if response:
+                        self.log(f"Response: {response.text}")
+            
+            # Step 7: Verification checks
+            self.log("=== STEP 7: Final Verification Checks ===")
+            checks = []
+            checks.append(("Teacher login successful", self.teacher_token is not None))
+            checks.append(("Student created with correct parcours", created_student.get('parcours') == 'Informatique débutant'))
+            checks.append(("Student has 20h total hours", created_student.get('total_hours') == 20))
+            checks.append(("3 test resources created", len(found_tests) == 3))
+            checks.append(("All resources have category TEST_PARCOURS", all(r.get('category') == 'TEST_PARCOURS' for r in resources if r.get('category') == 'TEST_PARCOURS')))
+            checks.append(("Student login successful", self.student_token is not None))
+            checks.append(("Student can access test resources", len(test_resources) == 3))
+            
+            # Check specific test templates
+            template_checks = []
+            for expected_test in expected_tests:
+                found = any(t['sub_type'] == expected_test['sub_type'] and 
+                           t['template_name'] == expected_test['template_name'] 
+                           for t in found_tests)
+                template_checks.append((f"{expected_test['sub_type']} test found", found))
+            
+            checks.extend(template_checks)
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Step 8: Summary
+            self.log("=== STEP 8: Test Summary ===")
+            if all_passed:
+                self.log("🎉 INFORMATIQUE DÉBUTANT PATHWAY TEST COMPLETED SUCCESSFULLY!")
+                self.log("✅ All verification checks passed:")
+                self.log("   - Teacher login with terciform@gmail.com")
+                self.log("   - Student 'Test Senior Info' created with parcours 'Informatique débutant'")
+                self.log("   - 3 test resources created (T1, T2, T3)")
+                self.log("   - Student login successful")
+                self.log("   - Student can access all 3 tests")
+                self.log("   - T1 test template accessible with questions")
+            else:
+                self.log("❌ Some verification checks failed", "ERROR")
+            
+            # Cleanup
+            self.log("=== CLEANUP ===")
+            if student_id:
+                self.log("Deleting test student...")
+                response = self.make_request("DELETE", f"/students/{student_id}", token=self.teacher_token)
+                if response and response.status_code == 200:
+                    self.log("✅ Test student deleted")
+                else:
+                    self.log("⚠️ Failed to delete test student (cleanup)")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
+
 def main():
     """Main test execution"""
     tester = TerciFormTester()
@@ -5473,11 +5712,13 @@ def main():
             success = tester.test_documents_beneficiaires_jojo_resources()
         elif sys.argv[1] == "quiz-correction":
             success = tester.test_quiz_system_with_correction()
+        elif sys.argv[1] == "informatique-debutant":
+            success = tester.test_informatique_debutant_pathway()
         else:
             success = tester.run_full_test()
     else:
-        # Run quiz correction test by default (as per review request)
-        success = tester.test_quiz_system_with_correction()
+        # Run informatique-debutant test by default (as per review request)
+        success = tester.test_informatique_debutant_pathway()
     
     if success:
         print("\n" + "="*50)
