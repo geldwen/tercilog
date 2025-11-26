@@ -6849,6 +6849,240 @@ def main():
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_nouveaux_quiz_informatique(self):
+        """Test the new Informatique pathway with completely replaced T1, T2, T3 tests"""
+        self.log("🎯 Testing NOUVEAUX TESTS INFORMATIQUE (T1, T2, T3 - REMPLACÉS)")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Create new student with Informatique pathway
+            self.log("=== STEP 2: Creating New Student with Informatique Pathway ===")
+            student_data = {
+                "name": "Test Nouveaux Quiz Info",
+                "email": "test.nouveaux.quiz@test.com",
+                "password": "test123",
+                "phone": "06 00 00 00 00",
+                "organism": "Test Formation",
+                "support_type": "CPF",
+                "session_type": "distanciel",
+                "start_date": "2025-11-01",
+                "end_date": "2025-12-31",
+                "parcours": "Informatique",
+                "total_hours": 20,
+                "role": "student"
+            }
+            
+            self.log(f"Creating student with:")
+            self.log(f"   Name: {student_data['name']}")
+            self.log(f"   Email: {student_data['email']}")
+            self.log(f"   Password: {student_data['password']}")
+            self.log(f"   Parcours: {student_data['parcours']}")
+            self.log(f"   Total Hours: {student_data['total_hours']}")
+            
+            response = self.make_request("POST", "/students", student_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create student", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            created_student = response.json()
+            student_id = created_student.get('id')
+            self.log(f"✅ Student created successfully:")
+            self.log(f"   ID: {student_id}")
+            self.log(f"   Name: {created_student.get('name')}")
+            self.log(f"   Email: {created_student.get('email')}")
+            self.log(f"   Parcours: {created_student.get('parcours')}")
+            
+            # Step 3: Verify 3 test resources were automatically created
+            self.log("=== STEP 3: Verifying Test Resources in Database ===")
+            
+            # Login as student to access resources
+            student_login_data = {
+                "email": "test.nouveaux.quiz@test.com",
+                "password": "test123"
+            }
+            
+            response = self.make_request("POST", "/auth/login", student_login_data)
+            if not response or response.status_code != 200:
+                self.log("❌ Student login failed", "ERROR")
+                return False
+            
+            data = response.json()
+            student_token = data["access_token"]
+            self.log("✅ Student login successful")
+            
+            # Get student resources
+            response = self.make_request("GET", f"/students/{student_id}/resources", token=student_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get student resources", "ERROR")
+                return False
+            
+            resources = response.json()
+            self.log(f"Found {len(resources)} resources for student")
+            
+            # Expected new template IDs and names
+            expected_resources = [
+                {
+                    "template_id": "test-informatique-t1-v2",
+                    "template_name": "T1 – Test de positionnement informatique",
+                    "sub_type": "POSITIONNEMENT"
+                },
+                {
+                    "template_id": "test-informatique-t2-v2", 
+                    "template_name": "T2 – Test mi parcours informatique",
+                    "sub_type": "MI_PARCOURS"
+                },
+                {
+                    "template_id": "test-informatique-t3-v2",
+                    "template_name": "T3 – Test fin de parcours Informatique",
+                    "sub_type": "FIN"
+                }
+            ]
+            
+            self.log("=== STEP 4: Verifying NEW Template IDs and Names ===")
+            found_resources = {}
+            
+            for resource in resources:
+                if resource.get('category') == 'TEST_PARCOURS':
+                    sub_type = resource.get('sub_type')
+                    found_resources[sub_type] = resource
+                    self.log(f"Found {sub_type} test:")
+                    self.log(f"   Template ID: {resource.get('template_id')}")
+                    self.log(f"   Template Name: {resource.get('template_name')}")
+                    self.log(f"   Status: {resource.get('status')}")
+            
+            # Verify all 3 expected resources exist with correct IDs and names
+            verification_checks = []
+            for expected in expected_resources:
+                sub_type = expected["sub_type"]
+                found = found_resources.get(sub_type)
+                
+                if found:
+                    template_id_correct = found.get('template_id') == expected['template_id']
+                    template_name_correct = found.get('template_name') == expected['template_name']
+                    
+                    verification_checks.append((f"✅ {sub_type} resource exists", True))
+                    verification_checks.append((f"✅ {sub_type} template_id = {expected['template_id']}", template_id_correct))
+                    verification_checks.append((f"✅ {sub_type} template_name = {expected['template_name']}", template_name_correct))
+                else:
+                    verification_checks.append((f"❌ {sub_type} resource missing", False))
+            
+            # Step 5: Test T1 access and questions
+            self.log("=== STEP 5: Testing T1 Test Access and New Questions ===")
+            
+            # Find T1 resource
+            t1_resource = found_resources.get('POSITIONNEMENT')
+            if not t1_resource:
+                self.log("❌ T1 resource not found", "ERROR")
+                return False
+            
+            t1_template_id = t1_resource.get('template_id')
+            self.log(f"Accessing T1 test with template_id: {t1_template_id}")
+            
+            # Get test template
+            response = self.make_request("GET", f"/test-templates/{t1_template_id}", token=student_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get T1 test template", "ERROR")
+                return False
+            
+            test_template = response.json()
+            self.log(f"✅ T1 test template retrieved:")
+            self.log(f"   Title: {test_template.get('title')}")
+            self.log(f"   Questions count: {len(test_template.get('questions', []))}")
+            
+            # Check for new Windows-based questions
+            questions = test_template.get('questions', [])
+            if questions:
+                first_question = questions[0]
+                question_text = first_question.get('question', '')
+                self.log(f"   First question: {question_text}")
+                
+                # Check if it's the new Windows question
+                is_new_question = "Pour déplacer la souris" in question_text or "Windows" in question_text or "souris" in question_text
+                verification_checks.append(("✅ New Windows-based questions detected", is_new_question))
+            
+            # Step 6: Test submission
+            self.log("=== STEP 6: Testing T1 Submission ===")
+            
+            # Prepare answers (answer 'A' for all questions)
+            answers = {}
+            for i, question in enumerate(questions):
+                answers[f"q{i+1}"] = "A"
+            
+            submission_data = {"answers": answers}
+            
+            response = self.make_request("POST", f"/student-resources/{t1_resource['id']}/submit", submission_data, student_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to submit T1 test", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            submission_result = response.json()
+            self.log(f"✅ T1 test submitted successfully:")
+            self.log(f"   Score: {submission_result.get('score', 'N/A')}%")
+            self.log(f"   Status: {submission_result.get('status', 'N/A')}")
+            
+            verification_checks.append(("✅ T1 submission successful", True))
+            verification_checks.append(("✅ Score calculated", submission_result.get('score') is not None))
+            
+            # Step 7: Final verification
+            self.log("=== STEP 7: Final Verification ===")
+            
+            all_passed = True
+            for check_name, passed in verification_checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Summary
+            self.log("=== SUMMARY ===")
+            self.log(f"Student Created: Test Nouveaux Quiz Info ({student_data['email']})")
+            self.log(f"Parcours: {student_data['parcours']}")
+            self.log(f"Total Hours: {student_data['total_hours']}h")
+            self.log(f"Resources Created: {len([r for r in resources if r.get('category') == 'TEST_PARCOURS'])}")
+            
+            self.log("New Template IDs:")
+            for expected in expected_resources:
+                found = found_resources.get(expected["sub_type"])
+                if found:
+                    self.log(f"   {expected['sub_type']}: {found.get('template_id')}")
+            
+            self.log("New Template Names:")
+            for expected in expected_resources:
+                found = found_resources.get(expected["sub_type"])
+                if found:
+                    self.log(f"   {expected['sub_type']}: {found.get('template_name')}")
+            
+            # Cleanup
+            self.log("=== CLEANUP ===")
+            self.log("Deleting test student...")
+            response = self.make_request("DELETE", f"/students/{student_id}", token=self.teacher_token)
+            if response and response.status_code == 200:
+                self.log("✅ Test student deleted")
+            
+            if all_passed:
+                self.log("🎉 NOUVEAUX TESTS INFORMATIQUE VERIFICATION COMPLETED SUCCESSFULLY!")
+                self.log("✅ All 3 new tests (T1, T2, T3) with new Windows questions are working correctly")
+            else:
+                self.log("❌ Some verification checks failed", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
 def main():
     import sys
     
@@ -6885,9 +7119,11 @@ def main():
             success = tester.test_informatique_pathway_renamed()
         elif test_name == "documents-management":
             success = tester.test_student_documents_management()
+        elif test_name == "nouveaux-quiz":
+            success = tester.test_nouveaux_quiz_informatique()
         else:
             print(f"Unknown test: {test_name}")
-            print("Available tests: ghizzo, islem, zazou, zazou-verify, islem-meet, student-debug, formation-needs, jojo-resources, informatique-pathway, informatique-visual, quiz-submission, crash-investigation, informatique-renamed, documents-management")
+            print("Available tests: ghizzo, islem, zazou, zazou-verify, islem-meet, student-debug, formation-needs, jojo-resources, informatique-pathway, informatique-visual, quiz-submission, crash-investigation, informatique-renamed, documents-management, nouveaux-quiz")
             sys.exit(1)
     else:
         success = tester.run_full_test()
