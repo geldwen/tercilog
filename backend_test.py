@@ -6059,7 +6059,7 @@ class TerciFormTester:
             
             # Step 6: Verify dashboard - check parcours banner
             self.log("=== STEP 6: Dashboard Verification ===")
-            response = self.make_request("GET", "/auth/me", token=self.teacher_token)
+            response = self.make_request("GET", "/auth/me", token=student_token)
             
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get student info", "ERROR")
