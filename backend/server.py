@@ -2532,6 +2532,42 @@ async def get_questionnaire_template(
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
     
+
+@api_router.post("/student-resources/{resource_id}/submit-questionnaire")
+async def submit_questionnaire(
+    resource_id: str,
+    answers: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Soumettre les réponses d'un questionnaire"""
+    # Vérifier que la ressource existe et appartient à l'utilisateur
+    resource = await db.student_resources.find_one(
+        {"id": resource_id},
+        {"_id": 0}
+    )
+    
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    
+    if resource["student_id"] != current_user.id and current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Sauvegarder les réponses
+    await db.student_resources.update_one(
+        {"id": resource_id},
+        {
+            "$set": {
+                "status": "SOUMIS",
+                "submitted_at": datetime.now().isoformat(),
+                "answers": answers
+            }
+        }
+    )
+    
+    logger.info(f"Questionnaire {resource_id} submitted by user {current_user.id}")
+    
+    return {"message": "Questionnaire submitted successfully", "resource_id": resource_id}
+
     return template
 
 @api_router.post("/questionnaire-templates/init")
