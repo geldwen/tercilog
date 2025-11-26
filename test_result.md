@@ -539,8 +539,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Nouveaux Tests Informatique - T1, T2, T3 Remplacés avec Questions Windows"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
