@@ -504,6 +504,18 @@ backend:
           agent: "testing"
           comment: "✅ URGENT CRASH INVESTIGATION COMPLETED - NO CRASH DETECTED: Investigated user report of 'Emergent crash complètement' during test submission. COMPREHENSIVE TESTING: 1) Fixed automatic test assignment for 'Informatique débutant' parcours (was missing from student creation logic) ✅, 2) Created fresh test student (test.crash.final.with.tests@test.com) with all 3 tests properly assigned ✅, 3) Successfully logged in and accessed T1 test with 120 radio buttons (30 questions × 4 options) ✅, 4) Answered Q1-Q5 and clicked 'Soumettre le test' button ✅, 5) Detected confirmation dialog: 'Êtes-vous sûr de vouloir soumettre ce test ? Vous ne pourrez plus modifier vos réponses.' ✅, 6) Dialog accepted automatically, test submitted successfully ✅, 7) Results page displayed: 'Test terminé !' with score 0% (0/30 points), 'Niveau débutant' ✅. CRITICAL FINDING: NO CRASH EXISTS - the system works correctly. The user likely experienced confusion with: (a) The confirmation dialog appearing (mistaking it for an error), (b) The immediate transition to results page, or (c) Clicking 'Cancel' on confirmation dialog. VERIFICATION: Page remained responsive throughout 20-second monitoring period, no JavaScript errors, no network failures, successful submission with proper results display. The 'crash' report is a user experience misunderstanding, not a technical issue."
 
+  - task: "Informatique Pathway Renamed - T1, T2, T3 Tests Verification"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ INFORMATIQUE PATHWAY RENAME TEST COMPLETED SUCCESSFULLY: Successfully tested the renamed 'Informatique' pathway (previously 'Informatique débutant') with automatic T1, T2, T3 test assignment. COMPREHENSIVE TEST EXECUTION: 1) Teacher login successful (teacher@terciform.com) ✅, 2) Student creation with parcours='Informatique' ✅ Created 'Test Informatique Final' (test.info.final@test.com / test123) with 20h total hours, 3) Database verification ✅ Student found with parcours='Informatique', 4) Automatic test assignment verified ✅ All 3 test resources created with correct template names and IDs: T1 (test-informatique-debutant-t1-v1), T2 (test-informatique-debutant-t2-v1), T3 (test-informatique-debutant-t3-v1), 5) Student login successful ✅ Student authenticated successfully, 6) Dashboard verification ✅ Student dashboard shows 'Parcours: Informatique', 7) Tests visibility ✅ Student can see all 3 tests in Mon parcours with status 'NON_COMMENCE'. VERIFICATION CHECKS: All 10 verification checks passed - Student created with correct parcours, 3 test resources created, all template names found, all template IDs found, student login successful, dashboard shows correct parcours, student can see 3 tests. The renamed 'Informatique' pathway works correctly with automatic T1, T2, T3 assignment as specified in the review request."
+
 
 metadata:
   created_by: "testing_agent"
