@@ -913,18 +913,7 @@ export default function StudentDashboard({ user, onLogout }) {
                     )}
                   </Button>
                   <Button 
-                    onClick={() => {
-                      if (!midCourseSubmitted) {
-                        if (user?.parcours === 'Informatique') {
-                          const q2Resource = studentResources.find(r => r.category === 'QUESTIONNAIRE_QUALIOPI' && r.sub_type === 'MI_PARCOURS');
-                          if (q2Resource) {
-                            setActiveQuestionnaire({ resourceId: q2Resource.id, templateId: q2Resource.template_id });
-                          }
-                        } else {
-                          setShowMidCourseDialog(true);
-                        }
-                      }
-                    }} 
+                    onClick={() => !midCourseSubmitted && setShowMidCourseDialog(true)} 
                     style={{backgroundColor: midCourseSubmitted ? '#22c55e' : '#0D2040', padding: '20px 24px'}}
                     className="w-full justify-between items-center text-base"
                     disabled={midCourseSubmitted}
