@@ -5556,7 +5556,7 @@ class TerciFormTester:
             student_info = data["user"]
             self.log(f"✅ Student login successful: {student_info['name']} ({student_info['email']})")
             
-            # Step 5: Get student resources from student perspective
+            # Step 5: Get student resources from verification
             self.log("=== STEP 5: Verifying Student Dashboard Resources ===")
             # Use the student's own ID from their token
             student_own_id = student_info.get('id')
@@ -5564,7 +5564,7 @@ class TerciFormTester:
             response = self.make_request("GET", f"/students/{student_own_id}/resources", token=self.student_token)
             
             if not response or response.status_code != 200:
-                self.log("❌ Failed to get student resources from student perspective", "ERROR")
+                self.log("❌ Failed to get student resources from verification", "ERROR")
                 return False
             
             student_resources_data = response.json()
@@ -6075,7 +6075,7 @@ class TerciFormTester:
             response = self.make_request("GET", f"/students/{student_id}/resources", token=self.teacher_token)
             
             if not response or response.status_code != 200:
-                self.log("❌ Failed to get student resources from student perspective", "ERROR")
+                self.log("❌ Failed to get student resources from verification", "ERROR")
                 return False
             
             student_response_data = response.json(); student_resources = response_data.get("resources", [])
@@ -6761,7 +6761,7 @@ def main():
             response = self.make_request("GET", f"/students/{student_id}/resources", token=self.teacher_token)
             
             if not response or response.status_code != 200:
-                self.log("❌ Failed to get student resources from student perspective", "ERROR")
+                self.log("❌ Failed to get student resources from verification", "ERROR")
                 return False
             
             student_response_data = response.json(); student_resources = response_data.get("resources", [])
