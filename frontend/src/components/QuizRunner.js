@@ -290,7 +290,7 @@ const QuizRunner = () => {
                             className="mt-1 mr-3"
                           />
                           <span className="text-gray-700">
-                            <strong>{choice.key}.</strong> {choice.label}
+                            <strong>{choice.key}.</strong> {choice.text}
                           </span>
                         </label>
                       );
