@@ -5876,7 +5876,10 @@ class TerciFormTester:
             checks.append(("✅ Student created successfully", created_student is not None))
             checks.append(("✅ Student login successful", student_token is not None))
             checks.append(("✅ T1 resource found", t1_resource is not None))
-            checks.append(("✅ Submission successful (no 500/400 error)", response.status_code == 200))
+            # Note: response here refers to the last response (GET resources), not the submission response
+            # We need to check the submission response status which we stored earlier
+            submission_successful = hasattr(self, '_last_submission_status') and self._last_submission_status == 200
+            checks.append(("✅ Submission successful (no 500/400 error)", submission_successful))
             checks.append(("✅ Status changed to SOUMIS", updated_t1_resource.get('status') == 'SOUMIS'))
             checks.append(("✅ Score calculated", updated_t1_resource.get('score') is not None))
             checks.append(("✅ Submitted timestamp set", updated_t1_resource.get('submitted_at') is not None))
