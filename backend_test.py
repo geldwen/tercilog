@@ -1704,7 +1704,7 @@ class TerciFormTester:
             
             # Test GET /api/students/{student_id}/training-needs
             self.log("Testing GET training-needs...")
-            response = self.make_request("GET", f"/students/{student_id}/training-needs", token=student_token)
+            response = self.make_request("GET", f"/students/{student_id}/training-needs", token=self.teacher_token)
             
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get training needs", "ERROR")
@@ -1764,7 +1764,7 @@ class TerciFormTester:
             
             # Verify feedback is saved in MongoDB
             self.log("Verifying feedback persistence...")
-            response = self.make_request("GET", f"/students/{student_id}/feedback", token=student_token)
+            response = self.make_request("GET", f"/students/{student_id}/feedback", token=self.teacher_token)
             
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get feedback list", "ERROR")
@@ -1782,7 +1782,7 @@ class TerciFormTester:
             
             # Test GET /api/students/{student_id}/download-planning-pdf
             self.log("Testing GET download-planning-pdf...")
-            response = self.make_request("GET", f"/students/{student_id}/download-planning-pdf", token=student_token)
+            response = self.make_request("GET", f"/students/{student_id}/download-planning-pdf", token=self.teacher_token)
             
             if not response or response.status_code != 200:
                 self.log("❌ Failed to download planning PDF", "ERROR")
@@ -1798,7 +1798,7 @@ class TerciFormTester:
             # Test GET /api/students/{student_id}/download-feedback-pdf/{feedback_id}
             if feedback_id:
                 self.log("Testing GET download-feedback-pdf...")
-                response = self.make_request("GET", f"/students/{student_id}/download-feedback-pdf/{feedback_id}", token=student_token)
+                response = self.make_request("GET", f"/students/{student_id}/download-feedback-pdf/{feedback_id}", token=self.teacher_token)
                 
                 if not response or response.status_code != 200:
                     self.log("❌ Failed to download feedback PDF", "ERROR")
@@ -1818,7 +1818,7 @@ class TerciFormTester:
             # Try to access another student's data (should fail)
             fake_student_id = "00000000-0000-0000-0000-000000000000"
             
-            response = self.make_request("GET", f"/students/{fake_student_id}/training-needs", token=student_token)
+            response = self.make_request("GET", f"/students/{fake_student_id}/training-needs", token=self.teacher_token)
             if response and response.status_code == 403:
                 self.log("✅ Authorization working: student cannot access other student's data")
             else:
@@ -2310,7 +2310,7 @@ class TerciFormTester:
                         self.log(f"✅ Connexion élève réussie avec mot de passe: {password}")
                         
                         # Check if student can see the session for signature
-                        response = self.make_request("GET", "/sessions", token=student_token)
+                        response = self.make_request("GET", "/sessions", token=self.teacher_token)
                         if response and response.status_code == 200:
                             student_sessions = response.json()
                             pending_sessions = [s for s in student_sessions if s.get('signature_status') == 'pending']
@@ -2495,7 +2495,7 @@ class TerciFormTester:
             # TEST 3: Student space visibility (sessions with signature_status="pending")
             self.log("=== TEST 3: Student Space Visibility ===")
             
-            response = self.make_request("GET", "/sessions", token=student_token)
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get student sessions", "ERROR")
                 return False
@@ -2776,7 +2776,7 @@ class TerciFormTester:
             self.log(f"Script result: {result.get('message', 'No message')}")
             
             # Verify the past session was processed
-            response = self.make_request("GET", "/sessions", token=student_token)
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get sessions for verification", "ERROR")
                 return False
@@ -2817,7 +2817,7 @@ class TerciFormTester:
                 return False
             
             # Verify the session was updated
-            response = self.make_request("GET", "/sessions", token=student_token)
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get sessions after manual resend", "ERROR")
                 return False
@@ -2851,7 +2851,7 @@ class TerciFormTester:
             self.log("=== TEST 5: Sessions Visible in Student Space ===")
             
             # Get all sessions for the student
-            response = self.make_request("GET", "/sessions", token=student_token)
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get student sessions", "ERROR")
                 return False
@@ -3551,7 +3551,7 @@ class TerciFormTester:
             
             # Step 7: Verify session model updates
             self.log("=== STEP 7: Verifying Session Model Updates ===")
-            response = self.make_request("GET", "/sessions", token=student_token)
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get sessions", "ERROR")
                 return False
@@ -5863,7 +5863,7 @@ class TerciFormTester:
             
             # Step 7: Check if answers were saved in student_answers collection
             self.log("=== STEP 7: Checking Saved Answers ===")
-            response = self.make_request("GET", f"/student-resources/{t1_resource['id']}/answers", token=student_token)
+            response = self.make_request("GET", f"/student-resources/{t1_resource['id']}/answers", token=self.teacher_token)
             
             if response and response.status_code == 200:
                 saved_answers = response.json()
@@ -6059,7 +6059,7 @@ class TerciFormTester:
             
             # Step 6: Verify dashboard - check parcours banner
             self.log("=== STEP 6: Dashboard Verification ===")
-            response = self.make_request("GET", "/auth/me", token=student_token)
+            response = self.make_request("GET", "/auth/me", token=self.teacher_token)
             
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get student info", "ERROR")
@@ -6072,7 +6072,7 @@ class TerciFormTester:
             
             # Step 7: Verify tests are visible in Mon parcours
             self.log("=== STEP 7: Mon Parcours - Tests Visibility ===")
-            response = self.make_request("GET", f"/students/{student_id}/resources", token=student_token)
+            response = self.make_request("GET", f"/students/{student_id}/resources", token=self.teacher_token)
             
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get student resources from student perspective", "ERROR")
@@ -6745,7 +6745,7 @@ def main():
             
             # Step 6: Verify dashboard - check parcours banner
             self.log("=== STEP 6: Dashboard Verification ===")
-            response = self.make_request("GET", "/auth/me", token=student_token)
+            response = self.make_request("GET", "/auth/me", token=self.teacher_token)
             
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get student info", "ERROR")
@@ -6758,7 +6758,7 @@ def main():
             
             # Step 7: Verify tests are visible in Mon parcours
             self.log("=== STEP 7: Mon Parcours - Tests Visibility ===")
-            response = self.make_request("GET", f"/students/{student_id}/resources", token=student_token)
+            response = self.make_request("GET", f"/students/{student_id}/resources", token=self.teacher_token)
             
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get student resources from student perspective", "ERROR")
