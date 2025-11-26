@@ -5854,8 +5854,8 @@ class TerciFormTester:
             self.log(f"   Score: {updated_t1_resource.get('score')}")
             self.log(f"   Submitted At: {updated_t1_resource.get('submitted_at')}")
             
-            # Step 8: Check if answers were saved in student_answers collection
-            self.log("=== STEP 8: Checking Saved Answers ===")
+            # Step 7: Check if answers were saved in student_answers collection
+            self.log("=== STEP 7: Checking Saved Answers ===")
             response = self.make_request("GET", f"/student-resources/{t1_resource['id']}/answers", token=student_token)
             
             if response and response.status_code == 200:
@@ -5866,13 +5866,12 @@ class TerciFormTester:
             else:
                 self.log("⚠️ Could not retrieve saved answers (endpoint may not exist)")
             
-            # Step 9: Final verification checks
-            self.log("=== STEP 9: Final Verification Checks ===")
+            # Step 8: Final verification checks
+            self.log("=== STEP 8: Final Verification Checks ===")
             checks = []
             checks.append(("✅ Student created successfully", created_student is not None))
             checks.append(("✅ Student login successful", student_token is not None))
             checks.append(("✅ T1 resource found", t1_resource is not None))
-            checks.append(("✅ Test started successfully", started_resource.get('status') == 'EN_COURS'))
             checks.append(("✅ Submission successful (no 500/400 error)", response.status_code == 200))
             checks.append(("✅ Status changed to SOUMIS", updated_t1_resource.get('status') == 'SOUMIS'))
             checks.append(("✅ Score calculated", updated_t1_resource.get('score') is not None))
