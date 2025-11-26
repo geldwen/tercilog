@@ -5803,6 +5803,9 @@ class TerciFormTester:
             
             self.log(f"Submission response status: {response.status_code}")
             
+            # Store submission status for later verification
+            self._last_submission_status = response.status_code
+            
             if response.status_code != 200:
                 self.log("❌ Test submission failed", "ERROR")
                 self.log(f"HTTP Status Code: {response.status_code}")
