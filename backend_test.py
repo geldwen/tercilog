@@ -5741,6 +5741,8 @@ class TerciFormTester:
             student_token = data["access_token"]
             student_info = data["user"]
             self.log(f"✅ Student login successful: {student_info['name']}")
+            self.log(f"   Student ID from login: {student_info['id']}")
+            self.log(f"   Student ID from creation: {student_id}")
             
             # Step 4: Get student resources to find T1 test
             self.log("=== STEP 4: Getting Student Resources (T1, T2, T3 Tests) ===")
