@@ -17,6 +17,7 @@ import BureautiqueFormationNeedsQuestionnaire from "@/components/BureautiqueForm
 import BureautiqueMidCourseQuestionnaire from "@/components/BureautiqueMidCourseQuestionnaire";
 import BureautiqueEndCourseQuestionnaire from "@/components/BureautiqueEndCourseQuestionnaire";
 import DynamicQuestionnaire from "@/components/DynamicQuestionnaire";
+import InformatiqueFormationNeedsQuestionnaire from "@/components/InformatiqueFormationNeedsQuestionnaire";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
