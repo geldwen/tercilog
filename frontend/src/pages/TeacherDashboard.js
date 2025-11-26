@@ -155,9 +155,9 @@ export default function TeacherDashboard({ user, onLogout }) {
       fin: ["Test final management"]
     },
     "Informatique": {
-      positionnement: ["T1 – Test de positionnement pratique informatique – Seniors débutants"],
-      miParcours: ["T2 – Test à mi-parcours pratique informatique – Seniors"],
-      fin: ["T3 – Test de fin de parcours pratique informatique – Seniors"]
+      positionnement: ["T1 – Test de positionnement informatique"],
+      miParcours: ["T2 – Test mi parcours informatique"],
+      fin: ["T3 – Test fin de parcours Informatique"]
     }
   };
 
