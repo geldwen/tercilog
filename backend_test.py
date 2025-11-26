@@ -5727,7 +5727,7 @@ class TerciFormTester:
             # Step 3: Login as the test student
             self.log("=== STEP 3: Student Login ===")
             student_login_data = {
-                "email": "test.soumission@test.com",
+                "email": unique_email,
                 "password": "test123"
             }
             
