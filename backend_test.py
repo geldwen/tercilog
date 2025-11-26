@@ -5826,11 +5826,11 @@ class TerciFormTester:
             self.log(f"   Score: {submission_result.get('score')}")
             self.log(f"   Message: {submission_result.get('message')}")
             
-            # Step 7: Verify the submission results
-            self.log("=== STEP 7: Verifying Submission Results ===")
+            # Step 6: Verify the submission results
+            self.log("=== STEP 6: Verifying Submission Results ===")
             
             # Get updated resource to verify changes
-            response = self.make_request("GET", f"/students/{student_id}/resources", token=student_token)
+            response = self.make_request("GET", f"/students/{student_id}/resources", token=self.teacher_token)
             
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get updated resources", "ERROR")
