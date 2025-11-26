@@ -638,6 +638,18 @@ frontend:
           agent: "testing"
           comment: "🎯 COMPREHENSIVE BILAN ÉLÈVE GENERATION TEST COMPLETED SUCCESSFULLY: Executed complete end-to-end test of 'Générer le Bilan Élève' functionality for Toto Test as requested in French review. FULL TEST FLOW: 1) Professor login (prof@test.com / prof123) ✅, 2) Navigation to Élèves tab → November 2025 ✅, 3) Located Toto Test student ✅, 4) Clicked 'Parcours élève' button ✅, 5) Opened 'Documents bénéficiaires' tab ✅, 6) Verified all 3 questionnaires present ✅, 7) Clicked '🪄 Générer le Bilan Élève' button ✅. CRITICAL VERIFICATIONS PASSED: ✅ Button positioned correctly (RIGHT in brown bubble), ✅ Button active with green gradient (from-[#E8F5E9] to-[#C8E6C9]), ✅ All 3 questionnaires completed (formation needs, mid-course, end-course), ✅ PDF download triggered automatically (Bilan_Eleve_Toto_Test_2025-11-15.pdf), ✅ Correct filename format (Bilan_Eleve_Toto_Test_YYYY-MM-DD.pdf), ✅ Success toast displayed ('✅ Bilan Élève généré avec succès !'), ✅ Button returned to normal state after generation. BACKEND INTEGRATION: ✅ POST /api/students/{student_id}/generate-bilan endpoint working, ✅ PDF generation with AI synthesis of 3 questionnaires, ✅ Automatic progression score calculation, ✅ File size ~3-4KB as expected. COMPLETE FUNCTIONALITY VERIFIED: The 'Générer le Bilan Élève' feature is working perfectly according to all specifications. Button is active when all 3 questionnaires are completed, generates PDF automatically, shows proper loading states, and provides user feedback via toast notifications."
 
+  - task: "Informatique Questionnaires Signature and Submission Flow (Q1, Q2, Q3)"
+    implemented: true
+    working: "NA"
+    file: "InformatiqueFormationNeedsQuestionnaire.js, InformatiqueMidCourseQuestionnaire.js, InformatiqueEndCourseQuestionnaire.js, SignaturePad.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "TESTING REQUESTED: User reported critical bug fix for signature pad not working for Q2 and Q3 questionnaires. Need to verify all three Informatique questionnaires (Q1, Q2, Q3) can be properly signed and submitted. Testing with student account ghizzo.formations@gmail.com / ghi123. Focus on: Signer button visibility, SignaturePad canvas functionality, drawing capability, signature validation, submission success, toast notifications. The signature pad component now uses onSave prop correctly (this was the bug fix)."
+
   - task: "Bilan Qualité Page - New Quality Report Feature"
     implemented: true
     working: true
