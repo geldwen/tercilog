@@ -5752,9 +5752,9 @@ class TerciFormTester:
                     self.log(f"Response: {response.text}")
                 return False
             
-            resources = response.json()
+            resources_data = response.json()
+            resources = resources_data.get('resources', [])
             self.log(f"Found {len(resources)} resources for student")
-            self.log(f"Resources response: {resources}")
             
             # Find T1 test resource
             t1_resource = None
