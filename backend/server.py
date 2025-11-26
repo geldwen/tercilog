@@ -894,7 +894,6 @@ async def create_student(data: dict, current_user: User = Depends(get_current_us
     # Assigner automatiquement les tests selon le parcours
     if student.parcours == "Informatique débutant":
         # Créer les 3 tests automatiquement
-        from .models import StudentResource
         
         tests_to_assign = [
             {
