@@ -114,7 +114,7 @@ frontend:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test TerciLog application changes: Remove 2-hour signature deadline and add student confirmation flow before signing"
+user_problem_statement: "TEST DE L'IMPLÉMENTATION DU PARCOURS 'INFORMATIQUE DÉBUTANT' AVEC LES 3 TESTS T1, T2, T3"
 
 backend:
   - task: "Teacher Authentication System"
