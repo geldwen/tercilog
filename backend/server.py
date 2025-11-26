@@ -898,18 +898,18 @@ async def create_student(data: dict, current_user: User = Depends(get_current_us
         tests_to_assign = [
             {
                 "sub_type": "POSITIONNEMENT",
-                "template_name": "T1 – Test de positionnement pratique informatique – Seniors débutants",
-                "template_id": "test-informatique-debutant-t1-v1"
+                "template_name": "T1 – Test de positionnement informatique",
+                "template_id": "test-informatique-t1-v2"
             },
             {
                 "sub_type": "MI_PARCOURS", 
-                "template_name": "T2 – Test à mi-parcours pratique informatique – Seniors",
-                "template_id": "test-informatique-debutant-t2-v1"
+                "template_name": "T2 – Test mi parcours informatique",
+                "template_id": "test-informatique-t2-v2"
             },
             {
                 "sub_type": "FIN",
-                "template_name": "T3 – Test de fin de parcours pratique informatique – Seniors", 
-                "template_id": "test-informatique-debutant-t3-v1"
+                "template_name": "T3 – Test fin de parcours Informatique", 
+                "template_id": "test-informatique-t3-v2"
             }
         ]
         
