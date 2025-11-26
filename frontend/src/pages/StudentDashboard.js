@@ -926,18 +926,7 @@ export default function StudentDashboard({ user, onLogout }) {
                     )}
                   </Button>
                   <Button 
-                    onClick={() => {
-                      if (!endCourseSubmitted) {
-                        if (user?.parcours === 'Informatique') {
-                          const q3Resource = studentResources.find(r => r.category === 'QUESTIONNAIRE_QUALIOPI' && r.sub_type === 'FIN');
-                          if (q3Resource) {
-                            setActiveQuestionnaire({ resourceId: q3Resource.id, templateId: q3Resource.template_id });
-                          }
-                        } else {
-                          setShowEndCourseDialog(true);
-                        }
-                      }
-                    }} 
+                    onClick={() => !endCourseSubmitted && setShowEndCourseDialog(true)} 
                     style={{backgroundColor: endCourseSubmitted ? '#22c55e' : '#0D2040', padding: '20px 24px'}}
                     className="w-full justify-between items-center text-base"
                     disabled={endCourseSubmitted}
