@@ -6323,7 +6323,7 @@ class TerciFormTester:
                 is_new_question = "Pour déplacer la souris" in question_text or "Windows" in question_text or "souris" in question_text
                 verification_checks.append(("✅ New Windows-based questions detected", is_new_question))
             
-            # Step 6: Test submission
+            # Step 6: Test submission (only if there are questions)
             self.log("=== STEP 6: Testing T1 Submission ===")
             
             # Prepare answers (answer 'A' for all questions)
