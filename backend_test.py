@@ -5918,6 +5918,251 @@ class TerciFormTester:
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_informatique_pathway_renamed(self):
+        """Test the renamed 'Informatique' pathway (previously 'Informatique débutant') with T1, T2, T3 tests"""
+        self.log("🎯 Testing Renamed 'Informatique' Pathway with T1, T2, T3 Tests")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Create student with parcours "Informatique" (renamed from "Informatique débutant")
+            self.log("=== STEP 2: Creating Student with Parcours 'Informatique' ===")
+            import time
+            unique_suffix = int(time.time())
+            
+            student_data = {
+                "name": "Test Informatique Final",
+                "email": "test.info.final@test.com",
+                "password": "test123",
+                "phone": "06 12 34 56 78",
+                "organism": "Test Formation",
+                "support_type": "CPF",
+                "session_type": "distanciel",
+                "start_date": "2025-11-01",
+                "end_date": "2025-12-31",
+                "parcours": "Informatique",  # Renamed pathway
+                "total_hours": 20,
+                "role": "student"
+            }
+            
+            self.log(f"Creating student with parcours: {student_data['parcours']}")
+            self.log(f"Student details:")
+            self.log(f"   Name: {student_data['name']}")
+            self.log(f"   Email: {student_data['email']}")
+            self.log(f"   Password: {student_data['password']}")
+            self.log(f"   Parcours: {student_data['parcours']}")
+            self.log(f"   Total Hours: {student_data['total_hours']}")
+            
+            response = self.make_request("POST", "/students", student_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create student", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            created_student = response.json()
+            student_id = created_student.get('id')
+            
+            self.log(f"✅ Student created successfully:")
+            self.log(f"   ID: {student_id}")
+            self.log(f"   Name: {created_student.get('name')}")
+            self.log(f"   Email: {created_student.get('email')}")
+            self.log(f"   Parcours: {created_student.get('parcours')}")
+            self.log(f"   Total Hours: {created_student.get('total_hours')}")
+            
+            # Step 3: Verify in database - check student has parcours="Informatique"
+            self.log("=== STEP 3: Database Verification - Student Parcours ===")
+            response = self.make_request("GET", "/students", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to fetch students for verification", "ERROR")
+                return False
+            
+            students = response.json()
+            found_student = None
+            for student in students:
+                if student.get('id') == student_id:
+                    found_student = student
+                    break
+            
+            if not found_student:
+                self.log("❌ Created student not found in database", "ERROR")
+                return False
+            
+            self.log(f"✅ Student found in database:")
+            self.log(f"   Parcours: {found_student.get('parcours')}")
+            
+            # Step 4: Check if 3 test resources were automatically assigned
+            self.log("=== STEP 4: Checking Automatic Test Assignment ===")
+            
+            # Get student resources
+            response = self.make_request("GET", f"/students/{student_id}/resources", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get student resources", "ERROR")
+                return False
+            
+            resources = response.json()
+            self.log(f"Found {len(resources)} resources for student")
+            
+            # Check for the 3 expected tests
+            expected_tests = [
+                {
+                    "template_name": "T1 – Test de positionnement pratique informatique – Seniors débutants",
+                    "template_id": "test-informatique-debutant-t1-v1",
+                    "sub_type": "POSITIONNEMENT"
+                },
+                {
+                    "template_name": "T2 – Test à mi-parcours pratique informatique – Seniors",
+                    "template_id": "test-informatique-debutant-t2-v1", 
+                    "sub_type": "MI_PARCOURS"
+                },
+                {
+                    "template_name": "T3 – Test de fin de parcours pratique informatique – Seniors",
+                    "template_id": "test-informatique-debutant-t3-v1",
+                    "sub_type": "FIN"
+                }
+            ]
+            
+            found_tests = []
+            for resource in resources:
+                if resource.get('category') == 'TEST_PARCOURS':
+                    found_tests.append(resource)
+                    self.log(f"✅ Found test resource:")
+                    self.log(f"   Template Name: {resource.get('template_name')}")
+                    self.log(f"   Template ID: {resource.get('template_id')}")
+                    self.log(f"   Sub Type: {resource.get('sub_type')}")
+                    self.log(f"   Category: {resource.get('category')}")
+            
+            # Step 5: Login as student
+            self.log("=== STEP 5: Student Login ===")
+            student_login_data = {
+                "email": "test.info.final@test.com",
+                "password": "test123"
+            }
+            
+            response = self.make_request("POST", "/auth/login", student_login_data)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Student login failed", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            data = response.json()
+            student_token = data["access_token"]
+            student_info = data["user"]
+            self.log(f"✅ Student login successful: {student_info['name']}")
+            
+            # Step 6: Verify dashboard - check parcours banner
+            self.log("=== STEP 6: Dashboard Verification ===")
+            response = self.make_request("GET", "/auth/me", token=student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get student info", "ERROR")
+                return False
+            
+            student_data_from_api = response.json()
+            self.log(f"✅ Student dashboard data:")
+            self.log(f"   Name: {student_data_from_api.get('name')}")
+            self.log(f"   Parcours: {student_data_from_api.get('parcours')}")
+            
+            # Step 7: Verify tests are visible in Mon parcours
+            self.log("=== STEP 7: Mon Parcours - Tests Visibility ===")
+            response = self.make_request("GET", f"/students/{student_id}/resources", token=student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get student resources from student perspective", "ERROR")
+                return False
+            
+            student_resources = response.json()
+            test_resources = [r for r in student_resources if r.get('category') == 'TEST_PARCOURS']
+            
+            self.log(f"✅ Student can see {len(test_resources)} test resources:")
+            for i, resource in enumerate(test_resources, 1):
+                self.log(f"   Test {i}: {resource.get('template_name')}")
+                self.log(f"     Status: {resource.get('status')}")
+                self.log(f"     Sub Type: {resource.get('sub_type')}")
+            
+            # Step 8: Comprehensive verification checks
+            self.log("=== STEP 8: Comprehensive Verification ===")
+            checks = []
+            
+            # Check student creation
+            checks.append(("✅ Student created with parcours='Informatique'", 
+                          found_student.get('parcours') == 'Informatique'))
+            
+            # Check 3 tests assigned
+            checks.append(("✅ 3 test resources created", len(found_tests) == 3))
+            
+            # Check specific test templates
+            template_names_found = [t.get('template_name') for t in found_tests]
+            for expected_test in expected_tests:
+                test_found = expected_test['template_name'] in template_names_found
+                checks.append((f"✅ {expected_test['template_name'][:20]}... found", test_found))
+            
+            # Check template IDs
+            template_ids_found = [t.get('template_id') for t in found_tests]
+            for expected_test in expected_tests:
+                id_found = expected_test['template_id'] in template_ids_found
+                checks.append((f"✅ Template ID {expected_test['template_id']} found", id_found))
+            
+            # Check student login
+            checks.append(("✅ Student login successful", student_token is not None))
+            
+            # Check dashboard parcours
+            checks.append(("✅ Dashboard shows 'Informatique' parcours", 
+                          student_data_from_api.get('parcours') == 'Informatique'))
+            
+            # Check tests visible to student
+            checks.append(("✅ Student can see 3 tests in Mon parcours", len(test_resources) == 3))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Step 9: Final summary
+            self.log("=== STEP 9: Final Summary ===")
+            self.log("Test Results:")
+            self.log(f"   ✅ Student Name: {found_student.get('name')}")
+            self.log(f"   ✅ Student Email: {found_student.get('email')}")
+            self.log(f"   ✅ Parcours: {found_student.get('parcours')}")
+            self.log(f"   ✅ Total Hours: {found_student.get('total_hours')}")
+            self.log(f"   ✅ Tests Assigned: {len(found_tests)}")
+            
+            self.log("Assigned Tests:")
+            for i, test in enumerate(found_tests, 1):
+                self.log(f"   T{i}: {test.get('template_name')}")
+                self.log(f"       ID: {test.get('template_id')}")
+                self.log(f"       Type: {test.get('sub_type')}")
+            
+            # Cleanup
+            self.log("=== CLEANUP ===")
+            self.log("Deleting test student...")
+            response = self.make_request("DELETE", f"/students/{student_id}", token=self.teacher_token)
+            if response and response.status_code == 200:
+                self.log("✅ Test student deleted")
+            
+            if all_passed:
+                self.log("🎉 INFORMATIQUE PATHWAY RENAME TEST COMPLETED SUCCESSFULLY!")
+                self.log("✅ The renamed 'Informatique' pathway works correctly with automatic T1, T2, T3 assignment")
+            else:
+                self.log("❌ Some verification checks failed", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
 
 def main():
     """Main test execution"""
