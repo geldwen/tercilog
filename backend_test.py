@@ -6005,7 +6005,7 @@ class TerciFormTester:
                 self.log("❌ Failed to get student resources", "ERROR")
                 return False
             
-            response_data = response.json(); student_resources = response_data.get("resources", [])
+            response_data = response.json(); resources = response_data.get("resources", [])
             self.log(f"Found {len(resources)} resources for student")
             
             # Check for the 3 expected tests
