@@ -6238,7 +6238,8 @@ class TerciFormTester:
                 self.log("❌ Failed to get student resources", "ERROR")
                 return False
             
-            resources = response.json()
+            response_data = response.json()
+            resources = response_data.get("resources", [])
             self.log(f"Found {len(resources)} resources for student")
             
             # Expected new template IDs and names
