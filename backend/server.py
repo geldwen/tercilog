@@ -677,9 +677,9 @@ async def save_student_resources(student_id: str, parcours: str, resources: dict
             "T1 - Test de positionnement": "test-bureautique-positionnement-v1",
             "T2 - Test à mi parcours": "test-bureautique-mi-parcours-v1",
             "T3 - Test de fin de formation": "test-bureautique-fin-v1",
-            "T1 – Test de positionnement pratique informatique – Seniors débutants": "test-informatique-debutant-t1-v1",
-            "T2 – Test à mi-parcours pratique informatique – Seniors": "test-informatique-debutant-t2-v1",
-            "T3 – Test de fin de parcours pratique informatique – Seniors": "test-informatique-debutant-t3-v1"
+            "T1 – Test de positionnement informatique": "test-informatique-t1-v2",
+            "T2 – Test mi parcours informatique": "test-informatique-t2-v2",
+            "T3 – Test fin de parcours Informatique": "test-informatique-t3-v2"
         }
         
         if tests.get("positionnement"):
