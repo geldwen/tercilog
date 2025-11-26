@@ -5558,7 +5558,10 @@ class TerciFormTester:
             
             # Step 5: Get student resources from student perspective
             self.log("=== STEP 5: Verifying Student Dashboard Resources ===")
-            response = self.make_request("GET", f"/students/{student_id}/resources", token=self.student_token)
+            # Use the student's own ID from their token
+            student_own_id = student_info.get('id')
+            self.log(f"Student's own ID: {student_own_id}")
+            response = self.make_request("GET", f"/students/{student_own_id}/resources", token=self.student_token)
             
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get student resources from student perspective", "ERROR")
