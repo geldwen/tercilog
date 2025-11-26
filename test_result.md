@@ -504,7 +504,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "All high priority tasks completed"
+    - "Informatique Débutant Pathway Implementation with T1, T2, T3 Tests"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
