@@ -539,8 +539,7 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: 
-    - "Informatique Questionnaires Signature and Submission Flow (Q1, Q2, Q3)"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
