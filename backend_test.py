@@ -5744,7 +5744,7 @@ class TerciFormTester:
             
             # Step 4: Get student resources to find T1 test
             self.log("=== STEP 4: Getting Student Resources (T1, T2, T3 Tests) ===")
-            response = self.make_request("GET", f"/students/{student_id}/resources", token=student_token)
+            response = self.make_request("GET", f"/students/{student_id}/resources", token=self.teacher_token)
             
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get student resources", "ERROR")
