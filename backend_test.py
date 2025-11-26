@@ -5678,9 +5678,11 @@ class TerciFormTester:
             
             # Step 2: Create test student for Informatique débutant
             self.log("=== STEP 2: Creating Test Student for Informatique Débutant ===")
+            import time
+            unique_email = f"test.soumission.{int(time.time())}@test.com"
             student_data = {
                 "name": "Test Soumission Quiz",
-                "email": "test.soumission@test.com",
+                "email": unique_email,
                 "password": "test123",
                 "phone": "06 12 34 56 78",
                 "organism": "Test Formation",
