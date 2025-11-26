@@ -6104,5 +6104,262 @@ def main():
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_quiz_submission_informatique_debutant(self):
+        """Test quiz submission for Informatique débutant pathway - T1 test submission issue"""
+        self.log("🎯 Testing Quiz Submission for Informatique Débutant T1")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher
+            self.log("=== STEP 1: Teacher Login ===")
+            if not self.login_as_teacher():
+                return False
+            
+            # Step 2: Create test student for Informatique débutant
+            self.log("=== STEP 2: Creating Test Student for Informatique Débutant ===")
+            student_data = {
+                "name": "Test Soumission Quiz",
+                "email": "test.soumission@test.com",
+                "password": "test123",
+                "phone": "06 12 34 56 78",
+                "organism": "Test Formation",
+                "support_type": "CPF",
+                "session_type": "distanciel",
+                "start_date": "2025-11-01",
+                "end_date": "2025-12-31",
+                "parcours": "Informatique débutant",
+                "total_hours": 10,
+                "role": "student",
+                "resources": {
+                    "tests": {
+                        "positionnement": "T1 – Test de positionnement pratique informatique – Seniors débutants",
+                        "miParcours": "T2 – Test à mi-parcours pratique informatique – Seniors",
+                        "fin": "T3 – Test de fin de parcours pratique informatique – Seniors"
+                    }
+                }
+            }
+            
+            self.log(f"Creating student with data:")
+            self.log(f"   Name: {student_data['name']}")
+            self.log(f"   Email: {student_data['email']}")
+            self.log(f"   Parcours: {student_data['parcours']}")
+            self.log(f"   Total Hours: {student_data['total_hours']}")
+            self.log(f"   Tests: T1, T2, T3")
+            
+            response = self.make_request("POST", "/students", student_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create student", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            created_student = response.json()
+            student_id = created_student.get('id')
+            self.log(f"✅ Student created successfully:")
+            self.log(f"   ID: {student_id}")
+            self.log(f"   Name: {created_student.get('name')}")
+            self.log(f"   Email: {created_student.get('email')}")
+            
+            # Step 3: Login as the test student
+            self.log("=== STEP 3: Student Login ===")
+            student_login_data = {
+                "email": "test.soumission@test.com",
+                "password": "test123"
+            }
+            
+            response = self.make_request("POST", "/auth/login", student_login_data)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Student login failed", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            data = response.json()
+            student_token = data["access_token"]
+            student_info = data["user"]
+            self.log(f"✅ Student login successful: {student_info['name']}")
+            
+            # Step 4: Get student resources to find T1 test
+            self.log("=== STEP 4: Getting Student Resources (T1, T2, T3 Tests) ===")
+            response = self.make_request("GET", f"/students/{student_id}/resources", token=student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get student resources", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            resources = response.json()
+            self.log(f"Found {len(resources)} resources for student")
+            
+            # Find T1 test resource
+            t1_resource = None
+            for resource in resources:
+                if (resource.get('category') == 'TEST_PARCOURS' and 
+                    resource.get('sub_type') == 'POSITIONNEMENT' and
+                    'T1' in resource.get('template_name', '')):
+                    t1_resource = resource
+                    break
+            
+            if not t1_resource:
+                self.log("❌ T1 test resource not found", "ERROR")
+                self.log("Available resources:")
+                for resource in resources:
+                    self.log(f"   - {resource.get('template_name')} ({resource.get('category')}, {resource.get('sub_type')})")
+                return False
+            
+            self.log(f"✅ Found T1 test resource:")
+            self.log(f"   ID: {t1_resource.get('id')}")
+            self.log(f"   Template: {t1_resource.get('template_name')}")
+            self.log(f"   Status: {t1_resource.get('status')}")
+            
+            # Step 5: Start the T1 test (change status to EN_COURS)
+            self.log("=== STEP 5: Starting T1 Test ===")
+            start_data = {"status": "EN_COURS"}
+            response = self.make_request("PATCH", f"/student-resources/{t1_resource['id']}/start", start_data, student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to start T1 test", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            started_resource = response.json()
+            self.log(f"✅ T1 test started successfully:")
+            self.log(f"   Status: {started_resource.get('status')}")
+            
+            # Step 6: Submit the T1 test with answers (all "A" as requested)
+            self.log("=== STEP 6: Submitting T1 Test with Answers ===")
+            
+            # Create answers for all 30 questions (Q1 to Q30) with answer "A"
+            answers = {}
+            for i in range(1, 31):  # Q1 to Q30
+                answers[f"Q{i}"] = ["A"]
+            
+            submission_data = {"answers": answers}
+            
+            self.log(f"Submitting test with {len(answers)} answers (all 'A')")
+            self.log(f"Sample answers: Q1={answers['Q1']}, Q2={answers['Q2']}, Q30={answers['Q30']}")
+            
+            # This is the critical test - the submission endpoint that's failing
+            response = self.make_request("POST", f"/student-resources/{t1_resource['id']}/submit", submission_data, student_token)
+            
+            if not response:
+                self.log("❌ No response received from submission endpoint", "ERROR")
+                return False
+            
+            self.log(f"Submission response status: {response.status_code}")
+            
+            if response.status_code != 200:
+                self.log("❌ Test submission failed", "ERROR")
+                self.log(f"HTTP Status Code: {response.status_code}")
+                self.log(f"Response Body: {response.text}")
+                
+                # Try to parse error details
+                try:
+                    error_data = response.json()
+                    self.log(f"Error Details: {error_data}")
+                except:
+                    self.log("Could not parse error response as JSON")
+                
+                return False
+            
+            # Parse successful submission response
+            try:
+                submission_result = response.json()
+            except Exception as e:
+                self.log(f"❌ Failed to parse submission response JSON: {e}", "ERROR")
+                self.log(f"Response text: {response.text}")
+                return False
+            
+            self.log(f"✅ Test submission successful:")
+            self.log(f"   Status: {submission_result.get('status')}")
+            self.log(f"   Score: {submission_result.get('score')}")
+            self.log(f"   Message: {submission_result.get('message')}")
+            
+            # Step 7: Verify the submission results
+            self.log("=== STEP 7: Verifying Submission Results ===")
+            
+            # Get updated resource to verify changes
+            response = self.make_request("GET", f"/students/{student_id}/resources", token=student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get updated resources", "ERROR")
+                return False
+            
+            updated_resources = response.json()
+            updated_t1_resource = None
+            
+            for resource in updated_resources:
+                if resource.get('id') == t1_resource['id']:
+                    updated_t1_resource = resource
+                    break
+            
+            if not updated_t1_resource:
+                self.log("❌ Updated T1 resource not found", "ERROR")
+                return False
+            
+            self.log(f"✅ Updated T1 resource:")
+            self.log(f"   Status: {updated_t1_resource.get('status')}")
+            self.log(f"   Score: {updated_t1_resource.get('score')}")
+            self.log(f"   Submitted At: {updated_t1_resource.get('submitted_at')}")
+            
+            # Step 8: Check if answers were saved in student_answers collection
+            self.log("=== STEP 8: Checking Saved Answers ===")
+            response = self.make_request("GET", f"/student-resources/{t1_resource['id']}/answers", token=student_token)
+            
+            if response and response.status_code == 200:
+                saved_answers = response.json()
+                self.log(f"✅ Answers saved successfully:")
+                self.log(f"   Total answers: {len(saved_answers.get('answers', {}))}")
+                self.log(f"   Sample: Q1={saved_answers.get('answers', {}).get('Q1')}")
+            else:
+                self.log("⚠️ Could not retrieve saved answers (endpoint may not exist)")
+            
+            # Step 9: Final verification checks
+            self.log("=== STEP 9: Final Verification Checks ===")
+            checks = []
+            checks.append(("✅ Student created successfully", created_student is not None))
+            checks.append(("✅ Student login successful", student_token is not None))
+            checks.append(("✅ T1 resource found", t1_resource is not None))
+            checks.append(("✅ Test started successfully", started_resource.get('status') == 'EN_COURS'))
+            checks.append(("✅ Submission successful (no 500/400 error)", response.status_code == 200))
+            checks.append(("✅ Status changed to SOUMIS", updated_t1_resource.get('status') == 'SOUMIS'))
+            checks.append(("✅ Score calculated", updated_t1_resource.get('score') is not None))
+            checks.append(("✅ Submitted timestamp set", updated_t1_resource.get('submitted_at') is not None))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Cleanup
+            self.log("=== CLEANUP ===")
+            if student_id:
+                self.log("Deleting test student...")
+                response = self.make_request("DELETE", f"/students/{student_id}", token=self.teacher_token)
+                if response and response.status_code == 200:
+                    self.log("✅ Test student deleted")
+                else:
+                    self.log("⚠️ Failed to delete test student (cleanup)")
+            
+            if all_passed:
+                self.log("🎉 QUIZ SUBMISSION TEST COMPLETED SUCCESSFULLY!")
+                self.log("✅ No 'Erreur lors de l'envoi du test' - submission works correctly")
+            else:
+                self.log("❌ QUIZ SUBMISSION TEST FAILED - Issues found", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            import traceback
+            self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
+            return False
+
 if __name__ == "__main__":
     main()
