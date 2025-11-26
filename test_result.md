@@ -537,7 +537,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Informatique Pathway Renamed - T1, T2, T3 Tests Verification"
+    - "Nouveaux Tests Informatique - T1, T2, T3 Remplacés avec Questions Windows"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
