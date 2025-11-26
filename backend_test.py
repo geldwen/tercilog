@@ -5564,7 +5564,8 @@ class TerciFormTester:
                 self.log("❌ Failed to get student resources from student perspective", "ERROR")
                 return False
             
-            student_resources = response.json()
+            student_resources_data = response.json()
+            student_resources = student_resources_data.get('resources', [])
             test_resources = [r for r in student_resources if r.get('category') == 'TEST_PARCOURS']
             
             self.log(f"Student can see {len(test_resources)} test resources:")
