@@ -891,43 +891,6 @@ async def create_student(data: dict, current_user: User = Depends(get_current_us
     if resources:
         await save_student_resources(student.id, student.parcours, resources)
     
-    # Assigner automatiquement les tests selon le parcours
-    if student.parcours == "Informatique":
-        # Créer les 3 tests automatiquement
-        
-        tests_to_assign = [
-            {
-                "sub_type": "POSITIONNEMENT",
-                "template_name": "T1 – Test de positionnement informatique",
-                "template_id": "test-informatique-t1-v2"
-            },
-            {
-                "sub_type": "MI_PARCOURS", 
-                "template_name": "T2 – Test mi parcours informatique",
-                "template_id": "test-informatique-t2-v2"
-            },
-            {
-                "sub_type": "FIN",
-                "template_name": "T3 – Test fin de parcours Informatique", 
-                "template_id": "test-informatique-t3-v2"
-            }
-        ]
-        
-        for test in tests_to_assign:
-            resource = StudentResource(
-                student_id=student.id,
-                parcours=student.parcours,
-                category="TEST_PARCOURS",
-                sub_type=test["sub_type"],
-                template_name=test["template_name"],
-                template_id=test["template_id"],
-                resource_type="FORM"
-            )
-            await db.student_resources.insert_one(resource.dict())
-            logger.info(f"Test {test['sub_type'].lower()} '{test['template_name']}' assigné à élève {student.id}")
-        
-        logger.info(f"Total 3 ressources assignées à l'élève {student.id}")
-    
     # Recharger l'élève avec le teacher_id
     updated_student = await db.users.find_one({"id": student.id}, {"_id": 0, "password_hash": 0})
     return User(**updated_student)
