@@ -3660,9 +3660,30 @@ async def get_stats(current_user: User = Depends(get_current_user), month: Optio
     
 
 
+@api_router.post("/sessions/send-30min-reminders")
+async def send_30min_reminders(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """
+    Endpoint pour forcer l'envoi des rappels 30 minutes avant les séances.
+    Accessible uniquement aux enseignants.
+    """
+    try:
+        # Vérifier que c'est un enseignant
+        user = await get_current_user(credentials)
+        if user.get("role") != "teacher":
+            raise HTTPException(status_code=403, detail="Accès réservé aux enseignants")
+        
+        await send_session_reminders()
+        return {"message": "Vérification des rappels 30 minutes effectuée avec succès"}
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Erreur lors de l'envoi des rappels: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/sessions/check-session-reminders")
 async def check_and_send_session_reminders():
-    """Vérifier les séances qui commencent dans 5 minutes et envoyer les rappels"""
+    """Vérifier les séances qui commencent dans 5 minutes et envoyer les rappels (ancien système)"""
     now = datetime.now(timezone.utc)
     
     # Récupérer toutes les séances confirmées qui n'ont pas encore commencé
