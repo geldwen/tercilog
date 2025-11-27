@@ -2741,6 +2741,480 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
     );
   }
 
+
+  // ============================================================================
+  // FONCTIONS DE RENDU POUR QUESTIONNAIRES INFORMATIQUE
+  // ============================================================================
+  
+  function renderInformatiqueFormationNeedsDetail(q) {
+    return (
+      <div className="space-y-6">
+        {/* Section 1: Identification / Situation professionnelle */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              1. Identification / Situation professionnelle
+            </h4>
+            
+            <div className="space-y-2">
+              <Label className="text-gray-900">Type de situation *</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.type_situation || '—'}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-gray-900">Poste occupé</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.poste_occupe || '—'}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Ancienneté</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.anciennete || '—'}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 2: Motivation et objectifs */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              2. Motivation et objectifs
+            </h4>
+            
+            <div className="space-y-2">
+              <Label className="text-gray-900">Formation informatique antérieure</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.formation_anterieure || '—'}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Raison de la formation</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.raison_formation || '—'}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Cadre d'utilisation</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.cadre_utilisation || '—'}</p>
+            </div>
+
+            {q.objectifs_principaux && Array.isArray(q.objectifs_principaux) && q.objectifs_principaux.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Objectifs principaux</Label>
+                <div className="bg-pink-50 p-3 rounded-md border-2 border-pink-200">
+                  {q.objectifs_principaux.map((obj, idx) => (
+                    <div key={idx} className="text-pink-700 font-semibold">• {obj}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Attentes en fin de formation</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.attentes_fin_formation || '—'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 3: Auto-évaluation */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              3. Niveau et compétences informatiques
+            </h4>
+            
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                ['windows', 'Windows'],
+                ['fichiers_dossiers', 'Fichiers/dossiers'],
+                ['navigation_internet', 'Navigation Internet'],
+                ['clavier_souris', 'Clavier/souris']
+              ].map(([key, label]) => (
+                <div key={key} className="space-y-2">
+                  <Label className="text-gray-900">{label}</Label>
+                  <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q[key] || '—'}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 4: Besoins professionnels */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              4. Besoins professionnels
+            </h4>
+            
+            <div className="space-y-2">
+              <Label className="text-gray-900">Situations informatique</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.situations_informatique || '—'}</p>
+            </div>
+
+            {q.difficultes_actuelles && Array.isArray(q.difficultes_actuelles) && q.difficultes_actuelles.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Difficultés actuelles</Label>
+                <div className="bg-pink-50 p-3 rounded-md border-2 border-pink-200">
+                  {q.difficultes_actuelles.map((diff, idx) => (
+                    <div key={idx} className="text-pink-700 font-semibold">• {diff}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {q.contenu_particulier && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Contenu particulier</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.contenu_particulier}</p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Certification</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.certification || '—'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 5: Contraintes */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              5. Contraintes et conditions
+            </h4>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-gray-900">Rythme souhaité</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.rythme_souhaite || '—'}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Format préféré</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.format_prefere || '—'}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Contraintes particulières</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.contraintes_particulieres || '—'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 6: Handicap */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              6. Situation de handicap
+            </h4>
+            
+            <div className="space-y-2">
+              <Label className="text-gray-900">Handicap ou difficulté</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.handicap || '—'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Signature */}
+        {q.signature && (
+          <Card className="border-2 border-green-500/30 bg-green-50">
+            <CardContent className="pt-6">
+              <Label className="text-gray-900 mb-2 block">Signature du stagiaire</Label>
+              <img src={q.signature} alt="Signature" className="border-2 border-green-300 rounded p-2 bg-white max-w-md" />
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  function renderInformatiqueMidCourseDetail(q) {
+    return (
+      <div className="space-y-6">
+        {/* Section 1: Identification */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              1. Identification
+            </h4>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-gray-900">Nom et prénom</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.nom_prenom || '—'}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Date de suivi</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.date_suivi || '—'}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Formateur référent</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.formateur_referent || '—'}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Mode de formation</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.mode_formation || '—'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 2: Ressenti général */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              2. Ressenti général
+            </h4>
+            
+            <div className="space-y-2">
+              <Label className="text-gray-900">Attentes répondues</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.attentes_repondues || '—'}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Rythme et durée</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.rythme_duree || '—'}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Supports et méthodes</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.supports_methodes || '—'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 3: Bilan de progression */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              3. Bilan de progression
+            </h4>
+            
+            <div className="space-y-2">
+              <Label className="text-gray-900">Plus appris</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.plus_appris || '—'}</p>
+            </div>
+
+            {q.difficultes_actuelles && Array.isArray(q.difficultes_actuelles) && q.difficultes_actuelles.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Difficultés actuelles</Label>
+                <div className="bg-pink-50 p-3 rounded-md border-2 border-pink-200">
+                  {q.difficultes_actuelles.map((diff, idx) => (
+                    <div key={idx} className="text-pink-700 font-semibold">• {diff}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Section 4: Attentes pour la suite */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              4. Attentes pour la suite
+            </h4>
+            
+            <div className="space-y-2">
+              <Label className="text-gray-900">Approfondir</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.approfondir || '—'}</p>
+            </div>
+
+            {q.points_approfondir && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Points à approfondir</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.points_approfondir}</p>
+              </div>
+            )}
+
+            {q.suggestions && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Suggestions</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.suggestions}</p>
+              </div>
+            )}
+
+            {q.zone_formateur && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Zone formateur</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.zone_formateur}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Signature */}
+        {q.signature && (
+          <Card className="border-2 border-green-500/30 bg-green-50">
+            <CardContent className="pt-6">
+              <Label className="text-gray-900 mb-2 block">Signature du stagiaire</Label>
+              <img src={q.signature} alt="Signature" className="border-2 border-green-300 rounded p-2 bg-white max-w-md" />
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+  function renderInformatiqueEndCourseDetail(q) {
+    return (
+      <div className="space-y-6">
+        {/* Section 1: Identification */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              1. Identification
+            </h4>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-gray-900">Nom et prénom</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.nom_prenom || '—'}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Date</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.date || '—'}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-gray-900">Formateur référent</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.formateur_referent || '—'}</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-900">Durée totale</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.duree_totale || '—'}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Mode de formation</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.mode_formation || '—'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 2: Bilan de progression */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              2. Bilan de progression
+            </h4>
+            
+            <div className="space-y-2">
+              <Label className="text-gray-900">Progression</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.progression || '—'}</p>
+            </div>
+
+            {q.domaines_amelioration && Array.isArray(q.domaines_amelioration) && q.domaines_amelioration.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Domaines d'amélioration</Label>
+                <div className="bg-pink-50 p-3 rounded-md border-2 border-pink-200">
+                  {q.domaines_amelioration.map((dom, idx) => (
+                    <div key={idx} className="text-pink-700 font-semibold">• {dom}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Aise ordinateur</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.aise_ordinateur || '—'}</p>
+            </div>
+
+            {q.points_renforcer && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Points à renforcer</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.points_renforcer}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Section 3: Satisfaction */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              3. Satisfaction
+            </h4>
+            
+            <div className="space-y-2">
+              <Label className="text-gray-900">Objectifs atteints</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.objectifs_atteints || '—'}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Contenu adapté</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.contenu_adapte || '—'}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Rythme et durée</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.rythme_duree || '—'}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Formateur - attentes</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.formateur_attentes || '—'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 4: Évaluation globale */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              4. Évaluation globale
+            </h4>
+            
+            <div className="space-y-2">
+              <Label className="text-gray-900">Évaluation</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.evaluation_globale || '—'}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Recommandation</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.recommandation || '—'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section 5: Perspectives */}
+        <Card className="border-2 border-[#8B5A2B]/20 bg-gray-50">
+          <CardContent className="pt-6 space-y-4">
+            <h4 className="text-lg font-bold text-gray-900 border-b-2 border-[#8B5A2B]/30 pb-2">
+              5. Perspectives
+            </h4>
+            
+            <div className="space-y-2">
+              <Label className="text-gray-900">Utilisation compétences</Label>
+              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.utilisation_competences || '—'}</p>
+            </div>
+
+            {q.formation_complementaire && (
+              <div className="space-y-2">
+                <Label className="text-gray-900">Formation complémentaire</Label>
+                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.formation_complementaire}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Signature */}
+        {q.signature && (
+          <Card className="border-2 border-green-500/30 bg-green-50">
+            <CardContent className="pt-6">
+              <Label className="text-gray-900 mb-2 block">Signature du stagiaire</Label>
+              <img src={q.signature} alt="Signature" className="border-2 border-green-300 rounded p-2 bg-white max-w-md" />
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
+
   // Vue liste des questionnaires
   return (
     <>
