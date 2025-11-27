@@ -397,12 +397,6 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
-  };
-
-  const deselectAllStudents = () => {
-    setSelectedStudents([]);
-  };
-
   const handleCreateStudent = async (e) => {
     e.preventDefault();
     try {
