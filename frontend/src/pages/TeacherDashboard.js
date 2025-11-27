@@ -627,7 +627,8 @@ export default function TeacherDashboard({ user, onLogout }) {
       hourly_rate: calculatedRate,
       hourly_rate_source: session.hourly_rate_source || "auto",
       modality: session.modality || "distanciel",
-      organism: session.organism || ""
+      organism: session.organism || "",
+      time_slots: [{ start_time: session.start_time || "", end_time: session.end_time || "" }]
     });
     setShowEditSession(true);
   };
