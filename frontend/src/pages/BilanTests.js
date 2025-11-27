@@ -218,6 +218,7 @@ export default function BilanTests() {
                   <SelectItem value="bureautique">Bureautique</SelectItem>
                   <SelectItem value="management">Management</SelectItem>
                   <SelectItem value="anglais">Anglais</SelectItem>
+                  <SelectItem value="informatique">Informatique</SelectItem>
                 </SelectContent>
               </Select>
             </div>
