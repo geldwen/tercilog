@@ -1467,15 +1467,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     Modifier
                                   </Button>
                                   <Button 
-                                    onClick={() => handleOpenEditTimes(session)} 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-indigo-600 border-indigo-300 hover:bg-indigo-50"
-                                  >
-                                    <Clock className="w-4 h-4" />
-                                    Modifier horaires
-                                  </Button>
-                                  <Button 
                                     onClick={() => handleDeleteSession(session.id)} 
                                     variant="outline" 
                                     size="sm" 
@@ -1483,6 +1474,15 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   >
                                     <Trash2 className="w-4 h-4" />
                                     Supprimer
+                                  </Button>
+                                  <Button 
+                                    onClick={() => handleOpenStudentHistory(session.student_id, session.student_name)} 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-purple-600 border-purple-300 hover:bg-purple-50"
+                                  >
+                                    <FileText className="w-4 h-4" />
+                                    Historique
                                   </Button>
                                 </div>
                               </div>
