@@ -390,7 +390,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Type</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white">
               {monthSessions.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="px-4 py-8 text-center text-gray-500">
@@ -398,98 +398,127 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
                   </td>
                 </tr>
               ) : (
-                monthSessions.map((session) => (
-                  <tr key={session.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
-                      {formatDate(session.date)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {session.student_name}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {session.subject}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {session.organism || 'Zepartner'}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                      {session.duration_hours.toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                      {session.hourly_rate === null ? (
-                        <div className="flex items-center gap-2">
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            Prix manquant
-                          </span>
-                          <Button
-                            size="sm"
-                            onClick={() => applySuggestedRate(session.id, session.subject)}
-                            className="text-xs h-7 bg-blue-600 hover:bg-blue-700"
-                          >
-                            Appliquer suggestion
-                          </Button>
-                        </div>
-                      ) : editingHourlyRate[session.id] !== undefined ? (
-                        <div className="flex items-center gap-1">
-                          <Input
-                            type="number"
-                            step="1"
-                            min="0"
-                            value={editingHourlyRate[session.id]}
-                            onChange={(e) => setEditingHourlyRate({
-                              ...editingHourlyRate,
-                              [session.id]: e.target.value
-                            })}
-                            className="w-20 h-8 text-sm"
-                            onBlur={() => {
-                              if (editingHourlyRate[session.id] !== session.hourly_rate) {
-                                handleUpdateHourlyRate(session.id, editingHourlyRate[session.id]);
-                              } else {
-                                setEditingHourlyRate({});
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handleUpdateHourlyRate(session.id, editingHourlyRate[session.id]);
-                              } else if (e.key === 'Escape') {
-                                setEditingHourlyRate({});
-                              }
-                            }}
-                            autoFocus
-                          />
-                        </div>
-                      ) : (
-                        <span
-                          onClick={() => setEditingHourlyRate({ [session.id]: session.hourly_rate })}
-                          className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
-                        >
-                          {session.hourly_rate.toFixed(2)}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
-                      {formatCurrency(session.amount)}
-                    </td>
-                    <td className="px-4 py-3 text-sm">
-                      {session.signature_status === 'signed' ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Émargée
-                        </span>
-                      ) : session.status === 'confirmed' ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Confirmée
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          En attente
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {session.modality === 'presentiel' ? 'Présentiel' : 'Distanciel'}
-                    </td>
-                  </tr>
-                ))
+                Object.keys(sessionsByDay).sort().map((date) => {
+                  const daySessions = sessionsByDay[date];
+                  const dayTotal = daySessions.reduce((sum, s) => sum + (s.amount || 0), 0);
+                  const dayHours = daySessions.reduce((sum, s) => sum + (s.duration_hours || 0), 0);
+                  
+                  return (
+                    <React.Fragment key={date}>
+                      {/* Ligne principale du jour */}
+                      <tr className="bg-blue-50 border-t-2 border-blue-200">
+                        <td className="px-4 py-3 text-sm font-bold text-blue-900" rowSpan={daySessions.length + 1}>
+                          {formatDate(date)}
+                        </td>
+                        <td colSpan="3" className="px-4 py-2 text-xs font-semibold text-blue-800">
+                          {daySessions.length} séance(s) • Détails ci-dessous
+                        </td>
+                        <td className="px-4 py-2 text-sm font-bold text-blue-900 text-right">
+                          {dayHours.toFixed(2)} h
+                        </td>
+                        <td className="px-4 py-2 text-sm text-blue-800 text-right">-</td>
+                        <td className="px-4 py-2 text-sm font-bold text-blue-900 text-right">
+                          {formatCurrency(dayTotal)}
+                        </td>
+                        <td colSpan="2" className="px-4 py-2"></td>
+                      </tr>
+                      
+                      {/* Détails des séances du jour */}
+                      {daySessions.map((session, idx) => (
+                        <tr key={session.id} className={`hover:bg-gray-50 ${idx === daySessions.length - 1 ? 'border-b-2 border-gray-300' : ''}`}>
+                          <td className="px-4 py-2 pl-8 text-xs text-gray-600">
+                            ⏰ {session.start_time}–{session.end_time}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-900">
+                            {session.student_name}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-900">
+                            {session.subject}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-700">
+                            {session.organism || 'Zepartner'}
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-600 text-right">
+                            {session.duration_hours.toFixed(2)} h
+                          </td>
+                          <td className="px-4 py-2 text-sm text-gray-900 text-right">
+                            {session.hourly_rate === null ? (
+                              <div className="flex items-center gap-2 justify-end">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                  Prix manquant
+                                </span>
+                                <Button
+                                  size="sm"
+                                  onClick={() => applySuggestedRate(session.id, session.subject)}
+                                  className="text-xs h-6 bg-blue-600 hover:bg-blue-700"
+                                >
+                                  Suggérer
+                                </Button>
+                              </div>
+                            ) : editingHourlyRate[session.id] !== undefined ? (
+                              <div className="flex items-center gap-1 justify-end">
+                                <Input
+                                  type="number"
+                                  step="1"
+                                  min="0"
+                                  value={editingHourlyRate[session.id]}
+                                  onChange={(e) => setEditingHourlyRate({
+                                    ...editingHourlyRate,
+                                    [session.id]: e.target.value
+                                  })}
+                                  className="w-20 h-7 text-sm"
+                                  onBlur={() => {
+                                    if (editingHourlyRate[session.id] !== session.hourly_rate) {
+                                      handleUpdateHourlyRate(session.id, editingHourlyRate[session.id]);
+                                    } else {
+                                      setEditingHourlyRate({});
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleUpdateHourlyRate(session.id, editingHourlyRate[session.id]);
+                                    } else if (e.key === 'Escape') {
+                                      setEditingHourlyRate({});
+                                    }
+                                  }}
+                                  autoFocus
+                                />
+                              </div>
+                            ) : (
+                              <span
+                                onClick={() => setEditingHourlyRate({ [session.id]: session.hourly_rate })}
+                                className="cursor-pointer hover:bg-gray-100 px-2 py-1 rounded"
+                              >
+                                {session.hourly_rate.toFixed(2)} €
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-2 text-sm font-semibold text-gray-900 text-right">
+                            {formatCurrency(session.amount)}
+                          </td>
+                          <td className="px-4 py-2 text-xs">
+                            {session.signature_status === 'signed' ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Émargée
+                              </span>
+                            ) : session.status === 'confirmed' ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Confirmée
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Attente
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-2 text-xs text-gray-600">
+                            {session.modality === 'presentiel' ? 'Prés.' : 'Dist.'}
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  );
+                })
               )}
             </tbody>
             {monthSessions.length > 0 && (
