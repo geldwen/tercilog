@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import SignaturePad from './SignaturePad';
+import SignatureCanvas from 'react-signature-canvas';
 import axios from 'axios';
 import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function InformatiqueFormationNeedsQuestionnaire({ open, onClose, studentId, resourceId }) {
+  const sigCanvas = useRef(null);
   const [formData, setFormData] = useState({
     type_situation: '',
     poste_occupe: '',
@@ -34,9 +35,7 @@ export default function InformatiqueFormationNeedsQuestionnaire({ open, onClose,
     handicap: ''
   });
   
-  const [signature, setSignature] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [showSignaturePad, setShowSignaturePad] = useState(false);
 
   const updateField = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -53,13 +52,21 @@ export default function InformatiqueFormationNeedsQuestionnaire({ open, onClose,
     });
   };
 
+  const clearSignature = () => {
+    if (sigCanvas.current) {
+      sigCanvas.current.clear();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!signature) {
+    if (!sigCanvas.current || sigCanvas.current.isEmpty()) {
       toast.error("Veuillez signer le questionnaire");
       return;
     }
+
+    const signature = sigCanvas.current.toDataURL();
 
     try {
       setSubmitting(true);
@@ -394,29 +401,19 @@ export default function InformatiqueFormationNeedsQuestionnaire({ open, onClose,
             
             <div>
               <Label>Signature du stagiaire (horodatée) *</Label>
-              {!signature ? (
-                <div>
-                  <Button type="button" onClick={() => setShowSignaturePad(true)} className="mb-2">
-                    Signer
-                  </Button>
-                  {showSignaturePad && (
-                    <SignaturePad
-                      onSave={(sig) => {
-                        setSignature(sig);
-                        setShowSignaturePad(false);
-                      }}
-                      onCancel={() => setShowSignaturePad(false)}
-                    />
-                  )}
-                </div>
-              ) : (
-                <div>
-                  <img src={signature} alt="Signature" className="border rounded p-2 max-w-md" />
-                  <Button type="button" onClick={() => setSignature('')} variant="outline" className="mt-2">
-                    Effacer la signature
-                  </Button>
-                </div>
-              )}
+              <div className="border-2 border-gray-300 rounded mt-2">
+                <SignatureCanvas
+                  ref={sigCanvas}
+                  canvasProps={{
+                    className: "w-full h-40 touch-none",
+                    style: { touchAction: "none" }
+                  }}
+                  onTouchStart={(e) => e.preventDefault()}
+                />
+              </div>
+              <Button type="button" variant="outline" onClick={clearSignature} className="mt-2">
+                Effacer la signature
+              </Button>
             </div>
           </div>
 
