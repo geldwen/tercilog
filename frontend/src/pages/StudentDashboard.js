@@ -1350,6 +1350,99 @@ export default function StudentDashboard({ user, onLogout }) {
           </form>
         </DialogContent>
       </Dialog>
+
+
+      {/* Modal de signature du livret d'accueil */}
+      <Dialog open={showLivretSignatureDialog} onOpenChange={setShowLivretSignatureDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold" style={{color: TERCIFORM_BLUE}}>
+              Signature du livret d'accueil
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Message d'attestation */}
+            <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
+              <p className="text-gray-800 whitespace-pre-line leading-relaxed">
+                <span className="font-semibold">Je soussigné(e) {user?.name},</span>
+                {'\n\n'}
+                atteste avoir pris connaissance du livret d'accueil mis à ma disposition, du règlement intérieur, ainsi que de l'engagement du bénéficiaire.
+                {'\n\n'}
+                Je déclare avoir lu ces documents, en comprendre le contenu, et accepter sans réserve les règles de fonctionnement, les consignes de sécurité, les droits et devoirs qui y sont définis.
+                {'\n\n'}
+                Je reconnais que cette validation électronique vaut engagement de ma part et fait foi au même titre qu'une signature manuscrite sur document papier.
+              </p>
+            </div>
+
+            {/* Case à cocher obligatoire */}
+            <div className="flex items-start gap-3 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+              <input
+                type="checkbox"
+                id="livret-checkbox"
+                checked={livretAcceptedCheckbox}
+                onChange={(e) => setLivretAcceptedCheckbox(e.target.checked)}
+                className="w-5 h-5 mt-1 cursor-pointer"
+              />
+              <label htmlFor="livret-checkbox" className="cursor-pointer text-gray-800 font-medium">
+                Je confirme avoir lu et accepté le livret d'accueil, le règlement intérieur et l'engagement bénéficiaire. *
+              </label>
+            </div>
+
+            {/* Zone de signature */}
+            <div className="space-y-3">
+              <Label className="text-lg font-semibold" style={{color: TERCIFORM_BLUE}}>
+                Signature manuelle (obligatoire) *
+              </Label>
+              <p className="text-sm text-gray-600">
+                Dessinez votre signature ci-dessous avec votre souris ou votre doigt
+              </p>
+              
+              <div className="border-2 border-gray-300 rounded-lg bg-white">
+                <SignatureCanvas
+                  ref={(ref) => { window.livretSigCanvas = ref; }}
+                  canvasProps={{
+                    className: "w-full h-48 touch-none",
+                    style: { touchAction: "none" }
+                  }}
+                  onTouchStart={(e) => e.preventDefault()}
+                />
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={clearLivretSignature}
+                  className="text-gray-700"
+                >
+                  Effacer
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowLivretSignatureDialog(false)}
+              disabled={submittingLivret}
+            >
+              Annuler
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSubmitLivretSignature}
+              disabled={!livretAcceptedCheckbox || submittingLivret}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {submittingLivret ? 'Validation en cours...' : 'Valider la signature'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
