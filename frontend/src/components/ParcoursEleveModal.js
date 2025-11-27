@@ -973,37 +973,89 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
     try {
       setLoading(true);
       
-      // Déterminer les endpoints selon le parcours de l'élève
-      const isBureautique = student?.parcours === "Bureautique";
-      const q1Endpoint = isBureautique ? 'bureautique-formation-needs' : 'formation-needs';
-      const q2Endpoint = isBureautique ? 'bureautique-mid-course-questionnaire' : 'mid-course-questionnaire';
-      const q3Endpoint = isBureautique ? 'bureautique-end-course-questionnaire' : 'end-course-questionnaire';
-      
-      // Charger le questionnaire de besoins en formation
-      const formationNeedsResponse = await axios.get(
-        `${API}/students/${studentId}/${q1Endpoint}`,
-        { headers: getAuthHeaders() }
-      );
-      if (formationNeedsResponse.data.exists) {
-        setFormationNeedsQ(formationNeedsResponse.data.questionnaire);
-      }
-      
-      // Charger le questionnaire à mi-parcours
-      const midCourseResponse = await axios.get(
-        `${API}/students/${studentId}/${q2Endpoint}`,
-        { headers: getAuthHeaders() }
-      );
-      if (midCourseResponse.data.exists) {
-        setMidCourseQ(midCourseResponse.data.questionnaire);
-      }
-      
-      // Charger le questionnaire de fin de formation
-      const endCourseResponse = await axios.get(
-        `${API}/students/${studentId}/${q3Endpoint}`,
-        { headers: getAuthHeaders() }
-      );
-      if (endCourseResponse.data.exists) {
-        setEndCourseQ(endCourseResponse.data.questionnaire);
+      // Pour Informatique : charger depuis student_resources
+      if (student?.parcours === "Informatique") {
+        const resourcesResponse = await axios.get(
+          `${API}/students/${studentId}/resources`,
+          { headers: getAuthHeaders() }
+        );
+        
+        const resources = resourcesResponse.data.resources || [];
+        
+        // Q1 - POSITIONNEMENT
+        const q1Resource = resources.find(r => 
+          r.category === 'QUESTIONNAIRE_QUALIOPI' && 
+          r.sub_type === 'POSITIONNEMENT' && 
+          r.status === 'SOUMIS'
+        );
+        if (q1Resource && q1Resource.answers) {
+          setFormationNeedsQ({
+            ...q1Resource.answers,
+            submitted_at: q1Resource.submitted_at,
+            signature: q1Resource.signature
+          });
+        }
+        
+        // Q2 - MI_PARCOURS
+        const q2Resource = resources.find(r => 
+          r.category === 'QUESTIONNAIRE_QUALIOPI' && 
+          r.sub_type === 'MI_PARCOURS' && 
+          r.status === 'SOUMIS'
+        );
+        if (q2Resource && q2Resource.answers) {
+          setMidCourseQ({
+            ...q2Resource.answers,
+            submitted_at: q2Resource.submitted_at,
+            signature: q2Resource.signature
+          });
+        }
+        
+        // Q3 - FIN
+        const q3Resource = resources.find(r => 
+          r.category === 'QUESTIONNAIRE_QUALIOPI' && 
+          r.sub_type === 'FIN' && 
+          r.status === 'SOUMIS'
+        );
+        if (q3Resource && q3Resource.answers) {
+          setEndCourseQ({
+            ...q3Resource.answers,
+            submitted_at: q3Resource.submitted_at,
+            signature: q3Resource.signature
+          });
+        }
+      } else {
+        // Pour Bureautique et Anglais : utiliser les endpoints existants
+        const isBureautique = student?.parcours === "Bureautique";
+        const q1Endpoint = isBureautique ? 'bureautique-formation-needs' : 'formation-needs';
+        const q2Endpoint = isBureautique ? 'bureautique-mid-course-questionnaire' : 'mid-course-questionnaire';
+        const q3Endpoint = isBureautique ? 'bureautique-end-course-questionnaire' : 'end-course-questionnaire';
+        
+        // Charger le questionnaire de besoins en formation
+        const formationNeedsResponse = await axios.get(
+          `${API}/students/${studentId}/${q1Endpoint}`,
+          { headers: getAuthHeaders() }
+        );
+        if (formationNeedsResponse.data.exists) {
+          setFormationNeedsQ(formationNeedsResponse.data.questionnaire);
+        }
+        
+        // Charger le questionnaire à mi-parcours
+        const midCourseResponse = await axios.get(
+          `${API}/students/${studentId}/${q2Endpoint}`,
+          { headers: getAuthHeaders() }
+        );
+        if (midCourseResponse.data.exists) {
+          setMidCourseQ(midCourseResponse.data.questionnaire);
+        }
+        
+        // Charger le questionnaire de fin de formation
+        const endCourseResponse = await axios.get(
+          `${API}/students/${studentId}/${q3Endpoint}`,
+          { headers: getAuthHeaders() }
+        );
+        if (endCourseResponse.data.exists) {
+          setEndCourseQ(endCourseResponse.data.questionnaire);
+        }
       }
       
     } catch (error) {
