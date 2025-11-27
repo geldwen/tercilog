@@ -7378,4 +7378,9 @@ app.add_middleware(
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    # Arrêter le scheduler
+    if scheduler.running:
+        scheduler.shutdown()
+        logger.info("✅ Scheduler de rappels arrêté")
+    # Fermer la connexion MongoDB
     client.close()
