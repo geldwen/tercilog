@@ -286,7 +286,14 @@ export default function TeacherDashboard({ user, onLogout }) {
   };
 
   const addSessionToMulti = () => {
-    setMultiSessions([...multiSessions, { subject: "", date: "", start_time: "", end_time: "", modality: "distanciel", hourly_rate: 0, meeting_link: "" }]);
+    setMultiSessions([...multiSessions, { 
+      subject: "", 
+      date: "", 
+      time_slots: [{ start_time: "", end_time: "" }],
+      modality: "distanciel", 
+      hourly_rate: 0, 
+      meeting_link: "" 
+    }]);
   };
 
   const removeSessionFromMulti = (index) => {
@@ -298,6 +305,26 @@ export default function TeacherDashboard({ user, onLogout }) {
   const updateMultiSession = (index, field, value) => {
     const updated = [...multiSessions];
     updated[index][field] = value;
+    setMultiSessions(updated);
+  };
+
+  const addTimeSlot = (sessionIndex) => {
+    const updated = [...multiSessions];
+    updated[sessionIndex].time_slots.push({ start_time: "", end_time: "" });
+    setMultiSessions(updated);
+  };
+
+  const removeTimeSlot = (sessionIndex, slotIndex) => {
+    const updated = [...multiSessions];
+    if (updated[sessionIndex].time_slots.length > 1) {
+      updated[sessionIndex].time_slots.splice(slotIndex, 1);
+      setMultiSessions(updated);
+    }
+  };
+
+  const updateTimeSlot = (sessionIndex, slotIndex, field, value) => {
+    const updated = [...multiSessions];
+    updated[sessionIndex].time_slots[slotIndex][field] = value;
     setMultiSessions(updated);
   };
 
