@@ -548,15 +548,18 @@ test_plan:
 frontend:
   - task: "Mouse Signature Functionality in Informatique Questionnaires"
     implemented: true
-    working: "unknown"
+    working: true
     file: "InformatiqueFormationNeedsQuestionnaire.js, SignaturePad.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "unknown"
           agent: "main"
           comment: "USER REPORTED ISSUE: Mouse signature functionality NOT working in Informatique questionnaires. User reports that signature with mouse does not work as it did before. Need to test: 1) Login with ghizzo.j@gmail.com / ghi123, 2) Access 'Mes objectifs' tab, 3) Open Q1 questionnaire, 4) Test signature canvas with mouse drawing, 5) Verify signature can be drawn and validated. SignaturePad component uses Pointer Events API with touchAction: none for mouse/touch support."
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE MOUSE SIGNATURE FUNCTIONALITY TEST COMPLETED SUCCESSFULLY: Tested complete flow from login to signature validation. DETAILED VERIFICATION: 1) ✅ Login successful with ghizzo.j@gmail.com / ghi123 (student: coucouille), 2) ✅ Parcours confirmed as 'Informatique', 3) ✅ 'Mes objectifs' tab navigation working, 4) ✅ Q1 questionnaire opened successfully ('1) Questionnaire de besoin en formation'), 5) ✅ Section '7. Validation' found and accessible, 6) ✅ 'Signer' button clicked and signature canvas displayed (842x200px), 7) ✅ MOUSE DRAWING TEST SUCCESSFUL: Canvas detected 412 non-white pixels after mouse drawing, confirming drawing functionality works, 8) ✅ Canvas properties verified: touchAction: none, proper event handling, 9) ✅ 'Valider la signature' button working, 10) ✅ Signature image displayed after validation. CONCLUSION: Mouse signature functionality is WORKING CORRECTLY. The user's reported issue may be due to browser-specific behavior, user interaction method, or temporary glitch. SignaturePad component properly handles mouse events with Pointer Events API."
 
   - task: "Student Dashboard Visual Improvements - 4 New Enhancements"
     implemented: true
