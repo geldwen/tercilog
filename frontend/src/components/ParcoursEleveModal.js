@@ -988,11 +988,11 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
           r.sub_type === 'POSITIONNEMENT' && 
           r.status === 'SOUMIS'
         );
-        if (q1Resource && q1Resource.answers) {
+        if (q1Resource && q1Resource.answers && q1Resource.answers.answers) {
           setFormationNeedsQ({
-            ...q1Resource.answers,
-            submitted_at: q1Resource.submitted_at,
-            signature: q1Resource.signature
+            ...q1Resource.answers.answers,
+            submitted_at: q1Resource.answers.submitted_at || q1Resource.submitted_at,
+            signature: q1Resource.answers.signature || q1Resource.signature
           });
         }
         
@@ -1002,11 +1002,11 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
           r.sub_type === 'MI_PARCOURS' && 
           r.status === 'SOUMIS'
         );
-        if (q2Resource && q2Resource.answers) {
+        if (q2Resource && q2Resource.answers && q2Resource.answers.answers) {
           setMidCourseQ({
-            ...q2Resource.answers,
-            submitted_at: q2Resource.submitted_at,
-            signature: q2Resource.signature
+            ...q2Resource.answers.answers,
+            submitted_at: q2Resource.answers.submitted_at || q2Resource.submitted_at,
+            signature: q2Resource.answers.signature || q2Resource.signature
           });
         }
         
@@ -1016,11 +1016,11 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
           r.sub_type === 'FIN' && 
           r.status === 'SOUMIS'
         );
-        if (q3Resource && q3Resource.answers) {
+        if (q3Resource && q3Resource.answers && q3Resource.answers.answers) {
           setEndCourseQ({
-            ...q3Resource.answers,
-            submitted_at: q3Resource.submitted_at,
-            signature: q3Resource.signature
+            ...q3Resource.answers.answers,
+            submitted_at: q3Resource.answers.submitted_at || q3Resource.submitted_at,
+            signature: q3Resource.answers.signature || q3Resource.signature
           });
         }
       } else {
