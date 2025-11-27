@@ -45,6 +45,14 @@ export default function StudentDashboard({ user, onLogout }) {
   const [currentSessionToSign, setCurrentSessionToSign] = useState(null);
   const [studentResources, setStudentResources] = useState([]);
   
+  // Livret d'accueil states
+  const [livretStatus, setLivretStatus] = useState({ signed: false, signed_at: null });
+  const [showLivretSignatureDialog, setShowLivretSignatureDialog] = useState(false);
+  const [livretAcceptedCheckbox, setLivretAcceptedCheckbox] = useState(false);
+  const [livretSignature, setLivretSignature] = useState('');
+  const [showLivretSignaturePad, setShowLivretSignaturePad] = useState(false);
+  const [submittingLivret, setSubmittingLivret] = useState(false);
+  
   // Contact Teacher state
   const [showContactTeacherDialog, setShowContactTeacherDialog] = useState(false);
   const [contactTeacher, setContactTeacher] = useState({
