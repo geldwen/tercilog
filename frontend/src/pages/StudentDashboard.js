@@ -97,6 +97,100 @@ export default function StudentDashboard({ user, onLogout }) {
     }
   };
 
+
+  // Fonctions pour le Livret d'accueil
+  const loadLivretStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `${API}/students/${user.id}/livret-status`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setLivretStatus(response.data);
+    } catch (error) {
+      console.error('Erreur lors du chargement du statut du livret:', error);
+    }
+  };
+
+  const handleConsulterLivret = () => {
+    window.open(`${API}/livret-accueil`, '_blank');
+  };
+
+  const handleTelechargerLivret = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/livret-accueil`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'Livret_Accueil_TerciForm.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Livret d\'accueil téléchargé !');
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+      toast.error('Erreur lors du téléchargement du livret');
+    }
+  };
+
+  const handleSignerLivret = () => {
+    setShowLivretSignatureDialog(true);
+    setLivretAcceptedCheckbox(false);
+    setLivretSignature('');
+    setShowLivretSignaturePad(false);
+  };
+
+  const clearLivretSignature = () => {
+    if (window.livretSigCanvas) {
+      window.livretSigCanvas.clear();
+    }
+  };
+
+  const handleSubmitLivretSignature = async () => {
+    if (!livretAcceptedCheckbox) {
+      toast.error('Vous devez cocher la case de confirmation');
+      return;
+    }
+
+    if (!window.livretSigCanvas || window.livretSigCanvas.isEmpty()) {
+      toast.error('Veuillez signer le document');
+      return;
+    }
+
+    const signature = window.livretSigCanvas.toDataURL();
+
+    try {
+      setSubmittingLivret(true);
+      const token = localStorage.getItem('token');
+      
+      await axios.post(
+        `${API}/students/${user.id}/sign-livret`,
+        {
+          signature,
+          accepted_checkbox: livretAcceptedCheckbox
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success('Livret d\'accueil signé avec succès !');
+      setShowLivretSignatureDialog(false);
+      await loadLivretStatus(); // Recharger le statut
+    } catch (error) {
+      console.error('Erreur lors de la signature:', error);
+      toast.error('Erreur lors de la signature du livret');
+    } finally {
+      setSubmittingLivret(false);
+    }
+  };
+
+
   const loadQuestionnairesStatus = async () => {
     try {
       const token = localStorage.getItem('token');
