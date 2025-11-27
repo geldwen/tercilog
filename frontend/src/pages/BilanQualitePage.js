@@ -71,7 +71,7 @@ const corrigerStatuts = (questionnaires) => {
 
 const BilanQualitePage = () => {
   const navigate = useNavigate();
-  const [parcours, setParcours] = useState(["Toutes", "Anglais", "Management", "Bureautique"]);
+  const [parcours, setParcours] = useState(["Toutes", "Anglais", "Management", "Bureautique", "Informatique"]);
   const [filtres, setFiltres] = useState({
     periodeType: "mois",
     moisIndex: new Date().getMonth(), // 0-11
