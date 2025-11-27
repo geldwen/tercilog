@@ -515,8 +515,22 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                                 <DropdownMenuItem 
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setCurrentEvent(event);
-                                    setShowModal(true);
+                                    if (event.origin === 'local') {
+                                      setCurrentEvent(event);
+                                      setModalData({
+                                        date: event.date,
+                                        start_time: event.start_time,
+                                        end_time: event.end_time,
+                                        center: event.center || event.organism,
+                                        subject: event.subject || '',
+                                        title: event.title,
+                                        modality: event.modality || 'distanciel',
+                                        color: event.color || '#3B82F6'
+                                      });
+                                      setShowModal(true);
+                                    } else {
+                                      toast.error('Les séances Emergent ne peuvent pas être modifiées ici');
+                                    }
                                   }}
                                   className="text-blue-600"
                                 >
