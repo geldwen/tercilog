@@ -7260,7 +7260,9 @@ async def get_student_history(
             })
     
     # Trier l'historique par date décroissante (plus récent en premier)
-    history.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
+    history.sort(key=lambda x: x.get('timestamp', '') if x.get('timestamp') else '', reverse=True)
+    
+    logger.info(f"📊 Historique pour {student.get('name')}: {len(history)} événements")
     
     return {
         "student_id": student_id,
