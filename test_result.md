@@ -546,6 +546,18 @@ test_plan:
   test_priority: "high_first"
 
 frontend:
+  - task: "Mouse Signature Functionality in Informatique Questionnaires"
+    implemented: true
+    working: "unknown"
+    file: "InformatiqueFormationNeedsQuestionnaire.js, SignaturePad.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "USER REPORTED ISSUE: Mouse signature functionality NOT working in Informatique questionnaires. User reports that signature with mouse does not work as it did before. Need to test: 1) Login with ghizzo.j@gmail.com / ghi123, 2) Access 'Mes objectifs' tab, 3) Open Q1 questionnaire, 4) Test signature canvas with mouse drawing, 5) Verify signature can be drawn and validated. SignaturePad component uses Pointer Events API with touchAction: none for mouse/touch support."
+
   - task: "Student Dashboard Visual Improvements - 4 New Enhancements"
     implemented: true
     working: true
