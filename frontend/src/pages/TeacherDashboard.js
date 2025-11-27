@@ -667,7 +667,7 @@ export default function TeacherDashboard({ user, onLogout }) {
           hourly_rate_source: sessionForm.hourly_rate_source,
           modality: sessionForm.modality,
           organism: sessionForm.organism
-        });
+        }, { headers: { Authorization: `Bearer ${token}` } });
         toast.success("Séance modifiée !");
       }
       
