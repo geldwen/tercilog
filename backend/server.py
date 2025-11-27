@@ -29,6 +29,9 @@ import io
 import fitz  # PyMuPDF - pas besoin de poppler !
 from PIL import Image as PILImage
 from quality_ai_agent import calculate_quality_scores
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+import asyncio
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
