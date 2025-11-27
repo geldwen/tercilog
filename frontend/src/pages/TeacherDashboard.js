@@ -2296,12 +2296,11 @@ export default function TeacherDashboard({ user, onLogout }) {
                               {/* Bouton Historique */}
                               <Button 
                                 onClick={() => handleOpenStudentHistory(student.id, student.name)} 
-                                variant="outline" 
                                 size="sm" 
-                                className="w-full py-3 rounded-md flex items-center justify-start gap-2 border-2 border-purple-500 bg-white hover:bg-purple-50"
+                                className="w-full py-3 rounded-md flex items-center justify-start gap-2 bg-gray-200 hover:bg-gray-300 text-gray-700"
                               >
-                                <FileText className="w-5 h-5 text-purple-600" />
-                                <span className="font-medium text-purple-700">Historique</span>
+                                <FileText className="w-5 h-5 text-gray-700" />
+                                <span className="font-medium">Historique</span>
                               </Button>
                               {/* Bouton Parcours élève */}
                               <Button 
