@@ -569,8 +569,23 @@ async def send_session_reminders():
                     
                     subject_matter = session.get("subject", "votre cours")
                     modality = session.get("modality", "distanciel")
-                    meeting_link = session.get("meeting_link", "")
-                    student_address = student.get("address", "")
+                    student_address = student.get("formation_address", "") or student.get("address", "")
+                    session_end_time = session.get("end_time", "")
+                    
+                    # Calculer la durée
+                    duration_str = ""
+                    if session_time and session_end_time:
+                        try:
+                            start_h, start_m = map(int, session_time.split(':'))
+                            end_h, end_m = map(int, session_end_time.split(':'))
+                            duration_minutes = (end_h * 60 + end_m) - (start_h * 60 + start_m)
+                            duration_hours = duration_minutes / 60
+                            if duration_hours == int(duration_hours):
+                                duration_str = f"{int(duration_hours)}h"
+                            else:
+                                duration_str = f"{duration_hours:.1f}h"
+                        except:
+                            duration_str = ""
                     
                     # 1A) Envoyer email à l'élève
                     student_subject = f"📅 Rappel : Votre séance de {subject_matter} commence dans 30 minutes"
@@ -578,17 +593,9 @@ async def send_session_reminders():
                     if modality == "distanciel":
                         modality_message = """
                         <p style="margin: 16px 0; font-size: 15px; color: #1e3a8a; background-color: #dbeafe; padding: 16px; border-radius: 6px; border-left: 4px solid #3b82f6;">
-                            <strong>📹 Séance en distanciel</strong><br/>
-                            Un lien de visioconférence vous sera envoyé par email.
+                            <strong>📹 Séance en distanciel</strong>
                         </p>
                         """
-                        if meeting_link:
-                            modality_message = f"""
-                            <p style="margin: 16px 0; font-size: 15px; color: #1e3a8a; background-color: #dbeafe; padding: 16px; border-radius: 6px; border-left: 4px solid #3b82f6;">
-                                <strong>📹 Séance en distanciel</strong><br/>
-                                Lien de visioconférence : <a href="{meeting_link}" style="color: #2563eb; text-decoration: underline;">{meeting_link}</a>
-                            </p>
-                            """
                     else:
                         location = student_address if student_address else "l'adresse indiquée"
                         modality_message = f"""
