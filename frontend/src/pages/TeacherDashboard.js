@@ -341,6 +341,59 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   const selectAllStudents = () => {
     setSelectedStudents(students.map(s => s.id));
+
+
+  // Fonctions pour modifier les horaires d'une séance
+  const handleOpenEditTimes = (session) => {
+    setEditingSession(session);
+    setEditTimeSlots([{ start_time: session.start_time, end_time: session.end_time }]);
+    setShowEditTimesDialog(true);
+  };
+
+  const addEditTimeSlot = () => {
+    setEditTimeSlots([...editTimeSlots, { start_time: "", end_time: "" }]);
+  };
+
+  const removeEditTimeSlot = (index) => {
+    if (editTimeSlots.length > 1) {
+      setEditTimeSlots(editTimeSlots.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateEditTimeSlot = (index, field, value) => {
+    const updated = [...editTimeSlots];
+    updated[index][field] = value;
+    setEditTimeSlots(updated);
+  };
+
+  const handleSaveEditTimes = async () => {
+    if (!editingSession) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      
+      await axios.put(
+        `${API}/sessions/${editingSession.id}/times`,
+        { 
+          time_slots: editTimeSlots,
+          date: editingSession.date,
+          subject: editingSession.subject,
+          modality: editingSession.modality,
+          meeting_link: editingSession.meeting_link,
+          hourly_rate: editingSession.hourly_rate
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success('Horaires modifiés avec succès !');
+      setShowEditTimesDialog(false);
+      loadSessions();
+    } catch (error) {
+      console.error('Erreur lors de la modification des horaires:', error);
+      toast.error(error.response?.data?.detail || 'Erreur lors de la modification');
+    }
+  };
+
   };
 
   const deselectAllStudents = () => {
