@@ -2733,52 +2733,61 @@ async def create_bulk_sessions(
         
         student_sessions = []
         for session_data in sessions_data:
-            # Calculate duration
-            try:
-                start_h, start_m = map(int, session_data['start_time'].split(':'))
-                end_h, end_m = map(int, session_data['end_time'].split(':'))
-                duration = (end_h * 60 + end_m - start_h * 60 - start_m) / 60.0
-            except:
-                duration = 0.0
+            # Récupérer les créneaux horaires (time_slots) s'ils existent
+            time_slots = session_data.get('time_slots', [])
             
-            # Calculate deadline
-            deadline = datetime.now(timezone.utc) + timedelta(hours=48)
+            # Si time_slots n'existe pas, créer un seul créneau avec start_time/end_time (rétrocompatibilité)
+            if not time_slots and session_data.get('start_time') and session_data.get('end_time'):
+                time_slots = [{'start_time': session_data['start_time'], 'end_time': session_data['end_time']}]
             
-            # Calculate hourly_rate and amount
-            hourly_rate = session_data.get('hourly_rate')
-            if hourly_rate is not None:
-                hourly_rate_source = session_data.get('hourly_rate_source', 'manual')
-            else:
-                hourly_rate = infer_hourly_rate(session_data['subject'])
-                hourly_rate_source = "auto"
-            
-            amount = round(duration * hourly_rate, 2)
-            
-            # Create session
-            new_session = Session(
-                subject=session_data['subject'],
-                date=session_data['date'],
-                start_time=session_data['start_time'],
-                end_time=session_data['end_time'],
-                student_id=student_id,
-                student_name=student['name'],
-                student_email=student['email'],
-                validation_deadline=deadline.isoformat(),
-                duration_hours=duration,
-                meeting_link=session_data.get('meeting_link', ''),
-                hourly_rate=hourly_rate,
-                hourly_rate_source=hourly_rate_source,
-                amount=amount,
-                organism=session_data.get('organism', ''),
-                modality=session_data.get('modality', 'distanciel')
-            )
-            
-            doc = new_session.model_dump()
-            doc['created_at'] = doc['created_at'].isoformat()
-            await db.sessions.insert_one(doc)
-            
-            student_sessions.append(new_session)
-            created_sessions.append(new_session)
+            # Créer une séance pour chaque créneau horaire
+            for time_slot in time_slots:
+                # Calculate duration
+                try:
+                    start_h, start_m = map(int, time_slot['start_time'].split(':'))
+                    end_h, end_m = map(int, time_slot['end_time'].split(':'))
+                    duration = (end_h * 60 + end_m - start_h * 60 - start_m) / 60.0
+                except:
+                    duration = 0.0
+                
+                # Calculate deadline
+                deadline = datetime.now(timezone.utc) + timedelta(hours=48)
+                
+                # Calculate hourly_rate and amount
+                hourly_rate = session_data.get('hourly_rate')
+                if hourly_rate is not None:
+                    hourly_rate_source = session_data.get('hourly_rate_source', 'manual')
+                else:
+                    hourly_rate = infer_hourly_rate(session_data['subject'])
+                    hourly_rate_source = "auto"
+                
+                amount = round(duration * hourly_rate, 2)
+                
+                # Create session
+                new_session = Session(
+                    subject=session_data['subject'],
+                    date=session_data['date'],
+                    start_time=time_slot['start_time'],
+                    end_time=time_slot['end_time'],
+                    student_id=student_id,
+                    student_name=student['name'],
+                    student_email=student['email'],
+                    validation_deadline=deadline.isoformat(),
+                    duration_hours=duration,
+                    meeting_link=session_data.get('meeting_link', ''),
+                    hourly_rate=hourly_rate,
+                    hourly_rate_source=hourly_rate_source,
+                    amount=amount,
+                    organism=session_data.get('organism', ''),
+                    modality=session_data.get('modality', 'distanciel')
+                )
+                
+                doc = new_session.model_dump()
+                doc['created_at'] = doc['created_at'].isoformat()
+                await db.sessions.insert_one(doc)
+                
+                student_sessions.append(new_session)
+                created_sessions.append(new_session)
         
         # Envoyer UN SEUL email par élève avec toutes les séances
         if student_sessions:
