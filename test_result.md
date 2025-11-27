@@ -539,7 +539,8 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Authorization Bug Fix - Session Schedule Modification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
