@@ -553,6 +553,13 @@ export default function TeacherDashboard({ user, onLogout }) {
     setShowStudentDocumentsDialog(true);
   };
 
+  // Fonction pour ouvrir l'historique d'un élève
+  const handleOpenStudentHistory = (studentId, studentName) => {
+    // Pour l'instant, on peut rediriger vers une page d'historique ou ouvrir une modale
+    // Ici on va juste afficher un toast pour indiquer que la fonctionnalité sera implémentée
+    toast.info(`Historique de ${studentName} - Fonctionnalité en cours de développement`);
+  };
+
   const handleSendAttendance = async (e) => {
     e.preventDefault();
     
