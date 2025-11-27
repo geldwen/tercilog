@@ -7077,6 +7077,199 @@ async def get_livret_status(
     }
 
 
+@api_router.get("/students/{student_id}/history")
+async def get_student_history(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Récupère l'historique complet des actions et événements d'un élève
+    Horodaté avec jour, heure et date pour traçabilité complète
+    """
+    # Seuls les enseignants peuvent accéder à l'historique
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès réservé aux enseignants")
+    
+    # Vérifier que l'élève existe
+    student = await db.users.find_one(
+        {"id": student_id, "role": "student"},
+        {"_id": 0}
+    )
+    
+    if not student:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+    
+    history = []
+    
+    # 1. Récupérer l'historique de connexion (si disponible dans user)
+    if student.get('last_login'):
+        history.append({
+            "timestamp": student['last_login'],
+            "type": "connection",
+            "category": "Connexion",
+            "title": "Dernière connexion à l'espace élève",
+            "description": f"L'élève s'est connecté à son espace TerciLog",
+            "metadata": {}
+        })
+    
+    # Date de création du compte
+    if student.get('created_at'):
+        history.append({
+            "timestamp": student['created_at'],
+            "type": "account",
+            "category": "Compte",
+            "title": "Création du compte élève",
+            "description": f"Compte créé pour {student.get('name')}",
+            "metadata": {
+                "email": student.get('email')
+            }
+        })
+    
+    # 2. Récupérer toutes les séances (confirmées, émargées, etc.)
+    sessions = await db.sessions.find({"student_id": student_id}, {"_id": 0}).to_list(1000)
+    
+    for session in sessions:
+        # Événement: Séance créée
+        if session.get('created_at'):
+            history.append({
+                "timestamp": session['created_at'],
+                "type": "session",
+                "category": "Séance",
+                "title": f"Séance de {session.get('subject', 'Formation')} créée",
+                "description": f"Date: {session.get('date')} de {session.get('start_time')} à {session.get('end_time')}",
+                "metadata": {
+                    "session_id": session.get('id'),
+                    "modalité": session.get('modality', 'distanciel')
+                }
+            })
+        
+        # Événement: Email de confirmation envoyé
+        if session.get('confirmation_email_sent'):
+            history.append({
+                "timestamp": session.get('confirmation_sent_at') or session.get('created_at'),
+                "type": "email",
+                "category": "Email",
+                "title": "Email de confirmation envoyé",
+                "description": f"Email de confirmation pour la séance de {session.get('subject')}",
+                "metadata": {
+                    "session_id": session.get('id'),
+                    "email": student.get('email')
+                }
+            })
+        
+        # Événement: Séance confirmée par l'élève
+        if session.get('status') == 'confirmed' and session.get('validated_at'):
+            history.append({
+                "timestamp": session['validated_at'],
+                "type": "request",
+                "category": "Validation",
+                "title": "Séance confirmée par l'élève",
+                "description": f"L'élève a confirmé sa présence pour la séance de {session.get('subject')}",
+                "metadata": {
+                    "session_id": session.get('id'),
+                    "date": session.get('date')
+                }
+            })
+        
+        # Événement: Séance émargée (signature)
+        if session.get('signature_status') == 'signed' and session.get('signed_at'):
+            history.append({
+                "timestamp": session['signed_at'],
+                "type": "signature",
+                "category": "Émargement",
+                "title": "Séance émargée",
+                "description": f"L'élève a signé électroniquement la feuille d'émargement pour la séance de {session.get('subject')}",
+                "metadata": {
+                    "session_id": session.get('id'),
+                    "date": session.get('date'),
+                    "durée": f"{session.get('duration_hours', 0)}h"
+                }
+            })
+        
+        # Événement: Email d'émargement envoyé
+        if session.get('attendance_email_sent'):
+            history.append({
+                "timestamp": session.get('attendance_sent_at') or session.get('date'),
+                "type": "email",
+                "category": "Email",
+                "title": "Email d'émargement envoyé",
+                "description": f"Lien d'émargement envoyé pour la séance de {session.get('subject')}",
+                "metadata": {
+                    "session_id": session.get('id')
+                }
+            })
+        
+        # Événement: Rappel 30 min envoyé
+        if session.get('reminder_email_sent'):
+            # Calculer le timestamp du rappel (30 min avant la séance)
+            session_datetime = f"{session.get('date')} {session.get('start_time')}"
+            history.append({
+                "timestamp": session_datetime,
+                "type": "notification",
+                "category": "Notification",
+                "title": "Rappel automatique envoyé",
+                "description": f"Email de rappel envoyé 30 minutes avant la séance de {session.get('subject')}",
+                "metadata": {
+                    "session_id": session.get('id')
+                }
+            })
+    
+    # 3. Récupérer les questionnaires soumis
+    questionnaires = await db.questionnaires.find({"student_id": student_id}, {"_id": 0}).to_list(1000)
+    
+    for questionnaire in questionnaires:
+        if questionnaire.get('submitted_at'):
+            history.append({
+                "timestamp": questionnaire['submitted_at'],
+                "type": "document",
+                "category": "Questionnaire",
+                "title": f"Questionnaire {questionnaire.get('template_name', 'Formation')} soumis",
+                "description": f"L'élève a complété et signé le questionnaire",
+                "metadata": {
+                    "questionnaire_id": questionnaire.get('id'),
+                    "parcours": questionnaire.get('parcours', '')
+                }
+            })
+    
+    # 4. Livret d'accueil signé
+    if student.get('livret_accueil', {}).get('signed'):
+        history.append({
+            "timestamp": student['livret_accueil']['signed_at'],
+            "type": "signature",
+            "category": "Document",
+            "title": "Livret d'accueil signé",
+            "description": "L'élève a signé électroniquement le livret d'accueil TerciForm",
+            "metadata": {}
+        })
+    
+    # 5. Documents téléchargés par l'élève
+    documents = await db.documents.find({"student_id": student_id}, {"_id": 0}).to_list(1000)
+    
+    for doc in documents:
+        if doc.get('downloaded_at'):
+            history.append({
+                "timestamp": doc['downloaded_at'],
+                "type": "document",
+                "category": "Document",
+                "title": f"Document téléchargé: {doc.get('name', 'Document')}",
+                "description": f"L'élève a téléchargé un document",
+                "metadata": {
+                    "document_id": doc.get('id'),
+                    "catégorie": doc.get('category', '')
+                }
+            })
+    
+    # Trier l'historique par date décroissante (plus récent en premier)
+    history.sort(key=lambda x: x['timestamp'] if x['timestamp'] else '', reverse=True)
+    
+    return {
+        "student_id": student_id,
+        "student_name": student.get('name'),
+        "history": history,
+        "total_events": len(history)
+    }
+
+
 @api_router.put("/sessions/{session_id}/times")
 async def update_session_times(
     session_id: str,
