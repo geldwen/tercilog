@@ -661,7 +661,8 @@ async def send_session_reminders():
       <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">👤 Élève : <strong style="color: #1f2937;">{student_name}</strong></p>
       <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">📚 Matière : <strong style="color: #1f2937;">{subject_matter}</strong></p>
       <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">📅 Date : <strong style="color: #1f2937;">{session_date}</strong></p>
-      <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">⏰ Heure : <strong style="color: #1f2937;">{session_time}</strong></p>
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">⏰ Heure : <strong style="color: #1f2937;">{session_time} - {session_end_time}</strong></p>
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">⏱️ Durée : <strong style="color: #1f2937;">{duration_str}</strong></p>
       <p style="margin: 0; font-size: 14px; color: #6b7280;">📍 Modalité : <strong style="color: #1f2937;">{modality.capitalize()}</strong></p>
     </div>
     
