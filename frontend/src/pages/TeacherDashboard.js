@@ -340,7 +340,11 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   const selectAllStudents = () => {
     setSelectedStudents(students.map(s => s.id));
+  };
 
+  const deselectAllStudents = () => {
+    setSelectedStudents([]);
+  };
 
   // Fonctions pour modifier les horaires d'une séance
   const handleOpenEditTimes = (session) => {
