@@ -843,20 +843,75 @@ export default function StudentDashboard({ user, onLogout }) {
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  Mon livret d'accueil
+                  👉 Mon livret d'accueil
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4">
-                  <FileText size={48} className="text-gray-400" />
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <FileText size={48} style={{color: TERCIFORM_BLUE}} />
                   <div className="flex-1">
-                    <p className="text-gray-600">Votre livret d'accueil personnalisé</p>
-                    <p className="text-sm text-gray-500 mt-1">Document disponible prochainement</p>
+                    <p className="font-semibold text-lg text-gray-800 mb-2">
+                      Livret d'accueil, règlement intérieur et engagement bénéficiaire
+                    </p>
+                    <p className="text-sm text-gray-600 mb-1">
+                      Document officiel du centre de formation TerciForm
+                    </p>
+                    {livretStatus.signed && (
+                      <p className="text-sm text-green-600 font-semibold mt-2">
+                        ✓ Livret d'accueil signé le {new Date(livretStatus.signed_at).toLocaleDateString('fr-FR', { 
+                          day: '2-digit', 
+                          month: '2-digit', 
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    )}
                   </div>
-                  <Button disabled variant="outline">
-                    <Download size={16} className="mr-2" />
-                    Télécharger PDF
+                </div>
+                
+                <div className="flex flex-wrap gap-3 mt-6">
+                  <Button 
+                    onClick={handleConsulterLivret}
+                    style={{backgroundColor: TERCIFORM_BLUE}}
+                    className="flex-1 sm:flex-none"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    Consulter
                   </Button>
+                  
+                  <Button 
+                    onClick={handleTelechargerLivret}
+                    variant="outline"
+                    className="flex-1 sm:flex-none"
+                    style={{borderColor: TERCIFORM_BLUE, color: TERCIFORM_BLUE}}
+                  >
+                    <Download size={16} className="mr-2" />
+                    Télécharger
+                  </Button>
+                  
+                  {!livretStatus.signed ? (
+                    <Button 
+                      onClick={handleSignerLivret}
+                      className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      Signer
+                    </Button>
+                  ) : (
+                    <Button 
+                      disabled
+                      className="flex-1 sm:flex-none bg-gray-300 cursor-not-allowed"
+                    >
+                      <CheckCircle size={16} className="mr-2" />
+                      Signé
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
