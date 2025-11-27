@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { LogOut, BookOpen, MessageSquare, Download, FileText, TrendingUp, CheckCircle } from "lucide-react";
 import SignaturePad from "@/components/SignaturePad";
+import SignatureCanvas from 'react-signature-canvas';
 import FormationNeedsQuestionnaire from "@/components/FormationNeedsQuestionnaire";
 import MidCourseQuestionnaire from "@/components/MidCourseQuestionnaire";
 import EndCourseQuestionnaire from "@/components/EndCourseQuestionnaire";
