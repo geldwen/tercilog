@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv('/app/frontend/.env')
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://remote-learning-hub.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://teachportal-12.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 class TerciFormTester:
@@ -1921,7 +1921,7 @@ class TerciFormTester:
             self.log(f"REACT_APP_BACKEND_URL from /app/frontend/.env: {frontend_env_url}")
             
             # Expected URL
-            expected_url = "https://remote-learning-hub.preview.emergentagent.com"
+            expected_url = "https://teachportal-12.preview.emergentagent.com"
             url_correct = frontend_env_url == expected_url
             
             self.log(f"Expected URL: {expected_url}")
@@ -1963,8 +1963,8 @@ class TerciFormTester:
             # Looking at the send_attendance_email function in server.py:
             # frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
             
-            # Since REACT_APP_BACKEND_URL = "https://remote-learning-hub.preview.emergentagent.com"
-            # The button URL will be: "https://remote-learning-hub.preview.emergentagent.com"
+            # Since REACT_APP_BACKEND_URL = "https://teachportal-12.preview.emergentagent.com"
+            # The button URL will be: "https://teachportal-12.preview.emergentagent.com"
             
             button_url = frontend_env_url.replace('/api', '') if frontend_env_url else ''
             self.log(f"🔗 URL that will be in the email button: {button_url}")
