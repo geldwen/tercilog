@@ -2758,18 +2758,29 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
             
             <div className="space-y-2">
               <Label className="text-gray-900">Type de situation *</Label>
-              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.type_situation || '—'}</p>
+              <div className="space-y-2">
+                {['En fonction', 'En recherche d\'emploi', 'En reconversion'].map(option => (
+                  <label key={option} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={q.type_situation === option}
+                      readOnly
+                      className="w-4 h-4 questionnaire-radio"
+                    />
+                    <span className={q.type_situation === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-gray-900">Poste occupé</Label>
-                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.poste_occupe || '—'}</p>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-gray-900">Ancienneté</Label>
-                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.anciennete || '—'}</p>
-              </div>
+            <div className="space-y-2">
+              <Label className="text-gray-900">Poste occupé :</Label>
+              <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">{q.poste_occupe || '—'}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Ancienneté dans le poste :</Label>
+              <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200">{q.anciennete || '—'}</p>
             </div>
           </CardContent>
         </Card>
@@ -2782,34 +2793,64 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
             </h4>
             
             <div className="space-y-2">
-              <Label className="text-gray-900">Formation informatique antérieure</Label>
-              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.formation_anterieure || '—'}</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-gray-900">Raison de la formation</Label>
-              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.raison_formation || '—'}</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-gray-900">Cadre d'utilisation</Label>
-              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.cadre_utilisation || '—'}</p>
-            </div>
-
-            {q.objectifs_principaux && Array.isArray(q.objectifs_principaux) && q.objectifs_principaux.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-gray-900">Objectifs principaux</Label>
-                <div className="bg-pink-50 p-3 rounded-md border-2 border-pink-200">
-                  {q.objectifs_principaux.map((obj, idx) => (
-                    <div key={idx} className="text-pink-700 font-semibold">• {obj}</div>
-                  ))}
-                </div>
+              <Label className="text-gray-900">Avez-vous déjà suivi une formation en informatique ? *</Label>
+              <div className="flex gap-4">
+                {['Oui', 'Non'].map(option => (
+                  <label key={option} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={q.formation_anterieure === option}
+                      readOnly
+                      className="w-4 h-4 questionnaire-radio"
+                    />
+                    <span className={q.formation_anterieure === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                  </label>
+                ))}
               </div>
-            )}
+            </div>
 
             <div className="space-y-2">
-              <Label className="text-gray-900">Attentes en fin de formation</Label>
-              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.attentes_fin_formation || '—'}</p>
+              <Label className="text-gray-900">Pourquoi souhaitez-vous suivre cette formation ? *</Label>
+              <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.raison_formation || '—'}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Dans quel cadre utiliserez-vous vos compétences informatiques ? *</Label>
+              <div className="space-y-2">
+                {['Travail quotidien', 'Communication interne', 'Gestion administrative', 'Usage personnel', 'Autre'].map(option => (
+                  <label key={option} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={q.cadre_utilisation === option}
+                      readOnly
+                      className="w-4 h-4 questionnaire-radio"
+                    />
+                    <span className={q.cadre_utilisation === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Quels sont vos objectifs principaux ? *</Label>
+              <div className="space-y-2">
+                {['Être plus à l\'aise avec Windows', 'Gérer fichiers/dossiers', 'Utiliser Internet', 'Utiliser les outils bureautiques de base', 'Assurer son autonomie numérique'].map(option => (
+                  <label key={option} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={q.objectifs_principaux?.includes(option)}
+                      readOnly
+                      className="w-4 h-4 questionnaire-checkbox"
+                    />
+                    <span className={q.objectifs_principaux?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Qu'attendez-vous concrètement à la fin de la formation ? *</Label>
+              <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.attentes_fin_formation || '—'}</p>
             </div>
           </CardContent>
         </Card>
@@ -2821,19 +2862,29 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
               3. Niveau et compétences informatiques
             </h4>
             
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                ['windows', 'Windows'],
-                ['fichiers_dossiers', 'Fichiers/dossiers'],
-                ['navigation_internet', 'Navigation Internet'],
-                ['clavier_souris', 'Clavier/souris']
-              ].map(([key, label]) => (
-                <div key={key} className="space-y-2">
-                  <Label className="text-gray-900">{label}</Label>
-                  <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q[key] || '—'}</p>
+            {[
+              ['windows', 'Utilisation de Windows *'],
+              ['fichiers_dossiers', 'Gestion des fichiers et dossiers *'],
+              ['navigation_internet', 'Navigation Internet *'],
+              ['clavier_souris', 'Utilisation clavier/souris *']
+            ].map(([key, label]) => (
+              <div key={key} className="space-y-2">
+                <Label className="text-gray-900">{label}</Label>
+                <div className="flex gap-4">
+                  {['Faible', 'Moyen', 'Bon'].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        checked={q[key] === option}
+                        readOnly
+                        className="w-4 h-4 questionnaire-radio"
+                      />
+                      <span className={q[key] === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                    </label>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
@@ -2845,31 +2896,47 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
             </h4>
             
             <div className="space-y-2">
-              <Label className="text-gray-900">Situations informatique</Label>
-              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.situations_informatique || '—'}</p>
+              <Label className="text-gray-900">Dans votre fonction actuelle, quelles sont les situations où l'informatique est nécessaire ? *</Label>
+              <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.situations_informatique || '—'}</p>
             </div>
 
-            {q.difficultes_actuelles && Array.isArray(q.difficultes_actuelles) && q.difficultes_actuelles.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-gray-900">Quelles difficultés rencontrez-vous actuellement ?</Label>
               <div className="space-y-2">
-                <Label className="text-gray-900">Difficultés actuelles</Label>
-                <div className="bg-pink-50 p-3 rounded-md border-2 border-pink-200">
-                  {q.difficultes_actuelles.map((diff, idx) => (
-                    <div key={idx} className="text-pink-700 font-semibold">• {diff}</div>
-                  ))}
-                </div>
+                {['Organisation des fichiers', 'Navigation Internet', 'Utilisation de Windows', 'Manipulation souris/clavier', 'Compréhension des messages Windows', 'Autre'].map(option => (
+                  <label key={option} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={q.difficultes_actuelles?.includes(option)}
+                      readOnly
+                      className="w-4 h-4 questionnaire-checkbox"
+                    />
+                    <span className={q.difficultes_actuelles?.includes(option) ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                  </label>
+                ))}
               </div>
-            )}
-
-            {q.contenu_particulier && (
-              <div className="space-y-2">
-                <Label className="text-gray-900">Contenu particulier</Label>
-                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.contenu_particulier}</p>
-              </div>
-            )}
+            </div>
 
             <div className="space-y-2">
-              <Label className="text-gray-900">Certification</Label>
-              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.certification || '—'}</p>
+              <Label className="text-gray-900">Souhaitez-vous insister sur un type de contenu particulier ?</Label>
+              <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.contenu_particulier || '—'}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Souhaitez-vous passer une certification informatique ? *</Label>
+              <div className="flex gap-4">
+                {['Oui', 'Non'].map(option => (
+                  <label key={option} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={q.certification === option}
+                      readOnly
+                      className="w-4 h-4 questionnaire-radio"
+                    />
+                    <span className={q.certification === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -2881,20 +2948,43 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
               5. Contraintes et conditions
             </h4>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-gray-900">Disponibilités et rythme souhaité :</Label>
               <div className="space-y-2">
-                <Label className="text-gray-900">Rythme souhaité</Label>
-                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.rythme_souhaite || '—'}</p>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-gray-900">Format préféré</Label>
-                <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.format_prefere || '—'}</p>
+                {['Intensif', 'Étendu', 'Flexible'].map(option => (
+                  <label key={option} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={q.rythme_souhaite === option}
+                      readOnly
+                      className="w-4 h-4 questionnaire-radio"
+                    />
+                    <span className={q.rythme_souhaite === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                  </label>
+                ))}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-gray-900">Contraintes particulières</Label>
-              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.contraintes_particulieres || '—'}</p>
+              <Label className="text-gray-900">Format préféré :</Label>
+              <div className="space-y-2">
+                {['Présentiel', 'Distanciel', 'Hybride'].map(option => (
+                  <label key={option} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={q.format_prefere === option}
+                      readOnly
+                      className="w-4 h-4 questionnaire-radio"
+                    />
+                    <span className={q.format_prefere === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900">Avez-vous des contraintes particulières ? (horaires, déplacements, matériel…) *</Label>
+              <p className="text-pink-700 font-semibold bg-white p-3 rounded-md border-2 border-pink-200 whitespace-pre-wrap">{q.contraintes_particulieres || '—'}</p>
             </div>
           </CardContent>
         </Card>
@@ -2907,8 +2997,20 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
             </h4>
             
             <div className="space-y-2">
-              <Label className="text-gray-900">Handicap ou difficulté</Label>
-              <p className="text-pink-700 font-semibold bg-pink-50 p-3 rounded-md border-2 border-pink-200">{q.handicap || '—'}</p>
+              <Label className="text-gray-900">Êtes-vous en situation de handicap ou rencontrez-vous une difficulté pouvant impacter votre apprentissage ? *</Label>
+              <div className="flex gap-4">
+                {['Oui', 'Non'].map(option => (
+                  <label key={option} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={q.handicap === option}
+                      readOnly
+                      className="w-4 h-4 questionnaire-radio"
+                    />
+                    <span className={q.handicap === option ? 'text-pink-700 font-semibold' : ''}>{option}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
