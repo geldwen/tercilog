@@ -64,6 +64,36 @@ app.mount("/static", StaticFiles(directory="/app/backend/static"), name="static"
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# Scheduler pour les rappels automatiques
+scheduler = BackgroundScheduler()
+
+def run_reminder_check():
+    """Wrapper synchrone pour exécuter la fonction async de vérification des rappels"""
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(send_session_reminders())
+        loop.close()
+    except Exception as e:
+        logger.error(f"Erreur dans le scheduler de rappels: {e}")
+
+@app.on_event("startup")
+async def startup_event():
+    """Démarrer le scheduler au lancement de l'application"""
+    try:
+        # Vérifier les rappels toutes les 5 minutes
+        scheduler.add_job(
+            run_reminder_check,
+            trigger=IntervalTrigger(minutes=5),
+            id='session_reminders',
+            name='Vérification des rappels de séances',
+            replace_existing=True
+        )
+        scheduler.start()
+        logger.info("✅ Scheduler de rappels démarré - Vérification toutes les 5 minutes")
+    except Exception as e:
+        logger.error(f"Erreur lors du démarrage du scheduler: {e}")
+
 # Models
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
