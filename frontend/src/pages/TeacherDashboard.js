@@ -55,6 +55,9 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [showTeacherSignatureDialog, setShowTeacherSignatureDialog] = useState(false);
   const [showSendAttendanceDialog, setShowSendAttendanceDialog] = useState(false);
   const [showStudentDocumentsDialog, setShowStudentDocumentsDialog] = useState(false);
+  const [showEditTimesDialog, setShowEditTimesDialog] = useState(false);
+  const [editingSession, setEditingSession] = useState(null);
+  const [editTimeSlots, setEditTimeSlots] = useState([{ start_time: "", end_time: "" }]);
   const [documentsStudent, setDocumentsStudent] = useState(null);
   const [showPlanning, setShowPlanning] = useState(false);
   const [showBilling, setShowBilling] = useState(false);
