@@ -634,22 +634,6 @@ const BilanQualitePage = () => {
               </Card>
             </div>
 
-            {/* Filtre par parcours pour les bandeaux */}
-            <div className="mb-4 flex items-center gap-3">
-              <label className="text-sm font-medium">Filtrer par parcours :</label>
-              <select
-                value={parcoursFilter}
-                onChange={(e) => setParcoursFilter(e.target.value)}
-                className="border rounded-md px-3 py-2 text-sm"
-              >
-                {parcours.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             {/* Bandeaux : Éléments maîtrisés et Difficultés (inversé) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               {/* Éléments maîtrisés */}
