@@ -81,6 +81,7 @@ export default function StudentDashboard({ user, onLogout }) {
     loadTrainingNeeds();
     loadQuestionnairesStatus();
     loadStudentResources();
+    loadLivretStatus();
   }, []);
 
   const loadStudentResources = async () => {
