@@ -93,6 +93,15 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
       return (a.start_time || '').localeCompare(b.start_time || '');
     });
 
+  // Grouper les séances par jour
+  const sessionsByDay = monthSessions.reduce((acc, session) => {
+    if (!acc[session.date]) {
+      acc[session.date] = [];
+    }
+    acc[session.date].push(session);
+    return acc;
+  }, {});
+
   // Calculer total du mois (montant et heures)
   const monthTotal = monthSessions.reduce((sum, s) => sum + (s.amount || 0), 0);
   const monthTotalHours = monthSessions.reduce((sum, s) => sum + (s.duration_hours || 0), 0);
