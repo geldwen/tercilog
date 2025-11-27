@@ -682,6 +682,18 @@ frontend:
           agent: "testing"
           comment: "❌ FRENCH REVIEW REQUEST VERIFICATION FAILED: Tests interactifs NOT displaying in 'Test de positionnement' section as requested. DETAILED INVESTIGATION: 1) ✅ Teacher login successful (terciform@gmail.com / Geldwen1982*+), 2) ✅ JOJO student verified to exist (ID: 5048760c-f368-4763-89b8-17b4a85259cc, email: ghizzo.j@gmail.com), 3) ✅ JOJO has submitted test resource confirmed via API: template_name='Test bureautique débutant', status='SOUMIS', score=10%, category='TEST_PARCOURS', sub_type='POSITIONNEMENT', 4) ❌ UI TESTING BLOCKED: Unable to complete full UI verification due to session timeouts and navigation issues, 5) ❌ CRITICAL FINDING: The 'Tests interactifs soumis:' section that should appear in 'Test de positionnement' (left column) after the note section (B2, 15/20, etc.) is NOT displaying the green card with 'Test bureautique débutant'. ROOT CAUSE ANALYSIS: Backend API returns correct data, but frontend InteractiveTestsDisplay component in ParcoursEleveModal.js may not be rendering properly in the 'Tests et évaluation' tab → 'Test de positionnement' section. The component should filter resources by category='TEST_PARCOURS' and sub_type='POSITIONNEMENT' and display them as green cards with score and completion date. REQUIRES: Frontend debugging of InteractiveTestsDisplay component rendering logic and state management in UploadSectionWithNote component with subType='POSITIONNEMENT'."
 
+  - task: "Billing Page - Daily Grouping Feature (Regroupement par jour)"
+    implemented: true
+    working: "NA"
+    file: "BillingView.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "DAILY GROUPING FEATURE IMPLEMENTED: New billing page functionality that groups sessions by day instead of showing each session on a separate line. FEATURES: 1) Main blue line for each day showing: complete date (e.g., Lun 01/12/2025), number of sessions, total hours for the day, total amount for the day, 2) Session details under each day: clock icon with times, student name, subject, center/organization, individual duration, clickable hourly cost for editing, amount, colored status badge, type (Dist./Prés.), 3) Monthly total at bottom, 4) CSV and PDF export functionality, 5) Hourly cost editing with inline input field. IMPLEMENTATION: BillingView component uses sessionsByDay grouping, blue background for day headers (bg-blue-50), detailed session rows with proper formatting and responsive design. Ready for comprehensive testing."
+
   - task: "French Review Request - LAURA LENFANT Hours & Planning Modification Tests"
     implemented: true
     working: true
