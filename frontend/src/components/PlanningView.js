@@ -271,13 +271,19 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
       organism: selectedCenter
     };
     
+    // Si on édite un événement existant, conserver son ID
+    if (currentEvent) {
+      event.id = currentEvent.id;
+    }
+    
     try {
       await savePlanningEvent(event);
       const updatedEvents = await getPlanningEvents();
       setPlanningEvents(updatedEvents);
       setShowColorPicker(false);
       setShowModal(false);
-      toast.success('Bloc planning créé avec couleur !');
+      setCurrentEvent(null);
+      toast.success(currentEvent ? 'Bloc planning modifié avec couleur !' : 'Bloc planning créé avec couleur !');
     } catch (error) {
       console.error('Error saving event:', error);
       toast.error('Erreur lors de la sauvegarde');
