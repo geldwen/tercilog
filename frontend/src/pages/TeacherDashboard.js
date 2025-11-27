@@ -638,10 +638,10 @@ export default function TeacherDashboard({ user, onLogout }) {
     try {
       const token = localStorage.getItem('token');
       
-      // Si plusieurs créneaux, utiliser l'endpoint de reschedule
+      // Si plusieurs créneaux, utiliser l'endpoint times
       if (sessionForm.time_slots && sessionForm.time_slots.length > 1) {
-        await axios.post(
-          `${API}/sessions/${editingSession.id}/reschedule`,
+        await axios.put(
+          `${API}/sessions/${editingSession.id}/times`,
           { 
             time_slots: sessionForm.time_slots,
             date: sessionForm.date,
