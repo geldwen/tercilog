@@ -979,25 +979,54 @@ export default function TeacherDashboard({ user, onLogout }) {
                               />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label>Heure début</Label>
-                                <Input
-                                  type="time"
-                                  value={session.start_time}
-                                  onChange={(e) => updateMultiSession(index, 'start_time', e.target.value)}
-                                  required
-                                />
+                            {/* Créneaux horaires */}
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <Label className="font-semibold">Créneaux horaires</Label>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => addTimeSlot(index)}
+                                  className="text-xs"
+                                >
+                                  + Ajouter un créneau
+                                </Button>
                               </div>
-                              <div className="space-y-2">
-                                <Label>Heure fin</Label>
-                                <Input
-                                  type="time"
-                                  value={session.end_time}
-                                  onChange={(e) => updateMultiSession(index, 'end_time', e.target.value)}
-                                  required
-                                />
-                              </div>
+                              
+                              {session.time_slots.map((slot, slotIndex) => (
+                                <div key={slotIndex} className="flex items-end gap-2 p-3 bg-gray-50 rounded-md border">
+                                  <div className="flex-1 space-y-2">
+                                    <Label className="text-xs">Début</Label>
+                                    <Input
+                                      type="time"
+                                      value={slot.start_time}
+                                      onChange={(e) => updateTimeSlot(index, slotIndex, 'start_time', e.target.value)}
+                                      required
+                                    />
+                                  </div>
+                                  <div className="flex-1 space-y-2">
+                                    <Label className="text-xs">Fin</Label>
+                                    <Input
+                                      type="time"
+                                      value={slot.end_time}
+                                      onChange={(e) => updateTimeSlot(index, slotIndex, 'end_time', e.target.value)}
+                                      required
+                                    />
+                                  </div>
+                                  {session.time_slots.length > 1 && (
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => removeTimeSlot(index, slotIndex)}
+                                      className="mb-0.5"
+                                    >
+                                      <Trash2 size={14} />
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
                             </div>
 
                             <div className="space-y-2">
