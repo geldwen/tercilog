@@ -621,7 +621,8 @@ async def send_session_reminders():
     
     <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 24px 0; border: 1px solid #e5e7eb;">
       <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">📅 Date : <strong style="color: #1f2937;">{session_date}</strong></p>
-      <p style="margin: 0; font-size: 14px; color: #6b7280;">⏰ Heure : <strong style="color: #1f2937;">{session_time}</strong></p>
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">⏰ Heure : <strong style="color: #1f2937;">{session_time} - {session_end_time}</strong></p>
+      <p style="margin: 0; font-size: 14px; color: #6b7280;">⏱️ Durée : <strong style="color: #1f2937;">{duration_str}</strong></p>
     </div>
     
     {modality_message}
