@@ -3485,17 +3485,6 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
                   )}
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(`${API}/livret-accueil`, '_blank')}
-                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                >
-                  <Eye className="w-4 h-4 mr-1" />
-                  Consulter
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
