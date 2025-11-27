@@ -78,25 +78,25 @@ agenthub/agents/youtube/db
 
 # Mobile development
 android-sdk/ -e 
-# Environment files
-*.env
-*.env.*
+# Environment files - COMMENTED FOR DEPLOYMENT
+# *.env
+# *.env.*
 -e 
-# Environment files
-*.env
-*.env.*
+# Environment files - COMMENTED FOR DEPLOYMENT
+# *.env
+# *.env.*
 -e 
-# Environment files
-*.env
-*.env.*
+# Environment files - COMMENTED FOR DEPLOYMENT
+# *.env
+# *.env.*
 -e 
-# Environment files
-*.env
-*.env.*
+# Environment files - COMMENTED FOR DEPLOYMENT
+# *.env
+# *.env.*
 -e 
-# Environment files
-*.env
-*.env.*
+# Environment files - COMMENTED FOR DEPLOYMENT
+# *.env
+# *.env.*
 frontend/node_modules/.cache/default-development/5.pack
 frontend/node_modules/.cache/default-development/0.pack
 frontend/node_modules/.cache/default-development/1.pack
