@@ -2302,6 +2302,16 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 <Trash2 className="w-5 h-5 text-red-600" />
                                 <span className="font-medium text-red-700">Supprimer</span>
                               </Button>
+                              {/* Bouton Historique */}
+                              <Button 
+                                onClick={() => handleOpenStudentHistory(student.id, student.name)} 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full py-3 rounded-md flex items-center justify-start gap-2 border-2 border-purple-500 bg-white hover:bg-purple-50"
+                              >
+                                <FileText className="w-5 h-5 text-purple-600" />
+                                <span className="font-medium text-purple-700">Historique</span>
+                              </Button>
                               {/* Bouton Parcours élève */}
                               <Button 
                                 onClick={() => handleOpenStudentDocuments(student)} 
