@@ -208,6 +208,7 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
 
   // Ouvrir modal de création
   const handleCellClick = (date, hour) => {
+    setCurrentEvent(null); // Réinitialiser l'événement en cours
     setModalData({
       date,
       start_time: `${String(hour).padStart(2, '0')}:00`,
