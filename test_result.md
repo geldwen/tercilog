@@ -546,6 +546,21 @@ test_plan:
   test_priority: "high_first"
 
 frontend:
+  - task: "Informatique Questionnaire Status Display Fix"
+    implemented: true
+    working: false
+    file: "BilanQualitePage.js, StudentDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "🚨 CRITICAL ISSUE REPORTED: Questionnaires Q1, Q2, Q3 for Informatique pathway work (signature OK) BUT their statuses no longer show up in: 1) Bilan qualité (green/red dots), 2) Parcours élève (brown/validated step). Main agent fixed: Backend (/api/teachers/qualite-report) to retrieve statuses from student_resources for 'Informatique' pathway, Frontend (StudentDashboard) to check statuses via student_resources instead of Anglais endpoints. Expected database statuses: Q1=SOUMIS ✅, Q2=SOUMIS ✅, Q3=NON_COMMENCE ❌. Test credentials: Teacher terciform@gmail.com/Geldwen1982*+, Student ghizzo.j@gmail.com/ghi123 (coucouille, Informatique pathway)."
+        - working: false
+          agent: "testing"
+          comment: "🚨 CRITICAL TESTING COMPLETED - MIXED RESULTS: Comprehensive testing of Informatique questionnaire status display revealed PARTIAL SUCCESS. STUDENT VIEW (✅ SUCCESS): 1) ✅ Login successful (ghizzo.j@gmail.com/ghi123 - student: coucouille), 2) ✅ 'Parcours : Informatique' banner displayed correctly, 3) ✅ 'Mes objectifs' tab working perfectly, 4) ✅ Q1 shows '✓ Validé' badge (green, disabled) - CORRECT for SOUMIS, 5) ✅ Q2 shows '✓ Validé' badge (green, disabled) - CORRECT for SOUMIS, 6) ✅ Q3 shows 'À valider' badge (orange, enabled) - CORRECT for NON_COMMENCE. TEACHER VIEW (❌ PARTIAL ISSUE): 1) ✅ Teacher login successful (terciform@gmail.com), 2) ✅ Student 'coucouille' found in Bilan Qualité table (Row 5), 3) ✅ Questionnaire statuses CORRECT: Q1='Soumis' (green), Q2='Soumis' (green), Q3='En attente' (red), 4) ❌ FILTER ISSUE: 'Informatique' missing from parcours filter dropdown (only shows: Toutes, Anglais, Management, Bureautique). CONCLUSION: Backend and frontend logic working correctly, but 'Informatique' not included in parcours filter options in BilanQualitePage.js line 74."
+
   - task: "Mouse Signature Functionality in Informatique Questionnaires"
     implemented: true
     working: true
