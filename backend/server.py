@@ -485,6 +485,184 @@ def send_email_with_attachment(to_email: str, subject: str, html_body: str, pdf_
         return False
 
 
+async def send_session_reminders():
+    """
+    Fonction qui vérifie toutes les séances qui commencent dans 30 minutes
+    et envoie des rappels par email aux élèves et au professeur.
+    """
+    try:
+        logger.info("🔔 Vérification des rappels de séances...")
+        
+        # Calculer la fenêtre de temps : séances qui commencent dans 28-32 minutes
+        # (fenêtre de 4 minutes pour éviter de rater une séance entre deux checks)
+        now = datetime.now(timezone.utc)
+        window_start = now + timedelta(minutes=28)
+        window_end = now + timedelta(minutes=32)
+        
+        # Chercher les séances à venir dans cette fenêtre
+        sessions = await db.sessions.find({
+            "reminder_email_sent": {"$ne": True},  # Pas encore envoyé
+            "status": {"$in": ["pending", "confirmed"]}  # Séance active
+        }).to_list(1000)
+        
+        reminders_sent = 0
+        
+        for session in sessions:
+            try:
+                # Construire la datetime de la séance
+                session_date = session.get("date")  # Format: "2025-11-27"
+                session_time = session.get("start_time")  # Format: "14:00"
+                
+                if not session_date or not session_time:
+                    continue
+                
+                # Parser la date et l'heure
+                session_datetime_str = f"{session_date} {session_time}"
+                session_datetime = datetime.strptime(session_datetime_str, "%Y-%m-%d %H:%M")
+                # Convertir en UTC (supposant que les horaires sont en heure locale française)
+                # Pour simplifier, on considère l'heure locale
+                
+                # Vérifier si la séance est dans la fenêtre
+                time_until_session = session_datetime - datetime.now()
+                minutes_until = time_until_session.total_seconds() / 60
+                
+                if 28 <= minutes_until <= 32:
+                    # Récupérer les infos de l'étudiant
+                    student = await db.students.find_one({"id": session.get("student_id")}, {"_id": 0})
+                    if not student:
+                        logger.warning(f"Student not found for session {session.get('id')}")
+                        continue
+                    
+                    student_email = student.get("email")
+                    student_name = student.get("name", "")
+                    first_name = student_name.split()[0] if student_name else "Élève"
+                    
+                    subject_matter = session.get("subject", "votre cours")
+                    modality = session.get("modality", "distanciel")
+                    meeting_link = session.get("meeting_link", "")
+                    student_address = student.get("address", "")
+                    
+                    # 1A) Envoyer email à l'élève
+                    student_subject = f"📅 Rappel : Votre séance de {subject_matter} commence dans 30 minutes"
+                    
+                    if modality == "distanciel":
+                        modality_message = """
+                        <p style="margin: 16px 0; font-size: 15px; color: #1e3a8a; background-color: #dbeafe; padding: 16px; border-radius: 6px; border-left: 4px solid #3b82f6;">
+                            <strong>📹 Séance en distanciel</strong><br/>
+                            Un lien de visioconférence vous sera envoyé par email.
+                        </p>
+                        """
+                        if meeting_link:
+                            modality_message = f"""
+                            <p style="margin: 16px 0; font-size: 15px; color: #1e3a8a; background-color: #dbeafe; padding: 16px; border-radius: 6px; border-left: 4px solid #3b82f6;">
+                                <strong>📹 Séance en distanciel</strong><br/>
+                                Lien de visioconférence : <a href="{meeting_link}" style="color: #2563eb; text-decoration: underline;">{meeting_link}</a>
+                            </p>
+                            """
+                    else:
+                        location = student_address if student_address else "l'adresse indiquée"
+                        modality_message = f"""
+                        <p style="margin: 16px 0; font-size: 15px; color: #059669; background-color: #d1fae5; padding: 16px; border-radius: 6px; border-left: 4px solid #10b981;">
+                            <strong>📍 Séance en présentiel</strong><br/>
+                            Merci de vous rendre à : <strong>{location}</strong>
+                        </p>
+                        """
+                    
+                    student_html = f"""<html>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+<div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; text-align: center;">
+    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🔔 Rappel de séance</h1>
+  </div>
+  
+  <div style="padding: 32px 24px;">
+    <p style="margin: 0 0 16px 0; font-size: 16px; color: #1f2937;">Bonjour <strong>{first_name}</strong>,</p>
+    
+    <p style="margin: 0 0 24px 0; font-size: 15px; color: #4b5563; line-height: 1.6;">
+        Votre séance de <strong>{subject_matter}</strong> commence dans <strong style="color: #dc2626;">30 minutes</strong>.
+    </p>
+    
+    <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 24px 0; border: 1px solid #e5e7eb;">
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">📅 Date : <strong style="color: #1f2937;">{session_date}</strong></p>
+      <p style="margin: 0; font-size: 14px; color: #6b7280;">⏰ Heure : <strong style="color: #1f2937;">{session_time}</strong></p>
+    </div>
+    
+    {modality_message}
+    
+    <p style="margin: 24px 0 0 0; font-size: 15px; color: #4b5563;">
+        Bonne séance ! 📚
+    </p>
+  </div>
+  
+  <div style="background-color: #f9fafb; padding: 16px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+    <p style="margin: 0; font-size: 12px; color: #9ca3af;">TerciForm - Plateforme de formation</p>
+  </div>
+</div>
+</body>
+</html>"""
+                    
+                    send_email(student_email, student_subject, student_html)
+                    
+                    # 1B) Envoyer email au professeur
+                    teacher_email = "terciform@gmail.com"
+                    teacher_subject = f"📅 Rappel : Séance de {subject_matter} avec {student_name} dans 30 minutes"
+                    
+                    teacher_html = f"""<html>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+<div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <div style="background-color: #1e3a8a; padding: 24px; text-align: center;">
+    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🔔 Rappel de séance</h1>
+  </div>
+  
+  <div style="padding: 32px 24px;">
+    <p style="margin: 0 0 24px 0; font-size: 15px; color: #4b5563; line-height: 1.6;">
+        Votre séance de <strong>{subject_matter}</strong> avec <strong>{student_name}</strong> débutera dans <strong style="color: #dc2626;">30 minutes</strong>.
+    </p>
+    
+    <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 24px 0; border: 1px solid #e5e7eb;">
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">👤 Élève : <strong style="color: #1f2937;">{student_name}</strong></p>
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">📚 Matière : <strong style="color: #1f2937;">{subject_matter}</strong></p>
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">📅 Date : <strong style="color: #1f2937;">{session_date}</strong></p>
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;">⏰ Heure : <strong style="color: #1f2937;">{session_time}</strong></p>
+      <p style="margin: 0; font-size: 14px; color: #6b7280;">📍 Modalité : <strong style="color: #1f2937;">{modality.capitalize()}</strong></p>
+    </div>
+    
+    <p style="margin: 24px 0 0 0; font-size: 15px; color: #4b5563;">
+        Bonne séance ! 📚
+    </p>
+  </div>
+  
+  <div style="background-color: #f9fafb; padding: 16px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+    <p style="margin: 0; font-size: 12px; color: #9ca3af;">TerciForm - Plateforme de formation</p>
+  </div>
+</div>
+</body>
+</html>"""
+                    
+                    send_email(teacher_email, teacher_subject, teacher_html)
+                    
+                    # Marquer le rappel comme envoyé
+                    await db.sessions.update_one(
+                        {"id": session.get("id")},
+                        {"$set": {"reminder_email_sent": True}}
+                    )
+                    
+                    reminders_sent += 1
+                    logger.info(f"✅ Rappel envoyé pour la séance {session.get('id')} - {subject_matter} avec {student_name}")
+            
+            except Exception as e:
+                logger.error(f"Erreur lors du traitement de la séance {session.get('id')}: {e}")
+                continue
+        
+        if reminders_sent > 0:
+            logger.info(f"🎉 {reminders_sent} rappel(s) envoyé(s) avec succès")
+        else:
+            logger.info("✓ Aucun rappel à envoyer pour le moment")
+    
+    except Exception as e:
+        logger.error(f"Erreur lors de la vérification des rappels: {e}")
+
+
 def send_attendance_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str):
     """Envoyer l'email d'émargement après la fin de séance"""
     
