@@ -3451,6 +3451,55 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
           </Button>
         </div>
 
+
+        {/* Livret d'accueil */}
+        <Card className="border-2 border-blue-500/30 bg-blue-50/50 hover:shadow-lg transition-shadow">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-start gap-4 flex-1">
+                <FileText className="w-12 h-12 text-blue-600" />
+                <div className="flex-1">
+                  <h5 className="font-bold text-lg text-gray-900">📄 Livret d'accueil</h5>
+                  <p className="text-sm text-gray-600 mt-1">
+                    👤 Bénéficiaire : <span className="font-medium">{studentName}</span>
+                  </p>
+                  {livretStatus.signed ? (
+                    <>
+                      <p className="text-sm text-green-700 font-semibold mt-2">
+                        ✓ Signé le {new Date(livretStatus.signed_at).toLocaleDateString('fr-FR', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                      <Badge className="mt-2 bg-green-100 text-green-800 border border-green-300">
+                        ✓ Livret d'accueil signé
+                      </Badge>
+                    </>
+                  ) : (
+                    <Badge className="mt-2 bg-orange-100 text-orange-800 border border-orange-300">
+                      ⏳ En attente de signature
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(`${API}/livret-accueil`, '_blank')}
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                >
+                  <Eye className="w-4 h-4 mr-1" />
+                  Consulter
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Questionnaire 1 : Besoins en formation */}
         {formationNeedsQ && (
           <Card className="border-2 border-[#8B5A2B]/20 hover:shadow-lg transition-shadow">
