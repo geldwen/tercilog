@@ -33,6 +33,7 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [eventToDuplicate, setEventToDuplicate] = useState(null);
+  const [currentEvent, setCurrentEvent] = useState(null);
   const [duplicateData, setDuplicateData] = useState({
     date: '',
     start_time: '',
