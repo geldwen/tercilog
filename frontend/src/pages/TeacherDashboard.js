@@ -94,7 +94,14 @@ export default function TeacherDashboard({ user, onLogout }) {
     modality: "distanciel",
     organism: ""
   });
-  const [multiSessions, setMultiSessions] = useState([{ subject: "", date: "", start_time: "", end_time: "", modality: "distanciel", hourly_rate: 0, meeting_link: "" }]);
+  const [multiSessions, setMultiSessions] = useState([{ 
+    subject: "", 
+    date: "", 
+    time_slots: [{ start_time: "", end_time: "" }],
+    modality: "distanciel", 
+    hourly_rate: 0, 
+    meeting_link: "" 
+  }]);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [studentForm, setStudentForm] = useState({ 
     name: "", 
@@ -262,7 +269,14 @@ export default function TeacherDashboard({ user, onLogout }) {
       toast.success(`${totalCreated} séance(s) créée(s) pour ${studentsToCreate.length} élève(s) et UN email par élève envoyé !`);
       setShowCreateSession(false);
       setSessionForm({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48, meeting_link: "", modality: "distanciel", hourly_rate: 0, hourly_rate_source: "inferred" });
-      setMultiSessions([{ subject: "", date: "", start_time: "", end_time: "", modality: "distanciel", hourly_rate: 0, meeting_link: "" }]);
+      setMultiSessions([{ 
+        subject: "", 
+        date: "", 
+        time_slots: [{ start_time: "", end_time: "" }],
+        modality: "distanciel", 
+        hourly_rate: 0, 
+        meeting_link: "" 
+      }]);
       setSelectedStudents([]);
       loadData(selectedMonth);
     } catch (error) {
