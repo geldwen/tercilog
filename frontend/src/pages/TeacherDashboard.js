@@ -636,25 +636,68 @@ export default function TeacherDashboard({ user, onLogout }) {
   const handleUpdateSession = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${API}/sessions/${editingSession.id}`, {
-        subject: sessionForm.subject,
-        date: sessionForm.date,
-        start_time: sessionForm.start_time,
-        end_time: sessionForm.end_time,
-        meeting_link: sessionForm.meeting_link,
-        hourly_rate: sessionForm.hourly_rate,
-        hourly_rate_source: sessionForm.hourly_rate_source,
-        modality: sessionForm.modality,
-        organism: sessionForm.organism
-      });
-      toast.success("Séance modifiée !");
+      const token = localStorage.getItem('token');
+      
+      // Si plusieurs créneaux, utiliser l'endpoint de reschedule
+      if (sessionForm.time_slots && sessionForm.time_slots.length > 1) {
+        await axios.post(
+          `${API}/sessions/${editingSession.id}/reschedule`,
+          { 
+            time_slots: sessionForm.time_slots,
+            date: sessionForm.date,
+            subject: sessionForm.subject,
+            modality: sessionForm.modality,
+            meeting_link: sessionForm.meeting_link,
+            hourly_rate: sessionForm.hourly_rate,
+            organism: sessionForm.organism
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success(`Séance modifiée ! ${sessionForm.time_slots.length} créneaux créés.`);
+      } else {
+        // Sinon, mise à jour simple
+        await axios.put(`${API}/sessions/${editingSession.id}`, {
+          subject: sessionForm.subject,
+          date: sessionForm.date,
+          start_time: sessionForm.time_slots[0].start_time,
+          end_time: sessionForm.time_slots[0].end_time,
+          meeting_link: sessionForm.meeting_link,
+          hourly_rate: sessionForm.hourly_rate,
+          hourly_rate_source: sessionForm.hourly_rate_source,
+          modality: sessionForm.modality,
+          organism: sessionForm.organism
+        });
+        toast.success("Séance modifiée !");
+      }
+      
       setShowEditSession(false);
       setEditingSession(null);
-      setSessionForm({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48, meeting_link: "" });
+      setSessionForm({ subject: "", date: "", start_time: "", end_time: "", student_id: "", validation_deadline_hours: 48, meeting_link: "", time_slots: [{ start_time: "", end_time: "" }] });
       loadData(selectedMonth);
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur");
     }
+  };
+
+  // Fonctions pour gérer les créneaux horaires dans le formulaire d'édition
+  const addEditSessionTimeSlot = () => {
+    setSessionForm({
+      ...sessionForm,
+      time_slots: [...sessionForm.time_slots, { start_time: "", end_time: "" }]
+    });
+  };
+
+  const removeEditSessionTimeSlot = (index) => {
+    if (sessionForm.time_slots.length > 1) {
+      const updatedSlots = sessionForm.time_slots.filter((_, i) => i !== index);
+      setSessionForm({ ...sessionForm, time_slots: updatedSlots });
+    }
+  };
+
+  const updateEditSessionTimeSlot = (index, field, value) => {
+    const updatedSlots = [...sessionForm.time_slots];
+    updatedSlots[index][field] = value;
+    setSessionForm({ ...sessionForm, time_slots: updatedSlots });
   };
 
 
