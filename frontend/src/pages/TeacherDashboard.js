@@ -1193,15 +1193,71 @@ export default function TeacherDashboard({ user, onLogout }) {
 
               {/* Edit Session Dialog */}
               <Dialog open={showEditSession} onOpenChange={setShowEditSession}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader><DialogTitle>Modifier la Séance</DialogTitle><DialogDescription>Modifier les informations de la séance</DialogDescription></DialogHeader>
                   <form onSubmit={handleUpdateSession} className="space-y-4">
                     <div className="space-y-2"><Label>Matière</Label><Input placeholder="ex: Anglais" value={sessionForm.subject} onChange={(e) => setSessionForm({ ...sessionForm, subject: e.target.value })} required /></div>
                     <div className="space-y-2"><Label>Date</Label><Input type="date" value={sessionForm.date} onChange={(e) => setSessionForm({ ...sessionForm, date: e.target.value })} required /></div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2"><Label>Heure début</Label><Input type="time" value={sessionForm.start_time} onChange={(e) => setSessionForm({ ...sessionForm, start_time: e.target.value })} required /></div>
-                      <div className="space-y-2"><Label>Heure fin</Label><Input type="time" value={sessionForm.end_time} onChange={(e) => setSessionForm({ ...sessionForm, end_time: e.target.value })} required /></div>
+                    
+                    {/* Créneaux horaires multiples */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-base font-semibold">Créneaux horaires</Label>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={addEditSessionTimeSlot}
+                          className="text-xs"
+                          style={{color: TERCIFORM_BLUE, borderColor: TERCIFORM_BLUE}}
+                        >
+                          + Ajouter un créneau
+                        </Button>
+                      </div>
+                      
+                      {sessionForm.time_slots && sessionForm.time_slots.map((slot, index) => (
+                        <div key={index} className="flex items-end gap-2 p-3 bg-gray-50 rounded-lg border-2 border-gray-200">
+                          <div className="flex-1 space-y-2">
+                            <Label className="text-sm font-medium">Heure début</Label>
+                            <Input
+                              type="time"
+                              value={slot.start_time}
+                              onChange={(e) => updateEditSessionTimeSlot(index, 'start_time', e.target.value)}
+                              required
+                            />
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            <Label className="text-sm font-medium">Heure fin</Label>
+                            <Input
+                              type="time"
+                              value={slot.end_time}
+                              onChange={(e) => updateEditSessionTimeSlot(index, 'end_time', e.target.value)}
+                              required
+                            />
+                          </div>
+                          {sessionForm.time_slots.length > 1 && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => removeEditSessionTimeSlot(index)}
+                              className="mb-0.5"
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      
+                      {sessionForm.time_slots && sessionForm.time_slots.length > 1 && (
+                        <div className="bg-yellow-50 p-3 rounded-md border border-yellow-300">
+                          <p className="text-sm text-yellow-800">
+                            ⚠️ <strong>Attention :</strong> La séance actuelle sera supprimée et {sessionForm.time_slots.length} nouvelles séances seront créées avec les créneaux horaires définis.
+                          </p>
+                        </div>
+                      )}
                     </div>
+                    
                     <div className="space-y-2">
                       <Label>Lien visioconférence (Google Meet, Zoom, etc.)</Label>
                       <Input 
