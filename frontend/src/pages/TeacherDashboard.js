@@ -553,11 +553,30 @@ export default function TeacherDashboard({ user, onLogout }) {
     setShowStudentDocumentsDialog(true);
   };
 
+  // État pour l'historique élève
+  const [studentHistory, setStudentHistory] = useState([]);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [historyStudent, setHistoryStudent] = useState(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
   // Fonction pour ouvrir l'historique d'un élève
-  const handleOpenStudentHistory = (studentId, studentName) => {
-    // Pour l'instant, on peut rediriger vers une page d'historique ou ouvrir une modale
-    // Ici on va juste afficher un toast pour indiquer que la fonctionnalité sera implémentée
-    toast.info(`Historique de ${studentName} - Fonctionnalité en cours de développement`);
+  const handleOpenStudentHistory = async (studentId, studentName) => {
+    setHistoryStudent({ id: studentId, name: studentName });
+    setShowHistoryDialog(true);
+    setLoadingHistory(true);
+    
+    try {
+      const response = await axios.get(`${API}/students/${studentId}/history`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setStudentHistory(response.data.history || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement de l\'historique:', error);
+      toast.error('Impossible de charger l\'historique');
+      setStudentHistory([]);
+    } finally {
+      setLoadingHistory(false);
+    }
   };
 
   const handleSendAttendance = async (e) => {
