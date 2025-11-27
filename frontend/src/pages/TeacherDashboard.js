@@ -94,7 +94,8 @@ export default function TeacherDashboard({ user, onLogout }) {
     hourly_rate: 40,
     hourly_rate_source: "auto",
     modality: "distanciel",
-    organism: ""
+    organism: "",
+    time_slots: [{ start_time: "", end_time: "" }]
   });
   const [multiSessions, setMultiSessions] = useState([{ 
     subject: "", 
