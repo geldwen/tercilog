@@ -81,7 +81,6 @@ const BilanQualitePage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(null);
-  const [parcoursFilter, setParcoursFilter] = useState("Toutes"); // Filtre pour difficultés/éléments maîtrisés
 
   const periodeLabel =
     filtres.periodeType === "mois"
@@ -123,10 +122,10 @@ const BilanQualitePage = () => {
       (e) => e.q1?.submitted && e.q2?.submitted && e.q3?.submitted
     );
     
-    // Filtrer par parcours sélectionné
-    const filtered = parcoursFilter === "Toutes" 
+    // Filtrer par parcours sélectionné (utiliser le filtre du bandeau du haut)
+    const filtered = filtres.parcours === "Toutes" 
       ? eligibles 
-      : eligibles.filter(e => e.parcours === parcoursFilter);
+      : eligibles.filter(e => e.parcours === filtres.parcours);
     
     // Difficultés top 3
     const freq = new Map();
@@ -151,7 +150,7 @@ const BilanQualitePage = () => {
       .map(([k]) => k);
     
     return { filteredTop3, filteredTop3Mastered };
-  }, [lignes, parcoursFilter]);
+  }, [lignes, filtres.parcours]);
 
   // Calcul de la progression moyenne par mois
   const progressionParMois = useMemo(() => {
