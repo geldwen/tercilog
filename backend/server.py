@@ -6738,6 +6738,95 @@ async def generate_bilan_tests_pdf(
     )
 
 
+
+# ============================================================================
+# LIVRET D'ACCUEIL - ENDPOINTS
+# ============================================================================
+
+@api_router.get("/livret-accueil")
+async def get_livret_accueil():
+    """
+    Sert le fichier PDF du livret d'accueil
+    """
+    file_path = ROOT_DIR / "static" / "documents" / "livret_accueil_terciform.pdf"
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Livret d'accueil non trouvé")
+    
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        filename="Livret_Accueil_TerciForm.pdf"
+    )
+
+
+@api_router.post("/students/{student_id}/sign-livret")
+async def sign_livret_accueil(
+    student_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Enregistre la signature du livret d'accueil par un élève
+    """
+    # Vérifier que l'utilisateur est bien l'élève concerné
+    if current_user.role == "student" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Non autorisé")
+    
+    # Vérifier que l'élève existe
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+    
+    # Enregistrer la signature
+    signature_data = {
+        "signed": True,
+        "signed_at": datetime.now(timezone.utc).isoformat(),
+        "signature": data.get("signature"),
+        "accepted_checkbox": data.get("accepted_checkbox", False)
+    }
+    
+    await db.users.update_one(
+        {"id": student_id},
+        {"$set": {"livret_accueil": signature_data}}
+    )
+    
+    return {
+        "success": True,
+        "message": "Livret d'accueil signé avec succès",
+        "signed_at": signature_data["signed_at"]
+    }
+
+
+@api_router.get("/students/{student_id}/livret-status")
+async def get_livret_status(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Récupère le statut de signature du livret d'accueil d'un élève
+    """
+    # Vérifier les permissions
+    if current_user.role == "student" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Non autorisé")
+    
+    student = await db.users.find_one(
+        {"id": student_id, "role": "student"},
+        {"_id": 0, "livret_accueil": 1}
+    )
+    
+    if not student:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+    
+    livret_accueil = student.get("livret_accueil", {})
+    
+    return {
+        "signed": livret_accueil.get("signed", False),
+        "signed_at": livret_accueil.get("signed_at"),
+        "signature": livret_accueil.get("signature") if current_user.role == "teacher" else None
+    }
+
+
 # Include router
 app.include_router(api_router)
 
