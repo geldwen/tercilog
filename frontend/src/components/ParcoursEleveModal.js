@@ -961,13 +961,27 @@ function BeneficiaryDocumentsTab({ studentId, studentName, student }) {
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
   const [sending, setSending] = useState(false);
+  const [livretStatus, setLivretStatus] = useState({ signed: false, signed_at: null });
 
   useEffect(() => {
     if (student && studentId) {
       loadQuestionnaires();
       loadStudentResources();
+      loadLivretStatus();
     }
   }, [studentId, student]);
+
+  const loadLivretStatus = async () => {
+    try {
+      const response = await axios.get(
+        `${API}/students/${studentId}/livret-status`,
+        { headers: getAuthHeaders() }
+      );
+      setLivretStatus(response.data);
+    } catch (error) {
+      console.error('Erreur lors du chargement du statut du livret:', error);
+    }
+  };
 
   const loadQuestionnaires = async () => {
     try {
