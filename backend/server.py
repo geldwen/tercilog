@@ -2419,6 +2419,24 @@ async def get_qualite_report(
             q1 = await db.bureautique_formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
             q2 = await db.bureautique_mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
             q3 = await db.bureautique_end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        elif student_parcours == "Informatique":
+            # Pour Informatique : récupérer depuis student_resources
+            q1_resource = await db.student_resources.find_one(
+                {"student_id": student_id, "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "POSITIONNEMENT"},
+                {"_id": 0}
+            )
+            q2_resource = await db.student_resources.find_one(
+                {"student_id": student_id, "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "MI_PARCOURS"},
+                {"_id": 0}
+            )
+            q3_resource = await db.student_resources.find_one(
+                {"student_id": student_id, "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "FIN"},
+                {"_id": 0}
+            )
+            # Transformer le format pour correspondre à ce qu'attend le reste du code
+            q1 = {"submitted_at": q1_resource.get("submitted_at"), "answers": q1_resource.get("answers")} if q1_resource and q1_resource.get("status") == "SOUMIS" else None
+            q2 = {"submitted_at": q2_resource.get("submitted_at"), "answers": q2_resource.get("answers")} if q2_resource and q2_resource.get("status") == "SOUMIS" else None
+            q3 = {"submitted_at": q3_resource.get("submitted_at"), "answers": q3_resource.get("answers")} if q3_resource and q3_resource.get("status") == "SOUMIS" else None
         else:
             # Par défaut : Anglais ou autres parcours
             q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
