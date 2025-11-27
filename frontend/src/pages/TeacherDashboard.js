@@ -2712,6 +2712,160 @@ export default function TeacherDashboard({ user, onLogout }) {
       </Dialog>
 
 
+      {/* Dialog Historique Élève */}
+      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold" style={{color: TERCIFORM_BLUE}}>
+              📋 Historique de {historyStudent?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Traçabilité complète de toutes les actions et événements
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto px-1">
+            {loadingHistory ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{borderColor: TERCIFORM_BLUE}}></div>
+                  <p className="text-gray-600">Chargement de l'historique...</p>
+                </div>
+              </div>
+            ) : studentHistory.length === 0 ? (
+              <div className="text-center py-20">
+                <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg">Aucun événement enregistré pour cet élève</p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {/* Timeline */}
+                <div className="relative">
+                  {/* Ligne verticale de la timeline */}
+                  <div className="absolute left-[21px] top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                  
+                  {studentHistory.map((event, index) => {
+                    // Définir les couleurs et icônes selon le type d'événement
+                    let bgColor = 'bg-blue-100';
+                    let borderColor = 'border-blue-400';
+                    let textColor = 'text-blue-800';
+                    let icon = '📄';
+                    
+                    if (event.type === 'connection' || event.type === 'login') {
+                      bgColor = 'bg-green-100';
+                      borderColor = 'border-green-400';
+                      textColor = 'text-green-800';
+                      icon = '🔐';
+                    } else if (event.type === 'signature' || event.type === 'signed') {
+                      bgColor = 'bg-purple-100';
+                      borderColor = 'border-purple-400';
+                      textColor = 'text-purple-800';
+                      icon = '✍️';
+                    } else if (event.type === 'email' || event.type === 'notification') {
+                      bgColor = 'bg-yellow-100';
+                      borderColor = 'border-yellow-400';
+                      textColor = 'text-yellow-800';
+                      icon = '📧';
+                    } else if (event.type === 'session' || event.type === 'attendance') {
+                      bgColor = 'bg-indigo-100';
+                      borderColor = 'border-indigo-400';
+                      textColor = 'text-indigo-800';
+                      icon = '📚';
+                    } else if (event.type === 'request' || event.type === 'demand') {
+                      bgColor = 'bg-orange-100';
+                      borderColor = 'border-orange-400';
+                      textColor = 'text-orange-800';
+                      icon = '📝';
+                    } else if (event.type === 'document') {
+                      bgColor = 'bg-pink-100';
+                      borderColor = 'border-pink-400';
+                      textColor = 'text-pink-800';
+                      icon = '📎';
+                    }
+
+                    const eventDate = new Date(event.timestamp);
+                    const formattedDate = eventDate.toLocaleDateString('fr-FR', {
+                      weekday: 'short',
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric'
+                    });
+                    const formattedTime = eventDate.toLocaleTimeString('fr-FR', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    });
+
+                    return (
+                      <div key={index} className="relative flex gap-4 pb-6">
+                        {/* Point sur la timeline */}
+                        <div className={`relative z-10 flex-shrink-0 w-11 h-11 rounded-full ${bgColor} border-4 ${borderColor} flex items-center justify-center text-xl shadow-sm`}>
+                          {icon}
+                        </div>
+                        
+                        {/* Contenu de l'événement */}
+                        <div className="flex-1 bg-white rounded-lg border-2 border-gray-200 shadow-sm hover:shadow-md transition-shadow p-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${bgColor} ${textColor}`}>
+                                  {event.category || 'Général'}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {formattedDate} à {formattedTime}
+                                </span>
+                              </div>
+                              <p className="text-sm font-semibold text-gray-900 mb-1">
+                                {event.title}
+                              </p>
+                              {event.description && (
+                                <p className="text-sm text-gray-600">
+                                  {event.description}
+                                </p>
+                              )}
+                              {event.metadata && Object.keys(event.metadata).length > 0 && (
+                                <div className="mt-2 pt-2 border-t border-gray-100">
+                                  <div className="flex flex-wrap gap-2">
+                                    {Object.entries(event.metadata).map(([key, value]) => (
+                                      <span key={key} className="text-xs text-gray-500">
+                                        <strong>{key}:</strong> {String(value)}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="border-t pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowHistoryDialog(false)}
+            >
+              Fermer
+            </Button>
+            <Button
+              style={{backgroundColor: TERCIFORM_BLUE}}
+              className="text-white"
+              onClick={() => {
+                // Export CSV ou PDF de l'historique
+                toast.info('Export de l\'historique - Fonctionnalité à venir');
+              }}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Exporter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Dialog Parcours élève - Nouveau composant avec 2 onglets */}
       <ParcoursEleveModal
         open={showStudentDocumentsDialog}
