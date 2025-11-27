@@ -6825,6 +6825,113 @@ async def get_livret_status(
     )
     
     if not student:
+
+
+@api_router.put("/sessions/{session_id}/times")
+async def update_session_times(
+    session_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Modifie les horaires d'une séance existante
+    Si plusieurs créneaux sont fournis, supprime la séance actuelle et crée de nouvelles séances
+    """
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès refusé")
+    
+    # Récupérer la séance actuelle
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Séance non trouvée")
+    
+    time_slots = data.get('time_slots', [])
+    
+    if not time_slots:
+        raise HTTPException(status_code=400, detail="Aucun créneau horaire fourni")
+    
+    # Si un seul créneau, mettre à jour la séance existante
+    if len(time_slots) == 1:
+        slot = time_slots[0]
+        
+        # Calculer la nouvelle durée
+        try:
+            start_h, start_m = map(int, slot['start_time'].split(':'))
+            end_h, end_m = map(int, slot['end_time'].split(':'))
+            duration = (end_h * 60 + end_m - start_h * 60 - start_m) / 60.0
+        except:
+            duration = session['duration_hours']
+        
+        # Calculer le nouveau montant
+        hourly_rate = data.get('hourly_rate', session.get('hourly_rate', 0))
+        amount = round(duration * hourly_rate, 2)
+        
+        # Mettre à jour la séance
+        await db.sessions.update_one(
+            {"id": session_id},
+            {"$set": {
+                "start_time": slot['start_time'],
+                "end_time": slot['end_time'],
+                "duration_hours": duration,
+                "amount": amount
+            }}
+        )
+        
+        return {"message": "Horaires mis à jour avec succès", "sessions_created": 1}
+    
+    # Si plusieurs créneaux, supprimer la séance actuelle et créer de nouvelles séances
+    else:
+        created_sessions = []
+        
+        for slot in time_slots:
+            # Calculer la durée
+            try:
+                start_h, start_m = map(int, slot['start_time'].split(':'))
+                end_h, end_m = map(int, slot['end_time'].split(':'))
+                duration = (end_h * 60 + end_m - start_h * 60 - start_m) / 60.0
+            except:
+                duration = 0.0
+            
+            # Calculer le montant
+            hourly_rate = data.get('hourly_rate', session.get('hourly_rate', 0))
+            amount = round(duration * hourly_rate, 2)
+            
+            # Calculer la deadline
+            deadline = datetime.now(timezone.utc) + timedelta(hours=48)
+            
+            # Créer une nouvelle séance
+            new_session = Session(
+                subject=data.get('subject', session['subject']),
+                date=data.get('date', session['date']),
+                start_time=slot['start_time'],
+                end_time=slot['end_time'],
+                student_id=session['student_id'],
+                student_name=session['student_name'],
+                student_email=session['student_email'],
+                validation_deadline=deadline.isoformat(),
+                duration_hours=duration,
+                meeting_link=data.get('meeting_link', session.get('meeting_link', '')),
+                hourly_rate=hourly_rate,
+                hourly_rate_source=session.get('hourly_rate_source', 'manual'),
+                amount=amount,
+                organism=session.get('organism', ''),
+                modality=data.get('modality', session.get('modality', 'distanciel'))
+            )
+            
+            doc = new_session.model_dump()
+            doc['created_at'] = doc['created_at'].isoformat()
+            await db.sessions.insert_one(doc)
+            created_sessions.append(new_session.id)
+        
+        # Supprimer la séance originale
+        await db.sessions.delete_one({"id": session_id})
+        
+        return {
+            "message": f"{len(time_slots)} nouvelles séances créées avec succès",
+            "sessions_created": len(time_slots),
+            "new_session_ids": created_sessions
+        }
+
         raise HTTPException(status_code=404, detail="Élève non trouvé")
     
     livret_accueil = student.get("livret_accueil", {})
