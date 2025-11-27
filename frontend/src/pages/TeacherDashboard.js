@@ -2475,6 +2475,119 @@ export default function TeacherDashboard({ user, onLogout }) {
         </DialogContent>
       </Dialog>
 
+
+      {/* Dialog Modifier horaires */}
+      <Dialog open={showEditTimesDialog} onOpenChange={setShowEditTimesDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold" style={{color: TERCIFORM_BLUE}}>
+              Modifier les horaires - {editingSession?.student_name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Infos de la séance */}
+            <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="font-semibold">Matière :</span> {editingSession?.subject}
+                </div>
+                <div>
+                  <span className="font-semibold">Date :</span> {editingSession?.date ? new Date(editingSession.date).toLocaleDateString('fr-FR') : ''}
+                </div>
+                <div>
+                  <span className="font-semibold">Élève :</span> {editingSession?.student_name}
+                </div>
+                <div>
+                  <span className="font-semibold">Modalité :</span> {editingSession?.modality}
+                </div>
+              </div>
+            </div>
+
+            {/* Créneaux horaires */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-lg font-semibold">Créneaux horaires</Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={addEditTimeSlot}
+                  className="text-xs"
+                  style={{color: TERCIFORM_BLUE, borderColor: TERCIFORM_BLUE}}
+                >
+                  + Ajouter un créneau
+                </Button>
+              </div>
+              
+              {editTimeSlots.map((slot, index) => (
+                <div key={index} className="flex items-end gap-2 p-4 bg-gray-50 rounded-lg border-2 border-gray-200">
+                  <div className="flex-1 space-y-2">
+                    <Label className="text-sm font-medium">Heure de début</Label>
+                    <Input
+                      type="time"
+                      value={slot.start_time}
+                      onChange={(e) => updateEditTimeSlot(index, 'start_time', e.target.value)}
+                      required
+                      className="text-base"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <Label className="text-sm font-medium">Heure de fin</Label>
+                    <Input
+                      type="time"
+                      value={slot.end_time}
+                      onChange={(e) => updateEditTimeSlot(index, 'end_time', e.target.value)}
+                      required
+                      className="text-base"
+                    />
+                  </div>
+                  {editTimeSlots.length > 1 && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => removeEditTimeSlot(index)}
+                      className="mb-0.5"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {editTimeSlots.length > 1 && (
+              <div className="bg-yellow-50 p-3 rounded-md border border-yellow-300">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ <strong>Attention :</strong> La séance actuelle sera supprimée et {editTimeSlots.length} nouvelles séances seront créées pour cet élève avec les créneaux horaires définis.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowEditTimesDialog(false)}
+            >
+              Annuler
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSaveEditTimes}
+              style={{backgroundColor: TERCIFORM_BLUE}}
+              className="text-white"
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              Enregistrer les horaires
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
       {/* Dialog Parcours élève - Nouveau composant avec 2 onglets */}
       <ParcoursEleveModal
         open={showStudentDocumentsDialog}
