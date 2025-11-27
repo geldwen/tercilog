@@ -6825,6 +6825,15 @@ async def get_livret_status(
     )
     
     if not student:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+    
+    livret_accueil = student.get("livret_accueil", {})
+    
+    return {
+        "signed": livret_accueil.get("signed", False),
+        "signed_at": livret_accueil.get("signed_at"),
+        "signature": livret_accueil.get("signature") if current_user.role == "teacher" else None
+    }
 
 
 @api_router.put("/sessions/{session_id}/times")
