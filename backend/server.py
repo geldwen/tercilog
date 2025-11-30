@@ -7078,6 +7078,66 @@ async def get_livret_status(
     }
 
 
+@api_router.post("/students/{student_id}/evolution-report")
+async def generate_student_evolution_report(
+    student_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Génère un rapport d'évolution des compétences pour un élève
+    Basé sur les résultats des tests T1, T2, T3
+    """
+    # Seuls les enseignants peuvent générer le rapport
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès réservé aux enseignants")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one(
+        {"id": student_id, "role": "student"},
+        {"_id": 0}
+    )
+    
+    if not student:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+    
+    # Extraire les données du body
+    parcours = data.get('parcours', '')
+    t1 = data.get('t1')
+    t2 = data.get('t2')
+    t3 = data.get('t3')
+    themes = data.get('themes', [])
+    
+    # Validation
+    if not parcours:
+        raise HTTPException(status_code=400, detail="Le parcours est requis")
+    
+    if t1 is None or t2 is None or t3 is None:
+        raise HTTPException(status_code=400, detail="Les scores T1, T2 et T3 sont requis")
+    
+    # Générer le rapport
+    date_rapport = datetime.now(timezone.utc).strftime("%d/%m/%Y")
+    horodatage = datetime.now(timezone.utc).strftime("%d/%m/%Y à %H:%M:%S")
+    
+    rapport, erreur = generate_evolution_report(
+        nom_apprenant=student.get('name'),
+        parcours=parcours,
+        t1=t1,
+        t2=t2,
+        t3=t3,
+        themes=themes,
+        date_rapport=date_rapport,
+        horodatage=horodatage
+    )
+    
+    if erreur:
+        raise HTTPException(status_code=400, detail=erreur)
+    
+    logger.info(f"📊 Rapport d'évolution généré pour {student.get('name')} - Parcours: {parcours}")
+    
+    return rapport
+
+
 @api_router.get("/students/{student_id}/history")
 async def get_student_history(
     student_id: str,
