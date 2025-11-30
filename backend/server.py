@@ -32,6 +32,7 @@ from quality_ai_agent import calculate_quality_scores
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import asyncio
+from evolution_analysis import generate_evolution_report
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
