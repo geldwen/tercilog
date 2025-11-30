@@ -195,6 +195,118 @@ def proposer_remediation(themes_analysis, parcours):
     }
 
 
+def generer_analyse_pedagogique_detaillee(t1, t2, t3, themes_analysis, parcours):
+    """
+    Génère une analyse pédagogique professionnelle et détaillée
+    """
+    points_forts = []
+    points_faibles = []
+    axes_amelioration = []
+    solutions = []
+    
+    # Analyser les scores pour identifier les points forts
+    if t2 > t1 and t2 >= 20:
+        points_forts.append(f"Acquis partiels sur T2 ({t2:.2f}%) à capitaliser")
+        points_forts.append("Bases identifiées pour structurer l'apprentissage")
+    
+    if t3 > 50:
+        points_forts.append(f"Niveau final satisfaisant ({t3:.2f}%)")
+        points_forts.append("Objectifs du parcours globalement atteints")
+    
+    if t1 >= 20 and t1 <= 50:
+        points_forts.append(f"Socle de départ identifié sur T1 ({t1:.2f}%)")
+    
+    if themes_analysis["themes_acquis"]:
+        points_forts.append(f"Compétences maîtrisées: {', '.join(themes_analysis['themes_acquis'])}")
+    
+    if not points_forts:
+        points_forts.append("Motivation et engagement dans le parcours")
+        points_forts.append("Potentiel d'évolution identifié")
+    
+    # Analyser les points faibles
+    if t1 < 20:
+        points_faibles.append(f"T1 ({t1:.2f}%) insuffisant")
+    
+    if t3 < 20:
+        points_faibles.append(f"T3 ({t3:.2f}%) insuffisant")
+    elif t3 < 50:
+        points_faibles.append(f"T3 ({t3:.2f}%) en cours d'acquisition, nécessite consolidation")
+    
+    if abs(t1 - t3) < 5:
+        points_faibles.append("Faible progression entre T1 et T3")
+    
+    if t2 > t3 and (t2 - t3) > 10:
+        points_faibles.append("Régression entre T2 et T3, manque de stabilisation des acquis")
+    
+    if themes_analysis["themes_non_acquis"]:
+        points_faibles.append(f"Lacunes identifiées: {', '.join(themes_analysis['themes_non_acquis'])}")
+    
+    if t1 < 50 and t2 < 50 and t3 < 50:
+        points_faibles.append("Hétérogénéité des compétences et manque d'automatisation")
+    
+    # Axes d'amélioration détaillés selon le parcours
+    if parcours.lower() == "informatique":
+        if t3 < 50:
+            axes_amelioration.append("Consolider les fondamentaux: navigation système, gestion de fichiers, configuration de base")
+            axes_amelioration.append("Renforcer les fonctions standard: manipulation interface, raccourcis clavier, organisation des données")
+            axes_amelioration.append("Initier progressivement: sécurité informatique, maintenance préventive, résolution de problèmes courants")
+        else:
+            axes_amelioration.append("Approfondir les compétences techniques avancées")
+            axes_amelioration.append("Développer l'autonomie sur les outils professionnels")
+    
+    elif parcours.lower() == "bureautique":
+        if t3 < 50:
+            axes_amelioration.append("Consolider les fondamentaux: navigation, gestion de fichiers, mise en forme de base, raccourcis")
+            axes_amelioration.append("Renforcer les fonctions standard: traitement de texte, tableur, présentation; tableaux, mises en page, formules basiques")
+            axes_amelioration.append("Initier progressivement les fonctions avancées pertinentes: styles/modèles, outils de révision, automatisation simple")
+        else:
+            axes_amelioration.append("Perfectionner les outils avancés: publipostage, tableaux croisés dynamiques, macros")
+            axes_amelioration.append("Optimiser la productivité avec les fonctionnalités professionnelles")
+    
+    elif parcours.lower() == "management":
+        if t3 < 50:
+            axes_amelioration.append("Consolider les fondamentaux: communication, organisation, délégation de base")
+            axes_amelioration.append("Renforcer les compétences relationnelles: écoute active, feedback constructif, gestion de conflits")
+            axes_amelioration.append("Initier progressivement: leadership situationnel, animation d'équipe, conduite de réunion")
+        else:
+            axes_amelioration.append("Développer le leadership stratégique et la vision d'équipe")
+            axes_amelioration.append("Perfectionner la gestion de projets complexes")
+    
+    if not axes_amelioration:
+        axes_amelioration.append("Maintenir les acquis par une pratique régulière")
+        axes_amelioration.append("Approfondir les compétences spécifiques au contexte professionnel")
+    
+    # Solutions proposées détaillées
+    solutions.append("Parcours individualisé en micro-modules + pratique guidée")
+    solutions.append("Tutorat court et feedback immédiat")
+    solutions.append("QCM de contrôle continu")
+    solutions.append("Exercices contextualisés en situation de travail")
+    solutions.append("Suivi hebdomadaire via indicateurs (réussite, temps, erreurs-types)")
+    
+    if t3 < 20:
+        solutions.append("Reprise complète des fondamentaux avec supports pédagogiques adaptés")
+        solutions.append("Séances de remédiation ciblées sur les lacunes prioritaires")
+    elif t3 < 50:
+        solutions.append("Consolidation des acquis partiels avec exercices progressifs")
+        solutions.append("Mise en situation professionnelle pour ancrer les compétences")
+    
+    # Conclusion personnalisée
+    if t3 >= 50:
+        conclusion = "Objectifs du parcours atteints. Poursuite recommandée vers un niveau avancé avec pratique régulière pour maintenir et approfondir les acquis."
+    elif t3 >= 20:
+        conclusion = "Progression atteignable à court terme avec accompagnement structuré et entraînement régulier, priorisant la consolidation des bases puis le développement progressif."
+    else:
+        conclusion = "Nécessité d'un accompagnement renforcé avec reprise des fondamentaux. Progression possible à moyen terme avec un dispositif adapté et un suivi rapproché."
+    
+    return {
+        "points_forts": points_forts,
+        "points_faibles": points_faibles,
+        "axes_amelioration": axes_amelioration,
+        "solutions": solutions,
+        "conclusion": conclusion
+    }
+
+
 def generate_evolution_report(
     nom_apprenant,
     parcours,
@@ -204,7 +316,7 @@ def generate_evolution_report(
     horodatage
 ):
     """
-    Génération du rapport d'évolution complet.
+    Génération du rapport d'évolution complet PROFESSIONNEL.
     NE S'APPLIQUE PAS au parcours 'anglais'
     """
     if parcours.lower() == "anglais":
@@ -219,8 +331,8 @@ def generate_evolution_report(
     # 3) Analyse thèmes
     themes_analysis = analyser_themes(themes)
 
-    # 4) Remédiation
-    remed = proposer_remediation(themes_analysis, parcours)
+    # 4) Analyse pédagogique détaillée (NOUVEAU)
+    analyse_pedagogique = generer_analyse_pedagogique_detaillee(t1, t2, t3, themes_analysis, parcours)
 
     # 5) Construction du rapport structuré
     rapport = {
@@ -243,68 +355,85 @@ def generate_evolution_report(
             "phrase": res['phrase_resultat']
         },
         "analyse_themes": themes_analysis,
-        "plan_actions": remed
+        "analyse_pedagogique": analyse_pedagogique
     }
 
-    # 6) Construction du texte du rapport
+    # 6) Construction du texte du rapport PROFESSIONNEL
     lignes = []
 
-    lignes.append(f"Rapport d'évolution des compétences")
+    lignes.append("═" * 80)
+    lignes.append("RAPPORT D'ÉVOLUTION DES COMPÉTENCES")
+    lignes.append("═" * 80)
+    lignes.append("")
     lignes.append(f"Apprenant : {nom_apprenant}")
     lignes.append(f"Parcours : {parcours}")
     lignes.append(f"Date du rapport : {date_rapport}")
     lignes.append(f"Horodatage : {horodatage}")
     lignes.append("")
-
-    # Résultats bruts
-    lignes.append("1. Résultats des évaluations")
-    lignes.append(f"- T1 (positionnement) : {t1}% → {evo['niveau_t1']}")
-    lignes.append(f"- T2 (mi-parcours) : {t2}% → {evo['niveau_t2']}")
-    lignes.append(f"- T3 (fin de parcours) : {t3}% → {evo['niveau_t3']}")
+    lignes.append("─" * 80)
+    
+    # Section 1: Résultats des évaluations
     lignes.append("")
-
-    # Évolution globale
-    lignes.append("2. Évolution globale")
-    lignes.append(f"Tendance générale : {evo['tendance']} ({evo['couleur']})")
-    lignes.append(evo["phrase_tendance"])
+    lignes.append("1. RÉSULTATS DES ÉVALUATIONS")
     lignes.append("")
-
-    # Résultat final
-    lignes.append("3. Résultat final")
-    lignes.append(res["phrase_resultat"])
+    lignes.append(f"   • T1 (Test de positionnement)  : {t1:.2f}% → Niveau: {evo['niveau_t1'].upper()}")
+    lignes.append(f"   • T2 (Évaluation mi-parcours)  : {t2:.2f}% → Niveau: {evo['niveau_t2'].upper()}")
+    lignes.append(f"   • T3 (Évaluation finale)       : {t3:.2f}% → Niveau: {evo['niveau_t3'].upper()}")
     lignes.append("")
-
-    # Ce que l'apprenant sait
-    lignes.append("4. Ce que l'apprenant sait")
-    if themes_analysis["themes_acquis"]:
-        lignes.append("Compétences acquises : " + ", ".join(themes_analysis["themes_acquis"]) + ".")
-    else:
-        lignes.append("Aucune compétence n'est clairement acquise à ce stade.")
+    lignes.append(f"   Tendance générale : {evo['tendance'].upper()} ({evo['couleur']})")
+    lignes.append(f"   {evo['phrase_tendance']}")
     lignes.append("")
-
-    lignes.append("5. Ce que l'apprenant ne maîtrise pas encore")
-    if themes_analysis["themes_non_acquis"]:
-        lignes.append("Thèmes non acquis : " + ", ".join(themes_analysis["themes_non_acquis"]) + ".")
-    else:
-        lignes.append("Aucun thème n'est identifié comme totalement non acquis.")
+    lignes.append("─" * 80)
+    
+    # Section 2: Résultat final
     lignes.append("")
-
-    lignes.append("6. Compétences à consolider")
-    if themes_analysis["themes_en_cours"]:
-        lignes.append("Compétences en cours d'acquisition : " + ", ".join(themes_analysis["themes_en_cours"]) + ".")
-    else:
-        lignes.append("Aucune compétence intermédiaire particulière n'est identifiée.")
+    lignes.append("2. RÉSULTAT FINAL")
     lignes.append("")
-
-    # Remédiations
-    lignes.append("7. Plan d'actions et remédiation")
-    lignes.append("Pour l'apprenant :")
-    for a in remed["actions_apprenant"]:
-        lignes.append(f"- {a}")
+    lignes.append(f"   {res['phrase_resultat']}")
     lignes.append("")
-    lignes.append("Pour TerciForm :")
-    for a in remed["actions_organisme"]:
-        lignes.append(f"- {a}")
+    lignes.append("─" * 80)
+    
+    # Section 3: Analyse pédagogique détaillée
+    lignes.append("")
+    lignes.append("3. ANALYSE PÉDAGOGIQUE")
+    lignes.append("")
+    
+    lignes.append("   ▸ Points forts:")
+    for i, pf in enumerate(analyse_pedagogique["points_forts"], 1):
+        lignes.append(f"     {i}. {pf}")
+    lignes.append("")
+    
+    lignes.append("   ▸ Points faibles:")
+    for i, pf in enumerate(analyse_pedagogique["points_faibles"], 1):
+        lignes.append(f"     {i}. {pf}")
+    lignes.append("")
+    
+    lignes.append("   ▸ Axes d'amélioration:")
+    for i, axe in enumerate(analyse_pedagogique["axes_amelioration"], 1):
+        lignes.append(f"     {i}. {axe}")
+    lignes.append("")
+    lignes.append("─" * 80)
+    
+    # Section 4: Solutions proposées
+    lignes.append("")
+    lignes.append("4. SOLUTIONS PROPOSÉES")
+    lignes.append("")
+    lignes.append("   Dispositif pédagogique recommandé:")
+    for i, sol in enumerate(analyse_pedagogique["solutions"], 1):
+        lignes.append(f"     • {sol}")
+    lignes.append("")
+    lignes.append("─" * 80)
+    
+    # Section 5: Conclusion
+    lignes.append("")
+    lignes.append("5. CONCLUSION")
+    lignes.append("")
+    lignes.append(f"   {analyse_pedagogique['conclusion']}")
+    lignes.append("")
+    lignes.append("═" * 80)
+    lignes.append("")
+    lignes.append("Rapport généré automatiquement par TerciForm")
+    lignes.append(f"Conforme aux exigences de suivi pédagogique et traçabilité Qualiopi")
     lignes.append("")
 
     rapport["texte_complet"] = "\n".join(lignes)
