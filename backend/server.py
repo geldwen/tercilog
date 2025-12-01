@@ -780,8 +780,6 @@ def send_attendance_email(to_email: str, student_name: str, subject: str, date: 
 def send_welcome_email(to_email: str, student_name: str, student_email: str, temp_password: str):
     """Envoyer l'email de bienvenue lors de la création d'un nouvel élève"""
     
-    logger.info(f"📧 Preparing welcome email for {to_email} - Password received: {'YES' if temp_password else 'NO'} (length: {len(temp_password) if temp_password else 0})")
-    
     portal_url = get_student_portal_url()
     
     html_body = f"""<html>
