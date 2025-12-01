@@ -9,14 +9,15 @@ import BilanQualitePage from "./pages/BilanQualitePage";
 import BilanTests from "./pages/BilanTests";
 import QuizRunner from "./components/QuizRunner";
 import { Toaster } from "./components/ui/sonner";
+import storage from "./utils/storage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Axios interceptor for auth token
+// Axios interceptor for auth token (Safari compatible)
 axios.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = storage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -34,25 +35,25 @@ function App() {
   }, []);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('token');
+    const token = storage.getItem('token');
     if (token) {
       try {
         const response = await axios.get(`${API}/auth/me`);
         setUser(response.data);
       } catch (error) {
-        localStorage.removeItem('token');
+        storage.removeItem('token');
       }
     }
     setLoading(false);
   };
 
   const handleLogin = (userData, token) => {
-    localStorage.setItem('token', token);
+    storage.setItem('token', token);
     setUser(userData);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    storage.removeItem('token');
     setUser(null);
   };
 
