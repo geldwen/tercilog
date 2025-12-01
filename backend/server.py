@@ -29,7 +29,7 @@ import io
 import fitz  # PyMuPDF - pas besoin de poppler !
 from PIL import Image as PILImage
 from quality_ai_agent import calculate_quality_scores
-from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import asyncio
 from evolution_analysis import generate_evolution_report
@@ -75,18 +75,8 @@ app.mount("/static", StaticFiles(directory="/app/backend/static"), name="static"
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Scheduler pour les rappels automatiques
-scheduler = BackgroundScheduler()
-
-def run_reminder_check():
-    """Wrapper synchrone pour exécuter la fonction async de vérification des rappels"""
-    try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(send_session_reminders())
-        loop.close()
-    except Exception as e:
-        logger.error(f"Erreur dans le scheduler de rappels: {e}")
+# Scheduler pour les rappels automatiques (AsyncIOScheduler compatible avec FastAPI)
+scheduler = AsyncIOScheduler()
 
 @app.on_event("startup")
 async def startup_event():
@@ -94,7 +84,7 @@ async def startup_event():
     try:
         # Vérifier les rappels toutes les 5 minutes
         scheduler.add_job(
-            run_reminder_check,
+            send_session_reminders,
             trigger=IntervalTrigger(minutes=5),
             id='session_reminders',
             name='Vérification des rappels de séances',
