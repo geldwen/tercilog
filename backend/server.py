@@ -95,6 +95,16 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Erreur lors du démarrage du scheduler: {e}")
 
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Arrêter le scheduler lors de l'arrêt de l'application"""
+    try:
+        scheduler.shutdown()
+        logger.info("✅ Scheduler de rappels arrêté proprement")
+    except Exception as e:
+        logger.error(f"Erreur lors de l'arrêt du scheduler: {e}")
+
+
 # Models
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
