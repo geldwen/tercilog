@@ -1446,55 +1446,59 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   </div>
                                 )}
                                 
-                                {/* Boutons d'action en grille 1 colonne (bouton Rejoindre retiré) */}
-                                <div className="grid grid-cols-1 gap-3 mt-3">
-                                  {/* Bouton "Rejoindre" masqué car inutile pour les séances existantes */}
-                                  <Button 
-                                    onClick={() => handleResendEmail(session.id)} 
-                                    variant="outline" 
-                                    size="sm"
-                                    className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-blue-600 border-blue-300 hover:bg-blue-50"
-                                  >
-                                    <Mail className="w-4 h-4" />
-                                    Renvoyer confirmation
-                                  </Button>
-                                  <Button 
-                                    onClick={() => handleResendAttendanceEmail(session.id)} 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-orange-600 border-orange-300 hover:bg-orange-50"
-                                  >
-                                    <PenTool className="w-4 h-4" />
-                                    Renvoyer émargement élève
-                                  </Button>
-                                  <Button 
-                                    onClick={() => openTeacherSignatureDialog(session)} 
-                                    variant="outline" 
-                                    size="sm" 
-                                    style={{ color: '#6B2E6F', borderColor: '#d1a7d4' }}
-                                    className="w-full py-2 rounded-md flex items-center justify-center gap-2 hover:bg-purple-50"
-                                  >
-                                    <PenTool className="w-4 h-4 rotate-180" />
-                                    Émargement professeur
-                                  </Button>
-                                  <Button 
-                                    onClick={() => handleEditSession(session)} 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-green-600 border-green-300 hover:bg-green-50"
-                                  >
-                                    <Edit className="w-4 h-4" />
-                                    Modifier
-                                  </Button>
-                                  <Button 
-                                    onClick={() => handleDeleteSession(session.id)} 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="w-full py-2 rounded-md flex items-center justify-center gap-2 text-red-600 border-red-300 hover:bg-red-50"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                    Supprimer
-                                  </Button>
+                                {/* Menu Actions compact */}
+                                <div className="flex justify-end mt-3">
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button 
+                                        variant="outline" 
+                                        size="sm"
+                                        className="gap-2"
+                                        style={{ borderColor: TERCIFORM_BLUE, color: TERCIFORM_BLUE }}
+                                      >
+                                        <MoreVertical className="w-4 h-4" />
+                                        Actions
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-56">
+                                      <DropdownMenuItem 
+                                        onClick={() => handleResendEmail(session.id)}
+                                        className="cursor-pointer"
+                                      >
+                                        <Mail className="w-4 h-4 mr-2 text-blue-600" />
+                                        Renvoyer confirmation
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        onClick={() => handleResendAttendanceEmail(session.id)}
+                                        className="cursor-pointer"
+                                      >
+                                        <PenTool className="w-4 h-4 mr-2 text-orange-600" />
+                                        Renvoyer émargement élève
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        onClick={() => openTeacherSignatureDialog(session)}
+                                        className="cursor-pointer"
+                                      >
+                                        <PenTool className="w-4 h-4 mr-2 rotate-180" style={{ color: '#6B2E6F' }} />
+                                        Émargement professeur
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem 
+                                        onClick={() => handleEditSession(session)}
+                                        className="cursor-pointer"
+                                      >
+                                        <Edit className="w-4 h-4 mr-2 text-green-600" />
+                                        Modifier
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        onClick={() => handleDeleteSession(session.id)}
+                                        className="cursor-pointer text-red-600"
+                                      >
+                                        <Trash2 className="w-4 h-4 mr-2" />
+                                        Supprimer
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
                               </div>
                             ))}
