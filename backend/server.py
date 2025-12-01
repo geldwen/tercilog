@@ -55,6 +55,16 @@ security = HTTPBearer()
 
 # Create the main app
 app = FastAPI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 api_router = APIRouter(prefix="/api")
 
 # Mount static files for profile pictures
@@ -394,14 +404,14 @@ def get_student_portal_url():
     2. FRONTEND_URL
     3. REACT_APP_FRONTEND_URL
     4. REACT_APP_BACKEND_URL (removing /api suffix if present)
-    5. Fallback: https://teachportal-12.preview.emergentagent.com
+    5. Fallback: https://student-portal-fix-1.preview.emergentagent.com
     """
     url = (
         os.getenv("STUDENT_PORTAL_URL")
         or os.getenv("FRONTEND_URL")
         or os.getenv("REACT_APP_FRONTEND_URL")
         or os.getenv("REACT_APP_BACKEND_URL")
-        or "https://teachportal-12.preview.emergentagent.com"
+        or "https://student-portal-fix-1.preview.emergentagent.com"
     )
     
     # Normalize URL
@@ -7653,13 +7663,6 @@ def generate_bilan_eleve_pdf(student: dict, q_besoins: dict, q_mi_parcours: dict
     return buffer.getvalue()
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 @app.on_event("shutdown")
