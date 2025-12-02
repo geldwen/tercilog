@@ -16,6 +16,18 @@ const MONTHS = [
   { name: 'Octobre 2025', value: '2025-10', days: 31, startDay: 3 },
   { name: 'Novembre 2025', value: '2025-11', days: 30, startDay: 6 },
   { name: 'Décembre 2025', value: '2025-12', days: 31, startDay: 1 },
+  { name: 'Janvier 2026', value: '2026-01', days: 31, startDay: 4 },
+  { name: 'Février 2026', value: '2026-02', days: 28, startDay: 0 },
+  { name: 'Mars 2026', value: '2026-03', days: 31, startDay: 0 },
+  { name: 'Avril 2026', value: '2026-04', days: 30, startDay: 3 },
+  { name: 'Mai 2026', value: '2026-05', days: 31, startDay: 5 },
+  { name: 'Juin 2026', value: '2026-06', days: 30, startDay: 1 },
+  { name: 'Juillet 2026', value: '2026-07', days: 31, startDay: 3 },
+  { name: 'Août 2026', value: '2026-08', days: 31, startDay: 6 },
+  { name: 'Septembre 2026', value: '2026-09', days: 30, startDay: 2 },
+  { name: 'Octobre 2026', value: '2026-10', days: 31, startDay: 4 },
+  { name: 'Novembre 2026', value: '2026-11', days: 30, startDay: 0 },
+  { name: 'Décembre 2026', value: '2026-12', days: 31, startDay: 2 },
 ];
 
 const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
