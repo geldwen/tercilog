@@ -20,14 +20,18 @@ export default function LoginPage({ onLogin }) {
     setLoading(true);
 
     try {
+      console.log('[Login] Tentative de connexion pour:', email);
       const response = await axios.post(`${API}/auth/login`, {
         email,
         password,
       });
 
+      console.log('[Login] Réponse API reçue, token présent:', !!response.data.access_token);
       toast.success("Connexion réussie !");
       onLogin(response.data.user, response.data.access_token);
+      console.log('[Login] onLogin appelé avec succès');
     } catch (error) {
+      console.error('[Login] Erreur:', error.response?.data?.detail || error.message);
       toast.error(error.response?.data?.detail || "Échec de la connexion");
     } finally {
       setLoading(false);
