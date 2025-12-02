@@ -3486,6 +3486,30 @@ async def resend_attendance_email(session_id: str, current_user: User = Depends(
     return {"message": "Attendance email resent"}
 
 
+@api_router.post("/sessions/fix-signature-status")
+async def fix_signature_status(current_user: User = Depends(get_current_user)):
+    """ENDPOINT D'URGENCE: Corriger toutes les séances avec signature mais status pending"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Trouver toutes les séances avec signature mais status pending
+    problem_sessions = await db.sessions.find({
+        "signature": {"$exists": True, "$ne": None},
+        "signature_status": "pending"
+    }).to_list(length=None)
+    
+    fixed_count = 0
+    for session in problem_sessions:
+        await db.sessions.update_one(
+            {"id": session["id"]},
+            {"$set": {"signature_status": "signed"}}
+        )
+        fixed_count += 1
+    
+    return {"message": f"{fixed_count} séances corrigées", "session_ids": [s["id"] for s in problem_sessions]}
+
+
+
 @api_router.post("/sessions/normalize-hourly-rate")
 async def normalize_hourly_rate(month: str = None, current_user: User = Depends(get_current_user)):
     """Normaliser les tarifs horaires pour les séances sans prix"""
