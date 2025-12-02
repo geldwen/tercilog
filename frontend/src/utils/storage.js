@@ -6,6 +6,7 @@
 class StorageManager {
   constructor() {
     this.storageType = this.detectAvailableStorage();
+    console.log(`[StorageManager] Utilise: ${this.storageType}`);
   }
 
   detectAvailableStorage() {
@@ -33,17 +34,20 @@ class StorageManager {
     try {
       if (this.storageType === 'localStorage') {
         localStorage.setItem(key, value);
+        console.log(`[StorageManager] Token sauvegardé via localStorage`);
       } else if (this.storageType === 'sessionStorage') {
         sessionStorage.setItem(key, value);
+        console.log(`[StorageManager] Token sauvegardé via sessionStorage`);
       } else {
         // Use cookies as fallback
         const expires = new Date();
         expires.setTime(expires.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7 days
         document.cookie = `${key}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+        console.log(`[StorageManager] Token sauvegardé via cookies`);
       }
       return true;
     } catch (e) {
-      console.error('Storage error:', e);
+      console.error('[StorageManager] Erreur setItem:', e);
       return false;
     }
   }
