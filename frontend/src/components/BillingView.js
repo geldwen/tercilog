@@ -15,6 +15,18 @@ const MONTHS = [
   { name: 'Octobre 2025', value: '2025-10' },
   { name: 'Novembre 2025', value: '2025-11' },
   { name: 'Décembre 2025', value: '2025-12' },
+  { name: 'Janvier 2026', value: '2026-01' },
+  { name: 'Février 2026', value: '2026-02' },
+  { name: 'Mars 2026', value: '2026-03' },
+  { name: 'Avril 2026', value: '2026-04' },
+  { name: 'Mai 2026', value: '2026-05' },
+  { name: 'Juin 2026', value: '2026-06' },
+  { name: 'Juillet 2026', value: '2026-07' },
+  { name: 'Août 2026', value: '2026-08' },
+  { name: 'Septembre 2026', value: '2026-09' },
+  { name: 'Octobre 2026', value: '2026-10' },
+  { name: 'Novembre 2026', value: '2026-11' },
+  { name: 'Décembre 2026', value: '2026-12' },
 ];
 
 export default function BillingView({ sessions, onSessionsUpdate }) {
