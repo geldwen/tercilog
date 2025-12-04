@@ -3594,10 +3594,6 @@ async def activate_all_emargements(current_user: User = Depends(get_current_user
         "modified_count": result.modified_count
     }
 
-        fixed_count += 1
-    
-    return {"message": f"{fixed_count} séances corrigées", "session_ids": [s["id"] for s in problem_sessions]}
-
 
 
 @api_router.post("/sessions/normalize-hourly-rate")
