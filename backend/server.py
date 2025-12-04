@@ -3504,6 +3504,29 @@ async def fix_signature_status(current_user: User = Depends(get_current_user)):
             {"id": session["id"]},
             {"$set": {"signature_status": "signed"}}
         )
+
+
+@api_router.post("/sessions/activate-all-emargements")
+async def activate_all_emargements(current_user: User = Depends(get_current_user)):
+    """ENDPOINT D'URGENCE: Activer l'émargement pour TOUTES les séances"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Mettre à jour TOUTES les séances avec signature_status = not_required vers pending
+    result = await db.sessions.update_many(
+        {"signature_status": "not_required"},
+        {"$set": {
+            "signature_status": "pending",
+            "attendance_email_sent": True,
+            "signature_deadline": (datetime.now(timezone.utc) + timedelta(hours=48)).isoformat()
+        }}
+    )
+    
+    return {
+        "message": f"{result.modified_count} séances activées pour émargement",
+        "modified_count": result.modified_count
+    }
+
         fixed_count += 1
     
     return {"message": f"{fixed_count} séances corrigées", "session_ids": [s["id"] for s in problem_sessions]}
