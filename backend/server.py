@@ -1924,12 +1924,6 @@ async def get_student_resources(
     return {"resources": resources}
 
 
-@api_router.get("/students/{student_id}/magic-report")
-async def generate_magic_report(
-    student_id: str,
-    current_user: User = Depends(get_current_user)
-
-
 @api_router.get("/students/{student_id}/tests")
 async def get_student_tests(
     student_id: str,
@@ -1997,6 +1991,10 @@ async def get_all_tests(current_user: User = Depends(get_current_user)):
     
     return {"students": list(tests_by_student.values())}
 
+@api_router.get("/students/{student_id}/magic-report")
+async def generate_magic_report(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
 ):
     """Génère un rapport PDF Qualiopi avec graphique et analyse IA"""
     if current_user.role != "teacher":
