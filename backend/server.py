@@ -1928,6 +1928,75 @@ async def get_student_resources(
 async def generate_magic_report(
     student_id: str,
     current_user: User = Depends(get_current_user)
+
+
+@api_router.get("/students/{student_id}/tests")
+async def get_student_tests(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer tous les tests soumis par un élève (pour bilans)"""
+    if current_user.role == "student" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    if current_user.role == "teacher":
+        # Vérifier que l'élève appartient bien à ce professeur
+        student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+        if not student or student.get("teacher_id") != current_user.id:
+            raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer toutes les ressources de type TEST avec status SOUMIS
+    tests = await db.student_resources.find(
+        {
+            "student_id": student_id,
+            "resource_type": "TEST",
+            "status": "SOUMIS"
+        },
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    return {"tests": tests}
+
+@api_router.get("/tests/all")
+async def get_all_tests(current_user: User = Depends(get_current_user)):
+    """Récupérer tous les tests de tous les élèves (pour le professeur)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer tous les élèves du professeur
+    students = await db.users.find(
+        {"role": "student", "teacher_id": current_user.id},
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    student_ids = [s["id"] for s in students]
+    
+    # Récupérer tous les tests soumis
+    tests = await db.student_resources.find(
+        {
+            "student_id": {"$in": student_ids},
+            "resource_type": "TEST",
+            "status": "SOUMIS"
+        },
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    # Grouper par élève
+    tests_by_student = {}
+    for test in tests:
+        student_id = test["student_id"]
+        if student_id not in tests_by_student:
+            # Trouver le nom de l'élève
+            student = next((s for s in students if s["id"] == student_id), None)
+            tests_by_student[student_id] = {
+                "student_name": student["name"] if student else "Inconnu",
+                "student_email": student["email"] if student else "",
+                "tests": []
+            }
+        tests_by_student[student_id]["tests"].append(test)
+    
+    return {"students": list(tests_by_student.values())}
+
 ):
     """Génère un rapport PDF Qualiopi avec graphique et analyse IA"""
     if current_user.role != "teacher":
