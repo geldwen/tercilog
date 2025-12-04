@@ -36,18 +36,32 @@ export default function BilanTests() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        periode,
-        mois,
-        annee,
-        parcours,
-      });
-
-      const response = await axios.get(`${API}/bilan-tests?${params.toString()}`, {
+      
+      // Récupérer TOUS les tests de tous les élèves
+      const response = await axios.get(`${API}/tests/all`, {
         headers: getAuthHeaders(),
       });
 
-      setData(response.data);
+      // Filtrer selon le parcours si nécessaire
+      let filteredStudents = response.data.students || [];
+      
+      if (parcours !== 'tous') {
+        // Récupérer les élèves pour filtrer par parcours
+        const studentsResponse = await axios.get(`${API}/students`, {
+          headers: getAuthHeaders(),
+        });
+        const students = studentsResponse.data || [];
+        const studentsByParcours = students.filter(s => s.parcours === parcours);
+        const parcoursIds = studentsByParcours.map(s => s.id);
+        
+        filteredStudents = filteredStudents.filter(s => {
+          // Trouver l'étudiant correspondant
+          const student = students.find(st => st.name === s.student_name);
+          return student && parcoursIds.includes(student.id);
+        });
+      }
+
+      setData({ students: filteredStudents });
     } catch (error) {
       console.error('Erreur:', error);
       if (error.response?.status === 400) {
