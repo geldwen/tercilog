@@ -140,7 +140,7 @@ export default function BilanTests() {
   };
 
   const formatPourcent = (n) =>
-    n === null || Number.isNaN(n) ? '—' : `${n.toFixed(2)}%`;
+    n === null || n === undefined || Number.isNaN(n) ? '—' : `${n.toFixed(2)}%`;
 
   const couleurScore = (n) => {
     if (n === null) return '';
