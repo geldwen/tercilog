@@ -61,7 +61,30 @@ export default function BilanTests() {
         });
       }
 
-      setData({ students: filteredStudents });
+      // Calculer la progression moyenne si des tests existent
+      let progressionMoyenne = 0;
+      let totalTests = 0;
+      
+      filteredStudents.forEach(student => {
+        if (student.tests && student.tests.length > 0) {
+          student.tests.forEach(test => {
+            if (test.score !== null && test.score !== undefined) {
+              progressionMoyenne += test.score;
+              totalTests++;
+            }
+          });
+        }
+      });
+      
+      if (totalTests > 0) {
+        progressionMoyenne = progressionMoyenne / totalTests;
+      }
+
+      setData({ 
+        students: filteredStudents,
+        progressionMoyenne: progressionMoyenne,
+        totalTests: totalTests
+      });
     } catch (error) {
       console.error('Erreur:', error);
       if (error.response?.status === 400) {
