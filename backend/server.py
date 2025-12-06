@@ -1939,11 +1939,11 @@ async def get_student_tests(
         if not student or student.get("teacher_id") != current_user.id:
             raise HTTPException(status_code=403, detail="Access denied")
     
-    # Récupérer toutes les ressources de type TEST avec status SOUMIS
+    # Récupérer toutes les ressources de type TEST ou FORM (questionnaires) avec status SOUMIS
     tests = await db.student_resources.find(
         {
             "student_id": student_id,
-            "resource_type": "TEST",
+            "resource_type": {"$in": ["TEST", "FORM"]},
             "status": "SOUMIS"
         },
         {"_id": 0}
@@ -1965,11 +1965,11 @@ async def get_all_tests(current_user: User = Depends(get_current_user)):
     
     student_ids = [s["id"] for s in students]
     
-    # Récupérer tous les tests soumis
+    # Récupérer tous les tests soumis (TEST et FORM = questionnaires)
     tests = await db.student_resources.find(
         {
             "student_id": {"$in": student_ids},
-            "resource_type": "TEST",
+            "resource_type": {"$in": ["TEST", "FORM"]},
             "status": "SOUMIS"
         },
         {"_id": 0}
