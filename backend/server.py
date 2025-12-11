@@ -398,21 +398,11 @@ def infer_hourly_rate(subject: str, fallback: float = 40.0) -> float:
 
 def get_student_portal_url():
     """
-    Get the student portal URL from environment variables with fallback cascade.
-    Priority order:
-    1. STUDENT_PORTAL_URL (recommended)
-    2. FRONTEND_URL
-    3. REACT_APP_FRONTEND_URL
-    4. REACT_APP_BACKEND_URL (removing /api suffix if present)
-    5. Fallback: https://tercilog-stability.preview.emergentagent.com
+    Get the student portal URL from environment variables.
+    Returns the production URL for student portal.
     """
-    url = (
-        os.getenv("STUDENT_PORTAL_URL")
-        or os.getenv("FRONTEND_URL")
-        or os.getenv("REACT_APP_FRONTEND_URL")
-        or os.getenv("REACT_APP_BACKEND_URL")
-        or "https://teachportal-12.emergent.host"
-    )
+    # Always use FRONTEND_URL from .env, with a safe production fallback
+    url = os.getenv("FRONTEND_URL", "https://teachportal-12.emergent.host")
     
     # Normalize URL
     url = url.strip()
