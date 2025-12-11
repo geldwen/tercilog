@@ -7661,7 +7661,9 @@ def main():
     if len(sys.argv) > 1:
         test_name = sys.argv[1]
         
-        if test_name == "ghizzo":
+        if test_name == "tercilog-stabilization":
+            success = tester.test_tercilog_stabilization()
+        elif test_name == "ghizzo":
             success = tester.test_ghizzo_credit_hours_correction()
         elif test_name == "islem":
             success = tester.test_islem_signature_session()
@@ -7693,10 +7695,11 @@ def main():
             success = tester.test_nouveaux_quiz_informatique()
         else:
             print(f"Unknown test: {test_name}")
-            print("Available tests: ghizzo, islem, zazou, zazou-verify, islem-meet, student-debug, formation-needs, jojo-resources, informatique-pathway, informatique-visual, quiz-submission, crash-investigation, informatique-renamed, documents-management, nouveaux-quiz")
+            print("Available tests: tercilog-stabilization, ghizzo, islem, zazou, zazou-verify, islem-meet, student-debug, formation-needs, jojo-resources, informatique-pathway, informatique-visual, quiz-submission, crash-investigation, informatique-renamed, documents-management, nouveaux-quiz")
             sys.exit(1)
     else:
-        success = tester.run_full_test()
+        # Run TerciLog stabilization tests by default
+        success = tester.test_tercilog_stabilization()
     
     sys.exit(0 if success else 1)
 
