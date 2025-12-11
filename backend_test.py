@@ -14,8 +14,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv('/app/frontend/.env')
 
-# Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://tercilog-stability.preview.emergentagent.com')
+# Configuration - Use production URL for testing
+BACKEND_URL = "https://teachportal-12.emergent.host"
 API_BASE = f"{BACKEND_URL}/api"
 
 class TerciFormTester:
