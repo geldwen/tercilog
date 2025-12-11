@@ -404,14 +404,14 @@ def get_student_portal_url():
     2. FRONTEND_URL
     3. REACT_APP_FRONTEND_URL
     4. REACT_APP_BACKEND_URL (removing /api suffix if present)
-    5. Fallback: https://student-portal-fix-1.preview.emergentagent.com
+    5. Fallback: https://tercilog-stability.preview.emergentagent.com
     """
     url = (
         os.getenv("STUDENT_PORTAL_URL")
         or os.getenv("FRONTEND_URL")
         or os.getenv("REACT_APP_FRONTEND_URL")
         or os.getenv("REACT_APP_BACKEND_URL")
-        or "https://student-portal-fix-1.preview.emergentagent.com"
+        or "https://teachportal-12.emergent.host"
     )
     
     # Normalize URL
