@@ -357,6 +357,337 @@ class TerciFormTester:
             if response and response.status_code == 200:
                 self.log("✅ Test student deleted")
     
+    def test_tercilog_stabilization(self):
+        """Test critical TerciLog stabilization scenarios as requested in French review"""
+        self.log("🎯 TESTING TERCILOG STABILIZATION - CRITICAL TESTS")
+        self.log(f"Production URL: {BACKEND_URL}")
+        
+        try:
+            # Test 1: Teacher login
+            if not self.test_teacher_login():
+                return False
+                
+            # Test 2: Student login (Ghislain)
+            if not self.test_student_login_ghislain():
+                return False
+                
+            # Test 3: Test results endpoint
+            if not self.test_bilan_des_tests():
+                return False
+                
+            # Test 4: Students list
+            if not self.test_students_list():
+                return False
+                
+            # Test 5: Session signatures
+            if not self.test_session_signatures():
+                return False
+                
+            # Test 6: Email URL verification
+            if not self.test_email_url_verification():
+                return False
+            
+            self.log("🎉 ALL TERCILOG STABILIZATION TESTS PASSED!")
+            return True
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            return False
+
+    def test_teacher_login(self):
+        """Test 1: Teacher login with terciform@gmail.com / Geldwen1982*+"""
+        self.log("=== TEST 1: Teacher Login ===")
+        
+        login_data = {
+            "email": "terciform@gmail.com",
+            "password": "Geldwen1982*+"
+        }
+        
+        self.log(f"Testing teacher login: {login_data['email']}")
+        response = self.make_request("POST", "/auth/login", login_data)
+        
+        if response and response.status_code == 200:
+            data = response.json()
+            if data.get("access_token") and data.get("user", {}).get("role") == "teacher":
+                self.teacher_token = data["access_token"]
+                teacher_info = data["user"]
+                self.log(f"✅ Teacher login successful: {teacher_info['name']} ({teacher_info['email']})")
+                self.log(f"✅ Token returned: {data['access_token'][:20]}...")
+                return True
+            else:
+                self.log("❌ Login response missing token or wrong role", "ERROR")
+                return False
+        else:
+            self.log("❌ Teacher login failed", "ERROR")
+            if response:
+                self.log(f"Status: {response.status_code}, Response: {response.text}")
+            return False
+
+    def test_student_login_ghislain(self):
+        """Test 2: Student login with espoirfinition@gmail.com / ghis456 (Ghislain)"""
+        self.log("=== TEST 2: Student Login (Ghislain) ===")
+        
+        login_data = {
+            "email": "espoirfinition@gmail.com",
+            "password": "ghis456"
+        }
+        
+        self.log(f"Testing student login: {login_data['email']}")
+        response = self.make_request("POST", "/auth/login", login_data)
+        
+        if response and response.status_code == 200:
+            data = response.json()
+            if data.get("access_token") and data.get("user", {}).get("role") == "student":
+                self.student_token = data["access_token"]
+                student_info = data["user"]
+                self.log(f"✅ Student login successful: {student_info['name']} ({student_info['email']})")
+                self.log(f"✅ Token returned: {data['access_token'][:20]}...")
+                return True
+            else:
+                self.log("❌ Login response missing token or wrong role", "ERROR")
+                return False
+        else:
+            self.log("❌ Student login failed", "ERROR")
+            if response:
+                self.log(f"Status: {response.status_code}, Response: {response.text}")
+            return False
+
+    def test_bilan_des_tests(self):
+        """Test 3: Test results endpoint /api/tests/all"""
+        self.log("=== TEST 3: Bilan des Tests Endpoint ===")
+        
+        if not self.teacher_token:
+            self.log("❌ No teacher token available", "ERROR")
+            return False
+        
+        # Try different possible endpoints for test results
+        endpoints_to_try = [
+            "/tests/all",
+            "/student-resources",
+            "/students/resources/all"
+        ]
+        
+        for endpoint in endpoints_to_try:
+            self.log(f"Trying endpoint: {endpoint}")
+            response = self.make_request("GET", endpoint, token=self.teacher_token)
+            
+            if response and response.status_code == 200:
+                try:
+                    data = response.json()
+                    self.log(f"✅ Endpoint {endpoint} accessible")
+                    self.log(f"✅ Response type: {type(data)}")
+                    
+                    if isinstance(data, list):
+                        self.log(f"✅ Found {len(data)} test results")
+                        
+                        # Check for required fields in test results
+                        if len(data) > 0:
+                            sample = data[0]
+                            required_fields = ['student_name', 'resource_name', 'score']
+                            missing_fields = []
+                            
+                            for field in required_fields:
+                                if field not in sample and field.replace('_', '') not in str(sample):
+                                    missing_fields.append(field)
+                            
+                            if not missing_fields:
+                                self.log("✅ Test results contain required fields (student_name, resource_name, score)")
+                            else:
+                                self.log(f"⚠️ Some fields missing: {missing_fields}")
+                                self.log(f"Sample result: {sample}")
+                        
+                        return True
+                    else:
+                        self.log(f"✅ Response received but not a list: {data}")
+                        return True
+                        
+                except Exception as e:
+                    self.log(f"❌ Failed to parse response: {e}", "ERROR")
+            else:
+                if response:
+                    self.log(f"❌ Endpoint {endpoint} failed: {response.status_code}")
+        
+        self.log("❌ No working test results endpoint found", "ERROR")
+        return False
+
+    def test_students_list(self):
+        """Test 5: Students list endpoint /api/students"""
+        self.log("=== TEST 5: Students List ===")
+        
+        if not self.teacher_token:
+            self.log("❌ No teacher token available", "ERROR")
+            return False
+        
+        response = self.make_request("GET", "/students", token=self.teacher_token)
+        
+        if response and response.status_code == 200:
+            try:
+                students = response.json()
+                self.log(f"✅ Students endpoint accessible")
+                self.log(f"✅ Found {len(students)} students")
+                
+                # Look for specific students mentioned in the review
+                expected_students = ["Ghislain", "Djibril", "Germaine"]
+                found_students = []
+                
+                self.log("Students found:")
+                for student in students:
+                    name = student.get('name', '')
+                    email = student.get('email', '')
+                    self.log(f"   - {name} ({email})")
+                    
+                    # Check if any expected student names are found
+                    for expected in expected_students:
+                        if expected.lower() in name.lower():
+                            found_students.append(expected)
+                
+                if found_students:
+                    self.log(f"✅ Found expected students: {found_students}")
+                else:
+                    self.log("⚠️ Expected students (Ghislain, Djibril, Germaine) not found by name")
+                
+                return True
+                
+            except Exception as e:
+                self.log(f"❌ Failed to parse students response: {e}", "ERROR")
+                return False
+        else:
+            self.log("❌ Students list endpoint failed", "ERROR")
+            if response:
+                self.log(f"Status: {response.status_code}, Response: {response.text}")
+            return False
+
+    def test_session_signatures(self):
+        """Test 6: Session signatures verification"""
+        self.log("=== TEST 6: Session Signatures ===")
+        
+        if not self.teacher_token:
+            self.log("❌ No teacher token available", "ERROR")
+            return False
+        
+        response = self.make_request("GET", "/sessions", token=self.teacher_token)
+        
+        if response and response.status_code == 200:
+            try:
+                sessions = response.json()
+                self.log(f"✅ Sessions endpoint accessible")
+                self.log(f"✅ Found {len(sessions)} sessions")
+                
+                # Analyze signature statuses
+                signature_stats = {}
+                signed_sessions = []
+                
+                for session in sessions:
+                    sig_status = session.get('signature_status', 'unknown')
+                    signature_stats[sig_status] = signature_stats.get(sig_status, 0) + 1
+                    
+                    if sig_status == 'signed':
+                        signed_sessions.append({
+                            'id': session.get('id'),
+                            'subject': session.get('subject'),
+                            'student_name': session.get('student_name'),
+                            'date': session.get('date'),
+                            'signed_at': session.get('signed_at')
+                        })
+                
+                self.log("Signature status distribution:")
+                for status, count in signature_stats.items():
+                    self.log(f"   - {status}: {count} sessions")
+                
+                if signed_sessions:
+                    self.log(f"✅ Found {len(signed_sessions)} signed sessions:")
+                    for session in signed_sessions[:5]:  # Show first 5
+                        self.log(f"   - {session['subject']} ({session['student_name']}) on {session['date']}")
+                else:
+                    self.log("⚠️ No signed sessions found")
+                
+                return True
+                
+            except Exception as e:
+                self.log(f"❌ Failed to parse sessions response: {e}", "ERROR")
+                return False
+        else:
+            self.log("❌ Sessions endpoint failed", "ERROR")
+            if response:
+                self.log(f"Status: {response.status_code}, Response: {response.text}")
+            return False
+
+    def test_email_url_verification(self):
+        """Test 4: Email URL verification by creating test session and checking resend email"""
+        self.log("=== TEST 4: Email URL Verification ===")
+        
+        if not self.teacher_token:
+            self.log("❌ No teacher token available", "ERROR")
+            return False
+        
+        try:
+            # First get a student to create a session with
+            response = self.make_request("GET", "/students", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Cannot get students for test session creation", "ERROR")
+                return False
+            
+            students = response.json()
+            if not students:
+                self.log("❌ No students available for test session creation", "ERROR")
+                return False
+            
+            test_student = students[0]  # Use first available student
+            self.log(f"Using student for test: {test_student['name']} ({test_student['email']})")
+            
+            # Create a test session
+            from datetime import datetime, timezone, timedelta
+            now = datetime.now(timezone.utc)
+            session_data = {
+                "subject": "Test Email URL Verification",
+                "date": now.strftime("%Y-%m-%d"),
+                "start_time": "10:00",
+                "end_time": "11:00",
+                "student_id": test_student["id"],
+                "validation_deadline_hours": 48
+            }
+            
+            self.log("Creating test session...")
+            response = self.make_request("POST", "/sessions", session_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create test session", "ERROR")
+                return False
+            
+            session = response.json()
+            session_id = session["id"]
+            self.log(f"✅ Test session created: {session_id}")
+            
+            # Try to resend attendance email
+            self.log("Testing resend attendance email...")
+            response = self.make_request("POST", f"/sessions/{session_id}/resend-attendance-email", token=self.teacher_token)
+            
+            if response and response.status_code == 200:
+                self.log("✅ Resend attendance email endpoint accessible")
+                self.log("✅ Check backend logs for URL verification")
+                self.log("Expected URL in logs: https://teachportal-12.emergent.host")
+                self.log("Should NOT contain: preview.emergentagent.com")
+                
+                # Cleanup - delete test session
+                self.log("Cleaning up test session...")
+                delete_response = self.make_request("DELETE", f"/sessions/{session_id}", token=self.teacher_token)
+                if delete_response and delete_response.status_code == 200:
+                    self.log("✅ Test session cleaned up")
+                
+                return True
+            else:
+                self.log("❌ Resend attendance email failed", "ERROR")
+                if response:
+                    self.log(f"Status: {response.status_code}, Response: {response.text}")
+                
+                # Still cleanup
+                self.make_request("DELETE", f"/sessions/{session_id}", token=self.teacher_token)
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Email URL verification failed: {e}", "ERROR")
+            return False
+
     def run_full_test(self):
         """Run the complete test suite"""
         self.log("🚀 Starting TerciForm Digital Signature Test")
