@@ -1903,7 +1903,9 @@ async def get_student_resources(
     if current_user.role == "teacher":
         # Vérifier que l'élève appartient bien à ce professeur
         student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+        logger.info(f"DEBUG Resources - student_id: {student_id}, teacher_id: {current_user.id}, student found: {student is not None}, student teacher_id: {student.get('teacher_id') if student else 'N/A'}")
         if not student or student.get("teacher_id") != current_user.id:
+            logger.error(f"Access denied - student: {student}, teacher match: {student.get('teacher_id') == current_user.id if student else False}")
             raise HTTPException(status_code=403, detail="Access denied")
     
     resources = await db.student_resources.find(
