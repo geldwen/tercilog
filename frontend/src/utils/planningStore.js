@@ -62,18 +62,23 @@ export const getPlanningEvents = async () => {
 // Sauvegarder un événement de planning (créer ou mettre à jour)
 export const savePlanningEvent = async (event) => {
   try {
+    const eventData = {
+      title: event.title,
+      date: event.date,
+      start_time: event.start_time,
+      end_time: event.end_time,
+      organism: event.organism || event.center || '',
+      color: event.color || '#3B82F6',
+      hourly_rate: event.hourly_rate ? parseFloat(event.hourly_rate) : null,
+      subject: event.subject || '',
+      modality: event.modality || 'distanciel'
+    };
+
     if (event.id && !event.id.startsWith('planning_')) {
       // Événement existant (avec ID MongoDB) - mise à jour
       const response = await axios.put(
         `${API}/planning/events/${event.id}`,
-        {
-          title: event.title,
-          date: event.date,
-          start_time: event.start_time,
-          end_time: event.end_time,
-          organism: event.organism || '',
-          color: event.color || '#3B82F6'
-        },
+        eventData,
         { headers: getAuthHeaders() }
       );
       return response.data;
@@ -81,14 +86,7 @@ export const savePlanningEvent = async (event) => {
       // Nouvel événement - création
       const response = await axios.post(
         `${API}/planning/events`,
-        {
-          title: event.title,
-          date: event.date,
-          start_time: event.start_time,
-          end_time: event.end_time,
-          organism: event.organism || '',
-          color: event.color || '#3B82F6'
-        },
+        eventData,
         { headers: getAuthHeaders() }
       );
       return response.data;
