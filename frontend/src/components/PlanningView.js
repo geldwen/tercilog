@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -12,22 +12,23 @@ import { getPlanningEvents, savePlanningEvent, deletePlanningEvent, getCenterCol
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const MONTHS = [
-  { name: 'Octobre 2025', value: '2025-10', days: 31, startDay: 3 },
-  { name: 'Novembre 2025', value: '2025-11', days: 30, startDay: 6 },
-  { name: 'Décembre 2025', value: '2025-12', days: 31, startDay: 1 },
-  { name: 'Janvier 2026', value: '2026-01', days: 31, startDay: 4 },
-  { name: 'Février 2026', value: '2026-02', days: 28, startDay: 0 },
-  { name: 'Mars 2026', value: '2026-03', days: 31, startDay: 0 },
-  { name: 'Avril 2026', value: '2026-04', days: 30, startDay: 3 },
-  { name: 'Mai 2026', value: '2026-05', days: 31, startDay: 5 },
-  { name: 'Juin 2026', value: '2026-06', days: 30, startDay: 1 },
-  { name: 'Juillet 2026', value: '2026-07', days: 31, startDay: 3 },
-  { name: 'Août 2026', value: '2026-08', days: 31, startDay: 6 },
-  { name: 'Septembre 2026', value: '2026-09', days: 30, startDay: 2 },
-  { name: 'Octobre 2026', value: '2026-10', days: 31, startDay: 4 },
-  { name: 'Novembre 2026', value: '2026-11', days: 30, startDay: 0 },
-  { name: 'Décembre 2026', value: '2026-12', days: 31, startDay: 2 },
+// Liste des années (2025 à 2030)
+const YEARS = [2025, 2026, 2027, 2028, 2029, 2030];
+
+// Liste des mois
+const MONTH_NAMES = [
+  { num: 1, label: 'Janvier' },
+  { num: 2, label: 'Février' },
+  { num: 3, label: 'Mars' },
+  { num: 4, label: 'Avril' },
+  { num: 5, label: 'Mai' },
+  { num: 6, label: 'Juin' },
+  { num: 7, label: 'Juillet' },
+  { num: 8, label: 'Août' },
+  { num: 9, label: 'Septembre' },
+  { num: 10, label: 'Octobre' },
+  { num: 11, label: 'Novembre' },
+  { num: 12, label: 'Décembre' }
 ];
 
 const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -36,7 +37,29 @@ const HOUR_HEIGHT_PX = 60; // Hauteur d'une ligne horaire en px
 const PX_PER_MIN = HOUR_HEIGHT_PX / 60; // pixels par minute : 1px/min
 
 export default function PlanningView({ sessions, onSessionsUpdate }) {
-  const [activeMonth, setActiveMonth] = useState(MONTHS[1].value);
+  const currentDate = new Date();
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [selectedMonthNum, setSelectedMonthNum] = useState(currentDate.getMonth() + 1);
+  
+  // Calculer activeMonth à partir de l'année et du mois sélectionnés
+  const activeMonth = useMemo(() => {
+    const monthStr = selectedMonthNum.toString().padStart(2, '0');
+    return `${selectedYear}-${monthStr}`;
+  }, [selectedYear, selectedMonthNum]);
+
+  // Calculer les jours du mois sélectionné
+  const currentMonth = useMemo(() => {
+    const daysInMonth = new Date(selectedYear, selectedMonthNum, 0).getDate();
+    const firstDayOfMonth = new Date(selectedYear, selectedMonthNum - 1, 1).getDay();
+    const startDay = (firstDayOfMonth + 6) % 7; // Convertir dimanche=0 en lundi=0
+    return {
+      name: `${MONTH_NAMES.find(m => m.num === selectedMonthNum)?.label} ${selectedYear}`,
+      value: activeMonth,
+      days: daysInMonth,
+      startDay: startDay
+    };
+  }, [selectedYear, selectedMonthNum, activeMonth]);
+
   const [planningEvents, setPlanningEvents] = useState([]);
   const [centerColors, setCenterColorsState] = useState({});
   const [showModal, setShowModal] = useState(false);
@@ -59,7 +82,8 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
     subject: '',
     title: '',
     modality: 'distanciel',
-    color: '#3B82F6'
+    color: '#3B82F6',
+    hourly_rate: ''
   });
   const [selectedCenter, setSelectedCenter] = useState('');
 
@@ -76,8 +100,6 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
     };
     loadPlanningData();
   }, []);
-
-  const currentMonth = MONTHS.find(m => m.value === activeMonth);
 
   const generateMonthDays = () => {
     const days = [];
