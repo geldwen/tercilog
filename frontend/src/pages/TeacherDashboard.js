@@ -948,61 +948,86 @@ export default function TeacherDashboard({ user, onLogout }) {
         ) : (
           <>
             <div className="mb-6">
-            <Tabs value={selectedMonth} onValueChange={setSelectedMonth} className="space-y-6">
-              <TabsList className="bg-white border border-gray-200 shadow-sm flex-wrap h-auto">
-                {monthsList.map(m => <TabsTrigger key={m.key} value={m.key} className="capitalize data-[state=active]:bg-gray-200" style={{ color: TERCIFORM_BLUE }}>{m.label}</TabsTrigger>)}
-              </TabsList>
+            {/* Filtres Année et Mois */}
+            <div className="flex items-center gap-4 mb-6 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-600">Année :</label>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  style={{ color: TERCIFORM_BLUE }}
+                >
+                  {yearsList.map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-600">Mois :</label>
+                <select
+                  value={selectedMonthNum}
+                  onChange={(e) => setSelectedMonthNum(parseInt(e.target.value))}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  style={{ color: TERCIFORM_BLUE }}
+                >
+                  {monthNames.map(m => (
+                    <option key={m.num} value={m.num}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="ml-auto text-sm text-gray-500">
+                Période : <span className="font-medium" style={{ color: TERCIFORM_BLUE }}>{monthNames.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</span>
+              </div>
+            </div>
 
-            {monthsList.map(month => (
-              <TabsContent key={month.key} value={month.key} className="space-y-6">
-                {/* Nouvelles bulles : Heures totales et restantes des séances */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <Card className="card-hover border-2 shadow-md" style={{ borderColor: TERCIFORM_BLUE }}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Heures totales du mois</p>
-                          <p className="text-xs text-gray-500 mb-2">{month.label}</p>
-                          <p className="text-3xl font-bold" style={{ color: TERCIFORM_BLUE }}>
-                            {filteredSessions.reduce((sum, s) => sum + (s.duration_hours || 0), 0)}h
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">{filteredSessions.length} séance(s)</p>
-                        </div>
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
-                          <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
-                        </div>
+            {/* Statistiques du mois sélectionné */}
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <Card className="card-hover border-2 shadow-md" style={{ borderColor: TERCIFORM_BLUE }}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Heures totales du mois</p>
+                        <p className="text-xs text-gray-500 mb-2">{monthNames.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</p>
+                        <p className="text-3xl font-bold" style={{ color: TERCIFORM_BLUE }}>
+                          {filteredSessions.reduce((sum, s) => sum + (s.duration_hours || 0), 0)}h
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">{filteredSessions.length} séance(s)</p>
                       </div>
-                    </CardContent>
-                  </Card>
-                  <Card className="card-hover border-2 shadow-md" style={{ borderColor: TERCIFORM_BLUE }}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Heures restantes du mois</p>
-                          <p className="text-xs text-gray-500 mb-2">{month.label}</p>
-                          <p className="text-3xl font-bold text-green-600">
-                            {filteredSessions.filter(s => !s.signature).reduce((sum, s) => sum + (s.duration_hours || 0), 0)}h
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">{filteredSessions.filter(s => !s.signature).length} séance(s) non émargée(s)</p>
-                        </div>
-                        <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                          <Clock className="w-6 h-6 text-green-600" />
-                        </div>
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
+                        <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="card-hover border-2 shadow-md" style={{ borderColor: TERCIFORM_BLUE }}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Heures restantes du mois</p>
+                        <p className="text-xs text-gray-500 mb-2">{monthNames.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</p>
+                        <p className="text-3xl font-bold text-green-600">
+                          {filteredSessions.filter(s => !s.signature).reduce((sum, s) => sum + (s.duration_hours || 0), 0)}h
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">{filteredSessions.filter(s => !s.signature).length} séance(s) non émargée(s)</p>
+                      </div>
+                      <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <Clock className="w-6 h-6 text-green-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {stats && stats.month === selectedMonth && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card className="card-hover border-0 shadow-md"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Total des heures réalisées</p><p className="text-3xl font-bold mt-1" style={{ color: TERCIFORM_BLUE }}>{stats.total_hours || 0}h</p><p className="text-xs text-gray-500 mt-1">{stats.total_sessions} séance(s)</p></div><div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}><Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} /></div></div></CardContent></Card>
+                  <Card className="card-hover border-0 shadow-md"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Total des heures confirmées</p><p className="text-3xl font-bold text-green-600 mt-1">{stats.confirmed_hours || 0}h</p><p className="text-xs text-gray-500 mt-1">{stats.confirmed_sessions} séance(s)</p></div><div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center"><CheckCircle className="w-6 h-6 text-green-600" /></div></div></CardContent></Card>
+                  <Card className="card-hover border-0 shadow-md"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Total des heures refusées</p><p className="text-3xl font-bold text-red-600 mt-1">{stats.rejected_hours || 0}h</p><p className="text-xs text-gray-500 mt-1">{stats.rejected_sessions} séance(s)</p></div><div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center"><XCircle className="w-6 h-6 text-red-600" /></div></div></CardContent></Card>
                 </div>
-
-                {stats && stats.month === month.key && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card className="card-hover border-0 shadow-md"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Total des heures réalisées</p><p className="text-3xl font-bold mt-1" style={{ color: TERCIFORM_BLUE }}>{stats.total_hours || 0}h</p><p className="text-xs text-gray-500 mt-1">{stats.total_sessions} séance(s)</p></div><div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}><Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} /></div></div></CardContent></Card>
-                    <Card className="card-hover border-0 shadow-md"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Total des heures confirmées</p><p className="text-3xl font-bold text-green-600 mt-1">{stats.confirmed_hours || 0}h</p><p className="text-xs text-gray-500 mt-1">{stats.confirmed_sessions} séance(s)</p></div><div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center"><CheckCircle className="w-6 h-6 text-green-600" /></div></div></CardContent></Card>
-                    <Card className="card-hover border-0 shadow-md"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Total des heures refusées</p><p className="text-3xl font-bold text-red-600 mt-1">{stats.rejected_hours || 0}h</p><p className="text-xs text-gray-500 mt-1">{stats.rejected_sessions} séance(s)</p></div><div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center"><XCircle className="w-6 h-6 text-red-600" /></div></div></CardContent></Card>
-                  </div>
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
+              )}
+            </div>
 
           <Tabs defaultValue="sessions" className="space-y-6">
           <TabsList className="bg-white border border-gray-200 shadow-sm">
