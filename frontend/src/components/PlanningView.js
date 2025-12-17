@@ -593,7 +593,8 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                                         subject: event.subject || '',
                                         title: event.title,
                                         modality: event.modality || 'distanciel',
-                                        color: event.color || '#3B82F6'
+                                        color: event.color || '#3B82F6',
+                                        hourly_rate: event.hourly_rate || ''
                                       });
                                       setShowModal(true);
                                     } else {
