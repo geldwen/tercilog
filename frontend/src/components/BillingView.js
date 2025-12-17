@@ -136,6 +136,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
       .map(e => {
         const duration = calculateDuration(e.start_time, e.end_time);
         const amount = Math.round(duration * e.hourly_rate * 100) / 100;
+        const organism = (e.organism || 'Autre').trim(); // Normaliser le nom
         
         return {
           id: e.id,
@@ -145,13 +146,14 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
           duration_hours: duration,
           student_name: e.title, // Utiliser le titre comme "nom"
           subject: e.subject || e.title,
-          organism: e.organism || 'Autre',
-          center: e.organism || 'Autre',
+          organism: organism,
+          center: organism,
           hourly_rate: e.hourly_rate,
           hourly_rate_source: 'manual',
           amount: amount,
           modality: e.modality || 'distanciel',
-          source: 'planning' // Pour identifier la source
+          source: 'planning', // Pour identifier la source
+          color: e.color // Garder la couleur de l'événement
         };
       });
 
