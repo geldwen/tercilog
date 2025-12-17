@@ -7,10 +7,13 @@ import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { getPlanningEvents } from '@/utils/planningStore';
+import { getPlanningEvents, getCenterColor } from '@/utils/planningStore';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Couleur par défaut pour Zepartner
+const ZEPARTNER_COLOR = '#3B82F6'; // Bleu
 
 // Liste des années (2025 à 2030)
 const YEARS = [2025, 2026, 2027, 2028, 2029, 2030];
