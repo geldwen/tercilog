@@ -196,10 +196,13 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
       }
       
       if (!byCenter[center]) {
-        // Obtenir la couleur du centre depuis le planning
+        // Obtenir la couleur du centre
         let color;
         if (center === 'Zepartner') {
           color = ZEPARTNER_COLOR;
+        } else if (s.color) {
+          // Utiliser la couleur de l'événement si disponible
+          color = s.color;
         } else {
           color = getCenterColor(center);
         }
