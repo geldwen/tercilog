@@ -2554,16 +2554,34 @@ export default function TeacherDashboard({ user, onLogout }) {
             ) : attendanceMode === 'month' ? (
               <div className="space-y-2">
                 <Label>Sélectionner un mois</Label>
-                <select 
-                  className="w-full px-3 py-2 border rounded-md"
-                  value={attendanceMonth}
-                  onChange={(e) => setAttendanceMonth(e.target.value)}
-                  required
-                >
-                  {monthsList.map(m => (
-                    <option key={m.key} value={m.key}>{m.label}</option>
-                  ))}
-                </select>
+                <div className="flex gap-2">
+                  <select 
+                    className="flex-1 px-3 py-2 border rounded-md"
+                    value={attendanceMonth ? attendanceMonth.split('-')[0] : selectedYear}
+                    onChange={(e) => {
+                      const year = e.target.value;
+                      const month = attendanceMonth ? attendanceMonth.split('-')[1] : '01';
+                      setAttendanceMonth(`${year}-${month}`);
+                    }}
+                  >
+                    {yearsList.map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                  <select 
+                    className="flex-1 px-3 py-2 border rounded-md"
+                    value={attendanceMonth ? parseInt(attendanceMonth.split('-')[1]) : 1}
+                    onChange={(e) => {
+                      const month = e.target.value.toString().padStart(2, '0');
+                      const year = attendanceMonth ? attendanceMonth.split('-')[0] : selectedYear;
+                      setAttendanceMonth(`${year}-${month}`);
+                    }}
+                  >
+                    {monthNames.map(m => (
+                      <option key={m.num} value={m.num}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             ) : attendanceMode === 'complete' ? (
               <div className="space-y-2">
