@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -7,6 +7,7 @@ import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { getPlanningEvents } from '@/utils/planningStore';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -30,11 +31,33 @@ const MONTH_NAMES = [
   { num: 12, label: 'Décembre' }
 ];
 
+// Calculer la durée en heures entre deux horaires
+const calculateDuration = (startTime, endTime) => {
+  if (!startTime || !endTime) return 0;
+  const [startH, startM] = startTime.split(':').map(Number);
+  const [endH, endM] = endTime.split(':').map(Number);
+  return (endH + endM/60) - (startH + startM/60);
+};
+
 export default function BillingView({ sessions, onSessionsUpdate }) {
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonthNum, setSelectedMonthNum] = useState(currentDate.getMonth() + 1);
   const [editingHourlyRate, setEditingHourlyRate] = useState({});
+  const [planningEvents, setPlanningEvents] = useState([]);
+
+  // Charger les événements du planning
+  useEffect(() => {
+    const loadPlanningEvents = async () => {
+      try {
+        const events = await getPlanningEvents();
+        setPlanningEvents(events);
+      } catch (error) {
+        console.error('Error loading planning events:', error);
+      }
+    };
+    loadPlanningEvents();
+  }, []);
 
   // Calculer activeMonth à partir de l'année et du mois sélectionnés
   const activeMonth = useMemo(() => {
