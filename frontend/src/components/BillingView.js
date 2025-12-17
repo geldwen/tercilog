@@ -180,7 +180,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
       headers.join(';'),
       ...rows.map(r => r.join(';')),
       '',
-      `Total ${MONTHS.find(m => m.value === activeMonth)?.name};;;;;${monthTotal.toFixed(2)}`
+      `Total ${MONTH_NAMES.find(m => m.num === selectedMonthNum)?.label} ${selectedYear};;;;;${monthTotal.toFixed(2)}`
     ].join('\n');
 
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
