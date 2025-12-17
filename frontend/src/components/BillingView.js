@@ -211,7 +211,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
         format: 'a4'
       });
       
-      const monthName = MONTHS.find(m => m.value === activeMonth)?.name || activeMonth;
+      const monthName = `${MONTH_NAMES.find(m => m.num === selectedMonthNum)?.label} ${selectedYear}`;
       
       // Logo TerciForm (en-tête gauche) - charger en base64
       const logoUrl = '/logo_terciform.png';
