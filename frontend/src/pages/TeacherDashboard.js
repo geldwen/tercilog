@@ -198,25 +198,30 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
-  const monthsList = [
-    { key: '2025-10', label: 'octobre 2025' }, 
-    { key: '2025-11', label: 'novembre 2025' }, 
-    { key: '2025-12', label: 'décembre 2025' },
-    { key: '2026-01', label: 'janvier 2026' },
-    { key: '2026-02', label: 'février 2026' },
-    { key: '2026-03', label: 'mars 2026' },
-    { key: '2026-04', label: 'avril 2026' },
-    { key: '2026-05', label: 'mai 2026' },
-    { key: '2026-06', label: 'juin 2026' },
-    { key: '2026-07', label: 'juillet 2026' },
-    { key: '2026-08', label: 'août 2026' },
-    { key: '2026-09', label: 'septembre 2026' },
-    { key: '2026-10', label: 'octobre 2026' },
-    { key: '2026-11', label: 'novembre 2026' },
-    { key: '2026-12', label: 'décembre 2026' }
+  // Liste des années (2025 à 2030)
+  const yearsList = [2025, 2026, 2027, 2028, 2029, 2030];
+  
+  // Liste des mois
+  const monthNames = [
+    { num: 1, label: 'Janvier' },
+    { num: 2, label: 'Février' },
+    { num: 3, label: 'Mars' },
+    { num: 4, label: 'Avril' },
+    { num: 5, label: 'Mai' },
+    { num: 6, label: 'Juin' },
+    { num: 7, label: 'Juillet' },
+    { num: 8, label: 'Août' },
+    { num: 9, label: 'Septembre' },
+    { num: 10, label: 'Octobre' },
+    { num: 11, label: 'Novembre' },
+    { num: 12, label: 'Décembre' }
   ];
 
-  useEffect(() => { setSelectedMonth('2025-10'); }, []);
+  // Générer selectedMonth à partir de l'année et du mois sélectionnés
+  useEffect(() => {
+    const monthStr = selectedMonthNum.toString().padStart(2, '0');
+    setSelectedMonth(`${selectedYear}-${monthStr}`);
+  }, [selectedYear, selectedMonthNum]);
   useEffect(() => { if (selectedMonth) loadData(selectedMonth); }, [selectedMonth]);
 
   const loadData = async (month) => {
