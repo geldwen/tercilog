@@ -397,6 +397,26 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
         </div>
       </div>
 
+      {/* Résumé global par centre */}
+      {totalsByCenter.length > 0 && (
+        <div className="bg-gradient-to-r from-pink-50 to-purple-50 p-4 rounded-lg border border-pink-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">📊 Récapitulatif par Centre - {MONTH_NAMES.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {totalsByCenter.map(center => (
+              <div key={center.name} className="bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                <p className="text-xs font-medium text-gray-500 truncate" title={center.name}>{center.name}</p>
+                <p className="text-lg font-bold text-pink-700">{formatCurrency(center.amount)}</p>
+                <p className="text-xs text-gray-400">{center.sessions} séance(s) • {center.hours.toFixed(1)}h</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 pt-3 border-t border-pink-200 flex justify-between items-center">
+            <span className="text-sm font-semibold text-gray-700">TOTAL GLOBAL</span>
+            <span className="text-xl font-bold text-pink-700">{formatCurrency(monthTotal)}</span>
+          </div>
+        </div>
+      )}
+
       {/* Résumé et export */}
       <div className="flex items-center justify-between bg-pink-50 p-4 rounded-lg border border-pink-200">
         <div>
