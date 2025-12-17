@@ -216,11 +216,12 @@ export default function TeacherDashboard({ user, onLogout }) {
     { num: 12, label: 'Décembre' }
   ];
 
-  // Générer selectedMonth à partir de l'année et du mois sélectionnés
-  useEffect(() => {
+  // Calculer selectedMonth à partir de l'année et du mois sélectionnés
+  const selectedMonth = useMemo(() => {
     const monthStr = selectedMonthNum.toString().padStart(2, '0');
-    setSelectedMonth(`${selectedYear}-${monthStr}`);
+    return `${selectedYear}-${monthStr}`;
   }, [selectedYear, selectedMonthNum]);
+
   useEffect(() => { if (selectedMonth) loadData(selectedMonth); }, [selectedMonth]);
 
   const loadData = async (month) => {
