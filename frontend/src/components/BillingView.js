@@ -11,27 +11,37 @@ import 'jspdf-autotable';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const MONTHS = [
-  { name: 'Octobre 2025', value: '2025-10' },
-  { name: 'Novembre 2025', value: '2025-11' },
-  { name: 'Décembre 2025', value: '2025-12' },
-  { name: 'Janvier 2026', value: '2026-01' },
-  { name: 'Février 2026', value: '2026-02' },
-  { name: 'Mars 2026', value: '2026-03' },
-  { name: 'Avril 2026', value: '2026-04' },
-  { name: 'Mai 2026', value: '2026-05' },
-  { name: 'Juin 2026', value: '2026-06' },
-  { name: 'Juillet 2026', value: '2026-07' },
-  { name: 'Août 2026', value: '2026-08' },
-  { name: 'Septembre 2026', value: '2026-09' },
-  { name: 'Octobre 2026', value: '2026-10' },
-  { name: 'Novembre 2026', value: '2026-11' },
-  { name: 'Décembre 2026', value: '2026-12' },
+// Liste des années (2025 à 2030)
+const YEARS = [2025, 2026, 2027, 2028, 2029, 2030];
+
+// Liste des mois
+const MONTH_NAMES = [
+  { num: 1, label: 'Janvier' },
+  { num: 2, label: 'Février' },
+  { num: 3, label: 'Mars' },
+  { num: 4, label: 'Avril' },
+  { num: 5, label: 'Mai' },
+  { num: 6, label: 'Juin' },
+  { num: 7, label: 'Juillet' },
+  { num: 8, label: 'Août' },
+  { num: 9, label: 'Septembre' },
+  { num: 10, label: 'Octobre' },
+  { num: 11, label: 'Novembre' },
+  { num: 12, label: 'Décembre' }
 ];
 
 export default function BillingView({ sessions, onSessionsUpdate }) {
-  const [activeMonth, setActiveMonth] = useState(MONTHS[1].value);
+  const currentDate = new Date();
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [selectedMonthNum, setSelectedMonthNum] = useState(currentDate.getMonth() + 1);
+  const [activeMonth, setActiveMonth] = useState(`${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`);
   const [editingHourlyRate, setEditingHourlyRate] = useState({});
+
+  // Mettre à jour activeMonth quand l'année ou le mois change
+  useEffect(() => {
+    const monthStr = selectedMonthNum.toString().padStart(2, '0');
+    setActiveMonth(`${selectedYear}-${monthStr}`);
+  }, [selectedYear, selectedMonthNum]);
 
   // Normaliser un sujet
   const normalizeText = (text) => {
