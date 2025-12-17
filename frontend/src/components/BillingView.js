@@ -34,13 +34,12 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonthNum, setSelectedMonthNum] = useState(currentDate.getMonth() + 1);
-  const [activeMonth, setActiveMonth] = useState(`${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`);
   const [editingHourlyRate, setEditingHourlyRate] = useState({});
 
-  // Mettre à jour activeMonth quand l'année ou le mois change
-  useEffect(() => {
+  // Calculer activeMonth à partir de l'année et du mois sélectionnés
+  const activeMonth = useMemo(() => {
     const monthStr = selectedMonthNum.toString().padStart(2, '0');
-    setActiveMonth(`${selectedYear}-${monthStr}`);
+    return `${selectedYear}-${monthStr}`;
   }, [selectedYear, selectedMonthNum]);
 
   // Normaliser un sujet
