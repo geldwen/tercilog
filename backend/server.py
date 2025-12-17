@@ -302,6 +302,9 @@ class PlanningEvent(BaseModel):
     end_time: str
     organism: str = ""
     color: str = "#3B82F6"  # Couleur de l'événement
+    hourly_rate: Optional[float] = None  # Tarif horaire
+    subject: str = ""  # Matière
+    modality: str = "distanciel"  # Type: distanciel ou présentiel
     teacher_id: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -313,6 +316,9 @@ class PlanningEventCreate(BaseModel):
     end_time: str
     organism: str = ""
     color: str = "#3B82F6"  # Couleur de l'événement
+    hourly_rate: Optional[float] = None  # Tarif horaire
+    subject: str = ""  # Matière
+    modality: str = "distanciel"  # Type
 
 # Helper functions
 def verify_password(plain_password, hashed_password):
