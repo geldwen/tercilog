@@ -437,21 +437,35 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
 
   return (
     <div className="space-y-4 planning-root">
-      {/* Onglets mensuels */}
-      <div className="flex gap-2 border-b pb-2">
-        {MONTHS.map(month => (
-          <button
-            key={month.value}
-            onClick={() => setActiveMonth(month.value)}
-            className={`inline-flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
-              activeMonth === month.value
-                ? 'bg-blue-700 text-white'
-                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-            }`}
+      {/* Filtres Année et Mois */}
+      <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-600">Année :</label>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-blue-700"
           >
-            {month.name}
-          </button>
-        ))}
+            {YEARS.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-600">Mois :</label>
+          <select
+            value={selectedMonthNum}
+            onChange={(e) => setSelectedMonthNum(parseInt(e.target.value))}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-blue-700"
+          >
+            {MONTH_NAMES.map(m => (
+              <option key={m.num} value={m.num}>{m.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="ml-auto text-sm text-gray-500">
+          Période : <span className="font-medium text-blue-700">{MONTH_NAMES.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</span>
+        </div>
       </div>
 
       {/* Légende */}
