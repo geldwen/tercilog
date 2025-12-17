@@ -185,9 +185,26 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
   const totalsByCenter = useMemo(() => {
     const byCenter = {};
     monthSessions.forEach(s => {
-      const center = s.organism || s.center || 'Non défini';
+      // Normaliser le nom du centre
+      let center = s.organism || s.center || '';
+      
+      // Si pas de centre ou "Non défini", c'est Zepartner
+      if (!center || center === 'Non défini' || center === '') {
+        center = 'Zepartner';
+      }
+      
+      // Normaliser le nom (trim et première lettre majuscule)
+      center = center.trim();
+      
       if (!byCenter[center]) {
-        byCenter[center] = { amount: 0, hours: 0, sessions: 0 };
+        // Obtenir la couleur du centre depuis le planning
+        let color;
+        if (center === 'Zepartner') {
+          color = ZEPARTNER_COLOR;
+        } else {
+          color = getCenterColor(center);
+        }
+        byCenter[center] = { amount: 0, hours: 0, sessions: 0, color };
       }
       byCenter[center].amount += (s.amount || 0);
       byCenter[center].hours += (s.duration_hours || 0);
