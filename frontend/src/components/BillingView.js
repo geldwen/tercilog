@@ -127,6 +127,24 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
   const monthTotal = monthSessions.reduce((sum, s) => sum + (s.amount || 0), 0);
   const monthTotalHours = monthSessions.reduce((sum, s) => sum + (s.duration_hours || 0), 0);
 
+  // Calculer totaux par centre/organisme
+  const totalsByCenter = useMemo(() => {
+    const byCenter = {};
+    monthSessions.forEach(s => {
+      const center = s.organism || s.center || 'Non défini';
+      if (!byCenter[center]) {
+        byCenter[center] = { amount: 0, hours: 0, sessions: 0 };
+      }
+      byCenter[center].amount += (s.amount || 0);
+      byCenter[center].hours += (s.duration_hours || 0);
+      byCenter[center].sessions += 1;
+    });
+    // Trier par montant décroissant
+    return Object.entries(byCenter)
+      .sort((a, b) => b[1].amount - a[1].amount)
+      .map(([name, data]) => ({ name, ...data }));
+  }, [monthSessions]);
+
   // Formater devise
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('fr-FR', { 
