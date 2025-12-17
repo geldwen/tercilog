@@ -185,16 +185,13 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
   const totalsByCenter = useMemo(() => {
     const byCenter = {};
     monthSessions.forEach(s => {
-      // Normaliser le nom du centre
-      let center = s.organism || s.center || '';
+      // Normaliser le nom du centre (trim les espaces)
+      let center = (s.organism || s.center || '').trim();
       
       // Si pas de centre ou "Non défini", c'est Zepartner
       if (!center || center === 'Non défini' || center === '') {
         center = 'Zepartner';
       }
-      
-      // Normaliser le nom (trim et première lettre majuscule)
-      center = center.trim();
       
       if (!byCenter[center]) {
         // Obtenir la couleur du centre depuis le planning
