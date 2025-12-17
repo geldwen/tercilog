@@ -1812,6 +1812,84 @@ async def get_test_template(
     return template
 
 
+@api_router.post("/students/{student_id}/assign-tests")
+async def assign_tests_to_student(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Assigner les tests T1, T2, T3 et questionnaires Q1, Q2, Q3 à un élève existant
+    Utile pour les élèves créés sans tests assignés
+    """
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Vérifier que l'élève existe
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    parcours = student.get("parcours", "")
+    
+    # Vérifier si des ressources existent déjà
+    existing = await db.student_resources.count_documents({"student_id": student_id})
+    if existing > 0:
+        return {"message": f"Student already has {existing} resources assigned", "count": existing}
+    
+    # Définir les ressources selon le parcours
+    if parcours == "Informatique":
+        resources = {
+            "tests": {
+                "positionnement": "T1 – Test de positionnement informatique",
+                "miParcours": "T2 – Test mi parcours informatique",
+                "fin": "T3 – Test fin de parcours Informatique"
+            },
+            "questionnaires": {
+                "q1": "Q1 – Questionnaire d'entrée informatique – Besoins et identification",
+                "q2": "Q2 – Questionnaire mi-parcours – Informatique",
+                "q3": "Q3 – Questionnaire fin de formation – Informatique"
+            }
+        }
+    elif parcours == "Bureautique":
+        resources = {
+            "tests": {
+                "positionnement": "T1 - Test de positionnement",
+                "miParcours": "T2 - Test à mi parcours",
+                "fin": "T3 - Test de fin de formation"
+            },
+            "questionnaires": {
+                "q1": "Q1 – Questionnaire d'entrée bureautique",
+                "q2": "Q2 – Questionnaire mi-parcours bureautique",
+                "q3": "Q3 – Questionnaire fin de formation bureautique"
+            }
+        }
+    elif parcours == "Anglais":
+        resources = {
+            "tests": {
+                "positionnement": "T1 - Test de positionnement",
+                "miParcours": "T2 - Test à mi parcours",
+                "fin": "T3 - Test de fin de formation"
+            },
+            "questionnaires": {
+                "q1": "Q1 – Questionnaire d'entrée anglais",
+                "q2": "Q2 – Questionnaire mi-parcours anglais",
+                "q3": "Q3 – Questionnaire fin de formation anglais"
+            }
+        }
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown parcours: {parcours}")
+    
+    # Assigner les ressources
+    saved = await save_student_resources(student_id, parcours, resources)
+    
+    return {
+        "message": f"Successfully assigned {len(saved)} resources to student",
+        "student_name": student.get("name"),
+        "parcours": parcours,
+        "resources_count": len(saved)
+    }
+
+
 @api_router.post("/student-resources/{resource_id}/submit")
 async def submit_quiz(
     resource_id: str,
