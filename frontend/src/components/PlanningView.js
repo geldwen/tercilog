@@ -263,12 +263,19 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
       return;
     }
 
+    // Valider le tarif horaire
+    if (!modalData.hourly_rate || parseFloat(modalData.hourly_rate) <= 0) {
+      toast.error('Veuillez saisir un tarif horaire valide');
+      return;
+    }
+
     // Zepartner est toujours bleu, pas de sélection de couleur
     if (modalData.center === 'Zepartner' || centerColors[modalData.center]) {
       const event = {
         ...modalData,
         color: getCenterColor(modalData.center),
-        organism: modalData.center
+        organism: modalData.center,
+        hourly_rate: parseFloat(modalData.hourly_rate)
       };
       
       // Si on édite un événement existant, conserver son ID
