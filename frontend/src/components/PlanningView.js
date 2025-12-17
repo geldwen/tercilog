@@ -683,8 +683,20 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
               <Input 
                 value={modalData.center} 
                 onChange={(e) => setModalData({...modalData, center: e.target.value})} 
-                placeholder="Ex: Zepartner"
+                placeholder="Ex: Zepartner, SFA..."
               />
+            </div>
+            <div>
+              <Label>Tarif horaire (€/h) *</Label>
+              <Input 
+                type="number"
+                min="0"
+                step="0.01"
+                value={modalData.hourly_rate} 
+                onChange={(e) => setModalData({...modalData, hourly_rate: e.target.value})} 
+                placeholder="Ex: 40"
+              />
+              <p className="text-xs text-gray-500 mt-1">Obligatoire pour le calcul de facturation</p>
             </div>
             <div>
               <Label>Matière</Label>
