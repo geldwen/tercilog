@@ -110,8 +110,8 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
 
   // Enrichir les sessions avec hourly_rate et amount
   const enrichedSessions = useMemo(() => {
-    return sessions.map(s => {
-      // Utiliser hourly_rate de l'API si présent, sinon null (affichera badge)
+    // Sessions Zepartner (existantes)
+    const zepartnerSessions = sessions.map(s => {
       const hourlyRate = (s.hourly_rate !== undefined && s.hourly_rate !== null && s.hourly_rate > 0) 
         ? s.hourly_rate 
         : null;
@@ -122,10 +122,38 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
         ...s,
         hourly_rate: hourlyRate,
         hourly_rate_source: s.hourly_rate_source || 'auto',
-        amount: amount
+        amount: amount,
+        source: 'session' // Pour identifier la source
       };
     });
-  }, [sessions]);
+
+    // Événements du planning (SFA, autres centres...)
+    const planningSessionsConverted = planningEvents
+      .filter(e => e.hourly_rate && e.hourly_rate > 0) // Seulement ceux avec un tarif
+      .map(e => {
+        const duration = calculateDuration(e.start_time, e.end_time);
+        const amount = Math.round(duration * e.hourly_rate * 100) / 100;
+        
+        return {
+          id: e.id,
+          date: e.date,
+          start_time: e.start_time,
+          end_time: e.end_time,
+          duration_hours: duration,
+          student_name: e.title, // Utiliser le titre comme "nom"
+          subject: e.subject || e.title,
+          organism: e.organism || 'Autre',
+          center: e.organism || 'Autre',
+          hourly_rate: e.hourly_rate,
+          hourly_rate_source: 'manual',
+          amount: amount,
+          modality: e.modality || 'distanciel',
+          source: 'planning' // Pour identifier la source
+        };
+      });
+
+    return [...zepartnerSessions, ...planningSessionsConverted];
+  }, [sessions, planningEvents]);
 
   // Filtrer par mois et trier par date/heure croissante
   const monthSessions = enrichedSessions
