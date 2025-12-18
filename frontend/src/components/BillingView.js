@@ -254,7 +254,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
     return Object.entries(byCenter)
       .sort((a, b) => b[1].amount - a[1].amount)
       .map(([name, data]) => ({ name, ...data }));
-  }, [monthSessions]);
+  }, [allMonthSessions]);
 
   // Formater devise
   const formatCurrency = (value) => {
