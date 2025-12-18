@@ -48,6 +48,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
   const [selectedMonthNum, setSelectedMonthNum] = useState(currentDate.getMonth() + 1);
   const [editingHourlyRate, setEditingHourlyRate] = useState({});
   const [planningEvents, setPlanningEvents] = useState([]);
+  const [selectedCenter, setSelectedCenter] = useState('all'); // 'all' = tous les centres
 
   // Charger les événements du planning
   useEffect(() => {
