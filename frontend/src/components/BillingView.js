@@ -161,15 +161,49 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
     return [...zepartnerSessions, ...planningSessionsConverted];
   }, [sessions, planningEvents]);
 
-  // Filtrer par mois et trier par date/heure croissante
-  const monthSessions = enrichedSessions
-    .filter(s => s.date && s.date.startsWith(activeMonth))
-    .sort((a, b) => {
-      // Tri par date puis par heure de début
-      const dateCompare = a.date.localeCompare(b.date);
-      if (dateCompare !== 0) return dateCompare;
-      return (a.start_time || '').localeCompare(b.start_time || '');
+  // Liste des centres uniques pour le filtre
+  const uniqueCenters = useMemo(() => {
+    const centers = new Set();
+    enrichedSessions.forEach(s => {
+      let center = (s.organism || s.center || '').trim();
+      if (!center || center === 'Non défini' || center === '') {
+        center = 'Zepartner';
+      }
+      centers.add(center);
     });
+    return Array.from(centers).sort();
+  }, [enrichedSessions]);
+
+  // Filtrer par mois et trier par date/heure croissante
+  const monthSessions = useMemo(() => {
+    return enrichedSessions
+      .filter(s => s.date && s.date.startsWith(activeMonth))
+      .filter(s => {
+        if (selectedCenter === 'all') return true;
+        let center = (s.organism || s.center || '').trim();
+        if (!center || center === 'Non défini' || center === '') {
+          center = 'Zepartner';
+        }
+        return center === selectedCenter;
+      })
+      .sort((a, b) => {
+        // Tri par date puis par heure de début
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) return dateCompare;
+        return (a.start_time || '').localeCompare(b.start_time || '');
+      });
+  }, [enrichedSessions, activeMonth, selectedCenter]);
+
+  // Sessions du mois SANS filtre centre (pour le récapitulatif global)
+  const allMonthSessions = useMemo(() => {
+    return enrichedSessions
+      .filter(s => s.date && s.date.startsWith(activeMonth))
+      .sort((a, b) => {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) return dateCompare;
+        return (a.start_time || '').localeCompare(b.start_time || '');
+      });
+  }, [enrichedSessions, activeMonth]);
 
   // Grouper les séances par jour
   const sessionsByDay = monthSessions.reduce((acc, session) => {
