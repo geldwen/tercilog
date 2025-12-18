@@ -992,12 +992,41 @@ export default function StudentDashboard({ user, onLogout }) {
                               
                               {resource.status === 'SOUMIS' ? (
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                                  <p className="text-green-800 font-medium text-sm">
-                                    ✓ Test complété le {new Date(resource.submitted_at).toLocaleDateString('fr-FR')}
-                                  </p>
-                                  <p className="text-green-700 text-sm mt-1">
-                                    Score obtenu : {resource.score}%
-                                  </p>
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="text-green-800 font-medium text-sm">
+                                        ✓ Test complété le {new Date(resource.submitted_at).toLocaleDateString('fr-FR')}
+                                      </p>
+                                      <p className="text-green-700 text-sm mt-1">
+                                        Score obtenu : {resource.score}%
+                                      </p>
+                                    </div>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={async () => {
+                                        if (window.confirm('Êtes-vous sûr de vouloir recommencer ce test ? Votre score actuel sera effacé.')) {
+                                          try {
+                                            await axios.post(`${API}/student-resources/${resource.id}/restart`, {}, {
+                                              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                            });
+                                            toast.success('Test réinitialisé ! Vous pouvez maintenant le recommencer.');
+                                            // Recharger les ressources
+                                            const res = await axios.get(`${API}/students/${user.id}/resources`, {
+                                              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                            });
+                                            setResources(res.data.resources || []);
+                                          } catch (error) {
+                                            toast.error(error.response?.data?.detail || 'Erreur lors de la réinitialisation');
+                                          }
+                                        }
+                                      }}
+                                      className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                                    >
+                                      <RefreshCw size={14} className="mr-1" />
+                                      Recommencer
+                                    </Button>
+                                  </div>
                                 </div>
                               ) : (
                                 <Button
