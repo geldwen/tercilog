@@ -205,7 +205,7 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
       });
   }, [enrichedSessions, activeMonth]);
 
-  // Grouper les séances par jour
+  // Grouper les séances par jour (pour le tableau filtré)
   const sessionsByDay = monthSessions.reduce((acc, session) => {
     if (!acc[session.date]) {
       acc[session.date] = [];
@@ -214,14 +214,17 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
     return acc;
   }, {});
 
-  // Calculer total du mois (montant et heures)
+  // Calculer total du mois filtré (montant et heures)
   const monthTotal = monthSessions.reduce((sum, s) => sum + (s.amount || 0), 0);
   const monthTotalHours = monthSessions.reduce((sum, s) => sum + (s.duration_hours || 0), 0);
 
-  // Calculer totaux par centre/organisme
+  // Calculer total global du mois (tous centres)
+  const globalMonthTotal = allMonthSessions.reduce((sum, s) => sum + (s.amount || 0), 0);
+
+  // Calculer totaux par centre/organisme (toujours sur tous les centres)
   const totalsByCenter = useMemo(() => {
     const byCenter = {};
-    monthSessions.forEach(s => {
+    allMonthSessions.forEach(s => {
       // Normaliser le nom du centre (trim les espaces)
       let center = (s.organism || s.center || '').trim();
       
