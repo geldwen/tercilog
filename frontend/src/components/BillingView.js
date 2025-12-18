@@ -503,24 +503,55 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
             ))}
           </select>
         </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-600">Centre :</label>
+          <select
+            value={selectedCenter}
+            onChange={(e) => setSelectedCenter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            style={{ 
+              color: selectedCenter === 'all' ? '#6B7280' : (totalsByCenter.find(c => c.name === selectedCenter)?.color || '#6B7280'),
+              fontWeight: selectedCenter === 'all' ? 'normal' : 'bold'
+            }}
+          >
+            <option value="all">📊 Tous les centres</option>
+            {uniqueCenters.map(center => {
+              const centerData = totalsByCenter.find(c => c.name === center);
+              return (
+                <option key={center} value={center} style={{ color: centerData?.color }}>
+                  {center}
+                </option>
+              );
+            })}
+          </select>
+        </div>
         <div className="ml-auto text-sm text-gray-500">
-          Période : <span className="font-medium text-pink-700">{MONTH_NAMES.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</span>
+          {selectedCenter === 'all' ? (
+            <span>Période : <span className="font-medium text-pink-700">{MONTH_NAMES.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</span></span>
+          ) : (
+            <span>
+              <span className="font-bold" style={{ color: totalsByCenter.find(c => c.name === selectedCenter)?.color }}>{selectedCenter}</span>
+              {' - '}{MONTH_NAMES.find(m => m.num === selectedMonthNum)?.label} {selectedYear}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Résumé global par centre */}
-      {totalsByCenter.length > 0 && (
+      {/* Résumé global par centre - uniquement si "Tous les centres" */}
+      {selectedCenter === 'all' && totalsByCenter.length > 0 && (
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">📊 Récapitulatif par Centre - {MONTH_NAMES.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {totalsByCenter.map(center => (
               <div 
                 key={center.name} 
-                className="p-3 rounded-lg shadow-sm border-2"
+                className="p-3 rounded-lg shadow-sm border-2 cursor-pointer hover:shadow-md transition-shadow"
                 style={{ 
                   borderColor: center.color,
-                  backgroundColor: `${center.color}15` // 15 = opacity ~10%
+                  backgroundColor: `${center.color}15`
                 }}
+                onClick={() => setSelectedCenter(center.name)}
+                title={`Cliquez pour filtrer par ${center.name}`}
               >
                 <p className="text-xs font-bold truncate" style={{ color: center.color }} title={center.name}>{center.name}</p>
                 <p className="text-xl font-bold" style={{ color: center.color }}>{formatCurrency(center.amount)}</p>
@@ -531,7 +562,32 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
           {/* Total global en noir avec écriture blanche */}
           <div className="mt-3 pt-3 flex justify-between items-center bg-gray-900 text-white p-4 rounded-lg -mx-4 -mb-4">
             <span className="text-sm font-bold uppercase">TOTAL GLOBAL - {MONTH_NAMES.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</span>
-            <span className="text-2xl font-bold">{formatCurrency(monthTotal)}</span>
+            <span className="text-2xl font-bold">{formatCurrency(globalMonthTotal)}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Bandeau du centre sélectionné */}
+      {selectedCenter !== 'all' && (
+        <div 
+          className="p-4 rounded-lg border-2"
+          style={{ 
+            borderColor: totalsByCenter.find(c => c.name === selectedCenter)?.color || '#6B7280',
+            backgroundColor: `${totalsByCenter.find(c => c.name === selectedCenter)?.color || '#6B7280'}15`
+          }}
+        >
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-sm font-bold" style={{ color: totalsByCenter.find(c => c.name === selectedCenter)?.color }}>
+                {selectedCenter}
+              </p>
+              <p className="text-xs text-gray-500">
+                {monthSessions.length} séance(s) • {monthTotalHours.toFixed(1)}h
+              </p>
+            </div>
+            <p className="text-2xl font-bold" style={{ color: totalsByCenter.find(c => c.name === selectedCenter)?.color }}>
+              {formatCurrency(monthTotal)}
+            </p>
           </div>
         </div>
       )}
