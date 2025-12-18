@@ -1896,6 +1896,60 @@ async def assign_tests_to_student(
     }
 
 
+@api_router.post("/student-resources/{resource_id}/restart")
+async def restart_test(
+    resource_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Réinitialiser un test pour permettre à l'élève de le recommencer.
+    Uniquement pour les tests T1, T2, T3 qui ont été soumis.
+    """
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Vérifier que la ressource existe et appartient à l'élève
+    resource = await db.student_resources.find_one(
+        {"id": resource_id, "student_id": current_user.id},
+        {"_id": 0}
+    )
+    
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    
+    # Vérifier que c'est un test (T1, T2, T3) et qu'il est soumis
+    template_name = resource.get("template_name", "")
+    is_test = any(t in template_name for t in ["T1", "T2", "T3", "Test de positionnement", "Test mi parcours", "Test fin"])
+    
+    if not is_test:
+        raise HTTPException(status_code=400, detail="Cette ressource n'est pas un test T1, T2 ou T3")
+    
+    if resource.get("status") != "SOUMIS":
+        raise HTTPException(status_code=400, detail="Ce test n'a pas encore été soumis")
+    
+    # Réinitialiser le test
+    await db.student_resources.update_one(
+        {"id": resource_id},
+        {
+            "$set": {
+                "status": "NON_COMMENCE",
+                "score": None,
+                "answers": None,
+                "submitted_at": None,
+                "updated_at": datetime.now(timezone.utc)
+            }
+        }
+    )
+    
+    logger.info(f"Test {resource_id} réinitialisé pour l'élève {current_user.id}")
+    
+    return {
+        "message": "Test réinitialisé avec succès",
+        "resource_id": resource_id,
+        "new_status": "NON_COMMENCE"
+    }
+
+
 @api_router.post("/student-resources/{resource_id}/submit")
 async def submit_quiz(
     resource_id: str,
