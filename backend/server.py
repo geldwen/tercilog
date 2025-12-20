@@ -2910,15 +2910,19 @@ async def get_qualite_report(
             if not q1 and not q2 and not q3:
                 has_q_in_period = True  # Inclure les élèves sans questionnaire
         
-        # Format de retour pour chaque questionnaire
+        # Format de retour pour chaque questionnaire - INCLURE TOUTES LES RÉPONSES
         q1_data = {
             "submitted": q1 is not None,
             "submitted_at": q1.get("submitted_at") if q1 else None,
+            # Inclure toutes les réponses pour la consultation
+            **({k: v for k, v in q1.items() if k not in ['_id', 'student_id']} if q1 else {})
         }
         
         q2_data = {
             "submitted": q2 is not None,
             "submitted_at": q2.get("submitted_at") if q2 else None,
+            # Inclure toutes les réponses pour la consultation
+            **({k: v for k, v in q2.items() if k not in ['_id', 'student_id']} if q2 else {})
         }
         
         # Règle progressive : si Q2 pas soumis, Q3 ne peut pas être soumis
