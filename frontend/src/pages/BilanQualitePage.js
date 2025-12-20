@@ -405,16 +405,16 @@ const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) 
         const hasNeed = status?.has_need;
         
         if (hasNeed) {
-          // 🔴 ROUGE - Action requise
+          // 🟠 ORANGE - Action requise
           return (
-            <div key={qType} className="flex items-center gap-2 py-1 px-2 bg-red-50 border border-red-200 rounded text-xs">
-              <span className="font-medium w-8 text-red-700">{qType}</span>
+            <div key={qType} className="flex items-center gap-2 py-1 px-2 bg-orange-50 border border-orange-200 rounded text-xs">
+              <span className="font-medium w-8 text-orange-700">{qType}</span>
               <div className="flex-1">
-                <p className="text-red-700 font-medium">Le bénéficiaire a besoin d&apos;une action</p>
+                <p className="text-orange-700 font-medium">Action à définir</p>
               </div>
-              <Button size="sm" variant="outline" 
+              <Button size="sm"
                 onClick={() => onDefinirAction(eleve, qType, qData, status)}
-                className="text-red-600 border-red-300 hover:bg-red-100 h-6 px-2 text-xs">
+                className="bg-orange-500 hover:bg-orange-600 text-white h-6 px-2 text-xs">
                 <Edit3 className="w-3 h-3 mr-1" />Définir
               </Button>
             </div>
