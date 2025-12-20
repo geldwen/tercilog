@@ -2873,6 +2873,12 @@ async def get_qualite_report(
             q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
             q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
             q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+            
+            # Log pour debug
+            logger.info(f"[QUALITE DEBUG] Student {student_name} (ID: {student_id}, Parcours: {student_parcours})")
+            logger.info(f"[QUALITE DEBUG] Q1: {q1 is not None}, Q2: {q2 is not None}, Q3: {q3 is not None}")
+            if q2:
+                logger.info(f"[QUALITE DEBUG] Q2 data: submitted_at={q2.get('submitted_at')}")
         
         # Filtrage par période : vérifier si au moins UN questionnaire est dans la période
         # OU si l'élève n'a aucun questionnaire (à inclure aussi)
