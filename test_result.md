@@ -974,3 +974,15 @@ agent_communication:
         - working: "unknown"
           agent: "main"
           comment: "SIMPLIFIED 'DÉFINIR UNE ACTION' MODAL IMPLEMENTED: Simplified the teacher action modal for Qualiopi compliance. CHANGES: 1) Removed verbose AI reasoning section, 2) Show only detected keywords by default (blue badges), 3) Added expandable section 'Afficher tous les mots-clés disponibles' to see all keywords organized by category, 4) Changed from multi-select keywords to radio button selection with max 3 suggested actions, 5) Pre-fill report text based on selected action, 6) Made 'Définir' button orange (bg-orange-500), 7) Changed action indicator in table from red to orange (bg-orange-50, border-orange-200), 8) Fixed 'id' vs 'keyword' field mismatch between backend and frontend. MODAL FLOW: Teacher clicks orange 'Définir' button → Modal shows detected keywords → 3 radio button actions → Editable report text → Orange 'Définir' button to save. ENDPOINTS USED: POST /api/teachers/questionnaire-action/analyze, POST /api/teachers/questionnaire-action/save."
+
+  - task: "Bilan Qualité - Phase 2 UX Improvements (Level + Multi-select + Summary)"
+    implemented: true
+    working: "unknown"
+    file: "BilanQualitePage.js, server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "PHASE 2 UX IMPROVEMENTS IMPLEMENTED: 1) NIVEAU BESOIN: Added mandatory 3-level selector (Léger/Moyen/Important) with color-coded buttons (green/orange/red), 2) MULTI-SELECT ACTIONS: Changed from single radio to checkboxes with max 3 actions, pre-checked based on detected keywords, shows 'suggéré' badge, 3) AUTO-GENERATED COMPTE-RENDU: Text auto-generates based on niveau+keywords+actions (e.g. 'Besoin identifié: oral (niveau moyen). Actions mises en place: renforcement oral et prononciation.'), 4) TABLE SUMMARY: Replaced 'Action définie' with readable summary showing Q1 — Besoin X (niveau Y) + date + 'Voir' button, 5) DETAIL MODAL: Added blue modal showing niveau, mots-clés, actions, compte-rendu, created_by and created_at, 6) BACKEND: Updated save endpoint with new fields (niveau_besoin, mots_cles, actions, compte_rendu_final, questionnaire_id, created_by) with backward compatibility."
