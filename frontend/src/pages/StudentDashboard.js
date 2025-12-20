@@ -762,6 +762,7 @@ export default function StudentDashboard({ user, onLogout }) {
                           <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Date</th>
                           <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Horaire</th>
                           <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Matière</th>
+                          <th className="text-left p-3 font-semibold" style={{color: '#E91E63'}}>Visio</th>
                           <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Confirmation</th>
                           <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Signature élève</th>
                           <th className="text-left p-3 font-semibold" style={{color: TERCIFORM_BLUE}}>Signature formateur</th>
@@ -774,6 +775,7 @@ export default function StudentDashboard({ user, onLogout }) {
                             <td className="p-3">{formatFrDate(session.date)}</td>
                             <td className="p-3">{session.start_time} - {session.end_time}</td>
                             <td className="p-3">{session.subject}</td>
+                            <td className="p-3">{getVisioButton(session)}</td>
                             <td className="p-3">{getConfirmationCell(session)}</td>
                             <td className="p-3">{getSignatureEleveCell(session)}</td>
                             <td className="p-3">{getSignatureFormateurCell(session)}</td>
