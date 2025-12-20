@@ -1,79 +1,97 @@
-<analysis>**original_problem_statement**: The user's initial goal was to stabilize a highly unstable student management platform and add new features. The session began by addressing critical bugs from the previous fork, including login failures and major data inconsistencies between production and preview environments. This was caused by separate, unsynchronized databases and a  file that repeatedly pointed to the wrong backend.
+<analysis>**original_problem_statement**: The user's primary goal is to overhaul the existing Bilan Qualité (Quality Report) module to be simpler, more readable, and compliant with French Qualiopi certification standards. This involves a multi-phase implementation.
 
-After stabilizing the environment by correcting configurations and creating a special backend endpoint to repair missing data in production, the user requested a series of significant feature enhancements:
-1.  **Filtering & UI Overhaul**: Add Year, Month, and Center filters to the Teacher Dashboard, Billing, and Planning pages to replace a cumbersome tab-based navigation.
-2.  **Billing Enhancements**:
-    *   Display a color-coded financial summary grouped by center (e.g., Zepartner, SFA) on the billing page.
-    *   Ensure events created in the Planning calendar (with an hourly rate) correctly appear in the Billing section.
-    *   Allow editing the hourly rate of existing events.
-3.  **Student Test Management**: Add a Recommencer mon test (Restart My Test) button for students who have already submitted a test (T1, T2, T3).
-4.  **Video Conferencing**: Integrate a video chat solution (Jitsi) by adding a Rejoindre ma séance en Visio button on both the teacher and student dashboards for remote sessions.
+Phase 1 focused on simplifying the UI by introducing course-specific tabs (Anglais, Informatique), removing complex statistics in favor of simple Soumis (Submitted) / En attente (Pending) statuses, and refining the user actions.
+
+Phase 2, which is currently in progress, involves implementing the Actions formateur (Teacher Actions) logic. When a student's questionnaire response indicates a need, the system must flag it. The teacher then uses a modal to analyze the feedback, define a corrective action, and create a formal, traceable record for audit purposes.
+
+The user has provided very specific, iterative requirements for the UI/UX of this feature, emphasizing simplicity and ensuring the teacher remains the final decision-maker, with AI playing a purely assistive role (extracting keywords).
+
+Earlier in the session, the agent also implemented refinements for a Jitsi video integration and created a system for sending automatic 15-minute email reminders for upcoming sessions. A critical data loss issue occurred after a fork, emptying the preview database, which means data-dependent features can only be fully tested on the production environment.
 
 **User's preferred language**: French
 
 **what currently exists?**
-The application is a full-stack student management platform (React/FastAPI/MongoDB). The agent has successfully stabilized the application by resolving critical environment configuration issues. The following features have been implemented and are present in the local codebase:
--   **Advanced Filtering**: The Teacher Dashboard, Billing, and Planning pages now have dropdown filters for Year and Month (up to 2030). The Billing page also has an additional filter for Centre.
--   **Enhanced Billing View**: The billing page now displays a color-coded summary grouped by training center, and correctly incorporates billable events from the Planning calendar. The grand total is displayed in a distinct black-and-white block.
--   **Test Reset Functionality**: A backend endpoint () has been created, and a Recommencer button now appears on the student's dashboard for any submitted T1, T2, or T3 tests.
--   **Jitsi Video Integration**: A Rejoindre la visio button has been added to the Teacher and Student dashboards for sessions marked as Distanciel. The button generates a unique Jitsi meeting link for each session.
+The application is a full-stack student management platform (React/FastAPI/MongoDB).
+- **Jitsi & Email Reminders**: The UI refinements for the Jitsi button and the 15-minute email reminder system are complete and have been deployed.
+- **Bilan Qualité Page ()**: This page has been completely overhauled for Phase 1 and is partially implemented for Phase 2.
+    - **Phase 1 (Complete)**: The UI is simplified with course-specific colored tabs, summary cards for each questionnaire (Q1, Q2, Q3), and a simplified student table showing 🟢 Soumis or 🔴 En attente statuses. Individual reminder buttons are present in each En attente cell.
+    - **Phase 2 (In Progress)**: The backend has been updated to include business logic () that detects needs in submitted questionnaires and provides data for a new Définir une action modal. Keyword grids for both Anglais and Informatique courses have been added to . The frontend  has been updated with the logic and UI for the new Actions formateur column and the Définir une action modal.
 
 **Last working item**:
--   **Last item agent was working**: The user requested three specific refinements for the newly implemented Rejoindre la visio button.
--   **Status**: NOT STARTED
+-   **Last item agent was working**: Implementing the final UI simplification for the Définir une action modal in the Bilan Qualité page, as per the user's latest detailed specifications. This involves making the UI cleaner, showing only detected keywords by default, limiting the number of suggested actions, and changing the Définir button to orange.
+-   **Status**: IN PROGRESS
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: screenshot tool
+-   **Which testing method agent to use?**: Frontend testing agent
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: Refine Jitsi Rejoindre la visio button (Priority: P0)
--   **Issue 2**: Welcome email for new students is missing the password (Priority: P1)
--   **Issue 3**:  file instability (Priority: P1)
+-   **Issue 1**: Finalize the Définir une action Modal UI (Priority: P0)
+-   **Issue 2**: Data Mismatch for Q2 English Submissions (Priority: P0)
+-   **Issue 3**: Welcome email for new students is missing the password (Priority: P1)
+-   **Issue 4**:  file instability (Priority: P2)
 
 **Issues Detail**:
--   **Issue 1**:
-    -   **Description**: The user is not satisfied with the current implementation of the Jitsi video chat button and has requested three changes:
-        1.  On the student dashboard, the button should be smaller and round.
-        2.  On the student dashboard, the button should be hidden once the session's end time has passed.
-        3.  On the teacher dashboard, the button should be moved from next to each student's name to a single location for the entire session block (next to the date/time).
-    -   **Attempted fixes**: None. This is a new request.
+-   **Issue 1**: Finalize the Définir une action Modal UI
+    -   **Description**: The current Définir une action modal is too verbose. The user provided a detailed specification to simplify it by hiding AI reasoning, showing only detected keywords by default (with an option to expand), presenting a maximum of three suggested actions (radio buttons), and making the Définir button orange.
+    -   **Attempted fixes**: The agent successfully updated  with the new keyword grids for Informatique and simplified the API response structure to support this new UI.
     -   **Next debug checklist**:
-        1.  Modify : Adjust the button's CSS to make it smaller and round (, adjust padding/size). Add conditional rendering logic to hide the button if .
-        2.  Modify : Move the button's JSX from within the student list mapping to the main session header section.
-    -   **Why fix this issue and what will be achieved with the fix?**: To meet the user's specific UI/UX requirements for the new video chat feature.
-    -   **Status**: NOT STARTED
+        1.  Modify  to implement the new simplified modal UI as per the user's latest spec.
+        2.  Ensure the Définir une action button in the Actions formateur column is orange ().
+        3.  Thoroughly test the modal flow: click Définir, verify the simplified UI, check the Afficher tous les mots-clés expansion, select an action, edit the report text, and validate saving.
+    -   **Why fix this issue and what will be achieved with the fix?**: To meet the user's explicit and non-negotiable UI/UX requirements for the Qualiopi feature.
+    -   **Status**: IN PROGRESS
     -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Should Test frontend/backend/both after fix?**: both
     -   **Blocked on other issue**: None
--   **Issue 2**:
-    -   **Description**: A critical issue from the previous fork that was never addressed. When a new student is created, the welcome email they receive does not include their auto-generated password, preventing them from logging in for the first time.
-    -   **Attempted fixes**: None in this session. Previous investigation showed the password variable exists in the backend but may not be rendering in the email template.
+-   **Issue 2**: Data Mismatch for Q2 English Submissions
+    -   **Description**: The user reported that two students (Micheline and Isleme) submitted their Q2 English questionnaire, but it still appears as 🔴 En attente on the Bilan Qualité page. This is a critical data integrity bug.
+    -   **Attempted fixes**: The agent created a debug endpoint () in  to inspect the relevant data from the database. However, the agent never received the output from the user and moved on to other tasks.
     -   **Next debug checklist**:
-        1.  Add logging to the  function in  to print the final rendered HTML content of the email before it's sent.
-        2.  Create a new test student and check the server logs to confirm if the password is in the email body.
-        3.  If the password is not in the logs, debug the template rendering logic. If it is, the issue might be with the email sending service itself.
+        1.  Politely ask the user to log into the production environment () and access the debug URL: .
+        2.  Request the user to paste the full JSON output.
+        3.  Analyze the JSON to compare the  stored in the  collection against the student's actual uid=0(root) gid=0(root) groups=0(root) from the  collection.
+        4.  Correct the backend query in the  function in  if there is a mismatch in the lookup key.
+    -   **Why fix this issue and what will be achieved with the fix?**: The Qualiopi report is useless if its data is inaccurate. This fix is essential for the feature's reliability.
+    -   **Status**: BLOCKED
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: backend
+    -   **Blocked on other issue**: Waiting for debug output from the user.
+-   **Issue 3**: Welcome email for new students is missing the password
+    -   **Description**: A critical issue from the previous fork that was never addressed. When a new student is created, the welcome email they receive does not include their auto-generated password, preventing them from logging in.
+    -   **Attempted fixes**: None in this session.
+    -   **Next debug checklist**:
+        1.  Review the  function in .
+        2.  Check the email template to ensure the password variable is correctly referenced.
+        3.  Add logging to print the final rendered HTML content of the email before it's sent.
+        4.  Trigger the function by creating a test student and inspect the logs.
     -   **Why fix this issue and what will be achieved with the fix?**: This is critical for new user onboarding, which is currently broken.
     -   **Status**: NOT STARTED
     -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: backend
     -   **Blocked on other issue**: None
--   **Issue 3**:
-    -   **Description**: The  file has repeatedly and spontaneously reverted to pointing  at the preview environment URL instead of the production one. This has caused multiple production outages (white screen) that were difficult to diagnose.
-    -   **Attempted fixes**: The agent has manually corrected the file multiple times and re-deployed.
-    -   **Next debug checklist**: This is likely an infrastructure or platform-level issue. The next agent should be vigilant and verify the contents of  before every deployment and after any production issue. If it happens again, it needs to be escalated.
-    -   **Why fix this issue and what will be achieved with the fix?**: To prevent catastrophic production failures and ensure application stability.
-    -   **Status**: RESOLVED (for now)
+-   **Issue 4**:  file instability
+    -   **Description**: A high-risk infrastructure issue where the  file spontaneously reverts to pointing  at the preview environment, causing production outages (white screen).
+    -   **Attempted fixes**: The agent has manually corrected the file multiple times. This is likely a platform-level issue.
+    -   **Next debug checklist**: The agent must be vigilant and verify the contents of  before every deployment and after any production issue.
+    -   **Why fix this issue and what will be achieved with the fix?**: To prevent catastrophic production failures.
+    -   **Status**: RESOLVED (for now, but high risk)
     -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Should Test frontend/backend/both after fix?**: N/A (requires vigilance)
     -   **Blocked on other issue**: None
 
 **In progress Task List**:
--   None.
+-   **Task 1**: Complete Phase 2 of Bilan Qualité Module (Priority: P0)
+    -   **Description**: This is the main ongoing task, which includes finishing the Actions formateur feature. It fully encompasses Issue 1.
+    -   **Where to resume**:  has been updated. The next step is to modify  to implement the simplified Définir une action modal UI according to the user's latest specification.
+    -   **What will be achieved with this?**: A complete, user-friendly, and Qualiopi-compliant system for teachers to track and respond to student feedback.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Blocked on something**: None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
     -   **P1**: Complete the frontend integration for the pedagogical analysis report ().
-    -   **P2**: Refactor  into smaller components to reduce complexity.
+    -   **P2**: Refactor  and  into smaller components to reduce complexity.
     -   **P3**: Make test selection dropdowns dynamic.
 -   **Future Tasks**:
     -   **P4**: Implement  type resource uploads/downloads.
@@ -81,103 +99,95 @@ The application is a full-stack student management platform (React/FastAPI/Mongo
     -   **P6**: Build a full CRUD interface for quiz templates.
 
 **Completed work in this session**
--   **Application Stabilization**:
-    -   Fixed multiple production outages (white screen) by correcting the  in  and forcing a frontend rebuild/re-deployment.
-    -   Resolved a critical data issue where students were missing tests in production by creating a one-time  endpoint to repair the production database.
--   **UI/UX Overhaul**:
-    -   Implemented Year/Month dropdown filters on , , and , replacing the old tab system.
-    -   Added a Centre filter to .
--   **Billing Feature Expansion**:
-    -    now displays a color-coded summary of totals grouped by center.
-    -   Events created in the  are now correctly fetched and displayed in the .
-    -   Added an  field to the event creation modal in  and updated the backend to store it.
--   **New Feature: Test Reset**:
-    -   Created a backend endpoint () to revert a test's status to NON_COMMENCE.
-    -   Added a Recommencer mon test button to the  for submitted tests.
--   **New Feature: Video Chat Integration**:
-    -   Integrated Jitsi Meet by adding a Rejoindre la visio button to  and  for remote sessions, which generates a unique meeting link per session.
+-   **Jitsi Button Refinements**: The Rejoindre la visio button UI was updated on both student and teacher dashboards and deployed.
+-   **Automatic Email Reminders**: A system to send reminder emails 15 minutes before sessions was implemented in the backend and deployed.
+-   **Bilan Qualité Overhaul (Phase 1 & Phase 2 Foundation)**:
+    -   The  UI was completely refactored with course-specific tabs, simplified cards, and a refined student table.
+    -   The Actions column was iteratively redesigned based on user feedback to move reminders to individual cells and introduce the Actions formateur concept.
+    -   Backend logic and endpoints were created in  to support questionnaire analysis (), saving actions (), and individual reminders ().
+    -   The backend keyword grids for Qualiopi analysis were updated to include both Anglais and Informatique courses.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1**: The welcome email for new students is missing the password. (Now listed in the Pending Issues list).
+-   **Issue 1**: Data Mismatch for Q2 English Submissions (now listed in the Pending Issues list as P0).
+-   **Issue 2**: The welcome email for new students is missing the password (now listed in the Pending Issues list as P1).
 
 **Known issue recurrence from previous fork**
 -   **Issue recurrence in previous fork**:  instability.
--   **Recurrence count**: High (occurred at least 3 times this session).
--   **Status**: RESOLVED (for now). The file is currently correct, but the root cause of its reversion is unknown, making it a major risk.
+-   **Recurrence count**: High (occurred once this session, corrected by the agent).
+-   **Status**: RESOLVED (for now).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Environment Instability**: The core challenge was the desynchronization between the preview and production environments, which have separate databases and configurations. The  file was the main culprit for deployment failures.
--   **Data Repair via API**: When production data was found to be missing (students without tests), the agent created a temporary, admin-only API endpoint () to manually repair the data without requiring direct database access.
--   **Frontend State Refactoring**: Replaced complex, tab-based state with centralized year/month/center filters, using  and  to derive the filtered views efficiently.
--   **Data Aggregation on Frontend**: The  component was refactored to fetch data from two separate sources ( and ) and merge them into a single, cohesive view for the user.
--   **Third-Party JS Integration**: Integrated Jitsi Meet by generating dynamic room URLs and launching them in a new tab, requiring no complex SDKs.
+-   **Backend Business Logic**: Complex rule-based logic in  () to parse questionnaire responses and flag them for teacher review based on keywords and specific answer patterns, without using generative AI for decisions.
+-   **APScheduler**: Used to schedule the 15-minute email reminders. The agent modified an existing job.
+-   **Complex Frontend State**: Heavy use of React hooks (, , ) in  to manage the state of tabs, filters, fetched data, and the complex Définir une action modal.
+-   **Dynamic API Endpoints**: Creation of multiple new FastAPI endpoints to support the Qualiopi workflow, including data analysis, saving actions, and debugging.
 
 **key DB schema**
--   **planning_events** (collection in MongoDB): Documents in this collection now have an optional  field.
+-   **New Collection**:  is used by the backend to store the traceability record for each teacher-defined action, including selected keywords, the final report text, the creator, and a timestamp.
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--    (UI for filters, Jitsi button)
--    (UI for test reset, Jitsi button)
--    (Major refactor for filters and center summary)
--    (UI for filters, hourly rate modal)
--    (New endpoints for data repair and test reset)
--    (Critical configuration file, known to be unstable)
+-    (Main file for the entire Qualiopi feature, needs refactoring)
+-    (Main file for all backend logic, heavily modified for Qualiopi)
+-    (Critical configuration file, must be monitored)
 
 **Areas that need refactoring**:
--    and  are becoming very large and complex. The original handoff recommended refactoring them, and more logic has since been added. They should be broken down into smaller, more manageable components.
+-    has become a monolithic file exceeding 1000 lines. It urgently needs to be broken down into smaller, manageable components (e.g., , , , ).
+-    is also becoming very large. The Qualiopi-related endpoints and helper functions should be moved to a dedicated router file (e.g., ).
 
 **key api endpoints**
--   : Resets a student's test status to .
--   : (Temporary) Assigns T1, T2, T3 resources to a student.
--   : Now used by the billing page to fetch billable events.
--   : Now accepts an .
+-   : Sends a reminder for a specific questionnaire to a student.
+-   : Analyzes a submitted questionnaire to detect needs and provide data for the Définir une action modal.
+-   : Saves the teacher's defined action for Qualiopi traceability.
+-   : Debug endpoint to investigate data discrepancies.
 
 **Critical Info for New Agent**
--   **ENVIRONMENTAL INSTABILITY IS THE BIGGEST RISK**: Be extremely cautious with deployments. The  file has a history of reverting to an incorrect URL, which causes the production site to go down with a white screen. **Always verify the contents of  before asking the user to deploy.**
--   **PREVIEW AND PRODUCTION ARE SEPARATE**: The preview environment () and the production environment () use **DIFFERENT, UNSYNCHRONIZED DATABASES**. Data added or changed in one will NOT appear in the other. The user sometimes gets confused by this. All final work must be verified on the production URL.
--   **The user's latest request is a UI refinement**, not a new feature. Address the three points about the Jitsi button first.
+-   **Address the User's Latest Spec First**: Your immediate priority is to implement the UI simplification for the Définir une action modal in  as detailed in the user's last message. This is the current active task.
+-   **Data Discrepancy is a Blocker**: The user is blocked by a critical bug where submitted questionnaires are not showing up correctly. Once you finish the current UI task, you must prioritize resolving this. You will need to ask the user to provide the output of the debug endpoint.
+-   **Preview DB is Empty**: The preview environment's database has been reset. Features relying on existing data (like the Qualiopi report) can only be fully tested and validated by the user on the production environment.
+-   **Follow User Specs Strictly**: The user provides very detailed, iterative specifications. Adhere to them precisely, especially regarding UI/UX and business logic for Qualiopi compliance.
+-   **French Language**: The user's primary language is French. All communication must be in French.
 
 **documents and test_reports created in this job**
--   /app/test_result.md (Updated and used once)
+-   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: I deployed and cleared caches and it's still not working.
-2.  **User**:  isn't working, I can't log in.
-3.  **User**: I deployed and cleared the caches.
-4.  **User**: I will have to do the same for the planning. 2) from now on when I create an event directly in the planning, you will have to systematically give me the hourly rate (for example zepartner is already the case) for SFA and all the others you will have to ask me for the hourly rate. 3) in the invoicing, you will have to show the global total per month, per center. ex: the partner 3400€ , SFA 2300€ etc... you will have to do the total per month as well 5700 for example. this will give me a global vision of the invoicing and not only for zepartner. 4) for those who are already created, I must have the possibility to modify the hourly rate. thank you.
-5.  **User**: I deployed and it wasn't done in techportal.
-6.  **User**: in the teacher Dashboard, you need to be able to filter the months in the session by month section. because it's too heavy all the months in a row. filter by year and by month you do until 2030 2) you do the same thing in the invoicing to make it easier.
-7.  **User**: it's redeployed.
-8.  **User**: In the T1 T2 and T3 tests of all the courses, you will create a button only when the test is validated and the student has submitted it too early (today we don't have the possibility to retake it). a button that allows you to retake it. retake my test (at the end of the test completed banner)
-9.  **User**: are you able to for students who have visions with me, in the student Dashboard, to create a link for them in front of each session, to connect in Visio with me on the professor side. or are you obliged to go through meet? or something else? or can you do video directly?
-10. **User**: 1) you have to create a button in the student and professor Dashboard (neither orange, nor green, nor purple, nor blue) in relief, with the text: join my Visio session I have sent you screenshots of where to put it in the student and professor Dashboard next to each session.
-11. **User**: it's a requirement that the button be gray and say available in 15 minutes? is it a requirement for your link? I would prefer a button that is always there that creates a unique link 15 minutes before and unlimited after the start of the session. the button will be pink and filled. or do you not have a choice technically with this 15-minute principle? also I don't see a button in the sessions of the professor Dashboard by the way.
-12. **User**: 1) in the student Dashboard it's good. you have to make a small modification, make it smaller for space saving and round (not rectangular) 2) it will have to be removed from the student Dashboard when the session is finished (after the timestamp of the session) 3) the location of the button in the professor Dashboard is not good: I have put the screenshot, don't put it at the end of the student's banner. but next to the subject of the date and times. if there are several students in a session, they must have the same link as me, but I only have one per session. thank you.
+1.  **User**: (Provides a very detailed spec to simplify the Définir une action modal UI for both English and Informatique tracks, including making the Définir button orange).
+2.  **User**: (Provides the final spec for Phase 2 Actions formateur with a complex and verbose modal UI).
+3.  **User**: We want to finalize Phase 2. Provides strict rules for Actions formateur: 3 fixed lines per student, binary GREEN/RED status, rules for status change, and detailed specs for the Définir une action button/modal, including AI-assisted keyword extraction and a final report validated by the teacher.
+4.  **User**: Clarifies the business logic. Actions formateur column should only have teacher actions (Consulter, Traiter, Trace). Reminders should not be in that column. Global reminders on cards should be removed. Individual reminders should be on the pending cells.
+5.  **User**: There is a blocking inconsistency. A Soumis (Submitted) questionnaire, when clicked, shows No response available. This should never happen. All submitted questionnaires must show their responses.
+6.  **User**: Micheline and Isleme completed the Q2 for English, but it appears as red (pending).
+7.  **User**: I want to finalize Phase 1 with further adjustments: tabs should keep the course color, remove the TOTAL card, keep only 3 cards (Q1, Q2, Q3), add an info sentence, change Non soumis to En attente, refine the Actions column, and add a tooltip/click action on the green submitted dot to view the response.
+8.  **User**: Okay to start Phase 1. Prioritize Anglais and Informatique courses.
+9.  **User**: I'm working on the existing Quality Questionnaires module. I don't want a new system. Provides a detailed 7-point spec for simplifying the existing module for Qualiopi compliance (Phase 1).
+10. **User**: Everything works in production (). There's no data problem there. It's in the preview () that data disappears. But the result in production is what's important.
 
 **Project Health Check:**
--   **Unstable**: While currently functional on production, the application is rated as Unstable due to the high risk of the  file reverting, which has caused multiple production outages. The root cause of this file instability is unknown.
+-   **Broken**: The Bilan Qualité page has a critical data integrity bug (Q2 submissions not appearing). New user onboarding is broken due to the missing password in the welcome email.
+-   **Mocked**: None.
 
 **3rd Party Integrations**
--   **Jitsi Meet**: Used for the video conferencing feature. It is integrated via a simple URL generation scheme () and does not require an API key.
+-   **Jitsi Meet**: Used for video conferencing via simple URL generation. No API key required.
 
 **Testing status**
--   **Testing agent used after significant changes**: NO. The agent relied heavily on manual  commands and the  tool to verify functionality.
--   **Troubleshoot agent used after agent stuck in loop**: YES, it was used to correctly diagnose a deployment failure caused by the unstable  file.
--   **Test files created**: None.
--   **Known regressions**: The white screen on production due to  corruption is a major recurring regression.
+-   **Testing agent used after significant changes**: NO
+-   **Troubleshoot agent used after agent stuck in loop**: NO
+-   **Test files created**: None
+-   **Known regressions**:
+    -    file instability remains a high risk.
+    -   Q2 questionnaire data for the Anglais course is not being correctly identified as submitted.
 
 **Credentials to test flow:**
 -   **Teacher**:  / 
--   **Ghislain AKIANA**:  / 
--   **Germaine CHAPERON**:  /  (Production password)
--   **Djibril KANTE**:  / 
+-   **Student (Ghislain AKIANA)**:  / 
 
 **What agent forgot to execute**
--   The critical bug where the **welcome email is missing the password** has not been addressed.
--   The planned refactoring of  and other large components has been postponed.</analysis>
+-   The agent did not resolve the critical data mismatch issue for Q2 submissions. After creating a debug endpoint, it moved on to a new user request without getting the necessary information to fix the bug.
+-   The critical bug where the welcome email is missing the password has been carried over from the previous fork and completely ignored during this session.
+-   The planned refactoring of large components like  and  has not been performed, and the latter has grown significantly more complex.</analysis>
