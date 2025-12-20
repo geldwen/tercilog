@@ -722,7 +722,6 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
   const [finalText, setFinalText] = useState("");
   const [saving, setSaving] = useState(false);
   const [hasNeed, setHasNeed] = useState(needStatus?.has_need || false);
-  const [showAllKeywords, setShowAllKeywords] = useState(false);
 
   // Charger l'analyse
   useEffect(() => {
