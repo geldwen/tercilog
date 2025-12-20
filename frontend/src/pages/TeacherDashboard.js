@@ -222,6 +222,21 @@ export default function TeacherDashboard({ user, onLogout }) {
     return `${selectedYear}-${monthStr}`;
   }, [selectedYear, selectedMonthNum]);
 
+  // Générer un lien Jitsi unique pour une séance
+  const generateJitsiLink = (session) => {
+    const roomName = `terciform-${session.id.replace(/-/g, '').substring(0, 12)}`;
+    return `https://meet.jit.si/${roomName}`;
+  };
+
+  // Vérifier si la séance est accessible (15 min avant jusqu'à la fin)
+  const isSessionJoinable = (session) => {
+    const now = new Date();
+    const sessionStart = new Date(`${session.date}T${session.start_time}`);
+    const sessionEnd = new Date(`${session.date}T${session.end_time}`);
+    const fifteenMinutesBefore = new Date(sessionStart.getTime() - 15 * 60 * 1000);
+    return now >= fifteenMinutesBefore && now <= sessionEnd;
+  };
+
   useEffect(() => { if (selectedMonth) loadData(selectedMonth); }, [selectedMonth]);
 
   const loadData = async (month) => {
