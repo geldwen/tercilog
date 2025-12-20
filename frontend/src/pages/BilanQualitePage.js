@@ -890,36 +890,14 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
             </div>
           ) : (
             <>
-              {/* Alerte besoin identifié */}
-              <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700 font-medium text-sm">🔴 Un besoin a été identifié dans les réponses de l&apos;apprenant.</p>
+              {/* Message simple (sans icône rouge) */}
+              <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <p className="text-gray-700 font-medium text-sm">Un ou plusieurs besoins ont été identifiés dans la réponse de l&apos;apprenant.</p>
               </div>
 
-              {/* Section A: Mots-clés détectés (interne, léger) */}
-              {normalizedKeywords.length > 0 && (
-                <div className="mb-5">
-                  <h3 className="font-semibold text-gray-800 mb-2 text-sm">Mots-clés détectés</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {(showAllKeywords ? normalizedKeywords : normalizedKeywords.slice(0, 6)).map((kw) => (
-                      <span key={kw} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                        {kw}
-                      </span>
-                    ))}
-                  </div>
-                  {normalizedKeywords.length > 6 && (
-                    <button 
-                      onClick={() => setShowAllKeywords(!showAllKeywords)}
-                      className="mt-2 text-xs text-blue-600 hover:underline"
-                    >
-                      {showAllKeywords ? "Masquer" : "Afficher"} tous les mots-clés
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Section B: Actions pédagogiques (max 3) */}
+              {/* Section: Besoins du bénéficiaire (remplace "Actions pédagogiques") */}
               <div className="mb-5">
-                <h3 className="font-semibold text-gray-800 mb-2 text-sm">Actions pédagogiques <span className="text-gray-500 text-xs font-normal">(max 3)</span></h3>
+                <h3 className="font-bold text-gray-900 mb-3 text-base">Besoins du bénéficiaire <span className="text-gray-400 text-sm font-normal">(max 3)</span></h3>
                 <div className="space-y-2">
                   {allActions.slice(0, 6).map((action, idx) => {
                     const isSelected = selectedActions.find(a => a.id === action.id);
@@ -947,12 +925,12 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
                     );
                   })}
                 </div>
-                <p className="text-xs text-gray-500 mt-2">{selectedActions.length}/3 actions sélectionnées</p>
+                <p className="text-xs text-gray-500 mt-2">{selectedActions.length}/3 sélectionnés</p>
               </div>
 
-              {/* Section C: Compte-rendu formateur (auto-généré) */}
+              {/* Section: Compte-rendu formateur */}
               <div className="mb-4">
-                <h3 className="font-semibold text-gray-800 mb-2 text-sm">Compte-rendu formateur</h3>
+                <h3 className="font-bold text-gray-900 mb-3 text-base">Compte-rendu formateur</h3>
                 <p className="text-xs text-gray-500 mb-2">Ce texte est généré automatiquement. Vous pouvez le modifier avant validation.</p>
                 <textarea 
                   value={finalText}
