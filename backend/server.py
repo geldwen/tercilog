@@ -3527,7 +3527,7 @@ async def save_questionnaire_action(
     """
     Enregistre l'action formateur pour un questionnaire.
     Traçabilité Qualiopi obligatoire.
-    Nouveau format Phase 2 avec niveau de besoin et multi-sélection d'actions.
+    Phase 2 Simplifié: SANS niveau de besoin, avec besoin_text et actions_text.
     """
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
@@ -3535,22 +3535,24 @@ async def save_questionnaire_action(
     student_id = data.get("student_id")
     student_name = data.get("student_name")
     questionnaire_type = data.get("questionnaire_type")  # Q1, Q2, Q3
-    questionnaire_id = data.get("questionnaire_id")  # ID du questionnaire source
-    niveau_besoin = data.get("niveau_besoin")  # leger, moyen, important
-    mots_cles = data.get("mots_cles", [])  # Liste des mots-clés retenus
-    actions = data.get("actions", [])  # Liste des actions sélectionnées (max 3)
+    questionnaire_id = data.get("questionnaire_id")
+    keywords_internal = data.get("keywords_internal", [])  # Mots-clés internes (non affichés)
+    mots_cles = data.get("mots_cles", keywords_internal)
+    actions = data.get("actions", [])  # Liste des actions {key, label}
+    besoin_text = data.get("besoin_text", "")  # Texte "Besoin du bénéficiaire" (figé)
+    actions_text = data.get("actions_text", "")  # Texte "Actions mises en place" (figé)
     compte_rendu_final = data.get("compte_rendu_final", "")
     has_need = data.get("has_need", False)
     
     # Rétrocompatibilité avec l'ancien format
     selected_keywords = data.get("selected_keywords", mots_cles)
-    selected_actions = data.get("selected_actions", actions)
+    selected_actions = data.get("selected_actions", [a.get("label", a) if isinstance(a, dict) else a for a in actions])
     final_text = data.get("final_text", compte_rendu_final)
     
     if not all([student_id, questionnaire_type]):
         raise HTTPException(status_code=400, detail="student_id et questionnaire_type requis")
     
-    # Créer l'enregistrement de traçabilité (nouveau format Phase 2)
+    # Créer l'enregistrement de traçabilité (Phase 2 Simplifié)
     action_record = {
         "id": str(uuid.uuid4()),
         "student_id": student_id,
@@ -3558,13 +3560,16 @@ async def save_questionnaire_action(
         "questionnaire_type": questionnaire_type,
         "questionnaire_id": questionnaire_id,
         "has_need": has_need,
-        "niveau_besoin": niveau_besoin,  # leger, moyen, important
+        # Phase 2 Simplifié: pas de niveau_besoin
+        "keywords_internal": keywords_internal,  # Stocké mais non affiché dans le détail
         "mots_cles": mots_cles if mots_cles else selected_keywords,
-        "actions": actions if actions else selected_actions,
+        "actions": actions,  # Liste de {key, label}
+        "besoin_text": besoin_text,  # "Le bénéficiaire a exprimé un besoin de..."
+        "actions_text": actions_text,  # "Actions mises en place par le formateur..."
         "compte_rendu_final": compte_rendu_final if compte_rendu_final else final_text,
         # Anciens champs pour rétrocompatibilité
         "selected_keywords": selected_keywords if selected_keywords else mots_cles,
-        "selected_actions": selected_actions if selected_actions else actions,
+        "selected_actions": selected_actions,
         "final_text": final_text if final_text else compte_rendu_final,
         "teacher_id": current_user.id,
         "teacher_name": current_user.name,
