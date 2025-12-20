@@ -632,52 +632,112 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     "Q3": "Questionnaire de fin (Satisfaction)"
   };
 
+  // Labels lisibles pour les champs
+  const fieldLabels = {
+    // Q1 - Besoins
+    niveau_initial: "Niveau initial estimé",
+    objectifs: "Objectifs de formation",
+    disponibilites: "Disponibilités",
+    besoins_specifiques: "Besoins spécifiques",
+    attentes: "Attentes",
+    contraintes: "Contraintes",
+    motivation: "Motivation",
+    experience_anterieure: "Expérience antérieure",
+    contexte_professionnel: "Contexte professionnel",
+    frequence_utilisation: "Fréquence d'utilisation",
+    domaines_prioritaires: "Domaines prioritaires",
+    
+    // Q2 - Mi-parcours
+    progression_ressentie: "Progression ressentie",
+    satisfaction_accompagnement: "Satisfaction accompagnement",
+    points_positifs: "Points positifs",
+    points_ameliorer: "Points à améliorer",
+    difficultes_rencontrees: "Difficultés rencontrées",
+    besoins_complementaires: "Besoins complémentaires",
+    commentaires: "Commentaires",
+    rythme_formation: "Rythme de la formation",
+    qualite_supports: "Qualité des supports",
+    relation_formateur: "Relation avec le formateur",
+    
+    // Q3 - Fin
+    objectifs_atteints: "Objectifs atteints",
+    progression_globale: "Progression globale",
+    qualite_formation: "Qualité de la formation",
+    qualite_formateur: "Qualité du formateur",
+    recommandation: "Recommanderiez-vous ?",
+    points_forts: "Points forts",
+    suggestions: "Suggestions d'amélioration",
+    temoignage: "Témoignage",
+    evaluation_globale: "Évaluation globale",
+    acquis_formation: "Acquis de la formation",
+    
+    // Champs génériques
+    answers: "Réponses",
+    reponses: "Réponses",
+  };
+
+  // Champs à ignorer (métadonnées)
+  const ignoredFields = [
+    'submitted', 'submitted_at', 'student_id', 'id', '_id', 
+    'created_at', 'updated_at', 'score_ressenti_progression',
+    'score_satisfaction', 'difficulties', 'mastered_skills'
+  ];
+
+  // Formater une valeur pour l'affichage
+  const formatValue = (value) => {
+    if (value === null || value === undefined) return "—";
+    if (typeof value === 'boolean') return value ? "Oui" : "Non";
+    if (Array.isArray(value)) {
+      if (value.length === 0) return "—";
+      return value.map(v => typeof v === 'object' ? JSON.stringify(v) : String(v)).join(", ");
+    }
+    if (typeof value === 'object') {
+      // Si c'est un objet avec des réponses imbriquées
+      const entries = Object.entries(value)
+        .filter(([k, v]) => v !== null && v !== undefined && v !== "")
+        .map(([k, v]) => `${fieldLabels[k] || k.replace(/_/g, ' ')}: ${formatValue(v)}`);
+      return entries.length > 0 ? entries.join("\n") : "—";
+    }
+    return String(value);
+  };
+
   // Extraire les réponses du questionnaire
   const getResponses = () => {
     if (!data) return [];
     
     const responses = [];
     
-    // Q1 - Besoins
-    if (type === "Q1") {
-      if (data.niveau_initial) responses.push({ label: "Niveau initial estimé", value: data.niveau_initial });
-      if (data.objectifs) responses.push({ label: "Objectifs de formation", value: data.objectifs });
-      if (data.disponibilites) responses.push({ label: "Disponibilités", value: data.disponibilites });
-      if (data.besoins_specifiques) responses.push({ label: "Besoins spécifiques", value: data.besoins_specifiques });
-      if (data.attentes) responses.push({ label: "Attentes", value: data.attentes });
-      if (data.contraintes) responses.push({ label: "Contraintes", value: data.contraintes });
-    }
+    // Parcourir toutes les clés du data
+    Object.entries(data).forEach(([key, value]) => {
+      // Ignorer les champs de métadonnées
+      if (ignoredFields.includes(key)) return;
+      
+      // Ignorer les valeurs vides
+      if (value === null || value === undefined || value === "" || 
+          (Array.isArray(value) && value.length === 0)) return;
+      
+      // Si c'est le champ "answers" (pour Informatique), déplier son contenu
+      if (key === 'answers' && typeof value === 'object' && !Array.isArray(value)) {
+        Object.entries(value).forEach(([ansKey, ansValue]) => {
+          if (ansValue !== null && ansValue !== undefined && ansValue !== "") {
+            responses.push({
+              label: fieldLabels[ansKey] || ansKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+              value: formatValue(ansValue)
+            });
+          }
+        });
+      } else {
+        responses.push({
+          label: fieldLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          value: formatValue(value)
+        });
+      }
+    });
     
-    // Q2 - Mi-parcours
-    if (type === "Q2") {
-      if (data.progression_ressentie) responses.push({ label: "Progression ressentie", value: data.progression_ressentie });
-      if (data.satisfaction_accompagnement) responses.push({ label: "Satisfaction accompagnement", value: data.satisfaction_accompagnement });
-      if (data.points_positifs) responses.push({ label: "Points positifs", value: data.points_positifs });
-      if (data.points_ameliorer) responses.push({ label: "Points à améliorer", value: data.points_ameliorer });
-      if (data.difficultes_rencontrees) responses.push({ label: "Difficultés rencontrées", value: data.difficultes_rencontrees });
-      if (data.besoins_complementaires) responses.push({ label: "Besoins complémentaires", value: data.besoins_complementaires });
-      if (data.commentaires) responses.push({ label: "Commentaires", value: data.commentaires });
-    }
-    
-    // Q3 - Fin
-    if (type === "Q3") {
-      if (data.objectifs_atteints) responses.push({ label: "Objectifs atteints", value: data.objectifs_atteints });
-      if (data.progression_globale) responses.push({ label: "Progression globale", value: data.progression_globale });
-      if (data.qualite_formation) responses.push({ label: "Qualité de la formation", value: data.qualite_formation });
-      if (data.qualite_formateur) responses.push({ label: "Qualité du formateur", value: data.qualite_formateur });
-      if (data.recommandation) responses.push({ label: "Recommanderiez-vous ?", value: data.recommandation });
-      if (data.points_forts) responses.push({ label: "Points forts", value: data.points_forts });
-      if (data.suggestions) responses.push({ label: "Suggestions d'amélioration", value: data.suggestions });
-      if (data.temoignage) responses.push({ label: "Témoignage", value: data.temoignage });
-    }
-    
-    // Si aucune réponse structurée, afficher les données brutes
-    if (responses.length === 0 && data) {
-      Object.entries(data).forEach(([key, value]) => {
-        if (key !== 'submitted' && key !== 'submitted_at' && value) {
-          responses.push({ label: key.replace(/_/g, ' '), value: String(value) });
-        }
-      });
+    return responses;
+  };
+
+  const responses = getResponses();
     }
     
     return responses;
