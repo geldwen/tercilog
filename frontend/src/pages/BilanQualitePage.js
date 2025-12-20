@@ -20,63 +20,16 @@ const MOIS_FR = [
   "juillet", "août", "septembre", "octobre", "novembre", "décembre"
 ];
 
-const COULEUR_FROM_SCORE = (score) => {
-  if (score >= 76) return { lib: "Bleu", hex: "#1F4E79" };
-  if (score >= 51) return { lib: "Vert", hex: "#2B8A3E" };
-  if (score >= 26) return { lib: "Orange", hex: "#E67700" };
-  return { lib: "Rouge", hex: "#C92A2A" };
-};
-
-const scoreProgression = (reponseFin) => {
-  if (!reponseFin) return 0;
-  
-  // Mapper les valeurs textuelles aux scores
-  let progression = 0;
-  const progVal = reponseFin.progression_globale || "";
-  if (progVal === "Très satisfaisante") progression = 100;
-  else if (progVal === "Satisfaisante") progression = 75;
-  else if (progVal === "Moyenne") progression = 50;
-  else if (progVal === "Insuffisante") progression = 25;
-  
-  let objectifs = 0;
-  const objVal = reponseFin.objectifs_atteints || "";
-  if (objVal === "Oui") objectifs = 100;
-  else if (objVal === "Partiellement") objectifs = 66;
-  else if (objVal === "Non") objectifs = 0;
-  
-  let satisfaction = 0;
-  try {
-    const evalGlobale = parseInt(reponseFin.evaluation_globale || 0);
-    satisfaction = (evalGlobale / 5) * 100;
-  } catch (e) {
-    satisfaction = 0;
-  }
-  
-  let recommander = 0;
-  const recVal = reponseFin.recommandation || "";
-  if (recVal === "Oui") recommander = 100;
-  else if (recVal === "Peut-être") recommander = 50;
-  
-  return Math.round(progression * 0.4 + objectifs * 0.3 + satisfaction * 0.2 + recommander * 0.1);
-};
-
-const corrigerStatuts = (questionnaires) => {
-  // Règle : si Q2 rouge, alors Q3 doit être rouge
-  const q2Rouge = questionnaires.q2Statut === "ROUGE";
-  return {
-    ...questionnaires,
-    q3Statut: q2Rouge ? "ROUGE" : questionnaires.q3Statut,
-  };
-};
+// Parcours disponibles (priorité Anglais et Informatique)
+const PARCOURS_TABS = ["Anglais", "Informatique"];
 
 const BilanQualitePage = () => {
   const navigate = useNavigate();
-  const [parcours, setParcours] = useState(["Toutes", "Anglais", "Management", "Bureautique", "Informatique"]);
+  const [activeParcours, setActiveParcours] = useState("Anglais");
   const [filtres, setFiltres] = useState({
     periodeType: "mois",
-    moisIndex: new Date().getMonth(), // 0-11
+    moisIndex: new Date().getMonth(),
     annee: new Date().getFullYear(),
-    parcours: "Toutes",
   });
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -98,7 +51,7 @@ const BilanQualitePage = () => {
             periodeType: filtres.periodeType,
             moisIndex: filtres.moisIndex,
             annee: filtres.annee,
-            parcours: filtres.parcours,
+            parcours: activeParcours,
           },
         });
         setData(response.data);
@@ -111,195 +64,33 @@ const BilanQualitePage = () => {
     };
 
     fetchData();
-  }, [filtres.periodeType, filtres.moisIndex, filtres.annee, filtres.parcours]);
+  }, [filtres.periodeType, filtres.moisIndex, filtres.annee, activeParcours]);
 
-  // Pas de filtrage côté client, le backend fait tout
-  const lignes = useMemo(() => data, [data]);
-  
-  // Difficultés et éléments maîtrisés filtrés par parcours
-  const { filteredTop3, filteredTop3Mastered } = useMemo(() => {
-    const eligibles = lignes.filter(
-      (e) => e.q1?.submitted && e.q2?.submitted && e.q3?.submitted
-    );
-    
-    // Filtrer par parcours sélectionné (utiliser le filtre du bandeau du haut)
-    const filtered = filtres.parcours === "Toutes" 
-      ? eligibles 
-      : eligibles.filter(e => e.parcours === filtres.parcours);
-    
-    // Difficultés top 3
-    const freq = new Map();
-    filtered.forEach((e) => {
-      const difficulties = e.q3?.difficulties || [];
-      difficulties.forEach((d) => freq.set(d, (freq.get(d) || 0) + 1));
-    });
-    const filteredTop3 = Array.from(freq.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([k]) => k);
-    
-    // Éléments maîtrisés top 3
-    const freqMastered = new Map();
-    filtered.forEach((e) => {
-      const mastered = e.q3?.mastered_skills || [];
-      mastered.forEach((m) => freqMastered.set(m, (freqMastered.get(m) || 0) + 1));
-    });
-    const filteredTop3Mastered = Array.from(freqMastered.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([k]) => k);
-    
-    return { filteredTop3, filteredTop3Mastered };
-  }, [lignes, filtres.parcours]);
+  // Filtrer par parcours actif
+  const lignes = useMemo(() => {
+    return data.filter(e => e.parcours === activeParcours);
+  }, [data, activeParcours]);
 
-  // Calcul de la progression moyenne par mois
-  const progressionParMois = useMemo(() => {
-    const annee = filtres.annee;
-    const moisDebut = annee === 2025 ? 10 : 0; // Nov = 10 pour 2025, sinon 0 (janvier)
-    const moisFin = 11; // Décembre
+  // Compteurs simples par questionnaire
+  const compteurs = useMemo(() => {
+    const q1Soumis = lignes.filter(e => e.q1?.submitted).length;
+    const q1NonSoumis = lignes.length - q1Soumis;
     
-    const result = [];
+    const q2Soumis = lignes.filter(e => e.q2?.submitted).length;
+    const q2NonSoumis = lignes.length - q2Soumis;
     
-    for (let mois = moisDebut; mois <= moisFin; mois++) {
-      const debutMois = new Date(annee, mois, 1);
-      const finMois = new Date(annee, mois + 1, 0, 23, 59, 59);
-      
-      // Filtrer les élèves qui ont soumis Q3 dans ce mois
-      const elevesDuMois = lignes.filter((e) => {
-        if (!e.q3?.submitted || !e.q3?.submitted_at) return false;
-        
-        try {
-          const dateQ3 = new Date(e.q3.submitted_at);
-          return dateQ3 >= debutMois && dateQ3 <= finMois;
-        } catch {
-          return false;
-        }
-      });
-      
-      // Calculer la moyenne pour ce mois
-      const scores = elevesDuMois.map(e => e.q3?.score_ressenti_progression || 0);
-      const moyenne = scores.length > 0 
-        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) 
-        : null;
-      
-      result.push({
-        mois: MOIS_FR[mois],
-        moyenne: moyenne,
-        nbEleves: elevesDuMois.length
-      });
-    }
+    const q3Soumis = lignes.filter(e => e.q3?.submitted).length;
+    const q3NonSoumis = lignes.length - q3Soumis;
     
-    return result;
-  }, [lignes, filtres.annee]);
-
-  // Calcul de la satisfaction moyenne par mois
-  const satisfactionParMois = useMemo(() => {
-    const annee = filtres.annee;
-    const moisDebut = annee === 2025 ? 10 : 0; // Nov = 10 pour 2025, sinon 0 (janvier)
-    const moisFin = 11; // Décembre
+    const totalSoumis = q1Soumis + q2Soumis + q3Soumis;
+    const totalNonSoumis = q1NonSoumis + q2NonSoumis + q3NonSoumis;
     
-    const result = [];
-    
-    for (let mois = moisDebut; mois <= moisFin; mois++) {
-      const debutMois = new Date(annee, mois, 1);
-      const finMois = new Date(annee, mois + 1, 0, 23, 59, 59);
-      
-      // Filtrer les élèves qui ont soumis Q3 dans ce mois
-      const elevesDuMois = lignes.filter((e) => {
-        if (!e.q3?.submitted || !e.q3?.submitted_at) return false;
-        
-        try {
-          const dateQ3 = new Date(e.q3.submitted_at);
-          return dateQ3 >= debutMois && dateQ3 <= finMois;
-        } catch {
-          return false;
-        }
-      });
-      
-      // Calculer la moyenne de satisfaction pour ce mois
-      const scores = elevesDuMois.map(e => e.q3?.score_satisfaction || 0);
-      const moyenne = scores.length > 0 
-        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) 
-        : null;
-      
-      result.push({
-        mois: MOIS_FR[mois],
-        moyenne: moyenne,
-        nbEleves: elevesDuMois.length
-      });
-    }
-    
-    return result;
-  }, [lignes, filtres.annee]);
-
-  // Agrégation des KPIs
-  const agreg = useMemo(() => {
-    // Retour élève = Q1 ET Q2 ET Q3 soumis
-    const eligibles = lignes.filter(
-      (e) => e.q1?.submitted && e.q2?.submitted && e.q3?.submitted
-    );
-    const N = eligibles.length;
-    // Scores de ressenti de progression (calculés côté backend)
-    const scores = eligibles.map((e) => e.q3?.score_ressenti_progression || 0);
-    const avgProg = N ? Math.round(scores.reduce((a, b) => a + b, 0) / N) : 0;
-
-    // Scores de satisfaction (calculés côté backend)
-    const satisfactions = eligibles.map((e) => e.q3?.score_satisfaction || 0);
-    const avgSat = N ? Math.round(satisfactions.reduce((a, b) => a + b, 0) / N) : 0;
-
-    // Ressenti positif si score >= 51
-    const nbPos = eligibles.filter((e) => (e.q3?.score_ressenti_progression || 0) >= 51).length;
-    const posPct = N ? Math.round((nbPos * 100) / N) : 0;
-    const negPct = N ? 100 - posPct : 0;
-
-    // Difficultés top 3
-    const freq = new Map();
-    eligibles.forEach((e) => {
-      const difficulties = e.q3?.difficulties || [];
-      difficulties.forEach((d) => freq.set(d, (freq.get(d) || 0) + 1));
-    });
-    const top3 = Array.from(freq.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([k]) => k);
-    
-    // Éléments maîtrisés top 3
-    const freqMastered = new Map();
-    eligibles.forEach((e) => {
-      const mastered = e.q3?.mastered_skills || [];
-      mastered.forEach((m) => freqMastered.set(m, (freqMastered.get(m) || 0) + 1));
-    });
-    const top3Mastered = Array.from(freqMastered.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([k]) => k);
-
-    // Complétion (ratio questionnaires soumis / total)
-    let nbSoumis = 0;
-    let nbTotal = 0;
-    lignes.forEach((e) => {
-      if (e.q1?.submitted) nbSoumis++;
-      if (e.q2?.submitted) nbSoumis++;
-      if (e.q3?.submitted) nbSoumis++;
-      nbTotal += 3; // Chaque élève a 3 questionnaires (Q1, Q2, Q3)
-    });
-    const completionPct = nbTotal > 0 ? Math.round((nbSoumis * 100) / nbTotal) : 0;
-
-    // Calcul pour la bulle "Retours élèves"
-    const nbEnAttente = nbTotal - nbSoumis;
-
     return {
-      nbEleves: N,
-      avgProg,
-      avgSat,
-      posPct,
-      negPct,
-      top3,
-      top3Mastered,
-      completionPct,
-      nbSoumis,
-      nbEnAttente,
-      couleur: COULEUR_FROM_SCORE(avgProg),
+      q1: { soumis: q1Soumis, nonSoumis: q1NonSoumis },
+      q2: { soumis: q2Soumis, nonSoumis: q2NonSoumis },
+      q3: { soumis: q3Soumis, nonSoumis: q3NonSoumis },
+      total: { soumis: totalSoumis, nonSoumis: totalNonSoumis },
+      nbEleves: lignes.length
     };
   }, [lignes]);
 
@@ -316,8 +107,6 @@ const BilanQualitePage = () => {
       });
       
       toast.success(`${studentName} a été retiré du rapport`);
-      
-      // Recharger les données
       setData((prev) => prev.filter((e) => e.id !== studentId));
     } catch (error) {
       console.error("Erreur suppression élève:", error);
@@ -327,51 +116,38 @@ const BilanQualitePage = () => {
     }
   };
 
-  // Export PDF
+  // Export PDF simplifié
   const exportPDF = () => {
     const doc = new jsPDF({ unit: "pt" });
-    const title = `Rapport Qualité — ${periodeLabel} — ${filtres.parcours}`;
+    const title = `Rapport Qualité Qualiopi — ${activeParcours} — ${periodeLabel}`;
     doc.setFontSize(14);
     doc.text(title, 40, 40);
 
     doc.setFontSize(11);
-    doc.text(`Retours élèves (Q1+Q2+Q3 complets) : ${agreg.nbEleves}`, 40, 70);
-    doc.text(`Progression moyenne : ${agreg.avgProg}/100 (${agreg.couleur.lib})`, 40, 90);
-    doc.text(`Satisfaction moyenne : ${agreg.avgSat}/100`, 40, 110);
-    doc.text(`Ressenti global : ${agreg.posPct}% positifs / ${agreg.negPct}% négatifs`, 40, 130);
-    doc.text(`Complétion (Q1+Q2+Q3) : ${agreg.completionPct}%`, 40, 150);
-    doc.text(`Difficultés récurrentes : ${agreg.top3.join(", ") || "—"}`, 40, 170);
+    doc.text(`Parcours : ${activeParcours}`, 40, 70);
+    doc.text(`Nombre d'apprenants : ${compteurs.nbEleves}`, 40, 90);
+    doc.text(`Q1 (Besoins) : ${compteurs.q1.soumis} soumis / ${compteurs.q1.nonSoumis} en attente`, 40, 120);
+    doc.text(`Q2 (Mi-parcours) : ${compteurs.q2.soumis} soumis / ${compteurs.q2.nonSoumis} en attente`, 40, 140);
+    doc.text(`Q3 (Fin) : ${compteurs.q3.soumis} soumis / ${compteurs.q3.nonSoumis} en attente`, 40, 160);
 
-    // Tableau par élève
-    const rows = lignes.map((e) => {
-      const score = e.q3?.score_progression !== null && e.q3?.score_progression !== undefined ? e.q3.score_progression : "-";
-      const sat = e.q3?.score_satisfaction !== null && e.q3?.score_satisfaction !== undefined ? e.q3.score_satisfaction : "-";
-      const diff = e.q3?.difficulties?.join(", ") || "—";
-      return [
-        e.nom,
-        e.parcours,
-        e.q1?.submitted ? "✓" : "✗",
-        e.q2?.submitted ? "✓" : "✗",
-        e.q3?.submitted ? "✓" : "✗",
-        String(score),
-        String(sat),
-        diff,
-      ];
-    });
+    // Tableau par élève simplifié
+    const rows = lignes.map((e) => [
+      e.nom,
+      e.q1?.submitted ? "✓ Soumis" : "✗ Non soumis",
+      e.q2?.submitted ? "✓ Soumis" : "✗ Non soumis",
+      e.q3?.submitted ? "✓ Soumis" : "✗ Non soumis",
+    ]);
 
     autoTable(doc, {
-      startY: 200,
-      head: [["Élève", "Parcours", "Q1", "Q2", "Q3", "Score prog.", "Satisfaction", "Difficultés"]],
+      startY: 190,
+      head: [["Apprenant", "Q1 - Besoins", "Q2 - Mi-parcours", "Q3 - Fin"]],
       body: rows,
-      styles: { fontSize: 9, cellPadding: 4 },
+      styles: { fontSize: 10, cellPadding: 6 },
       theme: "striped",
       headStyles: { fillColor: [43, 138, 62] },
-      columnStyles: {
-        7: { cellWidth: 120 } // Difficultés column wider
-      }
     });
 
-    doc.save(`Rapport_Qualite_${filtres.parcours}_${filtres.annee}_${MOIS_FR[filtres.moisIndex] || ""}.pdf`);
+    doc.save(`Rapport_Qualite_${activeParcours}_${filtres.annee}_${MOIS_FR[filtres.moisIndex] || ""}.pdf`);
     toast.success("Rapport PDF généré avec succès !");
   };
 
@@ -385,11 +161,30 @@ const BilanQualitePage = () => {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Retour
             </Button>
-            <h1 className="text-3xl font-bold text-gray-900">Bilan Qualité</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Bilan Qualité Qualiopi</h1>
           </div>
         </div>
 
-        {/* Filtres */}
+        {/* Onglets Parcours */}
+        <div className="mb-6">
+          <div className="flex border-b border-gray-200">
+            {PARCOURS_TABS.map((parcours) => (
+              <button
+                key={parcours}
+                onClick={() => setActiveParcours(parcours)}
+                className={`px-6 py-3 text-base font-semibold border-b-3 transition-all ${
+                  activeParcours === parcours
+                    ? "border-b-4 border-green-600 text-green-700 bg-green-50"
+                    : "border-b-4 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                {parcours}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Filtres période */}
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-wrap gap-6 items-end">
@@ -447,313 +242,209 @@ const BilanQualitePage = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Parcours</label>
-                <select
-                  value={filtres.parcours}
-                  onChange={(e) => setFiltres((s) => ({ ...s, parcours: e.target.value }))}
-                  className="border rounded-md px-3 py-2"
+              <div className="ml-auto">
+                <Button
+                  onClick={exportPDF}
+                  className="bg-[#2B8A3E] hover:bg-[#237A32] text-white"
+                  disabled={loading || lignes.length === 0}
                 >
-                  {parcours.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
+                  <Download className="w-4 h-4 mr-2" />
+                  Télécharger PDF
+                </Button>
               </div>
-
-              <Button
-                onClick={exportPDF}
-                className="bg-[#2B8A3E] hover:bg-[#237A32] text-white"
-                disabled={loading || lignes.length === 0}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Générer le rapport Qualité (PDF)
-              </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* KPIs */}
+        {/* Contenu principal */}
         {loading ? (
           <div className="text-center py-12">Chargement des données...</div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              {/* Retours élèves avec 2 compteurs et complétion */}
-              <Card>
+            {/* Titre parcours avec compteur élèves */}
+            <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: '#E8F5E9' }}>
+              <h2 className="text-2xl font-bold" style={{ color: '#2B8A3E' }}>
+                Parcours {activeParcours}
+              </h2>
+              <p className="text-gray-600 mt-1">
+                {compteurs.nbEleves} apprenant{compteurs.nbEleves > 1 ? 's' : ''} inscrit{compteurs.nbEleves > 1 ? 's' : ''}
+              </p>
+            </div>
+
+            {/* Tableau de bord simplifié - Compteurs par questionnaire */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              {/* Q1 - Besoins */}
+              <Card className="border-2 border-blue-200">
                 <CardContent className="pt-6">
-                  <div className="text-sm text-gray-600 mb-3 text-center">Retours élèves (questionnaires)</div>
-                  <div className="flex gap-6 mb-3 justify-center">
-                    <div className="flex-1 text-center max-w-[120px]">
-                      <div className="text-sm font-medium text-green-700 mb-1">Soumis</div>
-                      <div className="text-3xl font-bold text-green-600">{agreg.nbSoumis}</div>
-                    </div>
-                    <div className="flex-1 text-center max-w-[120px]">
-                      <div className="text-sm font-medium text-red-700 mb-1">En attente</div>
-                      <div className="text-3xl font-bold text-red-600">{agreg.nbEnAttente}</div>
-                    </div>
-                  </div>
-                  <div className="text-center pt-2 border-t">
-                    <div className="text-sm text-gray-500">Complétion</div>
-                    <div className="text-2xl font-bold text-blue-600">{agreg.completionPct}%</div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Progression moyenne avec graphique */}
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-sm text-gray-600 mb-1">Progression moyenne (ressenti)</div>
-                  <div className="text-3xl font-bold mb-3" style={{ color: agreg.couleur.hex }}>
-                    {agreg.avgProg}/100
-                  </div>
-                  
-                  {/* Mini graphique par mois */}
-                  <div className="mt-4 pt-4 border-t">
-                    <div className="text-xs text-gray-600 mb-2">Évolution {filtres.annee}</div>
-                    <div className="relative h-16">
-                      <svg width="100%" height="100%" className="overflow-visible">
-                        {/* Ligne de base */}
-                        <line x1="0" y1="60" x2="100%" y2="60" stroke="#e5e7eb" strokeWidth="1" />
-                        
-                        {/* Courbe de progression */}
-                        {progressionParMois.length > 1 && (
-                          <polyline
-                            points={progressionParMois
-                              .map((m, i) => {
-                                const x = (i / (progressionParMois.length - 1)) * 100;
-                                const y = m.moyenne !== null ? 60 - (m.moyenne * 0.5) : null;
-                                return y !== null ? `${x},${y}` : null;
-                              })
-                              .filter(p => p !== null)
-                              .join(' ')}
-                            fill="none"
-                            stroke={agreg.couleur.hex}
-                            strokeWidth="2"
-                          />
-                        )}
-                        
-                        {/* Points */}
-                        {progressionParMois.map((m, i) => {
-                          if (m.moyenne === null) return null;
-                          const x = (i / (progressionParMois.length - 1)) * 100;
-                          const y = 60 - (m.moyenne * 0.5);
-                          return (
-                            <circle
-                              key={i}
-                              cx={`${x}%`}
-                              cy={y}
-                              r="3"
-                              fill={agreg.couleur.hex}
-                            />
-                          );
-                        })}
-                      </svg>
-                    </div>
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      {progressionParMois.map((m, i) => (
-                        <span key={i} className="truncate">{m.mois.substring(0, 3)}</span>
-                      ))}
+                  <div className="text-center">
+                    <h3 className="text-sm font-semibold text-blue-800 mb-3">Q1 - Questionnaire d'entrée</h3>
+                    <p className="text-xs text-gray-500 mb-4">(Besoins)</p>
+                    <div className="flex justify-center gap-6">
+                      <div className="text-center">
+                        <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-1">
+                          <span className="text-white font-bold text-lg">{compteurs.q1.soumis}</span>
+                        </div>
+                        <span className="text-xs text-green-700 font-medium">Soumis</span>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center mx-auto mb-1">
+                          <span className="text-white font-bold text-lg">{compteurs.q1.nonSoumis}</span>
+                        </div>
+                        <span className="text-xs text-red-700 font-medium">Non soumis</span>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              {/* Satisfaction parcours élève avec graphique */}
-              <Card>
+
+              {/* Q2 - Mi-parcours */}
+              <Card className="border-2 border-orange-200">
                 <CardContent className="pt-6">
-                  <div className="text-sm text-gray-600 mb-1">Satisfaction parcours élève (moyenne)</div>
-                  <div className="text-3xl font-bold mb-3">
-                    {agreg.avgSat}/100
-                  </div>
-                  
-                  {/* Mini graphique par mois */}
-                  <div className="mt-4 pt-4 border-t">
-                    <div className="text-xs text-gray-600 mb-2">Évolution {filtres.annee}</div>
-                    <div className="relative h-16">
-                      <svg width="100%" height="100%" className="overflow-visible">
-                        {/* Ligne de base */}
-                        <line x1="0" y1="60" x2="100%" y2="60" stroke="#e5e7eb" strokeWidth="1" />
-                        
-                        {/* Courbe de satisfaction */}
-                        {satisfactionParMois.length > 1 && (
-                          <polyline
-                            points={satisfactionParMois
-                              .map((m, i) => {
-                                const x = (i / (satisfactionParMois.length - 1)) * 100;
-                                const y = m.moyenne !== null ? 60 - (m.moyenne * 0.5) : null;
-                                return y !== null ? `${x},${y}` : null;
-                              })
-                              .filter(p => p !== null)
-                              .join(' ')}
-                            fill="none"
-                            stroke="#2563eb"
-                            strokeWidth="2"
-                          />
-                        )}
-                        
-                        {/* Points */}
-                        {satisfactionParMois.map((m, i) => {
-                          if (m.moyenne === null) return null;
-                          const x = (i / (satisfactionParMois.length - 1)) * 100;
-                          const y = 60 - (m.moyenne * 0.5);
-                          return (
-                            <circle
-                              key={i}
-                              cx={`${x}%`}
-                              cy={y}
-                              r="3"
-                              fill="#2563eb"
-                            />
-                          );
-                        })}
-                      </svg>
-                    </div>
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      {satisfactionParMois.map((m, i) => (
-                        <span key={i} className="truncate">{m.mois.substring(0, 3)}</span>
-                      ))}
+                  <div className="text-center">
+                    <h3 className="text-sm font-semibold text-orange-800 mb-3">Q2 - Questionnaire mi-parcours</h3>
+                    <p className="text-xs text-gray-500 mb-4">(Suivi)</p>
+                    <div className="flex justify-center gap-6">
+                      <div className="text-center">
+                        <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-1">
+                          <span className="text-white font-bold text-lg">{compteurs.q2.soumis}</span>
+                        </div>
+                        <span className="text-xs text-green-700 font-medium">Soumis</span>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center mx-auto mb-1">
+                          <span className="text-white font-bold text-lg">{compteurs.q2.nonSoumis}</span>
+                        </div>
+                        <span className="text-xs text-red-700 font-medium">Non soumis</span>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-              
-              {/* Barre de progression pour le ressenti global */}
-              <Card>
+
+              {/* Q3 - Fin */}
+              <Card className="border-2 border-purple-200">
                 <CardContent className="pt-6">
-                  <div className="text-sm text-gray-600 mb-1">Ressenti global</div>
-                  <div className="w-full h-3 rounded bg-gray-200 overflow-hidden flex">
-                    <div style={{ width: `${agreg.posPct}%`, height: "100%", background: "#2B8A3E" }} />
-                    <div style={{ width: `${agreg.negPct}%`, height: "100%", background: "#C92A2A" }} />
+                  <div className="text-center">
+                    <h3 className="text-sm font-semibold text-purple-800 mb-3">Q3 - Questionnaire de fin</h3>
+                    <p className="text-xs text-gray-500 mb-4">(Satisfaction)</p>
+                    <div className="flex justify-center gap-6">
+                      <div className="text-center">
+                        <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-1">
+                          <span className="text-white font-bold text-lg">{compteurs.q3.soumis}</span>
+                        </div>
+                        <span className="text-xs text-green-700 font-medium">Soumis</span>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center mx-auto mb-1">
+                          <span className="text-white font-bold text-lg">{compteurs.q3.nonSoumis}</span>
+                        </div>
+                        <span className="text-xs text-red-700 font-medium">Non soumis</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-2">
-                    {agreg.posPct}% positifs / {agreg.negPct}% négatifs
+                </CardContent>
+              </Card>
+
+              {/* Total */}
+              <Card className="border-2 border-gray-300 bg-gray-50">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-3">TOTAL</h3>
+                    <p className="text-xs text-gray-500 mb-4">(Tous questionnaires)</p>
+                    <div className="flex justify-center gap-6">
+                      <div className="text-center">
+                        <div className="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center mx-auto mb-1">
+                          <span className="text-white font-bold text-lg">{compteurs.total.soumis}</span>
+                        </div>
+                        <span className="text-xs text-green-700 font-medium">Soumis</span>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center mx-auto mb-1">
+                          <span className="text-white font-bold text-lg">{compteurs.total.nonSoumis}</span>
+                        </div>
+                        <span className="text-xs text-red-700 font-medium">Non soumis</span>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Bandeaux : Éléments maîtrisés et Difficultés (inversé) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {/* Éléments maîtrisés */}
-              <Card className="border-green-200">
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <span className="text-2xl">✅</span>
-                    Éléments maîtrisés (Top 3)
-                  </h3>
-                  {filteredTop3Mastered.length > 0 ? (
-                    <div className="flex gap-2 flex-wrap">
-                      {filteredTop3Mastered.map((skill, i) => (
-                        <span key={i} className="px-3 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm italic">Aucun élément maîtrisé pour ce parcours</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Difficultés récurrentes */}
-              <Card className="border-orange-200">
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <span className="text-2xl">⚠️</span>
-                    Difficultés récurrentes (Top 3)
-                  </h3>
-                  {filteredTop3.length > 0 ? (
-                    <div className="flex gap-2 flex-wrap">
-                      {filteredTop3.map((diff, i) => (
-                        <span key={i} className="px-3 py-2 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
-                          {diff}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 text-sm italic">Aucune difficulté récurrente pour ce parcours</p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Tableau Parcours qualité */}
+            {/* Tableau simplifié par apprenant */}
             <Card>
               <CardContent className="pt-6">
-                <h2 className="text-2xl font-bold mb-6" style={{ color: '#2B8A3E' }}>Parcours qualité</h2>
+                <h2 className="text-xl font-bold mb-4" style={{ color: '#2B8A3E' }}>
+                  Suivi par apprenant — {activeParcours}
+                </h2>
+                <p className="text-sm text-gray-500 mb-4">
+                  Preuve de diffusion et de complétion des questionnaires Qualiopi
+                </p>
+                
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-gray-100">
                       <tr>
-                        <Th>Élève</Th>
-                        <Th>Parcours</Th>
-                        <Th>Q1</Th>
-                        <Th>Q2</Th>
-                        <Th>Q3</Th>
-                        <Th>Ressenti progression</Th>
-                        <Th>Satisfaction</Th>
-                        <Th>Éléments maîtrisés</Th>
-                        <Th>Difficultés</Th>
-                        <Th>Actions</Th>
+                        <th className="text-left font-semibold px-4 py-3">Apprenant</th>
+                        <th className="text-center font-semibold px-4 py-3">Q1 - Besoins</th>
+                        <th className="text-center font-semibold px-4 py-3">Q2 - Mi-parcours</th>
+                        <th className="text-center font-semibold px-4 py-3">Q3 - Fin</th>
+                        <th className="text-center font-semibold px-4 py-3">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {lignes.length === 0 ? (
                         <tr>
-                          <td colSpan={10} className="text-center py-8 text-gray-500">
-                            Aucun élève trouvé. Veuillez vérifier que vos élèves ont bien un professeur assigné.
+                          <td colSpan={5} className="text-center py-8 text-gray-500">
+                            Aucun apprenant trouvé pour le parcours {activeParcours}.
                           </td>
                         </tr>
                       ) : (
-                        lignes.map((e) => {
-                          const score = e.q3?.score_ressenti_progression;
-                          const sat = e.q3?.score_satisfaction;
-                          const mastered = e.q3?.mastered_skills?.join(", ") || "";
-                          const diff = e.q3?.difficulties?.join(", ") || "";
-                          
-                          return (
-                            <tr key={e.id} className="border-t hover:bg-gray-50">
-                              <Td>{e.nom}</Td>
-                              <Td>{e.parcours}</Td>
-                              <Td>{dot(e.q1?.submitted ? "VERT" : "ROUGE")}</Td>
-                              <Td>{dot(e.q2?.submitted ? "VERT" : "ROUGE")}</Td>
-                              <Td>{dot(e.q3?.submitted ? "VERT" : "ROUGE")}</Td>
-                              <Td>{score !== null && score !== undefined ? `${score}/100` : "—"}</Td>
-                              <Td>{sat !== null && sat !== undefined ? `${sat}/100` : "—"}</Td>
-                              <Td className="max-w-xs truncate">{mastered || "—"}</Td>
-                              <Td className="max-w-xs truncate">{diff || "—"}</Td>
-                              <Td>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteStudent(e.id, e.nom)}
-                                  disabled={deleting === e.id}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                >
-                                  {deleting === e.id ? "..." : "🗑️"}
-                                </Button>
-                              </Td>
-                            </tr>
-                          );
-                        })
+                        lignes.map((e) => (
+                          <tr key={e.id} className="border-t hover:bg-gray-50">
+                            <td className="px-4 py-3 font-medium">{e.nom}</td>
+                            <td className="px-4 py-3 text-center">
+                              <StatusDot submitted={e.q1?.submitted} />
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <StatusDot submitted={e.q2?.submitted} />
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <StatusDot submitted={e.q3?.submitted} />
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteStudent(e.id, e.nom)}
+                                disabled={deleting === e.id}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                {deleting === e.id ? "..." : "🗑️"}
+                              </Button>
+                            </td>
+                          </tr>
+                        ))
                       )}
                     </tbody>
                   </table>
                 </div>
 
-                {/* Légende enrichie */}
-                <div className="mt-4 text-xs text-gray-500 border-t pt-4 space-y-1">
-                  <div className="flex gap-4 items-center">
-                    <span>{dot("VERT")} par l'élève</span>
-                    <span>·</span>
-                    <span>{dot("ROUGE")} d'envoi</span>
+                {/* Légende simplifiée */}
+                <div className="mt-6 pt-4 border-t">
+                  <div className="flex gap-6 items-center text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="w-4 h-4 rounded-full bg-green-500 inline-block"></span>
+                      <span className="text-gray-600">Soumis par l'apprenant</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-4 h-4 rounded-full bg-red-500 inline-block"></span>
+                      <span className="text-gray-600">Non soumis (en attente)</span>
+                    </div>
                   </div>
-                  <div>
-                    <strong>Q1</strong> = besoin · <strong>Q2</strong> = mi-parcours · <strong>Q3</strong> = fin (progressif)
-                  </div>
-                  <div className="italic">
-                    Règle : si Q2 est en attente, Q3 est forcément en attente (progressif).
+                  <div className="mt-3 text-xs text-gray-500">
+                    <strong>Q1</strong> = Questionnaire d'entrée (besoins) · 
+                    <strong> Q2</strong> = Questionnaire mi-parcours · 
+                    <strong> Q3</strong> = Questionnaire de fin de formation
                   </div>
                 </div>
               </CardContent>
@@ -765,38 +456,22 @@ const BilanQualitePage = () => {
   );
 };
 
-// Composants UI
-const Th = ({ children }) => <th className="text-left font-semibold px-4 py-3">{children}</th>;
-const Td = ({ children }) => <td className="px-4 py-3 align-top">{children}</td>;
-
-const KpiCard = ({ title, value, subtitle, color }) => (
-  <Card>
-    <CardContent className="pt-6">
-      <div className="text-sm text-gray-600 mb-1">{title}</div>
-      <div className="text-3xl font-bold" style={color ? { color } : undefined}>
-        {value}
-      </div>
-      {subtitle && <div className="text-xs text-gray-500 mt-1">{subtitle}</div>}
-    </CardContent>
-  </Card>
-);
-
-function dot(stat) {
-  const ok = stat === "VERT";
-  const style = {
-    display: "inline-block",
-    width: 10,
-    height: 10,
-    borderRadius: "50%",
-    background: ok ? "#1DB954" : "#E03131",
-    verticalAlign: "middle",
-    marginRight: 6,
-  };
+// Composant pastille de statut
+const StatusDot = ({ submitted }) => {
+  if (submitted) {
+    return (
+      <span className="inline-flex items-center gap-1">
+        <span className="w-4 h-4 rounded-full bg-green-500 inline-block"></span>
+        <span className="text-green-700 text-xs font-medium">Soumis</span>
+      </span>
+    );
+  }
   return (
-    <span>
-      <i style={style} /> {ok ? "Soumis" : "En attente"}
+    <span className="inline-flex items-center gap-1">
+      <span className="w-4 h-4 rounded-full bg-red-500 inline-block"></span>
+      <span className="text-red-700 text-xs font-medium">Non soumis</span>
     </span>
   );
-}
+};
 
 export default BilanQualitePage;
