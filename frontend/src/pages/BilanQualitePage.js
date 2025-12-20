@@ -5,7 +5,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { ArrowLeft, Download, Eye, Bell, X } from "lucide-react";
+import { ArrowLeft, Download, Eye, Mail, FileText, Edit3, X } from "lucide-react";
 import { toast } from "sonner";
 
 const API = process.env.REACT_APP_BACKEND_URL || "";
@@ -14,11 +14,6 @@ const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
   return { Authorization: `Bearer ${token}` };
 };
-
-const MOIS_FR = [
-  "janvier", "février", "mars", "avril", "mai", "juin",
-  "juillet", "août", "septembre", "octobre", "novembre", "décembre"
-];
 
 // Configuration des parcours avec leurs couleurs
 const PARCOURS_CONFIG = {
@@ -41,22 +36,13 @@ const PARCOURS_TABS = Object.keys(PARCOURS_CONFIG);
 const BilanQualitePage = () => {
   const navigate = useNavigate();
   const [activeParcours, setActiveParcours] = useState("Anglais");
-  const [filtres, setFiltres] = useState({
-    periodeType: "mois",
-    moisIndex: new Date().getMonth(),
-    annee: new Date().getFullYear(),
-  });
+  const [annee, setAnnee] = useState(new Date().getFullYear());
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedQuestionnaire, setSelectedQuestionnaire] = useState(null);
   const [relanceLoading, setRelanceLoading] = useState(null);
 
   const parcoursColors = PARCOURS_CONFIG[activeParcours] || PARCOURS_CONFIG["Anglais"];
-
-  const periodeLabel =
-    filtres.periodeType === "mois"
-      ? `${MOIS_FR[filtres.moisIndex]} ${filtres.annee}`
-      : `Année ${filtres.annee}`;
 
   // Charger les données
   useEffect(() => {
@@ -66,9 +52,8 @@ const BilanQualitePage = () => {
         const response = await axios.get(`${API}/api/teachers/qualite-report`, {
           headers: getAuthHeaders(),
           params: {
-            periodeType: filtres.periodeType,
-            moisIndex: filtres.moisIndex,
-            annee: filtres.annee,
+            periodeType: "annee",
+            annee: annee,
             parcours: activeParcours,
           },
         });
@@ -82,14 +67,14 @@ const BilanQualitePage = () => {
     };
 
     fetchData();
-  }, [filtres.periodeType, filtres.moisIndex, filtres.annee, activeParcours]);
+  }, [annee, activeParcours]);
 
   // Filtrer par parcours actif
   const lignes = useMemo(() => {
     return data.filter(e => e.parcours === activeParcours);
   }, [data, activeParcours]);
 
-  // Compteurs simples par questionnaire (sans TOTAL)
+  // Compteurs simples par questionnaire
   const compteurs = useMemo(() => {
     const q1Soumis = lignes.filter(e => e.q1?.submitted).length;
     const q1EnAttente = lignes.length - q1Soumis;
@@ -100,45 +85,60 @@ const BilanQualitePage = () => {
     const q3Soumis = lignes.filter(e => e.q3?.submitted).length;
     const q3EnAttente = lignes.length - q3Soumis;
     
+    // Listes des élèves en attente pour chaque questionnaire
+    const q1EnAttenteList = lignes.filter(e => !e.q1?.submitted);
+    const q2EnAttenteList = lignes.filter(e => !e.q2?.submitted);
+    const q3EnAttenteList = lignes.filter(e => !e.q3?.submitted);
+    
     return {
-      q1: { soumis: q1Soumis, enAttente: q1EnAttente },
-      q2: { soumis: q2Soumis, enAttente: q2EnAttente },
-      q3: { soumis: q3Soumis, enAttente: q3EnAttente },
+      q1: { soumis: q1Soumis, enAttente: q1EnAttente, enAttenteList: q1EnAttenteList },
+      q2: { soumis: q2Soumis, enAttente: q2EnAttente, enAttenteList: q2EnAttenteList },
+      q3: { soumis: q3Soumis, enAttente: q3EnAttente, enAttenteList: q3EnAttenteList },
       nbEleves: lignes.length
     };
   }, [lignes]);
 
-  // Déterminer l'action prioritaire pour un apprenant
-  const getActionPrioritaire = (eleve) => {
-    // Priorité : Q1 > Q2 > Q3 (dans l'ordre du parcours)
-    if (!eleve.q1?.submitted) return { type: "relancer", questionnaire: "Q1", label: "Relancer Q1" };
-    if (!eleve.q2?.submitted) return { type: "relancer", questionnaire: "Q2", label: "Relancer Q2" };
-    if (!eleve.q3?.submitted) return { type: "relancer", questionnaire: "Q3", label: "Relancer Q3" };
-    // Tous soumis - proposer de voir le dernier
-    return { type: "voir", questionnaire: "Q3", label: "Voir Q3" };
-  };
-
-  // Relancer un apprenant pour un questionnaire
-  const handleRelance = async (eleve, questionnaire) => {
-    const key = `${eleve.id}-${questionnaire}`;
-    setRelanceLoading(key);
+  // Relancer TOUS les apprenants en attente pour un questionnaire
+  const handleRelanceMasse = async (questionnaireType, enAttenteList) => {
+    if (enAttenteList.length === 0) {
+      toast.info("Aucun apprenant en attente pour ce questionnaire");
+      return;
+    }
     
-    try {
-      await axios.post(`${API}/api/teachers/relance-questionnaire`, {
-        student_id: eleve.id,
-        questionnaire: questionnaire,
-        student_email: eleve.email,
-        student_name: eleve.nom
-      }, {
-        headers: getAuthHeaders()
-      });
-      
-      toast.success(`Relance envoyée à ${eleve.nom} pour ${questionnaire}`);
-    } catch (error) {
-      console.error("Erreur relance:", error);
-      toast.error(error.response?.data?.detail || "Erreur lors de l'envoi de la relance");
-    } finally {
-      setRelanceLoading(null);
+    const confirm = window.confirm(
+      `Envoyer une relance à ${enAttenteList.length} apprenant(s) pour ${questionnaireType} ?`
+    );
+    if (!confirm) return;
+    
+    setRelanceLoading(questionnaireType);
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const eleve of enAttenteList) {
+      try {
+        await axios.post(`${API}/api/teachers/relance-questionnaire`, {
+          student_id: eleve.id,
+          questionnaire: questionnaireType,
+          student_email: eleve.email,
+          student_name: eleve.nom
+        }, {
+          headers: getAuthHeaders()
+        });
+        successCount++;
+      } catch (error) {
+        console.error(`Erreur relance ${eleve.nom}:`, error);
+        errorCount++;
+      }
+    }
+    
+    setRelanceLoading(null);
+    
+    if (successCount > 0) {
+      toast.success(`${successCount} relance(s) envoyée(s) avec succès`);
+    }
+    if (errorCount > 0) {
+      toast.error(`${errorCount} erreur(s) lors de l'envoi`);
     }
   };
 
@@ -146,6 +146,7 @@ const BilanQualitePage = () => {
   const handleVoirQuestionnaire = (eleve, questionnaire, questionnaireData) => {
     setSelectedQuestionnaire({
       eleve: eleve.nom,
+      eleveId: eleve.id,
       type: questionnaire,
       data: questionnaireData,
       submittedAt: questionnaireData?.submitted_at
@@ -155,7 +156,7 @@ const BilanQualitePage = () => {
   // Export PDF simplifié
   const exportPDF = () => {
     const doc = new jsPDF({ unit: "pt" });
-    const title = `Rapport Qualité Qualiopi — ${activeParcours} — ${periodeLabel}`;
+    const title = `Rapport Qualité Qualiopi — ${activeParcours} — ${annee}`;
     doc.setFontSize(14);
     doc.text(title, 40, 40);
 
@@ -182,7 +183,7 @@ const BilanQualitePage = () => {
       headStyles: { fillColor: [43, 138, 62] },
     });
 
-    doc.save(`Rapport_Qualite_${activeParcours}_${filtres.annee}_${MOIS_FR[filtres.moisIndex] || ""}.pdf`);
+    doc.save(`Rapport_Qualite_${activeParcours}_${annee}.pdf`);
     toast.success("Rapport PDF généré avec succès !");
   };
 
@@ -201,6 +202,24 @@ const BilanQualitePage = () => {
     } catch {
       return "—";
     }
+  };
+
+  // Déterminer les actions Qualiopi disponibles pour un apprenant
+  const getActionsQualiopi = (eleve) => {
+    const actions = [];
+    
+    // Actions "Consulter" pour chaque questionnaire soumis
+    if (eleve.q1?.submitted) {
+      actions.push({ type: "voir", label: "Q1", data: eleve.q1 });
+    }
+    if (eleve.q2?.submitted) {
+      actions.push({ type: "voir", label: "Q2", data: eleve.q2 });
+    }
+    if (eleve.q3?.submitted) {
+      actions.push({ type: "voir", label: "Q3", data: eleve.q3 });
+    }
+    
+    return actions;
   };
 
   return (
@@ -245,62 +264,20 @@ const BilanQualitePage = () => {
           </div>
         </div>
 
-        {/* Filtres période */}
+        {/* Filtre année uniquement */}
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-wrap gap-6 items-end">
               <div>
-                <label className="block text-sm font-medium mb-2">Période</label>
-                <div className="flex gap-2 items-center">
-                  <select
-                    value={filtres.periodeType}
-                    onChange={(e) => {
-                      const t = e.target.value;
-                      setFiltres((s) =>
-                        t === "mois"
-                          ? { ...s, periodeType: "mois", moisIndex: new Date().getMonth(), annee: new Date().getFullYear() }
-                          : { ...s, periodeType: "annee", annee: new Date().getFullYear() }
-                      );
-                    }}
-                    className="border rounded-md px-3 py-2"
-                  >
-                    <option value="mois">Mois</option>
-                    <option value="annee">Année complète</option>
-                  </select>
-
-                  {filtres.periodeType === "mois" ? (
-                    <>
-                      <select
-                        value={filtres.moisIndex}
-                        onChange={(e) => setFiltres((s) => ({ ...s, moisIndex: Number(e.target.value) }))}
-                        className="border rounded-md px-3 py-2"
-                      >
-                        {MOIS_FR.map((m, i) => (
-                          <option key={m} value={i}>
-                            {m}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="number"
-                        className="border rounded-md px-3 py-2 w-28"
-                        min={2020}
-                        max={2100}
-                        value={filtres.annee}
-                        onChange={(e) => setFiltres((s) => ({ ...s, annee: Number(e.target.value) }))}
-                      />
-                    </>
-                  ) : (
-                    <input
-                      type="number"
-                      className="border rounded-md px-3 py-2 w-28"
-                      min={2020}
-                      max={2100}
-                      value={filtres.annee}
-                      onChange={(e) => setFiltres((s) => ({ ...s, annee: Number(e.target.value) }))}
-                    />
-                  )}
-                </div>
+                <label className="block text-sm font-medium mb-2">Année</label>
+                <input
+                  type="number"
+                  className="border rounded-md px-3 py-2 w-32"
+                  min={2020}
+                  max={2100}
+                  value={annee}
+                  onChange={(e) => setAnnee(Number(e.target.value))}
+                />
               </div>
 
               <div className="ml-auto">
@@ -334,7 +311,7 @@ const BilanQualitePage = () => {
                 Parcours {activeParcours}
               </h2>
               <p className="text-gray-600 mt-1">
-                {compteurs.nbEleves} apprenant{compteurs.nbEleves > 1 ? 's' : ''} inscrit{compteurs.nbEleves > 1 ? 's' : ''}
+                {compteurs.nbEleves} apprenant{compteurs.nbEleves > 1 ? "s" : ""} inscrit{compteurs.nbEleves > 1 ? "s" : ""} — Année {annee}
               </p>
             </div>
 
@@ -346,15 +323,15 @@ const BilanQualitePage = () => {
               </p>
             </div>
 
-            {/* Tableau de bord simplifié - 3 cartes seulement (sans TOTAL) */}
+            {/* Tableau de bord - 3 cartes avec bouton Relancer */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               {/* Q1 - Besoins */}
               <Card className="border-2 border-blue-200">
                 <CardContent className="pt-6">
                   <div className="text-center">
-                    <h3 className="text-sm font-semibold text-blue-800 mb-1">Q1 - Questionnaire d'entrée</h3>
+                    <h3 className="text-sm font-semibold text-blue-800 mb-1">Q1 - Questionnaire d&apos;entrée</h3>
                     <p className="text-xs text-gray-500 mb-4">(Besoins)</p>
-                    <div className="flex justify-center gap-8">
+                    <div className="flex justify-center gap-8 mb-4">
                       <div className="text-center">
                         <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-2 shadow-md">
                           <span className="text-white font-bold text-xl">{compteurs.q1.soumis}</span>
@@ -368,6 +345,19 @@ const BilanQualitePage = () => {
                         <span className="text-sm text-red-700 font-medium">En attente</span>
                       </div>
                     </div>
+                    {/* Bouton Relancer */}
+                    {compteurs.q1.enAttente > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRelanceMasse("Q1", compteurs.q1.enAttenteList)}
+                        disabled={relanceLoading === "Q1"}
+                        className="text-blue-600 border-blue-300 hover:bg-blue-50 w-full"
+                      >
+                        <Mail className="w-4 h-4 mr-1" />
+                        {relanceLoading === "Q1" ? "Envoi..." : `📧 Relancer ${compteurs.q1.enAttente} apprenant(s)`}
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -378,7 +368,7 @@ const BilanQualitePage = () => {
                   <div className="text-center">
                     <h3 className="text-sm font-semibold text-orange-800 mb-1">Q2 - Questionnaire mi-parcours</h3>
                     <p className="text-xs text-gray-500 mb-4">(Suivi)</p>
-                    <div className="flex justify-center gap-8">
+                    <div className="flex justify-center gap-8 mb-4">
                       <div className="text-center">
                         <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-2 shadow-md">
                           <span className="text-white font-bold text-xl">{compteurs.q2.soumis}</span>
@@ -392,6 +382,19 @@ const BilanQualitePage = () => {
                         <span className="text-sm text-red-700 font-medium">En attente</span>
                       </div>
                     </div>
+                    {/* Bouton Relancer */}
+                    {compteurs.q2.enAttente > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRelanceMasse("Q2", compteurs.q2.enAttenteList)}
+                        disabled={relanceLoading === "Q2"}
+                        className="text-orange-600 border-orange-300 hover:bg-orange-50 w-full"
+                      >
+                        <Mail className="w-4 h-4 mr-1" />
+                        {relanceLoading === "Q2" ? "Envoi..." : `📧 Relancer ${compteurs.q2.enAttente} apprenant(s)`}
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -402,7 +405,7 @@ const BilanQualitePage = () => {
                   <div className="text-center">
                     <h3 className="text-sm font-semibold text-purple-800 mb-1">Q3 - Questionnaire de fin</h3>
                     <p className="text-xs text-gray-500 mb-4">(Satisfaction)</p>
-                    <div className="flex justify-center gap-8">
+                    <div className="flex justify-center gap-8 mb-4">
                       <div className="text-center">
                         <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-2 shadow-md">
                           <span className="text-white font-bold text-xl">{compteurs.q3.soumis}</span>
@@ -416,6 +419,19 @@ const BilanQualitePage = () => {
                         <span className="text-sm text-red-700 font-medium">En attente</span>
                       </div>
                     </div>
+                    {/* Bouton Relancer */}
+                    {compteurs.q3.enAttente > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRelanceMasse("Q3", compteurs.q3.enAttenteList)}
+                        disabled={relanceLoading === "Q3"}
+                        className="text-purple-600 border-purple-300 hover:bg-purple-50 w-full"
+                      >
+                        <Mail className="w-4 h-4 mr-1" />
+                        {relanceLoading === "Q3" ? "Envoi..." : `📧 Relancer ${compteurs.q3.enAttente} apprenant(s)`}
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -439,7 +455,7 @@ const BilanQualitePage = () => {
                         <th className="text-center font-semibold px-4 py-3">Q1 - Besoins</th>
                         <th className="text-center font-semibold px-4 py-3">Q2 - Mi-parcours</th>
                         <th className="text-center font-semibold px-4 py-3">Q3 - Fin</th>
-                        <th className="text-center font-semibold px-4 py-3">Actions</th>
+                        <th className="text-center font-semibold px-4 py-3">Actions Qualiopi</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -451,7 +467,7 @@ const BilanQualitePage = () => {
                         </tr>
                       ) : (
                         lignes.map((e) => {
-                          const actionPrioritaire = getActionPrioritaire(e);
+                          const actionsQualiopi = getActionsQualiopi(e);
                           return (
                             <tr key={e.id} className="border-t hover:bg-gray-50">
                               <td className="px-4 py-3 font-medium">{e.nom}</td>
@@ -479,31 +495,26 @@ const BilanQualitePage = () => {
                                   onView={() => handleVoirQuestionnaire(e, "Q3", e.q3)}
                                 />
                               </td>
-                              <td className="px-4 py-3 text-center">
-                                {actionPrioritaire.type === "relancer" ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleRelance(e, actionPrioritaire.questionnaire)}
-                                    disabled={relanceLoading === `${e.id}-${actionPrioritaire.questionnaire}`}
-                                    className="text-orange-600 border-orange-300 hover:bg-orange-50"
-                                  >
-                                    <Bell className="w-4 h-4 mr-1" />
-                                    {relanceLoading === `${e.id}-${actionPrioritaire.questionnaire}` 
-                                      ? "Envoi..." 
-                                      : actionPrioritaire.label}
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleVoirQuestionnaire(e, "Q3", e.q3)}
-                                    className="text-green-600 border-green-300 hover:bg-green-50"
-                                  >
-                                    <Eye className="w-4 h-4 mr-1" />
-                                    Voir Q3
-                                  </Button>
-                                )}
+                              <td className="px-4 py-3">
+                                <div className="flex flex-wrap gap-1 justify-center">
+                                  {actionsQualiopi.length > 0 ? (
+                                    actionsQualiopi.map((action, idx) => (
+                                      <Button
+                                        key={idx}
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleVoirQuestionnaire(e, action.label, action.data)}
+                                        className="text-green-600 hover:bg-green-50 px-2 py-1 h-auto"
+                                        title={`Consulter ${action.label}`}
+                                      >
+                                        <Eye className="w-3 h-3 mr-1" />
+                                        {action.label}
+                                      </Button>
+                                    ))
+                                  ) : (
+                                    <span className="text-gray-400 text-xs">Aucun questionnaire soumis</span>
+                                  )}
+                                </div>
                               </td>
                             </tr>
                           );
@@ -518,7 +529,7 @@ const BilanQualitePage = () => {
                   <div className="flex gap-6 items-center text-sm">
                     <div className="flex items-center gap-2">
                       <span className="w-4 h-4 rounded-full bg-green-500 inline-block"></span>
-                      <span className="text-gray-600">Soumis par l&apos;apprenant (cliquez pour voir)</span>
+                      <span className="text-gray-600">Soumis par l&apos;apprenant (cliquez pour consulter)</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-4 h-4 rounded-full bg-red-500 inline-block"></span>
@@ -526,7 +537,7 @@ const BilanQualitePage = () => {
                     </div>
                   </div>
                   <div className="mt-3 text-xs text-gray-500">
-                    <strong>Q1</strong> = Questionnaire d'entrée (besoins) · 
+                    <strong>Q1</strong> = Questionnaire d&apos;entrée (besoins) · 
                     <strong> Q2</strong> = Questionnaire mi-parcours · 
                     <strong> Q3</strong> = Questionnaire de fin de formation
                   </div>
@@ -577,7 +588,7 @@ const StatusDot = ({ submitted, submittedAt, studentName, onView }) => {
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
           className="inline-flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
-          title="Cliquez pour voir la réponse"
+          title="Cliquez pour consulter"
         >
           <span className="w-5 h-5 rounded-full bg-green-500 inline-flex items-center justify-center shadow-sm">
             <Eye className="w-3 h-3 text-white" />
@@ -600,7 +611,7 @@ const StatusDot = ({ submitted, submittedAt, studentName, onView }) => {
                 }}
                 className="w-full text-center py-1.5 bg-green-500 text-white rounded text-xs font-medium hover:bg-green-600 transition-colors"
               >
-                👁️ Voir la réponse
+                👁️ Consulter le questionnaire
               </button>
             </div>
             {/* Flèche du tooltip */}
@@ -621,9 +632,9 @@ const StatusDot = ({ submitted, submittedAt, studentName, onView }) => {
   );
 };
 
-// Modal pour afficher le questionnaire en lecture seule
+// Modal pour afficher le questionnaire en lecture seule avec signature
 const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
-  const { eleve, type, data, submittedAt } = questionnaire;
+  const { eleve, eleveId, type, data, submittedAt } = questionnaire;
   
   // Labels des questionnaires
   const questionnaireLabels = {
@@ -634,7 +645,6 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
 
   // Labels lisibles pour les champs
   const fieldLabels = {
-    // Q1 - Besoins
     niveau_initial: "Niveau initial estimé",
     objectifs: "Objectifs de formation",
     disponibilites: "Disponibilités",
@@ -646,8 +656,6 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     contexte_professionnel: "Contexte professionnel",
     frequence_utilisation: "Fréquence d'utilisation",
     domaines_prioritaires: "Domaines prioritaires",
-    
-    // Q2 - Mi-parcours
     progression_ressentie: "Progression ressentie",
     satisfaction_accompagnement: "Satisfaction accompagnement",
     points_positifs: "Points positifs",
@@ -658,29 +666,26 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     rythme_formation: "Rythme de la formation",
     qualite_supports: "Qualité des supports",
     relation_formateur: "Relation avec le formateur",
-    
-    // Q3 - Fin
     objectifs_atteints: "Objectifs atteints",
     progression_globale: "Progression globale",
     qualite_formation: "Qualité de la formation",
     qualite_formateur: "Qualité du formateur",
     recommandation: "Recommanderiez-vous ?",
     points_forts: "Points forts",
-    suggestions: "Suggestions d&apos;amélioration",
+    suggestions: "Suggestions d'amélioration",
     temoignage: "Témoignage",
     evaluation_globale: "Évaluation globale",
     acquis_formation: "Acquis de la formation",
-    
-    // Champs génériques
     answers: "Réponses",
     reponses: "Réponses",
   };
 
-  // Champs à ignorer (métadonnées)
+  // Champs à ignorer
   const ignoredFields = [
     'submitted', 'submitted_at', 'student_id', 'id', '_id', 
     'created_at', 'updated_at', 'score_ressenti_progression',
-    'score_satisfaction', 'difficulties', 'mastered_skills'
+    'score_satisfaction', 'difficulties', 'mastered_skills',
+    'signature', 'signature_data', 'signed_at'
   ];
 
   // Formater une valeur pour l'affichage
@@ -692,7 +697,6 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
       return value.map(v => typeof v === 'object' ? JSON.stringify(v) : String(v)).join(", ");
     }
     if (typeof value === 'object') {
-      // Si c'est un objet avec des réponses imbriquées
       const entries = Object.entries(value)
         .filter(([k, v]) => v !== null && v !== undefined && v !== "")
         .map(([k, v]) => `${fieldLabels[k] || k.replace(/_/g, ' ')}: ${formatValue(v)}`);
@@ -707,16 +711,11 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     
     const responses = [];
     
-    // Parcourir toutes les clés du data
     Object.entries(data).forEach(([key, value]) => {
-      // Ignorer les champs de métadonnées
       if (ignoredFields.includes(key)) return;
-      
-      // Ignorer les valeurs vides
       if (value === null || value === undefined || value === "" || 
           (Array.isArray(value) && value.length === 0)) return;
       
-      // Si c'est le champ "answers" (pour Informatique), déplier son contenu
       if (key === 'answers' && typeof value === 'object' && !Array.isArray(value)) {
         Object.entries(value).forEach(([ansKey, ansValue]) => {
           if (ansValue !== null && ansValue !== undefined && ansValue !== "") {
@@ -738,10 +737,14 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
   };
 
   const responses = getResponses();
+  
+  // Récupérer la signature
+  const signatureData = data?.signature || data?.signature_data;
+  const signedAt = data?.signed_at || data?.submitted_at;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-green-600 text-white p-4 flex items-center justify-between">
           <div>
@@ -772,7 +775,7 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                     {item.label}
                   </p>
-                  <p className="text-gray-800">{item.value || "—"}</p>
+                  <p className="text-gray-800 whitespace-pre-line">{item.value}</p>
                 </div>
               ))}
             </div>
@@ -783,8 +786,53 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
           )}
         </div>
 
+        {/* Section Signature Qualiopi */}
+        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <Edit3 className="w-4 h-4" />
+            Signature de l'apprenant
+          </h3>
+          
+          {signatureData ? (
+            <div className="bg-white rounded-lg border-2 border-gray-200 p-4">
+              {/* Affichage de la signature visuelle */}
+              <div className="flex flex-col items-center">
+                {/* Image de signature */}
+                {signatureData.startsWith('data:image') ? (
+                  <img 
+                    src={signatureData} 
+                    alt="Signature de l'apprenant"
+                    className="max-w-full h-auto max-h-24 border border-gray-300 rounded bg-white"
+                  />
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                    <p className="text-gray-500 italic text-center">Signature enregistrée</p>
+                  </div>
+                )}
+                
+                {/* Nom et date */}
+                <div className="mt-3 text-center">
+                  <p className="font-semibold text-gray-800">{eleve}</p>
+                  <p className="text-xs text-gray-500">
+                    Signé le {formatDate(signedAt)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+              <p className="text-yellow-700 text-sm">
+                ⚠️ Aucune signature enregistrée pour ce questionnaire
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Footer */}
-        <div className="p-4 bg-gray-50 border-t flex justify-end">
+        <div className="p-4 bg-gray-100 border-t flex justify-between items-center">
+          <p className="text-xs text-gray-500">
+            Document conforme aux exigences Qualiopi
+          </p>
           <Button onClick={onClose} variant="outline">
             Fermer
           </Button>
