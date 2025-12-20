@@ -3224,7 +3224,7 @@ async def relance_questionnaire(
         if email_sent:
             # Log la relance
             await db.questionnaire_relances.insert_one({
-                "id": str(uuid4()),
+                "id": str(uuid.uuid4()),
                 "student_id": student_id,
                 "student_name": student_name,
                 "questionnaire": questionnaire,
