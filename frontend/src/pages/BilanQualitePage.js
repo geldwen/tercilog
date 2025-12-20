@@ -727,19 +727,19 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
                 <div className="space-y-2">
                   {suggestedActions.slice(0, 3).map((action, idx) => (
                     <label key={idx} className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                      selectedAction?.keyword === action.keyword 
+                      selectedAction?.id === action.id 
                         ? "border-orange-400 bg-orange-50" 
                         : "border-gray-200 hover:bg-gray-50"
                     }`}>
                       <input 
                         type="radio" 
                         name="action" 
-                        checked={selectedAction?.keyword === action.keyword}
+                        checked={selectedAction?.id === action.id}
                         onChange={() => setSelectedAction(action)}
                         className="mt-1 text-orange-500 focus:ring-orange-500"
                       />
                       <div>
-                        <p className="font-medium text-gray-800">{action.keyword}</p>
+                        <p className="font-medium text-gray-800">{action.id === "autre" ? "Autre" : action.id}</p>
                         <p className="text-sm text-gray-600">{action.label}</p>
                       </div>
                     </label>
