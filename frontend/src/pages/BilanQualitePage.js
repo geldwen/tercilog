@@ -342,7 +342,7 @@ const BilanQualitePage = () => {
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
                 <strong>ℹ️ Information :</strong> Les questionnaires sont disponibles dès le début de la formation. 
-                <br />« <span className="text-green-700 font-medium">Soumis</span> » signifie que l'apprenant a répondu au questionnaire.
+                <br />« <span className="text-green-700 font-medium">Soumis</span> » signifie que l&apos;apprenant a répondu au questionnaire.
               </p>
             </div>
 
@@ -518,7 +518,7 @@ const BilanQualitePage = () => {
                   <div className="flex gap-6 items-center text-sm">
                     <div className="flex items-center gap-2">
                       <span className="w-4 h-4 rounded-full bg-green-500 inline-block"></span>
-                      <span className="text-gray-600">Soumis par l'apprenant (cliquez pour voir)</span>
+                      <span className="text-gray-600">Soumis par l&apos;apprenant (cliquez pour voir)</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-4 h-4 rounded-full bg-red-500 inline-block"></span>
@@ -666,7 +666,7 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     qualite_formateur: "Qualité du formateur",
     recommandation: "Recommanderiez-vous ?",
     points_forts: "Points forts",
-    suggestions: "Suggestions d'amélioration",
+    suggestions: "Suggestions d&apos;amélioration",
     temoignage: "Témoignage",
     evaluation_globale: "Évaluation globale",
     acquis_formation: "Acquis de la formation",
