@@ -2955,6 +2955,8 @@ async def get_qualite_report(
             "score_satisfaction": score_satisfaction,
             "difficulties": difficulties,
             "mastered_skills": mastered_skills,
+            # Inclure toutes les réponses pour la consultation
+            **({k: v for k, v in q3.items() if k not in ['_id', 'student_id']} if (q3 and q3_submitted) else {})
         }
         
         result.append({
