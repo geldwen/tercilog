@@ -3486,36 +3486,58 @@ async def analyze_questionnaire_for_action(
 ):
     """
     Analyse un questionnaire pour extraire les mots-clés et détecter les besoins.
-    Ne prend aucune décision - seulement extraction pour aide au formateur.
+    Réponse simplifiée pour UI épurée.
     """
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
     questionnaire_data = data.get("questionnaire_data", {})
+    parcours = data.get("parcours", "Anglais")
+    
+    # Sélectionner la grille selon le parcours
+    if parcours == "Informatique":
+        all_keywords_config = KEYWORDS_INFORMATIQUE
+        keyword_to_action = KEYWORD_TO_ACTION_INFORMATIQUE
+    else:
+        all_keywords_config = KEYWORDS_ANGLAIS
+        keyword_to_action = KEYWORD_TO_ACTION_ANGLAIS
     
     # Analyser le questionnaire
-    analysis = detect_need_in_questionnaire(questionnaire_data)
+    analysis = detect_need_in_questionnaire(questionnaire_data, parcours)
     
-    # Générer les actions suggérées pour chaque mot-clé
-    suggested_actions = {}
-    for keyword in analysis["detected_keywords"]:
-        if keyword in KEYWORD_TO_ACTION:
-            suggested_actions[keyword] = KEYWORD_TO_ACTION[keyword]
+    # Générer max 3 actions suggérées
+    suggested_actions = []
+    for keyword in analysis["detected_keywords"][:3]:
+        if keyword in keyword_to_action:
+            suggested_actions.append({
+                "id": keyword,
+                "label": keyword_to_action[keyword]
+            })
     
-    # Générer le texte pré-rempli si des mots-clés sont détectés
-    pre_filled_text = ""
+    # Si pas assez d'actions, ajouter "Autre"
+    if len(suggested_actions) < 3:
+        suggested_actions.append({
+            "id": "autre",
+            "label": "Autre (texte libre)"
+        })
+    
+    # Générer le texte pré-rempli court (2 lignes max)
+    report_draft = ""
     if analysis["detected_keywords"]:
-        keywords_str = ", ".join(analysis["detected_keywords"][:5])
-        pre_filled_text = f"L'apprenant a exprimé un besoin de {keywords_str}.\nDes adaptations pédagogiques ont été mises en place."
+        first_action = suggested_actions[0]["label"] if suggested_actions else "adaptation"
+        report_draft = f"L'apprenant a exprimé un besoin d'{first_action.lower()}.\nLe contenu de la formation a été ajusté en conséquence."
+    else:
+        report_draft = "Analyse effectuée. Aucun besoin particulier identifié.\nLe dispositif est maintenu."
     
     return {
         "has_need": analysis["has_need"],
         "detected_keywords": analysis["detected_keywords"],
-        "reasons": analysis["reasons"],
-        "suggested_actions": suggested_actions,
-        "pre_filled_text": pre_filled_text,
-        "all_keywords": KEYWORDS_ANGLAIS,
-        "keyword_to_action": KEYWORD_TO_ACTION
+        "suggested_actions": suggested_actions[:3],
+        "report_draft": report_draft,
+        "all_keywords": all_keywords_config,
+        "keyword_to_action": keyword_to_action,
+        # Pour audit uniquement (non affiché par défaut)
+        "detection_details": analysis["reasons"]
     }
 
 
