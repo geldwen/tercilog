@@ -5,7 +5,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { ArrowLeft, Download, Eye, Mail, FileText, Edit3, X, Check, AlertCircle, CheckCircle } from "lucide-react";
+import { ArrowLeft, Download, Eye, Mail, FileText, Edit3, X, Check, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const API = process.env.REACT_APP_BACKEND_URL || "";
