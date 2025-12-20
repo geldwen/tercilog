@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { LogOut, BookOpen, MessageSquare, Download, FileText, TrendingUp, CheckCircle, RefreshCw } from "lucide-react";
+import { LogOut, BookOpen, MessageSquare, Download, FileText, TrendingUp, CheckCircle, RefreshCw, Video } from "lucide-react";
 import SignaturePad from "@/components/SignaturePad";
 import SignatureCanvas from 'react-signature-canvas';
 import FormationNeedsQuestionnaire from "@/components/FormationNeedsQuestionnaire";
