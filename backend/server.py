@@ -3138,6 +3138,110 @@ async def remove_student_from_report(
     return {"message": "Student removed from report", "student_id": student_id}
 
 
+@api_router.post("/teachers/relance-questionnaire")
+async def relance_questionnaire(
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Envoyer une relance par email pour un questionnaire non soumis"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    student_id = data.get("student_id")
+    questionnaire = data.get("questionnaire")  # Q1, Q2, Q3
+    student_email = data.get("student_email")
+    student_name = data.get("student_name")
+    
+    if not all([student_id, questionnaire, student_email, student_name]):
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    
+    # Labels des questionnaires
+    questionnaire_labels = {
+        "Q1": "Questionnaire d'entrée (Besoins)",
+        "Q2": "Questionnaire mi-parcours (Suivi)",
+        "Q3": "Questionnaire de fin (Satisfaction)"
+    }
+    
+    label = questionnaire_labels.get(questionnaire, questionnaire)
+    first_name = student_name.split()[0] if student_name else "Apprenant"
+    teacher_name = current_user.name or "votre formateur"
+    
+    # Horodatage
+    timestamp_now = datetime.now().strftime("%d/%m/%Y à %H:%M")
+    
+    # Créer l'email de relance
+    email_subject = f"🔔 Rappel : Merci de compléter votre {questionnaire}"
+    email_html = f"""<html>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+<div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 24px; text-align: center;">
+    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🔔 Rappel Questionnaire</h1>
+  </div>
+  
+  <div style="padding: 32px 24px;">
+    <p style="margin: 0 0 20px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
+        Bonjour <strong>{first_name}</strong>,
+    </p>
+    
+    <p style="margin: 0 0 20px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
+        Votre formateur <strong>{teacher_name}</strong> vous invite à compléter le questionnaire suivant :
+    </p>
+    
+    <div style="background-color: #fff7ed; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f97316;">
+      <p style="margin: 0; font-size: 18px; color: #9a3412; font-weight: bold;">
+        📋 {label}
+      </p>
+    </div>
+    
+    <p style="margin: 0 0 20px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
+        Ce questionnaire est important pour le suivi de votre formation et la démarche qualité Qualiopi.
+    </p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="https://teachportal-12.emergent.host" style="display: inline-block; background-color: #f97316; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+        Accéder à mon espace
+      </a>
+    </div>
+    
+    <p style="margin: 24px 0 0 0; font-size: 15px; color: #6b7280;">
+        Merci pour votre participation ! 🙏
+    </p>
+  </div>
+  
+  <div style="background-color: #f9fafb; padding: 16px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+    <p style="margin: 0; font-size: 12px; color: #9ca3af;">Email envoyé le {timestamp_now}</p>
+    <p style="margin: 4px 0 0 0; font-size: 12px; color: #9ca3af;">TerciForm - Plateforme de formation</p>
+  </div>
+</div>
+</body>
+</html>"""
+    
+    # Envoyer l'email
+    try:
+        email_sent = send_email(student_email, email_subject, email_html)
+        
+        if email_sent:
+            # Log la relance
+            await db.questionnaire_relances.insert_one({
+                "id": str(uuid4()),
+                "student_id": student_id,
+                "student_name": student_name,
+                "questionnaire": questionnaire,
+                "teacher_id": current_user.id,
+                "teacher_name": current_user.name,
+                "sent_at": datetime.now(timezone.utc).isoformat(),
+                "email_sent_to": student_email
+            })
+            
+            logger.info(f"✅ Relance {questionnaire} envoyée à {student_email} par {current_user.name}")
+            return {"message": f"Relance envoyée avec succès à {student_name}", "questionnaire": questionnaire}
+        else:
+            raise HTTPException(status_code=500, detail="Erreur lors de l'envoi de l'email")
+    except Exception as e:
+        logger.error(f"❌ Erreur relance questionnaire: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/sessions/bulk")
 async def create_bulk_sessions(
     data: dict,
