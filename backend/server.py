@@ -3926,7 +3926,7 @@ async def get_stats(current_user: User = Depends(get_current_user), month: Optio
 @api_router.post("/sessions/send-30min-reminders")
 async def send_30min_reminders(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
-    Endpoint pour forcer l'envoi des rappels 30 minutes avant les séances.
+    Endpoint pour forcer l'envoi des rappels 15 minutes avant les séances.
     Accessible uniquement aux enseignants.
     """
     try:
@@ -3936,7 +3936,7 @@ async def send_30min_reminders(credentials: HTTPAuthorizationCredentials = Depen
             raise HTTPException(status_code=403, detail="Accès réservé aux enseignants")
         
         await send_session_reminders()
-        return {"message": "Vérification des rappels 30 minutes effectuée avec succès"}
+        return {"message": "Vérification des rappels 15 minutes effectuée avec succès"}
     except HTTPException as he:
         raise he
     except Exception as e:
