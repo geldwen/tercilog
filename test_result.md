@@ -114,7 +114,7 @@ frontend:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "TEST DE LA NOUVELLE FONCTIONNALITÉ DE REGROUPEMENT PAR JOUR DANS LA PAGE DE FACTURATION"
+user_problem_statement: "Test the 'Bilan Qualité' page with the new simplified 'Définir une action' modal"
 
 backend:
   - task: "Teacher Authentication System"
