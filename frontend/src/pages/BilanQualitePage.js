@@ -716,18 +716,11 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
 };
 
 // ============================================================================
-// MODAL DÉFINIR ACTION (Phase 2 - Version complète avec niveau de besoin)
+// MODAL DÉFINIR ACTION (Phase 2 Simplifié - SANS niveau de besoin)
 // ============================================================================
-const NIVEAU_BESOIN_OPTIONS = [
-  { id: "leger", label: "Léger", color: "green" },
-  { id: "moyen", label: "Moyen", color: "orange" },
-  { id: "important", label: "Important", color: "red" }
-];
-
 const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }) => {
   const [loading, setLoading] = useState(true);
   const [analysis, setAnalysis] = useState(null);
-  const [niveauBesoin, setNiveauBesoin] = useState(null);
   const [selectedKeywords, setSelectedKeywords] = useState([]);
   const [selectedActions, setSelectedActions] = useState([]);
   const [finalText, setFinalText] = useState("");
@@ -747,25 +740,17 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
         setAnalysis(response.data);
         setHasNeed(response.data.has_need);
         
-        // Pré-sélectionner les mots-clés détectés
+        // Pré-sélectionner les mots-clés détectés (normalisés)
         const detected = response.data.detected_keywords || [];
-        setSelectedKeywords(detected);
+        const normalized = normalizeKeywords(detected);
+        setSelectedKeywords(normalized);
         
-        // Pré-cocher les actions suggérées (basées sur les mots-clés détectés)
+        // Pré-cocher les actions suggérées (max 2 par défaut)
         const suggested = response.data.suggested_actions || [];
         const preSelectedActions = suggested
-          .filter(a => a.id !== "autre" && detected.includes(a.id))
-          .slice(0, 3);
+          .filter(a => a.id !== "autre")
+          .slice(0, 2);
         setSelectedActions(preSelectedActions);
-        
-        // Pré-définir le niveau de besoin selon le nombre de mots-clés
-        if (detected.length >= 3) {
-          setNiveauBesoin("important");
-        } else if (detected.length >= 2) {
-          setNiveauBesoin("moyen");
-        } else if (detected.length >= 1) {
-          setNiveauBesoin("leger");
-        }
       } catch (error) {
         console.error("Erreur analyse:", error);
         toast.error("Erreur lors de l'analyse");
@@ -778,22 +763,14 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
 
   // Auto-générer le compte-rendu quand les sélections changent
   useEffect(() => {
-    if (!niveauBesoin || selectedKeywords.length === 0) {
+    if (selectedKeywords.length === 0) {
       setFinalText("");
       return;
     }
     
-    const niveauLabel = NIVEAU_BESOIN_OPTIONS.find(n => n.id === niveauBesoin)?.label || niveauBesoin;
-    const keywordsStr = selectedKeywords.join(", ");
-    const actionsStr = selectedActions.map(a => a.label).join(" et ");
-    
-    let text = `Besoin identifié : ${keywordsStr} (niveau ${niveauLabel.toLowerCase()}).`;
-    if (actionsStr) {
-      text += `\nActions mises en place : ${actionsStr}.`;
-    }
-    
+    const text = buildDefaultCompteRendu(selectedKeywords, selectedActions);
     setFinalText(text);
-  }, [niveauBesoin, selectedKeywords, selectedActions]);
+  }, [selectedKeywords, selectedActions]);
 
   // Toggle action (checkbox)
   const toggleAction = (action) => {
@@ -802,7 +779,6 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
       if (exists) {
         return prev.filter(a => a.id !== action.id);
       } else {
-        // Max 3 actions
         if (prev.length >= 3) {
           toast.error("Maximum 3 actions sélectionnables");
           return prev;
@@ -814,14 +790,14 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
 
   // Enregistrer
   const handleSave = async () => {
-    if (!niveauBesoin) {
-      toast.error("Veuillez sélectionner le niveau du besoin");
-      return;
-    }
     if (selectedActions.length === 0) {
       toast.error("Veuillez sélectionner au moins une action");
       return;
     }
+    
+    // Construire les textes pour stockage
+    const besoinText = buildBesoinSentence(selectedKeywords);
+    const actionsText = `Actions mises en place par le formateur : ${selectedActions.map(a => a.label).join(" ; ")}.`;
     
     setSaving(true);
     try {
@@ -830,9 +806,11 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
         student_name: eleve.nom,
         questionnaire_type: qType,
         questionnaire_id: qData?.id,
-        niveau_besoin: niveauBesoin,
+        keywords_internal: selectedKeywords, // Stocké mais non affiché dans le détail
         mots_cles: selectedKeywords,
-        actions: selectedActions.map(a => a.label),
+        actions: selectedActions.map(a => ({ key: a.id, label: a.label })),
+        besoin_text: besoinText,
+        actions_text: actionsText,
         compte_rendu_final: finalText,
         has_need: true
       }, { headers: getAuthHeaders() });
@@ -854,9 +832,11 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
         student_name: eleve.nom,
         questionnaire_type: qType,
         questionnaire_id: qData?.id,
-        niveau_besoin: null,
+        keywords_internal: [],
         mots_cles: [],
         actions: [],
+        besoin_text: "Aucun besoin particulier identifié.",
+        actions_text: "Le dispositif est maintenu en l'état.",
         compte_rendu_final: "Analyse effectuée. Aucun besoin particulier. Le dispositif est maintenu.",
         has_need: false
       }, { headers: getAuthHeaders() });
@@ -878,13 +858,14 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
   }
 
   const detectedKeywords = analysis?.detected_keywords || [];
+  const normalizedKeywords = normalizeKeywords(detectedKeywords);
   const allActions = analysis?.suggested_actions?.filter(a => a.id !== "autre") || [];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden my-4">
         {/* Header orange */}
-        <div className="bg-orange-500 text-white p-4 flex justify-between items-center">
+        <div className="bg-orange-500 text-white p-4 flex justify-between items-center rounded-t-xl">
           <div>
             <h2 className="text-lg font-bold">Définir une action — {qType}</h2>
             <p className="text-orange-100 text-sm">{eleve.nom}</p>
@@ -913,138 +894,74 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
             </div>
           ) : (
             <>
-              {/* Section A: Qualification du besoin (OBLIGATOIRE) */}
-              <div className="mb-5">
-                <h3 className="font-semibold text-gray-800 mb-2 text-sm flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">A</span>
-                  Niveau du besoin <span className="text-red-500">*</span>
-                </h3>
-                <div className="flex gap-3">
-                  {NIVEAU_BESOIN_OPTIONS.map((niveau) => (
-                    <label key={niveau.id} className={`flex-1 p-3 rounded-lg border-2 cursor-pointer transition-all text-center ${
-                      niveauBesoin === niveau.id 
-                        ? niveau.color === "green" ? "border-green-500 bg-green-50" 
-                          : niveau.color === "orange" ? "border-orange-500 bg-orange-50"
-                          : "border-red-500 bg-red-50"
-                        : "border-gray-200 hover:bg-gray-50"
-                    }`}>
-                      <input 
-                        type="radio" 
-                        name="niveau" 
-                        value={niveau.id}
-                        checked={niveauBesoin === niveau.id}
-                        onChange={() => setNiveauBesoin(niveau.id)}
-                        className="sr-only"
-                      />
-                      <span className={`font-medium ${
-                        niveauBesoin === niveau.id 
-                          ? niveau.color === "green" ? "text-green-700" 
-                            : niveau.color === "orange" ? "text-orange-700"
-                            : "text-red-700"
-                          : "text-gray-700"
-                      }`}>{niveau.label}</span>
-                    </label>
-                  ))}
-                </div>
+              {/* Alerte besoin identifié */}
+              <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700 font-medium text-sm">🔴 Un besoin a été identifié dans les réponses de l&apos;apprenant.</p>
               </div>
 
-              {/* Section B: Mots-clés détectés */}
-              <div className="mb-5">
-                <h3 className="font-semibold text-gray-800 mb-2 text-sm flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">B</span>
-                  Mots-clés détectés
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {detectedKeywords.length > 0 ? (
-                    detectedKeywords.map((kw) => (
+              {/* Section A: Mots-clés détectés (interne, léger) */}
+              {normalizedKeywords.length > 0 && (
+                <div className="mb-5">
+                  <h3 className="font-semibold text-gray-800 mb-2 text-sm">Mots-clés détectés</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {(showAllKeywords ? normalizedKeywords : normalizedKeywords.slice(0, 6)).map((kw) => (
                       <span key={kw} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
                         {kw}
                       </span>
-                    ))
-                  ) : (
-                    <span className="text-gray-500 text-sm italic">Aucun mot-clé détecté automatiquement</span>
-                  )}
-                </div>
-                
-                {/* Option pour voir tous les mots-clés */}
-                <button 
-                  onClick={() => setShowAllKeywords(!showAllKeywords)}
-                  className="mt-2 text-xs text-blue-600 hover:underline"
-                >
-                  {showAllKeywords ? "▲ Masquer tous les mots-clés" : "▼ Afficher tous les mots-clés disponibles"}
-                </button>
-
-                {showAllKeywords && analysis?.all_keywords && (
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
-                    {Object.entries(analysis.all_keywords).map(([category, keywords]) => (
-                      <div key={category} className="mb-2 last:mb-0">
-                        <p className="text-xs font-semibold text-gray-500 uppercase mb-1">{category.replace(/_/g, ' ')}</p>
-                        <div className="flex flex-wrap gap-1">
-                          {keywords.map((kw) => (
-                            <span key={kw} className={`px-2 py-0.5 rounded text-xs ${
-                              detectedKeywords.includes(kw) 
-                                ? "bg-blue-100 text-blue-700 font-medium" 
-                                : "bg-gray-200 text-gray-600"
-                            }`}>
-                              {kw}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
                     ))}
                   </div>
-                )}
-              </div>
+                  {normalizedKeywords.length > 6 && (
+                    <button 
+                      onClick={() => setShowAllKeywords(!showAllKeywords)}
+                      className="mt-2 text-xs text-blue-600 hover:underline"
+                    >
+                      {showAllKeywords ? "Masquer" : "Afficher"} tous les mots-clés
+                    </button>
+                  )}
+                </div>
+              )}
 
-              {/* Section C: Actions pédagogiques (multi-sélection, max 3) */}
+              {/* Section B: Actions pédagogiques (max 3) */}
               <div className="mb-5">
-                <h3 className="font-semibold text-gray-800 mb-2 text-sm flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs">C</span>
-                  Actions pédagogiques <span className="text-gray-500 text-xs font-normal">(max 3)</span>
-                </h3>
+                <h3 className="font-semibold text-gray-800 mb-2 text-sm">Actions pédagogiques <span className="text-gray-500 text-xs font-normal">(max 3)</span></h3>
                 <div className="space-y-2">
-                  {allActions.map((action, idx) => {
+                  {allActions.slice(0, 6).map((action, idx) => {
                     const isSelected = selectedActions.find(a => a.id === action.id);
-                    const isPreSuggested = detectedKeywords.includes(action.id);
+                    const isDisabled = !isSelected && selectedActions.length >= 3;
                     return (
                       <label key={idx} className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                         isSelected 
                           ? "border-orange-400 bg-orange-50" 
-                          : "border-gray-200 hover:bg-gray-50"
+                          : isDisabled 
+                            ? "border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed"
+                            : "border-gray-200 hover:bg-gray-50"
                       }`}>
                         <input 
                           type="checkbox" 
                           checked={!!isSelected}
+                          disabled={isDisabled}
                           onChange={() => toggleAction(action)}
                           className="mt-1 rounded text-orange-500 focus:ring-orange-500"
                         />
                         <div className="flex-1">
-                          <p className="font-medium text-gray-800 flex items-center gap-2">
-                            {action.id}
-                            {isPreSuggested && <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">suggéré</span>}
-                          </p>
-                          <p className="text-sm text-gray-600">{action.label}</p>
+                          <p className="font-medium text-gray-800">{action.label}</p>
+                          {action.description && <p className="text-sm text-gray-500">{action.description}</p>}
                         </div>
                       </label>
                     );
                   })}
                 </div>
-                {selectedActions.length > 0 && (
-                  <p className="text-xs text-gray-500 mt-2">{selectedActions.length}/3 actions sélectionnées</p>
-                )}
+                <p className="text-xs text-gray-500 mt-2">{selectedActions.length}/3 actions sélectionnées</p>
               </div>
 
-              {/* Section D: Compte-rendu (auto-généré) */}
+              {/* Section C: Compte-rendu formateur (auto-généré) */}
               <div className="mb-4">
-                <h3 className="font-semibold text-gray-800 mb-2 text-sm flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center text-xs">D</span>
-                  Compte-rendu formateur
-                </h3>
+                <h3 className="font-semibold text-gray-800 mb-2 text-sm">Compte-rendu formateur</h3>
                 <p className="text-xs text-gray-500 mb-2">Ce texte est généré automatiquement. Vous pouvez le modifier avant validation.</p>
                 <textarea 
                   value={finalText}
                   onChange={(e) => setFinalText(e.target.value)}
-                  className="w-full border rounded-lg p-3 h-24 text-sm"
+                  className="w-full border rounded-lg p-3 h-28 text-sm"
                   placeholder="Le compte-rendu sera généré automatiquement..."
                 />
               </div>
@@ -1054,16 +971,16 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
 
         {/* Footer */}
         {hasNeed && (
-          <div className="p-4 bg-gray-100 border-t flex justify-between items-center">
+          <div className="p-4 bg-gray-100 border-t flex justify-between items-center rounded-b-xl">
             <p className="text-xs text-gray-500">Le formateur reste décisionnaire.</p>
             <div className="flex gap-2">
               <Button variant="outline" onClick={onClose}>Annuler</Button>
               <Button 
                 onClick={handleSave} 
-                disabled={saving || !niveauBesoin || selectedActions.length === 0}
+                disabled={saving || selectedActions.length === 0}
                 className="bg-orange-500 hover:bg-orange-600 text-white"
               >
-                {saving ? "Enregistrement..." : "Définir l'action"}
+                {saving ? "Enregistrement..." : "Définir"}
               </Button>
             </div>
           </div>
