@@ -852,8 +852,7 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
     );
   }
 
-  const detectedKeywords = analysis?.detected_keywords || [];
-  const normalizedKeywords = normalizeKeywords(detectedKeywords);
+  // Keywords are kept internal (for suggestions), but NOT displayed
   const allActions = analysis?.suggested_actions?.filter(a => a.id !== "autre") || [];
 
   return (
