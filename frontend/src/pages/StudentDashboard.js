@@ -422,8 +422,18 @@ export default function StudentDashboard({ user, onLogout }) {
     return `https://meet.jit.si/${roomName}`;
   };
 
-  // Bouton Visio pour une séance (toujours actif)
+  // Bouton Visio pour une séance - petit et rond, masqué si séance terminée
   const getVisioButton = (session) => {
+    // Masquer le bouton si la séance est terminée
+    if (isSessionEnded(session)) {
+      return null;
+    }
+    
+    // Afficher seulement pour les séances en distanciel
+    if (session.modality !== 'distanciel') {
+      return null;
+    }
+    
     const jitsiLink = generateJitsiLink(session);
     
     return (
@@ -431,14 +441,14 @@ export default function StudentDashboard({ user, onLogout }) {
         href={jitsiLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        className="inline-flex items-center justify-center w-10 h-10 rounded-full text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hover:scale-110"
         style={{ 
           backgroundColor: '#E91E63', // Rose/Magenta
           boxShadow: '0 4px 14px 0 rgba(233, 30, 99, 0.39)'
         }}
+        title="Rejoindre la visio"
       >
         <Video size={18} />
-        <span>Rejoindre la visio</span>
       </a>
     );
   };
