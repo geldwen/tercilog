@@ -428,7 +428,7 @@ const formatActionDate = (dateStr) => {
 };
 
 // ============================================================================
-// COLONNE ACTIONS FORMATEUR (3 lignes fixes Q1/Q2/Q3) - Résumé lisible
+// COLONNE ACTIONS FORMATEUR (3 lignes fixes Q1/Q2/Q3) - Badge bleu avec timestamp
 // ============================================================================
 const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) => {
   const [detailModal, setDetailModal] = useState(null);
@@ -451,44 +451,40 @@ const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) 
           );
         }
         
-        // Si action déjà définie - Afficher le RÉSUMÉ LISIBLE
+        // Si action déjà définie - Badge bleu avec timestamp uniquement
         if (status?.action_defined && status?.action) {
           const action = status.action;
+          const dateAction = formatActionDate(action.created_at);
           
           if (action.has_need) {
-            const dateAction = formatActionDate(action.created_at);
-            // Récupérer le texte besoin (nouveau format) ou le générer
-            const besoinText = action.besoin_text || buildBesoinSentence(action.mots_cles || action.selected_keywords || []);
-            // Version courte pour le résumé
-            const besoinShort = besoinText.length > 60 ? besoinText.substring(0, 57) + "..." : besoinText;
-            
             return (
-              <div key={qType} className="py-1 px-2 bg-gray-100 rounded text-xs">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-800">{qType} — Action définie</p>
-                    <p className="text-gray-600 text-[10px] truncate" title={besoinText}>{besoinShort}</p>
-                    <p className="text-gray-500 text-[10px]">{dateAction}</p>
-                  </div>
-                  <button 
-                    onClick={() => setDetailModal({ qType, action, eleve })}
-                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-[10px] whitespace-nowrap"
-                  >
-                    <Eye className="w-3 h-3" /> Voir
-                  </button>
+              <div key={qType} className="flex items-center gap-2 py-1.5 px-3 bg-blue-50 border border-blue-200 rounded-lg text-xs">
+                <div className="flex-1">
+                  <p className="font-semibold text-blue-800">{qType} — Action définie</p>
+                  <p className="text-blue-600 text-[11px]">{dateAction}</p>
                 </div>
+                <button 
+                  onClick={() => setDetailModal({ qType, action, eleve })}
+                  className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-full transition-colors"
+                  title="Voir le détail"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
               </div>
             );
           } else {
             return (
-              <div key={qType} className="flex items-start gap-2 py-1 px-2 bg-green-50 border border-green-200 rounded text-xs">
-                <span className="font-medium w-8 text-green-700">{qType}</span>
+              <div key={qType} className="flex items-center gap-2 py-1.5 px-3 bg-green-50 border border-green-200 rounded-lg text-xs">
                 <div className="flex-1">
-                  <p className="text-green-700">✅ Aucun besoin - Dispositif maintenu</p>
-                  <p className="text-green-600 text-[10px]">{formatActionDate(action.created_at)}</p>
+                  <p className="font-semibold text-green-800">{qType} — Aucun besoin</p>
+                  <p className="text-green-600 text-[11px]">{dateAction}</p>
                 </div>
-                <button onClick={() => onVoir(eleve, qType, qData)} className="text-blue-600 hover:underline">
-                  <Eye className="w-3 h-3" />
+                <button 
+                  onClick={() => onVoir(eleve, qType, qData)} 
+                  className="p-1.5 text-green-600 hover:text-green-800 hover:bg-green-100 rounded-full transition-colors"
+                  title="Voir le détail"
+                >
+                  <Eye className="w-4 h-4" />
                 </button>
               </div>
             );
