@@ -3091,13 +3091,29 @@ async def debug_qualite_report(
     # Lister mes élèves
     students = await db.users.find(
         {"role": "student", "teacher_id": current_user.id},
-        {"_id": 0, "id": 1, "name": 1, "email": 1, "matiere": 1}
-    ).to_list(length=10)
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "matiere": 1, "parcours": 1}
+    ).to_list(length=50)
     
     # Compter les questionnaires
     q1_count = await db.formation_needs_questionnaires.count_documents({})
     q2_count = await db.mid_course_questionnaires.count_documents({})
     q3_count = await db.end_course_questionnaires.count_documents({})
+    
+    # Lister TOUS les Q2 soumis
+    all_q2 = await db.mid_course_questionnaires.find({}, {"_id": 0, "student_id": 1, "submitted_at": 1}).to_list(100)
+    
+    # Pour chaque élève, vérifier s'il a un Q2
+    students_with_q2 = []
+    for student in students:
+        student_id = student.get("id")
+        q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        if q2:
+            students_with_q2.append({
+                "student_name": student.get("name"),
+                "student_id": student_id,
+                "q2_submitted_at": q2.get("submitted_at"),
+                "q2_has_data": bool(q2)
+            })
     
     # Compter les templates
     templates_count = await db.questionnaire_templates.count_documents({})
@@ -3114,6 +3130,8 @@ async def debug_qualite_report(
             "q2": q2_count,
             "q3": q3_count
         },
+        "all_q2_in_db": all_q2,
+        "students_with_q2": students_with_q2,
         "templates_count": templates_count
     }
 
