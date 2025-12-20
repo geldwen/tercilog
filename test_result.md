@@ -991,3 +991,15 @@ agent_communication:
         - working: "unknown"
           agent: "main"
           comment: "PHASE 2 UX IMPROVEMENTS IMPLEMENTED: 1) NIVEAU BESOIN: Added mandatory 3-level selector (Léger/Moyen/Important) with color-coded buttons (green/orange/red), 2) MULTI-SELECT ACTIONS: Changed from single radio to checkboxes with max 3 actions, pre-checked based on detected keywords, shows 'suggéré' badge, 3) AUTO-GENERATED COMPTE-RENDU: Text auto-generates based on niveau+keywords+actions (e.g. 'Besoin identifié: oral (niveau moyen). Actions mises en place: renforcement oral et prononciation.'), 4) TABLE SUMMARY: Replaced 'Action définie' with readable summary showing Q1 — Besoin X (niveau Y) + date + 'Voir' button, 5) DETAIL MODAL: Added blue modal showing niveau, mots-clés, actions, compte-rendu, created_by and created_at, 6) BACKEND: Updated save endpoint with new fields (niveau_besoin, mots_cles, actions, compte_rendu_final, questionnaire_id, created_by) with backward compatibility."
+
+  - task: "Bilan Qualité - Phase 2 SIMPLIFIED (NO niveau du besoin)"
+    implemented: true
+    working: "unknown"
+    file: "BilanQualitePage.js, server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "PHASE 2 SIMPLIFIED: Removed niveauBesoin completely. CHANGES: 1) KEYWORD NORMALIZER: distanciel->adaptation du format, planning->flexibilité/organisation, etc. 2) buildBesoinSentence(): converts keywords to human-readable phrases like 'renforcer la pratique orale, développer le vocabulaire'. 3) MODAL DÉFINIR: Removed niveau selector, shows red alert '🔴 Un besoin a été identifié...', normalized keywords as chips, max 3 checkboxes for actions, auto-generated compte-rendu with format 'Le bénéficiaire a exprimé un besoin de : X. Actions mises en place par le formateur : Y.' 4) MODAL DÉTAIL: Shows only 'Besoin du bénéficiaire' (orange box) + 'Actions mises en place' (blue box) + compte-rendu, NO keywords displayed, NO niveau. 5) TABLE SUMMARY: 'Qx — Action définie' + truncated besoin text + date + 'Voir' button. 6) BACKEND: Updated save endpoint with besoin_text, actions_text, keywords_internal fields."
