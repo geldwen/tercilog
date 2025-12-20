@@ -1,190 +1,183 @@
-<analysis>**original_problem_statement**: The user wants to enhance their student management platform. The initial goal was to resolve deployment issues and complete a pedagogical analysis feature. However, the session was dominated by a continuous stream of critical bug reports and new requests, including:
+<analysis>**original_problem_statement**: The user's initial goal was to stabilize a highly unstable student management platform and add new features. The session began by addressing critical bugs from the previous fork, including login failures and major data inconsistencies between production and preview environments. This was caused by separate, unsynchronized databases and a  file that repeatedly pointed to the wrong backend.
 
-1.  **Critical Production Bugs**: Repeated login failures for both teachers and students on multiple browsers (Safari, Chrome), a white screen error after deployment, and an  server crash.
-2.  **Data Integrity & Display Issues**:
-    *   Student signatures on attendance sheets not appearing on the teacher's dashboard, or appearing with the wrong status (pending instead of signed).
-    *   Completed student tests (T1, Q1, etc.) not appearing in the Bilan des tests report page.
-    *   Entire students (Djibril KANTE, Germaine CHAPERON) disappearing from the production environment.
-3.  **UI/UX Improvements**:
-    *   Improve the readability of the session list by replacing multiple buttons with a compact Actions menu.
-    *   Add the year 2026 to all date-related dropdowns (Planning, Billing, Sessions).
-4.  **Core Functionality Issues**:
-    *   The welcome email for new students is missing the auto-generated password.
-    *   Students being directed to an incorrect (preview) URL from emails.
-    *   Ensure ALL sessions for ALL students are made emargeable (signable).
-    *   An error () crashing the Bilan des tests page.
+After stabilizing the environment by correcting configurations and creating a special backend endpoint to repair missing data in production, the user requested a series of significant feature enhancements:
+1.  **Filtering & UI Overhaul**: Add Year, Month, and Center filters to the Teacher Dashboard, Billing, and Planning pages to replace a cumbersome tab-based navigation.
+2.  **Billing Enhancements**:
+    *   Display a color-coded financial summary grouped by center (e.g., Zepartner, SFA) on the billing page.
+    *   Ensure events created in the Planning calendar (with an hourly rate) correctly appear in the Billing section.
+    *   Allow editing the hourly rate of existing events.
+3.  **Student Test Management**: Add a Recommencer mon test (Restart My Test) button for students who have already submitted a test (T1, T2, T3).
+4.  **Video Conferencing**: Integrate a video chat solution (Jitsi) by adding a Rejoindre ma séance en Visio button on both the teacher and student dashboards for remote sessions.
 
 **User's preferred language**: French
 
 **what currently exists?**
-The application is a full-stack student management platform (React/FastAPI/MongoDB). The session involved numerous chaotic bug fixes and feature updates. Key changes implemented include:
-- A critical backend bug with  was fixed by switching to .
-- The session list UI was improved with a compact Actions dropdown menu.
-- A Safari-specific login issue was resolved by creating a  utility with fallbacks.
-- The year 2026 was added to all date-related components.
-- A backend endpoint was added and used to bulk-fix sessions with incorrect signature statuses.
-- The Bilan des tests page was patched multiple times to fix crashes and to fetch data from the correct collection () and with the correct type ( or ).
-
-The application is extremely unstable, suffering from frequent regressions after deployment, data inconsistencies between local and production environments, and browser-specific issues. The user is highly frustrated by the constant need for fixes.
+The application is a full-stack student management platform (React/FastAPI/MongoDB). The agent has successfully stabilized the application by resolving critical environment configuration issues. The following features have been implemented and are present in the local codebase:
+-   **Advanced Filtering**: The Teacher Dashboard, Billing, and Planning pages now have dropdown filters for Year and Month (up to 2030). The Billing page also has an additional filter for Centre.
+-   **Enhanced Billing View**: The billing page now displays a color-coded summary grouped by training center, and correctly incorporates billable events from the Planning calendar. The grand total is displayed in a distinct black-and-white block.
+-   **Test Reset Functionality**: A backend endpoint () has been created, and a Recommencer button now appears on the student's dashboard for any submitted T1, T2, or T3 tests.
+-   **Jitsi Video Integration**: A Rejoindre la visio button has been added to the Teacher and Student dashboards for sessions marked as Distanciel. The button generates a unique Jitsi meeting link for each session.
 
 **Last working item**:
--   **Last item agent was working**: The agent was about to remove a dangerous fallback URL from the  function in . This was to fix an issue where students were being sent emails with links to a preview environment instead of the production URL .
--   **Status**: IN PROGRESS
+-   **Last item agent was working**: The user requested three specific refinements for the newly implemented Rejoindre la visio button.
+-   **Status**: NOT STARTED
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: Manual testing. After deployment, create a new student and verify the link in the welcome email points to the correct production URL.
+-   **Which testing method agent to use?**: screenshot tool
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: Application Instability & Data Mismatches (Priority: P0)
--   **Issue 2**: Test results (T1, Q1) are not consistently appearing in the Bilan des tests report. (Priority: P1)
--   **Issue 3**: Welcome email for new students does not contain the password. (Priority: P2)
+-   **Issue 1**: Refine Jitsi Rejoindre la visio button (Priority: P0)
+-   **Issue 2**: Welcome email for new students is missing the password (Priority: P1)
+-   **Issue 3**:  file instability (Priority: P1)
 
 **Issues Detail**:
 -   **Issue 1**:
-    -   **Description**: This is the root cause of the user's frustration. The application is in a highly unstable state. There are clear data and configuration mismatches between the local/preview environment and the production environment. This has caused students to disappear, passwords to be out of sync, and features to work locally but fail in production. An  in  also recently caused a deployment failure.
-    -   **Attempted fixes**: The agent has fixed numerous symptoms (re-creating students, fixing  files repeatedly, patching bugs). However, the underlying environmental inconsistency has not been addressed. The agent last fixed a critical  in  that was blocking deployment.
+    -   **Description**: The user is not satisfied with the current implementation of the Jitsi video chat button and has requested three changes:
+        1.  On the student dashboard, the button should be smaller and round.
+        2.  On the student dashboard, the button should be hidden once the session's end time has passed.
+        3.  On the teacher dashboard, the button should be moved from next to each student's name to a single location for the entire session block (next to the date/time).
+    -   **Attempted fixes**: None. This is a new request.
     -   **Next debug checklist**:
-        1.  Deploy the latest fixes (including the  fix and the  fix).
-        2.  Conduct a full regression test of all core features: Teacher login, Student login (for multiple students), Student registration, Session signing, and Test submission/viewing.
-        3.  Investigate why  files are being reset or are inconsistent between environments.
-        4.  Confirm the production database name (?) and ensure all backend code and scripts consistently use this name via environment variables, removing all hardcoded references to .
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical blocker to making the application usable. Fixing this will provide a stable foundation and stop the constant cycle of bug-fixing and regression.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on other issue**: None. This blocks everything else.
+        1.  Modify : Adjust the button's CSS to make it smaller and round (, adjust padding/size). Add conditional rendering logic to hide the button if .
+        2.  Modify : Move the button's JSX from within the student list mapping to the main session header section.
+    -   **Why fix this issue and what will be achieved with the fix?**: To meet the user's specific UI/UX requirements for the new video chat feature.
+    -   **Status**: NOT STARTED
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Blocked on other issue**: None
 -   **Issue 2**:
-    -   **Description**: The user reports that completed tests do not appear in the Bilan des tests report. The agent found that tests were being created with  instead of  and adjusted the backend endpoint () to query for both. This fix has been coded but is pending deployment.
-    -   **Attempted fixes**: The agent modified the query in the  endpoint in  to include  for the .
+    -   **Description**: A critical issue from the previous fork that was never addressed. When a new student is created, the welcome email they receive does not include their auto-generated password, preventing them from logging in for the first time.
+    -   **Attempted fixes**: None in this session. Previous investigation showed the password variable exists in the backend but may not be rendering in the email template.
     -   **Next debug checklist**:
-        1.  Ensure the latest code is deployed.
-        2.  Have a student (e.g., Ghislain) submit a test in the production environment.
-        3.  As the teacher, navigate to the Bilan des tests page and verify that the submitted test and score appear correctly for that student.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a core feature for pedagogical tracking. Fixing it will allow the teacher to monitor student progress.
-    -   **Status**: IN PROGRESS (Fix implemented, deployment pending)
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on other issue**: Issue 1: Application Instability & Data Mismatches
--   **Issue 3**:
-    -   **Description**: When a new student is created, the welcome email they receive does not include their temporary password, preventing them from logging in.
-    -   **Attempted fixes**: The agent investigated the backend code () and confirmed that a  variable *is* generated and passed to the  function. The HTML template also includes the placeholder for it. The root cause remains unknown.
-    -   **Next debug checklist**:
-        1.  After the application is stabilized, re-investigate this issue.
-        2.  Add more detailed logging inside the  function to log the exact  body being sent.
-        3.  Create a test student and inspect the logs to see if the password is in the final HTML string.
-        4.  If it is, the issue may be with the email sending service stripping content, which is unlikely but possible.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical issue for user onboarding.
+        1.  Add logging to the  function in  to print the final rendered HTML content of the email before it's sent.
+        2.  Create a new test student and check the server logs to confirm if the password is in the email body.
+        3.  If the password is not in the logs, debug the template rendering logic. If it is, the issue might be with the email sending service itself.
+    -   **Why fix this issue and what will be achieved with the fix?**: This is critical for new user onboarding, which is currently broken.
     -   **Status**: NOT STARTED
     -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: backend
-    -   **Blocked on other issue**: Issue 1: Application Instability & Data Mismatches
+    -   **Blocked on other issue**: None
+-   **Issue 3**:
+    -   **Description**: The  file has repeatedly and spontaneously reverted to pointing  at the preview environment URL instead of the production one. This has caused multiple production outages (white screen) that were difficult to diagnose.
+    -   **Attempted fixes**: The agent has manually corrected the file multiple times and re-deployed.
+    -   **Next debug checklist**: This is likely an infrastructure or platform-level issue. The next agent should be vigilant and verify the contents of  before every deployment and after any production issue. If it happens again, it needs to be escalated.
+    -   **Why fix this issue and what will be achieved with the fix?**: To prevent catastrophic production failures and ensure application stability.
+    -   **Status**: RESOLVED (for now)
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Blocked on other issue**: None
 
 **In progress Task List**:
--   **Task 1**: Deploy all pending fixes and stabilize the application (Priority: P0)
-    -   **Where to resume**: The user has just confirmed the last deployment is finished after the agent fixed a critical . The next step is to test everything.
-    -   **What will be achieved with this?**: A stable, working production application that addresses the user's most recent complaints about login failures, missing signatures, and missing test results.
-    -   **Status**: USER VERIFICATION PENDING
-    -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on something**: None.
+-   None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **P1**: Complete the frontend integration for the pedagogical analysis report (). (From previous fork)
-    -   **P2**: Refactor  into smaller components. (From previous fork)
-    -   **P3**: Make test selection dropdowns dynamic. (From previous fork)
+    -   **P1**: Complete the frontend integration for the pedagogical analysis report ().
+    -   **P2**: Refactor  into smaller components to reduce complexity.
+    -   **P3**: Make test selection dropdowns dynamic.
 -   **Future Tasks**:
-    -   **P4**: Implement  type resource uploads/downloads. (From previous fork)
-    -   **P5**: Implement a memory feature for last-used templates. (From previous fork)
-    -   **P6**: Build a full CRUD interface for quiz templates. (From previous fork)
+    -   **P4**: Implement  type resource uploads/downloads.
+    -   **P5**: Implement a memory feature for last-used templates.
+    -   **P6**: Build a full CRUD interface for quiz templates.
 
 **Completed work in this session**
--   **Critical Bug Fixes**:
-    -   Fixed a server-crashing  error by replacing  with .
-    -   Resolved a Safari-specific login failure by creating a  utility with fallbacks for .
-    -   Fixed multiple deployment failures caused by syntax errors (, unmatched parentheses) in .
-    -   Fixed a recurring white screen error on production by correcting the  in .
-    -   Fixed a crash () on the  page by adding null checks.
-    -   Corrected the  endpoint to query for both  and  resource types.
--   **Data Restoration & Correction**:
-    -   Restored two disappeared students (Djibril, Germaine) by re-creating them in the production database.
-    -   Created and deployed a  endpoint to bulk-correct sessions that were signed but had an incorrect  status.
-    -   Created and deployed a  endpoint to make all past sessions signable.
--   **UI/UX Enhancements**:
-    -   Replaced the cluttered session action buttons with a compact Actions dropdown menu on the .
-    -   Added the full year 2026 to date pickers in , , and .
+-   **Application Stabilization**:
+    -   Fixed multiple production outages (white screen) by correcting the  in  and forcing a frontend rebuild/re-deployment.
+    -   Resolved a critical data issue where students were missing tests in production by creating a one-time  endpoint to repair the production database.
+-   **UI/UX Overhaul**:
+    -   Implemented Year/Month dropdown filters on , , and , replacing the old tab system.
+    -   Added a Centre filter to .
+-   **Billing Feature Expansion**:
+    -    now displays a color-coded summary of totals grouped by center.
+    -   Events created in the  are now correctly fetched and displayed in the .
+    -   Added an  field to the event creation modal in  and updated the backend to store it.
+-   **New Feature: Test Reset**:
+    -   Created a backend endpoint () to revert a test's status to NON_COMMENCE.
+    -   Added a Recommencer mon test button to the  for submitted tests.
+-   **New Feature: Video Chat Integration**:
+    -   Integrated Jitsi Meet by adding a Rejoindre la visio button to  and  for remote sessions, which generates a unique meeting link per session.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1**: The user reported that the correct production URL is  (without an 'a'), but emails are being sent with . The agent asked for clarification on the exact URL but never received an answer.
-    -   **Debug checklist**: Get the exact, correct production URL from the user and update  in .
-    -   **Why to solve this issue and what will be achieved with this?**: To ensure users are directed to the correct, working URL from all automated emails.
-    -   **Should Test frontend/backend/both after fix**: backend
-    -   **Is recurring issue?**: N
+-   **Issue 1**: The welcome email for new students is missing the password. (Now listed in the Pending Issues list).
 
 **Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork**: High complexity in  leading to bugs.
--   **Recurrence count**: High. This session saw constant changes and bug-fixing in  and .
--   **Status**: NOT STARTED. The files have become even more complex. Refactoring is urgently needed but has been constantly postponed due to critical bugs.
+-   **Issue recurrence in previous fork**:  instability.
+-   **Recurrence count**: High (occurred at least 3 times this session).
+-   **Status**: RESOLVED (for now). The file is currently correct, but the root cause of its reversion is unknown, making it a major risk.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Environment Instability**: The core problem of the session. Constant desynchronization between local and production  files and databases ( vs. ).
--   **Async Task Scheduling**: Replaced  with  to resolve  error in FastAPI.
--   **Browser Storage Compatibility**: Created a custom storage utility () that attempts , then falls back to , then cookies, to handle Safari's strict privacy settings.
--   **Defensive Coding**: Added null checks (e.g., ) in the frontend to prevent crashes from unexpected null data from the backend.
+-   **Environment Instability**: The core challenge was the desynchronization between the preview and production environments, which have separate databases and configurations. The  file was the main culprit for deployment failures.
+-   **Data Repair via API**: When production data was found to be missing (students without tests), the agent created a temporary, admin-only API endpoint () to manually repair the data without requiring direct database access.
+-   **Frontend State Refactoring**: Replaced complex, tab-based state with centralized year/month/center filters, using  and  to derive the filtered views efficiently.
+-   **Data Aggregation on Frontend**: The  component was refactored to fetch data from two separate sources ( and ) and merge them into a single, cohesive view for the user.
+-   **Third-Party JS Integration**: Integrated Jitsi Meet by generating dynamic room URLs and launching them in a new tab, requiring no complex SDKs.
 
 **key DB schema**
--   No schema changes.
--   **Key Discovery**: Test results are stored in the  collection, not a separate  collection. The  can be either  or .
--   **Critical Issue**: Inconsistent use of two different database names ( and ) in the backend code, leading to data disappearing.
+-   **planning_events** (collection in MongoDB): Documents in this collection now have an optional  field.
+
+**changes in tech stack**
+-   None.
 
 **All files of reference**
--   : The most frequently modified file, for bug fixes, new endpoints, and logic changes.
--   : Heavily modified for UI changes and bug investigations.
--   : Modified to fix crashes and data fetching.
--   : New file created to solve Safari login issues.
--   : Modified to use the new .
--    & : Source of multiple production-breaking issues.
+-    (UI for filters, Jitsi button)
+-    (UI for test reset, Jitsi button)
+-    (Major refactor for filters and center summary)
+-    (UI for filters, hourly rate modal)
+-    (New endpoints for data repair and test reset)
+-    (Critical configuration file, known to be unstable)
+
+**Areas that need refactoring**:
+-    and  are becoming very large and complex. The original handoff recommended refactoring them, and more logic has since been added. They should be broken down into smaller, more manageable components.
+
+**key api endpoints**
+-   : Resets a student's test status to .
+-   : (Temporary) Assigns T1, T2, T3 resources to a student.
+-   : Now used by the billing page to fetch billable events.
+-   : Now accepts an .
 
 **Critical Info for New Agent**
--   **PRIORITIZE STABILITY OVER FEATURES**: The user is extremely frustrated with the application's instability. Do not start any new features. Your sole focus must be on achieving one stable, fully tested deployment that resolves all outstanding bugs.
--   **ENVIRONMENT MISMATCH IS THE ROOT CAUSE**: The constant problems (disappearing data, login failures after deployment) stem from differences between the local and production environments (different  files, different database names). Verify every configuration setting before and after deployment. Assume nothing is in sync.
--   **THE LAST DEPLOYMENT WAS TO FIX A SYNTAX ERROR**: The very last action was deploying a fix for an  in . The agent was about to test and run the fix-it endpoints (). You must start by verifying the state of the application *after* this deployment.
--   **USER IS AT BREAKING POINT**: The user has threatened to stop working on the project. Your first interaction must be confident, methodical, and focused on demonstrating stability. Do not ask the user to deploy again until you are certain all pending fixes are bundled and tested.
+-   **ENVIRONMENTAL INSTABILITY IS THE BIGGEST RISK**: Be extremely cautious with deployments. The  file has a history of reverting to an incorrect URL, which causes the production site to go down with a white screen. **Always verify the contents of  before asking the user to deploy.**
+-   **PREVIEW AND PRODUCTION ARE SEPARATE**: The preview environment () and the production environment () use **DIFFERENT, UNSYNCHRONIZED DATABASES**. Data added or changed in one will NOT appear in the other. The user sometimes gets confused by this. All final work must be verified on the production URL.
+-   **The user's latest request is a UI refinement**, not a new feature. Address the three points about the Jitsi button first.
 
-**Last 10 User Messages and any pending user messages**
-1.  **User**: I cant log in." (After agent introduced syntax errors).
-2.  **User**: "Failed to Deploy... if this doesnt work. Im stopping work with you."
-3.  **User**: "The deployment is finished." (After syntax error was fixed).
-4.  **User**: "The signatures still arent showing up. (After successful deployment).
-5.  **User**: Reports a crash on the BilanTests page ().
-6.  **User**: Reports the same crash again after the first fix.
-7.  **User**: It works, but the students completed tests arent showing up.
-8.  **User**: Calls the deployment agent with logs showing  warnings.
-9.  **User**: You need to assign T1, T2, T3 to Germaine... there is an error during submission.
-10. **User**: All students must access via https://teachportal-12.emergent.host/student... not the trial version.
+**documents and test_reports created in this job**
+-   /app/test_result.md (Updated and used once)
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User**: I deployed and cleared caches and it's still not working.
+2.  **User**:  isn't working, I can't log in.
+3.  **User**: I deployed and cleared the caches.
+4.  **User**: I will have to do the same for the planning. 2) from now on when I create an event directly in the planning, you will have to systematically give me the hourly rate (for example zepartner is already the case) for SFA and all the others you will have to ask me for the hourly rate. 3) in the invoicing, you will have to show the global total per month, per center. ex: the partner 3400€ , SFA 2300€ etc... you will have to do the total per month as well 5700 for example. this will give me a global vision of the invoicing and not only for zepartner. 4) for those who are already created, I must have the possibility to modify the hourly rate. thank you.
+5.  **User**: I deployed and it wasn't done in techportal.
+6.  **User**: in the teacher Dashboard, you need to be able to filter the months in the session by month section. because it's too heavy all the months in a row. filter by year and by month you do until 2030 2) you do the same thing in the invoicing to make it easier.
+7.  **User**: it's redeployed.
+8.  **User**: In the T1 T2 and T3 tests of all the courses, you will create a button only when the test is validated and the student has submitted it too early (today we don't have the possibility to retake it). a button that allows you to retake it. retake my test (at the end of the test completed banner)
+9.  **User**: are you able to for students who have visions with me, in the student Dashboard, to create a link for them in front of each session, to connect in Visio with me on the professor side. or are you obliged to go through meet? or something else? or can you do video directly?
+10. **User**: 1) you have to create a button in the student and professor Dashboard (neither orange, nor green, nor purple, nor blue) in relief, with the text: join my Visio session I have sent you screenshots of where to put it in the student and professor Dashboard next to each session.
+11. **User**: it's a requirement that the button be gray and say available in 15 minutes? is it a requirement for your link? I would prefer a button that is always there that creates a unique link 15 minutes before and unlimited after the start of the session. the button will be pink and filled. or do you not have a choice technically with this 15-minute principle? also I don't see a button in the sessions of the professor Dashboard by the way.
+12. **User**: 1) in the student Dashboard it's good. you have to make a small modification, make it smaller for space saving and round (not rectangular) 2) it will have to be removed from the student Dashboard when the session is finished (after the timestamp of the session) 3) the location of the button in the professor Dashboard is not good: I have put the screenshot, don't put it at the end of the student's banner. but next to the subject of the date and times. if there are several students in a session, they must have the same link as me, but I only have one per session. thank you.
 
 **Project Health Check:**
--   **Broken**: The application's stability is critically compromised. Core features like test reporting are confirmed to be broken. There are unresolved data integrity issues between different databases and environments.
+-   **Unstable**: While currently functional on production, the application is rated as Unstable due to the high risk of the  file reverting, which has caused multiple production outages. The root cause of this file instability is unknown.
 
 **3rd Party Integrations**
--   None mentioned or added in this session.
+-   **Jitsi Meet**: Used for the video conferencing feature. It is integrated via a simple URL generation scheme () and does not require an API key.
 
 **Testing status**
--   **Testing agent used after significant changes**: NO (Agent used manual curl, screenshots, and log checks).
--   **Troubleshoot agent used after agent stuck in loop**: YES, multiple times. It correctly identified database inconsistencies.
+-   **Testing agent used after significant changes**: NO. The agent relied heavily on manual  commands and the  tool to verify functionality.
+-   **Troubleshoot agent used after agent stuck in loop**: YES, it was used to correctly diagnose a deployment failure caused by the unstable  file.
 -   **Test files created**: None.
--   **Known regressions**: Numerous. Login functionality, signature display, and test reporting have all broken and been fixed multiple times.
+-   **Known regressions**: The white screen on production due to  corruption is a major recurring regression.
 
 **Credentials to test flow:**
 -   **Teacher**:  / 
--   **Joana DOS SANTOS**:  / 
 -   **Ghislain AKIANA**:  / 
+-   **Germaine CHAPERON**:  /  (Production password)
 -   **Djibril KANTE**:  / 
--   **Germaine CHAPERON**:  / 
 
 **What agent forgot to execute**
--   The agent did not get a definitive answer on the techportal vs teachportal URL and did not implement a fix.
--   The root cause of the missing password in the welcome email was never found, and the issue was abandoned in favor of more urgent bugs.
--   The agent failed to establish a stable workflow, constantly switching contexts based on user's urgent (and often conflicting) demands, leading to a chaotic session and introducing new bugs while fixing old ones.</analysis>
+-   The critical bug where the **welcome email is missing the password** has not been addressed.
+-   The planned refactoring of  and other large components has been postponed.</analysis>
