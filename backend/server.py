@@ -82,16 +82,16 @@ scheduler = AsyncIOScheduler()
 async def startup_event():
     """Démarrer le scheduler au lancement de l'application"""
     try:
-        # Vérifier les rappels toutes les 5 minutes
+        # Vérifier les rappels toutes les 2 minutes pour être précis sur les 15 min
         scheduler.add_job(
             send_session_reminders,
-            trigger=IntervalTrigger(minutes=5),
+            trigger=IntervalTrigger(minutes=2),
             id='session_reminders',
-            name='Vérification des rappels de séances',
+            name='Vérification des rappels de séances (15 min avant)',
             replace_existing=True
         )
         scheduler.start()
-        logger.info("✅ Scheduler de rappels démarré - Vérification toutes les 5 minutes")
+        logger.info("✅ Scheduler de rappels 15min démarré - Vérification toutes les 2 minutes")
     except Exception as e:
         logger.error(f"Erreur lors du démarrage du scheduler: {e}")
 
