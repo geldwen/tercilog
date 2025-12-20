@@ -1423,9 +1423,25 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <h3 className="text-lg font-semibold text-gray-900">{group.subject}</h3>
-                            <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-1">
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mt-1">
                               <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{new Date(group.date).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
                               <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{group.start_time} - {group.end_time} ({group.duration_hours}h)</span>
+                              {/* Bouton Visio pour toute la séance - affiché uniquement pour le distanciel */}
+                              {group.sessions[0]?.modality === 'distanciel' && (
+                                <a
+                                  href={generateJitsiLink(group.sessions[0])}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-white transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                  style={{ 
+                                    backgroundColor: '#E91E63',
+                                    boxShadow: '0 4px 14px 0 rgba(233, 30, 99, 0.39)'
+                                  }}
+                                >
+                                  <Video className="w-4 h-4" />
+                                  Rejoindre la visio
+                                </a>
+                              )}
                             </div>
                           </div>
                         </div>
