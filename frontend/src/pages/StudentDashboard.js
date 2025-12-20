@@ -429,11 +429,6 @@ export default function StudentDashboard({ user, onLogout }) {
       return null;
     }
     
-    // Afficher seulement pour les séances en distanciel (ou si modality non définie/présumée distanciel)
-    if (session.modality && session.modality !== 'distanciel') {
-      return null;
-    }
-    
     const jitsiLink = generateJitsiLink(session);
     
     return (
