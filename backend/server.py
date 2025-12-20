@@ -3380,7 +3380,80 @@ def detect_need_in_questionnaire(questionnaire_data: dict, parcours: str = "Angl
     if not questionnaire_data:
         return {"has_need": False, "detected_keywords": [], "reasons": []}
     
+    # Sélectionner la grille selon le parcours
+    if parcours == "Informatique":
+        keywords_config = KEYWORDS_INFORMATIQUE
+        keyword_to_action = KEYWORD_TO_ACTION_INFORMATIQUE
+    else:
+        keywords_config = KEYWORDS_ANGLAIS
+        keyword_to_action = KEYWORD_TO_ACTION_ANGLAIS
+    
     has_need = False
+    detected_keywords = []
+    reasons = []
+    
+    # Convertir toutes les valeurs en texte pour l'analyse
+    all_text = ""
+    for key, value in questionnaire_data.items():
+        if key in ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data']:
+            continue
+        
+        if isinstance(value, str):
+            all_text += " " + value.lower()
+        elif isinstance(value, list):
+            all_text += " " + " ".join([str(v).lower() for v in value])
+        elif isinstance(value, dict):
+            for v in value.values():
+                if isinstance(v, str):
+                    all_text += " " + v.lower()
+    
+    # 1. Rechercher les mots déclencheurs de besoin
+    for trigger in NEED_TRIGGER_WORDS:
+        if trigger in all_text:
+            has_need = True
+            reasons.append(f"Mot-clé détecté: '{trigger}'")
+            break
+    
+    # 2. Rechercher les réponses négatives/mitigées
+    for neg in NEGATIVE_RESPONSES:
+        if neg in all_text:
+            has_need = True
+            reasons.append(f"Réponse négative/mitigée: '{neg}'")
+            break
+    
+    # 3. Vérifier les champs spécifiques de difficultés
+    difficulties_fields = ['difficulties', 'difficultes', 'difficultes_rencontrees', 'points_ameliorer']
+    for field in difficulties_fields:
+        if field in questionnaire_data:
+            value = questionnaire_data[field]
+            if value and (isinstance(value, list) and len(value) > 0) or (isinstance(value, str) and value.strip()):
+                has_need = True
+                reasons.append(f"Difficultés signalées dans '{field}'")
+    
+    # 4. Vérifier objectifs non atteints
+    objectives_fields = ['objectifs_atteints', 'objectifs']
+    for field in objectives_fields:
+        if field in questionnaire_data:
+            value = str(questionnaire_data[field]).lower()
+            if any(neg in value for neg in ['partiel', 'non', 'pas']):
+                has_need = True
+                reasons.append("Objectifs partiellement ou non atteints")
+    
+    # 5. Extraire les mots-clés pédagogiques détectés
+    all_keywords = []
+    for category_keywords in keywords_config.values():
+        all_keywords.extend(category_keywords)
+    
+    for keyword in all_keywords:
+        if keyword.lower() in all_text:
+            detected_keywords.append(keyword)
+    
+    return {
+        "has_need": has_need,
+        "detected_keywords": list(set(detected_keywords)),
+        "reasons": reasons[:3],
+        "keyword_to_action": keyword_to_action
+    }
     detected_keywords = []
     reasons = []
     
