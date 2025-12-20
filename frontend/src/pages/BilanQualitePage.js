@@ -355,12 +355,64 @@ const BilanQualitePage = () => {
 };
 
 // ============================================================================
-// COLONNE ACTIONS FORMATEUR (3 lignes fixes Q1/Q2/Q3) - Avec résumé lisible
+// UTILITAIRES POUR LA NORMALISATION DES MOTS-CLÉS (Phase 2 Simplifié)
 // ============================================================================
-const NIVEAU_LABELS = {
-  leger: { label: "léger", color: "text-green-600" },
-  moyen: { label: "moyen", color: "text-orange-600" },
-  important: { label: "important", color: "text-red-600" }
+const KEYWORD_NORMALIZER = {
+  distanciel: "adaptation du format",
+  présentiel: "adaptation du format",
+  presentiel: "adaptation du format",
+  hybride: "adaptation du format",
+  planning: "flexibilité / organisation",
+  disponibilite: "flexibilité / organisation",
+  disponibilité: "flexibilité / organisation",
+  rythme: "aménagement du rythme",
+};
+
+const normalizeKeywords = (raw) => {
+  const out = raw
+    .map(k => k.trim().toLowerCase())
+    .filter(Boolean)
+    .map(k => KEYWORD_NORMALIZER[k] || k);
+  return [...new Set(out)];
+};
+
+/** Convertit des mots-clés internes en phrase "Besoin du bénéficiaire" */
+const buildBesoinSentence = (keywords) => {
+  const ks = normalizeKeywords(keywords);
+  const groups = [];
+
+  const oralSet = new Set(["oral", "aisance à l'oral", "expression orale"]);
+  const compOraleSet = new Set(["compréhension orale"]);
+  const vocabSet = new Set(["vocabulaire", "vocabulaire professionnel"]);
+  const gramSet = new Set(["grammaire"]);
+  const pronSet = new Set(["prononciation"]);
+  const ecritSet = new Set(["expression écrite", "compréhension écrite"]);
+  const orgaSet = new Set(["adaptation du format", "flexibilité / organisation", "aménagement du rythme"]);
+
+  const has = (s) => ks.some(k => s.has(k));
+
+  if (has(oralSet)) groups.push("renforcer la pratique orale");
+  if (has(compOraleSet)) groups.push("améliorer la compréhension orale");
+  if (has(vocabSet)) groups.push("développer le vocabulaire");
+  if (has(gramSet)) groups.push("revoir des points de grammaire");
+  if (has(pronSet)) groups.push("travailler la prononciation");
+  if (has(ecritSet)) groups.push("consolider les compétences à l'écrit");
+  if (has(orgaSet)) groups.push("adapter l'organisation / le format");
+
+  if (groups.length === 0) {
+    return "Le bénéficiaire a exprimé un besoin d'adaptation pédagogique.";
+  }
+
+  return `Le bénéficiaire a exprimé un besoin de : ${groups.join(", ")}.`;
+};
+
+/** Construit le compte-rendu formateur par défaut */
+const buildDefaultCompteRendu = (keywords, actions) => {
+  const besoin = buildBesoinSentence(keywords);
+  const actionsTxt = actions.length
+    ? `Actions mises en place par le formateur : ${actions.map(a => a.label).join(" ; ")}.`
+    : "Actions mises en place par le formateur : à préciser.";
+  return `${besoin}\n${actionsTxt}`;
 };
 
 const formatActionDate = (dateStr) => {
@@ -375,6 +427,9 @@ const formatActionDate = (dateStr) => {
   } catch { return ""; }
 };
 
+// ============================================================================
+// COLONNE ACTIONS FORMATEUR (3 lignes fixes Q1/Q2/Q3) - Résumé lisible
+// ============================================================================
 const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) => {
   const [detailModal, setDetailModal] = useState(null);
   const qTypes = ["Q1", "Q2", "Q3"];
@@ -401,28 +456,20 @@ const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) 
           const action = status.action;
           
           if (action.has_need) {
-            // Avec besoin identifié - Afficher résumé complet
-            const niveauInfo = NIVEAU_LABELS[action.niveau_besoin] || { label: action.niveau_besoin, color: "text-gray-600" };
-            const motsCles = action.mots_cles || action.selected_keywords || [];
             const dateAction = formatActionDate(action.created_at);
+            // Récupérer le texte besoin (nouveau format) ou le générer
+            const besoinText = action.besoin_text || buildBesoinSentence(action.mots_cles || action.selected_keywords || []);
+            // Version courte pour le résumé
+            const besoinShort = besoinText.length > 60 ? besoinText.substring(0, 57) + "..." : besoinText;
             
             return (
               <div key={qType} className="py-1 px-2 bg-gray-100 rounded text-xs">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    {/* Ligne 1: Qx — Besoin + niveau */}
-                    <p className="font-medium text-gray-800">
-                      {qType} — Besoin {motsCles.length > 0 ? motsCles[0] : "identifié"} 
-                      {action.niveau_besoin && (
-                        <span className={`ml-1 ${niveauInfo.color}`}>(niveau {niveauInfo.label})</span>
-                      )}
-                    </p>
-                    {/* Ligne 2: Date de l'action */}
-                    <p className="text-gray-500 text-[10px]">
-                      Action mise en place le {dateAction}
-                    </p>
+                    <p className="font-medium text-gray-800">{qType} — Action définie</p>
+                    <p className="text-gray-600 text-[10px] truncate" title={besoinText}>{besoinShort}</p>
+                    <p className="text-gray-500 text-[10px]">{dateAction}</p>
                   </div>
-                  {/* Bouton Voir le détail */}
                   <button 
                     onClick={() => setDetailModal({ qType, action, eleve })}
                     className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-[10px] whitespace-nowrap"
@@ -433,7 +480,6 @@ const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) 
               </div>
             );
           } else {
-            // Aucun besoin - Dispositif maintenu
             return (
               <div key={qType} className="flex items-start gap-2 py-1 px-2 bg-green-50 border border-green-200 rounded text-xs">
                 <span className="font-medium w-8 text-green-700">{qType}</span>
@@ -453,7 +499,6 @@ const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) 
         const hasNeed = status?.has_need;
         
         if (hasNeed) {
-          // 🟠 ORANGE - Action requise
           return (
             <div key={qType} className="flex items-center gap-2 py-1 px-2 bg-orange-50 border border-orange-200 rounded text-xs">
               <span className="font-medium w-8 text-orange-700">{qType}</span>
@@ -468,7 +513,6 @@ const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) 
             </div>
           );
         } else {
-          // 🟢 VERT - Aucun besoin (mais doit être validé)
           return (
             <div key={qType} className="flex items-center gap-2 py-1 px-2 bg-green-50 border border-green-200 rounded text-xs">
               <span className="font-medium w-8 text-green-700">{qType}</span>
@@ -505,18 +549,23 @@ const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) 
 };
 
 // ============================================================================
-// MODAL DÉTAIL DE L'ACTION (Voir le détail)
+// MODAL DÉTAIL DE L'ACTION (SANS niveau, SANS mots-clés affichés)
+// Affiche: 1) Besoin du bénéficiaire 2) Actions mises en place 3) Compte-rendu
 // ============================================================================
 const ActionDetailModal = ({ action, qType, eleve, onClose }) => {
-  const niveauInfo = NIVEAU_LABELS[action.niveau_besoin] || { label: action.niveau_besoin || "N/A", color: "text-gray-600" };
-  const motsCles = action.mots_cles || action.selected_keywords || [];
-  const actions = action.actions || action.selected_actions || [];
+  // Récupérer les textes (nouveau format ou générer depuis ancien)
+  const besoinText = action.besoin_text || buildBesoinSentence(action.mots_cles || action.selected_keywords || []);
+  const actionsText = action.actions_text || (
+    (action.actions || action.selected_actions || []).length > 0
+      ? `Actions mises en place par le formateur : ${(action.actions || action.selected_actions || []).join(" ; ")}.`
+      : "Actions mises en place par le formateur : à préciser."
+  );
   const compteRendu = action.compte_rendu_final || action.final_text || "";
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
-        {/* Header */}
+        {/* Header bleu */}
         <div className="bg-blue-600 text-white p-4 flex justify-between items-center rounded-t-xl">
           <div>
             <h2 className="text-lg font-bold">Détail de l&apos;action — {qType}</h2>
@@ -526,41 +575,31 @@ const ActionDetailModal = ({ action, qType, eleve, onClose }) => {
         </div>
         
         <div className="p-6 space-y-4">
-          {/* Niveau de besoin */}
+          {/* Besoin du bénéficiaire */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Niveau du besoin</p>
-            <p className={`font-medium ${niveauInfo.color}`}>{niveauInfo.label}</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Besoin du bénéficiaire</p>
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm text-gray-800">
+              {besoinText}
+            </div>
           </div>
           
-          {/* Mots-clés */}
-          {motsCles.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Mots-clés identifiés</p>
-              <div className="flex flex-wrap gap-2">
-                {motsCles.map((kw, i) => (
-                  <span key={i} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">{kw}</span>
-                ))}
-              </div>
-            </div>
-          )}
-          
           {/* Actions mises en place */}
-          {actions.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Actions mises en place</p>
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Actions mises en place par le formateur</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <ul className="list-disc list-inside text-gray-700 text-sm space-y-1">
-                {actions.map((a, i) => (
-                  <li key={i}>{a}</li>
+                {(action.actions || action.selected_actions || []).map((a, i) => (
+                  <li key={i}>{typeof a === 'object' ? a.label : a}</li>
                 ))}
               </ul>
             </div>
-          )}
+          </div>
           
-          {/* Compte-rendu */}
+          {/* Compte-rendu formateur */}
           {compteRendu && (
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Compte-rendu formateur</p>
-              <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap">
+              <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap border">
                 {compteRendu}
               </div>
             </div>
