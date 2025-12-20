@@ -3527,6 +3527,7 @@ async def save_questionnaire_action(
     """
     Enregistre l'action formateur pour un questionnaire.
     Traçabilité Qualiopi obligatoire.
+    Nouveau format Phase 2 avec niveau de besoin et multi-sélection d'actions.
     """
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
@@ -3534,26 +3535,40 @@ async def save_questionnaire_action(
     student_id = data.get("student_id")
     student_name = data.get("student_name")
     questionnaire_type = data.get("questionnaire_type")  # Q1, Q2, Q3
-    selected_keywords = data.get("selected_keywords", [])
-    selected_actions = data.get("selected_actions", [])
-    final_text = data.get("final_text", "")
+    questionnaire_id = data.get("questionnaire_id")  # ID du questionnaire source
+    niveau_besoin = data.get("niveau_besoin")  # leger, moyen, important
+    mots_cles = data.get("mots_cles", [])  # Liste des mots-clés retenus
+    actions = data.get("actions", [])  # Liste des actions sélectionnées (max 3)
+    compte_rendu_final = data.get("compte_rendu_final", "")
     has_need = data.get("has_need", False)
+    
+    # Rétrocompatibilité avec l'ancien format
+    selected_keywords = data.get("selected_keywords", mots_cles)
+    selected_actions = data.get("selected_actions", actions)
+    final_text = data.get("final_text", compte_rendu_final)
     
     if not all([student_id, questionnaire_type]):
         raise HTTPException(status_code=400, detail="student_id et questionnaire_type requis")
     
-    # Créer l'enregistrement de traçabilité
+    # Créer l'enregistrement de traçabilité (nouveau format Phase 2)
     action_record = {
         "id": str(uuid.uuid4()),
         "student_id": student_id,
         "student_name": student_name,
         "questionnaire_type": questionnaire_type,
+        "questionnaire_id": questionnaire_id,
         "has_need": has_need,
-        "selected_keywords": selected_keywords,
-        "selected_actions": selected_actions,
-        "final_text": final_text,
+        "niveau_besoin": niveau_besoin,  # leger, moyen, important
+        "mots_cles": mots_cles if mots_cles else selected_keywords,
+        "actions": actions if actions else selected_actions,
+        "compte_rendu_final": compte_rendu_final if compte_rendu_final else final_text,
+        # Anciens champs pour rétrocompatibilité
+        "selected_keywords": selected_keywords if selected_keywords else mots_cles,
+        "selected_actions": selected_actions if selected_actions else actions,
+        "final_text": final_text if final_text else compte_rendu_final,
         "teacher_id": current_user.id,
         "teacher_name": current_user.name,
+        "created_by": current_user.name,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "status": "validated"
     }
