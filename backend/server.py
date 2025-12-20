@@ -3094,7 +3094,7 @@ async def debug_qualite_report(
     total_students = await db.users.count_documents({"role": "student"})
     my_students = await db.users.count_documents({"role": "student", "teacher_id": current_user.id})
     
-    # Lister mes élèves
+    # Lister mes élèves avec parcours
     students = await db.users.find(
         {"role": "student", "teacher_id": current_user.id},
         {"_id": 0, "id": 1, "name": 1, "email": 1, "matiere": 1, "parcours": 1}
@@ -3105,20 +3105,34 @@ async def debug_qualite_report(
     q2_count = await db.mid_course_questionnaires.count_documents({})
     q3_count = await db.end_course_questionnaires.count_documents({})
     
-    # Lister TOUS les Q2 soumis
-    all_q2 = await db.mid_course_questionnaires.find({}, {"_id": 0, "student_id": 1, "submitted_at": 1}).to_list(100)
+    # Lister TOUS les Q2 soumis avec plus de détails
+    all_q2 = await db.mid_course_questionnaires.find({}, {"_id": 0}).to_list(100)
     
-    # Pour chaque élève, vérifier s'il a un Q2
-    students_with_q2 = []
+    # Créer un mapping student_id -> student_name pour référence
+    student_id_to_name = {s.get("id"): s.get("name") for s in students}
+    
+    # Ajouter le nom de l'étudiant à chaque Q2
+    q2_with_names = []
+    for q2 in all_q2:
+        sid = q2.get("student_id")
+        q2_with_names.append({
+            "student_id": sid,
+            "student_name_from_users": student_id_to_name.get(sid, "NOT FOUND IN USERS"),
+            "submitted_at": q2.get("submitted_at"),
+            "has_data": bool(q2)
+        })
+    
+    # Pour chaque élève Anglais, vérifier s'il a un Q2
+    anglais_students_q2_check = []
     for student in students:
-        student_id = student.get("id")
-        q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
-        if q2:
-            students_with_q2.append({
+        if student.get("parcours") == "Anglais":
+            student_id = student.get("id")
+            q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+            anglais_students_q2_check.append({
                 "student_name": student.get("name"),
                 "student_id": student_id,
-                "q2_submitted_at": q2.get("submitted_at"),
-                "q2_has_data": bool(q2)
+                "q2_found": q2 is not None,
+                "q2_submitted_at": q2.get("submitted_at") if q2 else None
             })
     
     # Compter les templates
@@ -3127,17 +3141,16 @@ async def debug_qualite_report(
     return {
         "teacher_id": current_user.id,
         "teacher_name": current_user.name,
-        "teacher_email": current_user.email,
         "total_students_in_db": total_students,
         "my_students_count": my_students,
         "my_students": students,
         "questionnaires_count": {
-            "q1": q1_count,
-            "q2": q2_count,
-            "q3": q3_count
+            "q1_formation_needs": q1_count,
+            "q2_mid_course": q2_count,
+            "q3_end_course": q3_count
         },
-        "all_q2_in_db": all_q2,
-        "students_with_q2": students_with_q2,
+        "all_q2_in_mid_course_collection": q2_with_names,
+        "anglais_students_q2_check": anglais_students_q2_check,
         "templates_count": templates_count
     }
 
