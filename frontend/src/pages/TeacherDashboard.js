@@ -1518,21 +1518,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 
                                 {/* Menu Actions compact */}
                                 <div className="flex justify-end mt-3 gap-2">
-                                  {/* Bouton Visio - toujours actif */}
-                                  <a
-                                    href={generateJitsiLink(session)}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                                    style={{ 
-                                      backgroundColor: '#E91E63',
-                                      boxShadow: '0 4px 14px 0 rgba(233, 30, 99, 0.39)'
-                                    }}
-                                  >
-                                    <Video className="w-4 h-4" />
-                                    Rejoindre la visio
-                                  </a>
-                                  
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button 
