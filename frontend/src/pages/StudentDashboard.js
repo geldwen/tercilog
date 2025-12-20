@@ -422,45 +422,24 @@ export default function StudentDashboard({ user, onLogout }) {
     return `https://meet.jit.si/${roomName}`;
   };
 
-  // Vérifier si la séance est aujourd'hui ou dans les 15 minutes à venir
-  const isSessionJoinable = (session) => {
-    const now = new Date();
-    const sessionStart = new Date(`${session.date}T${session.start_time}`);
-    const sessionEnd = new Date(`${session.date}T${session.end_time}`);
-    const fifteenMinutesBefore = new Date(sessionStart.getTime() - 15 * 60 * 1000);
-    
-    return now >= fifteenMinutesBefore && now <= sessionEnd;
-  };
-
-  // Bouton Visio pour une séance
+  // Bouton Visio pour une séance (toujours actif)
   const getVisioButton = (session) => {
-    const canJoin = isSessionJoinable(session);
     const jitsiLink = generateJitsiLink(session);
     
-    if (canJoin) {
-      return (
-        <a
-          href={jitsiLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-          style={{ 
-            backgroundColor: '#E91E63', // Rose/Magenta
-            boxShadow: '0 4px 14px 0 rgba(233, 30, 99, 0.39)'
-          }}
-        >
-          <Video size={18} />
-          <span>Rejoindre la visio</span>
-        </a>
-      );
-    }
-    
-    // Séance non encore accessible
     return (
-      <span className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 bg-gray-100 border border-gray-200">
-        <Video size={16} />
-        <span>Visio dispo 15min avant</span>
-      </span>
+      <a
+        href={jitsiLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        style={{ 
+          backgroundColor: '#E91E63', // Rose/Magenta
+          boxShadow: '0 4px 14px 0 rgba(233, 30, 99, 0.39)'
+        }}
+      >
+        <Video size={18} />
+        <span>Rejoindre la visio</span>
+      </a>
     );
   };
 
