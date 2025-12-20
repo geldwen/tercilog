@@ -519,7 +519,7 @@ const ActionDetailModal = ({ action, qType, eleve, onClose }) => {
         {/* Header */}
         <div className="bg-blue-600 text-white p-4 flex justify-between items-center rounded-t-xl">
           <div>
-            <h2 className="text-lg font-bold">Détail de l'action — {qType}</h2>
+            <h2 className="text-lg font-bold">Détail de l&apos;action — {qType}</h2>
             <p className="text-blue-100 text-sm">{eleve.nom}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-blue-700 rounded-full"><X className="w-5 h-5" /></button>
