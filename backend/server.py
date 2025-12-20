@@ -3290,7 +3290,7 @@ async def relance_questionnaire(
 # PHASE 2 - ACTIONS FORMATEUR QUALIOPI
 # ============================================================================
 
-# Mots-clés pédagogiques pour le parcours Anglais
+# Mots-clés pédagogiques pour le parcours ANGLAIS
 KEYWORDS_ANGLAIS = {
     "competences_linguistiques": ["oral", "compréhension orale", "expression écrite", "compréhension écrite", "vocabulaire", "grammaire", "prononciation"],
     "pedagogie_methodes": ["rythme", "supports", "méthodes", "préparation", "répétition", "pratique"],
@@ -3298,8 +3298,8 @@ KEYWORDS_ANGLAIS = {
     "organisation": ["planning", "distanciel", "présentiel", "hybride", "disponibilité"]
 }
 
-# Grille de correspondance mots-clés -> actions suggérées
-KEYWORD_TO_ACTION = {
+# Actions suggérées ANGLAIS
+KEYWORD_TO_ACTION_ANGLAIS = {
     "oral": "Renforcer les échanges oraux",
     "compréhension orale": "Reformulation / répétition guidée",
     "expression écrite": "Exercices d'écriture ciblés",
@@ -3324,12 +3324,45 @@ KEYWORD_TO_ACTION = {
     "disponibilité": "Ajuster selon les disponibilités"
 }
 
+# Mots-clés pédagogiques pour le parcours INFORMATIQUE (débutants)
+KEYWORDS_INFORMATIQUE = {
+    "competences_numeriques": ["bases informatiques", "utilisation ordinateur", "système fichiers", "bureautique", "traitement de texte", "tableur", "présentation", "internet", "email", "sécurité"],
+    "pedagogie_methodes": ["rythme", "manipulation", "répétition", "pas à pas", "autonomie", "confiance"],
+    "organisation_conditions": ["matériel", "distanciel", "présentiel", "disponibilité", "support papier"]
+}
+
+# Actions suggérées INFORMATIQUE
+KEYWORD_TO_ACTION_INFORMATIQUE = {
+    "bases informatiques": "Reprendre les fondamentaux informatiques",
+    "utilisation ordinateur": "Exercices de manipulation souris/clavier",
+    "système fichiers": "Travail sur l'organisation des fichiers",
+    "bureautique": "Renforcer la pratique bureautique",
+    "traitement de texte": "Exercices Word ciblés",
+    "tableur": "Exercices Excel ciblés",
+    "présentation": "Exercices PowerPoint ciblés",
+    "internet": "Accompagnement navigation web",
+    "email": "Pratique messagerie guidée",
+    "sécurité": "Sensibilisation sécurité informatique",
+    "rythme": "Ajuster le rythme des séances",
+    "manipulation": "Augmenter les exercices pratiques",
+    "répétition": "Revoir les notions plusieurs fois",
+    "pas à pas": "Fournir des guides détaillés",
+    "autonomie": "Accompagnement progressif vers l'autonomie",
+    "confiance": "Encouragements et mise en confiance",
+    "matériel": "Vérifier/adapter le matériel",
+    "distanciel": "Adapter le format distanciel",
+    "présentiel": "Privilégier le présentiel",
+    "disponibilité": "Ajuster selon les disponibilités",
+    "support papier": "Fournir des documents imprimés"
+}
+
 # Mots déclencheurs de besoin (pour la détection automatique)
 NEED_TRIGGER_WORDS = [
     "difficulté", "difficile", "problème", "besoin", "demande", "souhaite", "aimerait",
     "améliorer", "renforcer", "plus de", "pas assez", "insuffisant", "compliqué",
     "mal compris", "pas compris", "confus", "perdu", "lent", "rapide", "trop",
-    "manque", "absent", "suggestion", "proposer", "adapter", "changer"
+    "manque", "absent", "suggestion", "proposer", "adapter", "changer",
+    "peur", "blocage", "stress", "aide", "accompagnement"
 ]
 
 # Réponses négatives/mitigées
@@ -3339,7 +3372,7 @@ NEGATIVE_RESPONSES = [
 ]
 
 
-def detect_need_in_questionnaire(questionnaire_data: dict) -> dict:
+def detect_need_in_questionnaire(questionnaire_data: dict, parcours: str = "Anglais") -> dict:
     """
     Analyse un questionnaire pour détecter si un besoin est identifié.
     Retourne: {"has_need": bool, "detected_keywords": list, "reasons": list}
