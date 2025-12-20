@@ -3457,28 +3457,6 @@ def detect_need_in_questionnaire(questionnaire_data: dict, parcours: str = "Angl
 
 
 @api_router.post("/teachers/questionnaire-action/analyze")
-        if field in questionnaire_data:
-            value = str(questionnaire_data[field]).lower()
-            if any(neg in value for neg in ['partiel', 'non', 'pas']):
-                has_need = True
-                reasons.append("Objectifs partiellement ou non atteints")
-    
-    # 5. Extraire les mots-clés pédagogiques détectés
-    all_keywords = []
-    for category_keywords in KEYWORDS_ANGLAIS.values():
-        all_keywords.extend(category_keywords)
-    
-    for keyword in all_keywords:
-        if keyword.lower() in all_text:
-            detected_keywords.append(keyword)
-    
-    return {
-        "has_need": has_need,
-        "detected_keywords": list(set(detected_keywords)),
-        "reasons": reasons[:3]  # Limiter à 3 raisons
-    }
-
-
 @api_router.post("/teachers/questionnaire-action/analyze")
 async def analyze_questionnaire_for_action(
     data: dict,
