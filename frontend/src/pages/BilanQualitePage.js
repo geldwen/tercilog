@@ -581,8 +581,10 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
 
   // Mettre à jour le texte quand l'action change
   useEffect(() => {
-    if (selectedAction) {
-      setFinalText(`L'apprenant a exprimé un besoin de ${selectedAction.keyword}.\nAction mise en place : ${selectedAction.label}`);
+    if (selectedAction && selectedAction.id !== "autre") {
+      setFinalText(`L'apprenant a exprimé un besoin de ${selectedAction.id}.\nAction mise en place : ${selectedAction.label}`);
+    } else if (selectedAction && selectedAction.id === "autre") {
+      setFinalText("");
     }
   }, [selectedAction]);
 
@@ -594,7 +596,7 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
         student_id: eleve.id,
         student_name: eleve.nom,
         questionnaire_type: qType,
-        selected_keywords: selectedAction ? [selectedAction.keyword] : [],
+        selected_keywords: selectedAction && selectedAction.id !== "autre" ? [selectedAction.id] : [],
         selected_actions: selectedAction ? [selectedAction.label] : [],
         final_text: finalText,
         has_need: hasNeed && selectedAction !== null
