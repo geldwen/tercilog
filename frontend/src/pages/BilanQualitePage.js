@@ -355,9 +355,28 @@ const BilanQualitePage = () => {
 };
 
 // ============================================================================
-// COLONNE ACTIONS FORMATEUR (3 lignes fixes Q1/Q2/Q3)
+// COLONNE ACTIONS FORMATEUR (3 lignes fixes Q1/Q2/Q3) - Avec résumé lisible
 // ============================================================================
+const NIVEAU_LABELS = {
+  leger: { label: "léger", color: "text-green-600" },
+  moyen: { label: "moyen", color: "text-orange-600" },
+  important: { label: "important", color: "text-red-600" }
+};
+
+const formatActionDate = (dateStr) => {
+  if (!dateStr) return "";
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('fr-FR', { 
+      day: '2-digit', month: '2-digit', year: 'numeric'
+    }) + " à " + date.toLocaleTimeString('fr-FR', { 
+      hour: '2-digit', minute: '2-digit' 
+    });
+  } catch { return ""; }
+};
+
 const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) => {
+  const [detailModal, setDetailModal] = useState(null);
   const qTypes = ["Q1", "Q2", "Q3"];
   
   return (
@@ -377,28 +396,57 @@ const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) 
           );
         }
         
-        // Si action déjà définie
+        // Si action déjà définie - Afficher le RÉSUMÉ LISIBLE
         if (status?.action_defined && status?.action) {
-          return (
-            <div key={qType} className="flex items-start gap-2 py-1 px-2 bg-gray-100 rounded text-xs">
-              <span className="font-medium w-8 text-gray-700">{qType}</span>
-              <div className="flex-1">
-                {status.action.has_need ? (
-                  <div className="text-orange-700">
-                    <p className="font-medium">✅ Action définie</p>
-                    <p className="text-gray-600 truncate" title={status.action.final_text}>
-                      {status.action.final_text?.substring(0, 50)}...
+          const action = status.action;
+          
+          if (action.has_need) {
+            // Avec besoin identifié - Afficher résumé complet
+            const niveauInfo = NIVEAU_LABELS[action.niveau_besoin] || { label: action.niveau_besoin, color: "text-gray-600" };
+            const motsCles = action.mots_cles || action.selected_keywords || [];
+            const dateAction = formatActionDate(action.created_at);
+            
+            return (
+              <div key={qType} className="py-1 px-2 bg-gray-100 rounded text-xs">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    {/* Ligne 1: Qx — Besoin + niveau */}
+                    <p className="font-medium text-gray-800">
+                      {qType} — Besoin {motsCles.length > 0 ? motsCles[0] : "identifié"} 
+                      {action.niveau_besoin && (
+                        <span className={`ml-1 ${niveauInfo.color}`}>(niveau {niveauInfo.label})</span>
+                      )}
+                    </p>
+                    {/* Ligne 2: Date de l'action */}
+                    <p className="text-gray-500 text-[10px]">
+                      Action mise en place le {dateAction}
                     </p>
                   </div>
-                ) : (
-                  <p className="text-green-700">✅ Aucun besoin - Dispositif maintenu</p>
-                )}
+                  {/* Bouton Voir le détail */}
+                  <button 
+                    onClick={() => setDetailModal({ qType, action, eleve })}
+                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-[10px] whitespace-nowrap"
+                  >
+                    <Eye className="w-3 h-3" /> Voir
+                  </button>
+                </div>
               </div>
-              <button onClick={() => onVoir(eleve, qType, qData)} className="text-blue-600 hover:underline">
-                <Eye className="w-3 h-3" />
-              </button>
-            </div>
-          );
+            );
+          } else {
+            // Aucun besoin - Dispositif maintenu
+            return (
+              <div key={qType} className="flex items-start gap-2 py-1 px-2 bg-green-50 border border-green-200 rounded text-xs">
+                <span className="font-medium w-8 text-green-700">{qType}</span>
+                <div className="flex-1">
+                  <p className="text-green-700">✅ Aucun besoin - Dispositif maintenu</p>
+                  <p className="text-green-600 text-[10px]">{formatActionDate(action.created_at)}</p>
+                </div>
+                <button onClick={() => onVoir(eleve, qType, qData)} className="text-blue-600 hover:underline">
+                  <Eye className="w-3 h-3" />
+                </button>
+              </div>
+            );
+          }
         }
         
         // Soumis mais pas encore analysé/traité
@@ -442,6 +490,93 @@ const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) 
           );
         }
       })}
+      
+      {/* Modal détail de l'action */}
+      {detailModal && (
+        <ActionDetailModal 
+          action={detailModal.action} 
+          qType={detailModal.qType}
+          eleve={detailModal.eleve}
+          onClose={() => setDetailModal(null)} 
+        />
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// MODAL DÉTAIL DE L'ACTION (Voir le détail)
+// ============================================================================
+const ActionDetailModal = ({ action, qType, eleve, onClose }) => {
+  const niveauInfo = NIVEAU_LABELS[action.niveau_besoin] || { label: action.niveau_besoin || "N/A", color: "text-gray-600" };
+  const motsCles = action.mots_cles || action.selected_keywords || [];
+  const actions = action.actions || action.selected_actions || [];
+  const compteRendu = action.compte_rendu_final || action.final_text || "";
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="bg-blue-600 text-white p-4 flex justify-between items-center rounded-t-xl">
+          <div>
+            <h2 className="text-lg font-bold">Détail de l'action — {qType}</h2>
+            <p className="text-blue-100 text-sm">{eleve.nom}</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-blue-700 rounded-full"><X className="w-5 h-5" /></button>
+        </div>
+        
+        <div className="p-6 space-y-4">
+          {/* Niveau de besoin */}
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Niveau du besoin</p>
+            <p className={`font-medium ${niveauInfo.color}`}>{niveauInfo.label}</p>
+          </div>
+          
+          {/* Mots-clés */}
+          {motsCles.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Mots-clés identifiés</p>
+              <div className="flex flex-wrap gap-2">
+                {motsCles.map((kw, i) => (
+                  <span key={i} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">{kw}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Actions mises en place */}
+          {actions.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Actions mises en place</p>
+              <ul className="list-disc list-inside text-gray-700 text-sm space-y-1">
+                {actions.map((a, i) => (
+                  <li key={i}>{a}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {/* Compte-rendu */}
+          {compteRendu && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Compte-rendu formateur</p>
+              <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap">
+                {compteRendu}
+              </div>
+            </div>
+          )}
+          
+          {/* Métadonnées */}
+          <div className="border-t pt-4 text-xs text-gray-500">
+            <p>Créé par : <span className="font-medium text-gray-700">{action.created_by || action.teacher_name}</span></p>
+            <p>Date : <span className="font-medium text-gray-700">{formatActionDate(action.created_at)}</span></p>
+          </div>
+        </div>
+        
+        <div className="p-4 bg-gray-100 border-t flex justify-end rounded-b-xl">
+          <Button onClick={onClose}>Fermer</Button>
+        </div>
+      </div>
     </div>
   );
 };
