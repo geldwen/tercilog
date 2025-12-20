@@ -3286,6 +3286,345 @@ async def relance_questionnaire(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ============================================================================
+# PHASE 2 - ACTIONS FORMATEUR QUALIOPI
+# ============================================================================
+
+# Mots-clés pédagogiques pour le parcours Anglais
+KEYWORDS_ANGLAIS = {
+    "competences_linguistiques": ["oral", "compréhension orale", "expression écrite", "compréhension écrite", "vocabulaire", "grammaire", "prononciation"],
+    "pedagogie_methodes": ["rythme", "supports", "méthodes", "préparation", "répétition", "pratique"],
+    "objectifs_parcours": ["objectifs non atteints", "certification", "professionnel", "international"],
+    "organisation": ["planning", "distanciel", "présentiel", "hybride", "disponibilité"]
+}
+
+# Grille de correspondance mots-clés -> actions suggérées
+KEYWORD_TO_ACTION = {
+    "oral": "Renforcer les échanges oraux",
+    "compréhension orale": "Reformulation / répétition guidée",
+    "expression écrite": "Exercices d'écriture ciblés",
+    "compréhension écrite": "Travail sur les textes adaptés",
+    "vocabulaire": "Travail lexical ciblé",
+    "grammaire": "Révision des points grammaticaux",
+    "prononciation": "Exercices de phonétique",
+    "rythme": "Ajuster le rythme des séances",
+    "supports": "Adapter les supports pédagogiques",
+    "méthodes": "Diversifier les approches pédagogiques",
+    "préparation": "Envoyer les supports en amont",
+    "répétition": "Augmenter la fréquence des révisions",
+    "pratique": "Augmenter les exercices pratiques",
+    "objectifs non atteints": "Revoir les objectifs et adapter le parcours",
+    "certification": "Préparation spécifique certification",
+    "professionnel": "Adapter au contexte professionnel",
+    "international": "Focus sur l'anglais international",
+    "planning": "Réorganiser le planning",
+    "distanciel": "Adapter le format distanciel",
+    "présentiel": "Privilégier le présentiel",
+    "hybride": "Équilibrer présentiel/distanciel",
+    "disponibilité": "Ajuster selon les disponibilités"
+}
+
+# Mots déclencheurs de besoin (pour la détection automatique)
+NEED_TRIGGER_WORDS = [
+    "difficulté", "difficile", "problème", "besoin", "demande", "souhaite", "aimerait",
+    "améliorer", "renforcer", "plus de", "pas assez", "insuffisant", "compliqué",
+    "mal compris", "pas compris", "confus", "perdu", "lent", "rapide", "trop",
+    "manque", "absent", "suggestion", "proposer", "adapter", "changer"
+]
+
+# Réponses négatives/mitigées
+NEGATIVE_RESPONSES = [
+    "non", "pas du tout", "plutôt non", "insatisfait", "mécontent", "déçu",
+    "partiellement", "pas vraiment", "peu", "rarement", "jamais"
+]
+
+
+def detect_need_in_questionnaire(questionnaire_data: dict) -> dict:
+    """
+    Analyse un questionnaire pour détecter si un besoin est identifié.
+    Retourne: {"has_need": bool, "detected_keywords": list, "reasons": list}
+    """
+    if not questionnaire_data:
+        return {"has_need": False, "detected_keywords": [], "reasons": []}
+    
+    has_need = False
+    detected_keywords = []
+    reasons = []
+    
+    # Convertir toutes les valeurs en texte pour l'analyse
+    all_text = ""
+    for key, value in questionnaire_data.items():
+        if key in ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data']:
+            continue
+        
+        if isinstance(value, str):
+            all_text += " " + value.lower()
+        elif isinstance(value, list):
+            all_text += " " + " ".join([str(v).lower() for v in value])
+        elif isinstance(value, dict):
+            for v in value.values():
+                if isinstance(v, str):
+                    all_text += " " + v.lower()
+    
+    # 1. Rechercher les mots déclencheurs de besoin
+    for trigger in NEED_TRIGGER_WORDS:
+        if trigger in all_text:
+            has_need = True
+            reasons.append(f"Mot-clé détecté: '{trigger}'")
+            break
+    
+    # 2. Rechercher les réponses négatives/mitigées
+    for neg in NEGATIVE_RESPONSES:
+        if neg in all_text:
+            has_need = True
+            reasons.append(f"Réponse négative/mitigée: '{neg}'")
+            break
+    
+    # 3. Vérifier les champs spécifiques de difficultés
+    difficulties_fields = ['difficulties', 'difficultes', 'difficultes_rencontrees', 'points_ameliorer']
+    for field in difficulties_fields:
+        if field in questionnaire_data:
+            value = questionnaire_data[field]
+            if value and (isinstance(value, list) and len(value) > 0) or (isinstance(value, str) and value.strip()):
+                has_need = True
+                reasons.append(f"Difficultés signalées dans '{field}'")
+    
+    # 4. Vérifier objectifs non atteints
+    objectives_fields = ['objectifs_atteints', 'objectifs']
+    for field in objectives_fields:
+        if field in questionnaire_data:
+            value = str(questionnaire_data[field]).lower()
+            if any(neg in value for neg in ['partiel', 'non', 'pas']):
+                has_need = True
+                reasons.append("Objectifs partiellement ou non atteints")
+    
+    # 5. Extraire les mots-clés pédagogiques détectés
+    all_keywords = []
+    for category_keywords in KEYWORDS_ANGLAIS.values():
+        all_keywords.extend(category_keywords)
+    
+    for keyword in all_keywords:
+        if keyword.lower() in all_text:
+            detected_keywords.append(keyword)
+    
+    return {
+        "has_need": has_need,
+        "detected_keywords": list(set(detected_keywords)),
+        "reasons": reasons[:3]  # Limiter à 3 raisons
+    }
+
+
+@api_router.post("/teachers/questionnaire-action/analyze")
+async def analyze_questionnaire_for_action(
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Analyse un questionnaire pour extraire les mots-clés et détecter les besoins.
+    Ne prend aucune décision - seulement extraction pour aide au formateur.
+    """
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    questionnaire_data = data.get("questionnaire_data", {})
+    
+    # Analyser le questionnaire
+    analysis = detect_need_in_questionnaire(questionnaire_data)
+    
+    # Générer les actions suggérées pour chaque mot-clé
+    suggested_actions = {}
+    for keyword in analysis["detected_keywords"]:
+        if keyword in KEYWORD_TO_ACTION:
+            suggested_actions[keyword] = KEYWORD_TO_ACTION[keyword]
+    
+    # Générer le texte pré-rempli si des mots-clés sont détectés
+    pre_filled_text = ""
+    if analysis["detected_keywords"]:
+        keywords_str = ", ".join(analysis["detected_keywords"][:5])
+        pre_filled_text = f"L'apprenant a exprimé un besoin de {keywords_str}.\nDes adaptations pédagogiques ont été mises en place."
+    
+    return {
+        "has_need": analysis["has_need"],
+        "detected_keywords": analysis["detected_keywords"],
+        "reasons": analysis["reasons"],
+        "suggested_actions": suggested_actions,
+        "pre_filled_text": pre_filled_text,
+        "all_keywords": KEYWORDS_ANGLAIS,
+        "keyword_to_action": KEYWORD_TO_ACTION
+    }
+
+
+@api_router.post("/teachers/questionnaire-action/save")
+async def save_questionnaire_action(
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Enregistre l'action formateur pour un questionnaire.
+    Traçabilité Qualiopi obligatoire.
+    """
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    student_id = data.get("student_id")
+    student_name = data.get("student_name")
+    questionnaire_type = data.get("questionnaire_type")  # Q1, Q2, Q3
+    selected_keywords = data.get("selected_keywords", [])
+    selected_actions = data.get("selected_actions", [])
+    final_text = data.get("final_text", "")
+    has_need = data.get("has_need", False)
+    
+    if not all([student_id, questionnaire_type]):
+        raise HTTPException(status_code=400, detail="student_id et questionnaire_type requis")
+    
+    # Créer l'enregistrement de traçabilité
+    action_record = {
+        "id": str(uuid.uuid4()),
+        "student_id": student_id,
+        "student_name": student_name,
+        "questionnaire_type": questionnaire_type,
+        "has_need": has_need,
+        "selected_keywords": selected_keywords,
+        "selected_actions": selected_actions,
+        "final_text": final_text,
+        "teacher_id": current_user.id,
+        "teacher_name": current_user.name,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "status": "validated"
+    }
+    
+    # Vérifier si une action existe déjà pour ce questionnaire/élève
+    existing = await db.questionnaire_actions.find_one({
+        "student_id": student_id,
+        "questionnaire_type": questionnaire_type
+    })
+    
+    if existing:
+        # Mettre à jour
+        await db.questionnaire_actions.update_one(
+            {"student_id": student_id, "questionnaire_type": questionnaire_type},
+            {"$set": action_record}
+        )
+        logger.info(f"✅ Action formateur mise à jour pour {student_name} - {questionnaire_type}")
+    else:
+        # Créer
+        await db.questionnaire_actions.insert_one(action_record)
+        logger.info(f"✅ Action formateur enregistrée pour {student_name} - {questionnaire_type}")
+    
+    return {
+        "message": "Action enregistrée avec succès",
+        "action": action_record
+    }
+
+
+@api_router.get("/teachers/questionnaire-actions/{student_id}")
+async def get_student_questionnaire_actions(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Récupère toutes les actions formateur enregistrées pour un élève.
+    """
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    actions = await db.questionnaire_actions.find(
+        {"student_id": student_id},
+        {"_id": 0}
+    ).to_list(10)
+    
+    # Organiser par type de questionnaire
+    actions_by_type = {
+        "Q1": None,
+        "Q2": None,
+        "Q3": None
+    }
+    
+    for action in actions:
+        q_type = action.get("questionnaire_type")
+        if q_type in actions_by_type:
+            actions_by_type[q_type] = action
+    
+    return actions_by_type
+
+
+@api_router.get("/teachers/questionnaire-need-status/{student_id}")
+async def get_questionnaire_need_status(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Analyse les questionnaires d'un élève et retourne le statut VERT/ROUGE pour chaque.
+    """
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Récupérer l'élève
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+    
+    parcours = student.get("parcours", "Anglais")
+    
+    # Récupérer les questionnaires
+    if parcours == "Anglais":
+        q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    else:
+        # Informatique ou autre
+        q1 = await db.student_resources.find_one(
+            {"student_id": student_id, "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "POSITIONNEMENT"},
+            {"_id": 0}
+        )
+        q2 = await db.student_resources.find_one(
+            {"student_id": student_id, "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "MI_PARCOURS"},
+            {"_id": 0}
+        )
+        q3 = await db.student_resources.find_one(
+            {"student_id": student_id, "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "FIN"},
+            {"_id": 0}
+        )
+    
+    # Récupérer les actions déjà enregistrées
+    existing_actions = await db.questionnaire_actions.find(
+        {"student_id": student_id},
+        {"_id": 0}
+    ).to_list(10)
+    
+    actions_by_type = {}
+    for action in existing_actions:
+        actions_by_type[action.get("questionnaire_type")] = action
+    
+    # Analyser chaque questionnaire
+    result = {}
+    
+    for q_type, q_data in [("Q1", q1), ("Q2", q2), ("Q3", q3)]:
+        if q_data:
+            analysis = detect_need_in_questionnaire(q_data)
+            existing_action = actions_by_type.get(q_type)
+            
+            result[q_type] = {
+                "submitted": True,
+                "has_need": analysis["has_need"],
+                "detected_keywords": analysis["detected_keywords"],
+                "reasons": analysis["reasons"],
+                "action_defined": existing_action is not None,
+                "action": existing_action
+            }
+        else:
+            result[q_type] = {
+                "submitted": False,
+                "has_need": False,
+                "detected_keywords": [],
+                "reasons": [],
+                "action_defined": False,
+                "action": None
+            }
+    
+    return result
+
+
 @api_router.post("/sessions/bulk")
 async def create_bulk_sessions(
     data: dict,
