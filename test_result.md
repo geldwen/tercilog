@@ -552,8 +552,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Suppression du bouton 'Modifier horaires' (bleu)"
-    - "Nouveau bouton 'Historique' (violet)"
+    - "Bilan Qualité Page - Simplified 'Définir une action' Modal"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
