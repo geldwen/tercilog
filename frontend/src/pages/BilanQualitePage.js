@@ -542,12 +542,20 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
 };
 
 // ============================================================================
-// MODAL DÉFINIR ACTION (Phase 2 - Simplifié)
+// MODAL DÉFINIR ACTION (Phase 2 - Version complète avec niveau de besoin)
 // ============================================================================
+const NIVEAU_BESOIN_OPTIONS = [
+  { id: "leger", label: "Léger", color: "green" },
+  { id: "moyen", label: "Moyen", color: "orange" },
+  { id: "important", label: "Important", color: "red" }
+];
+
 const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }) => {
   const [loading, setLoading] = useState(true);
   const [analysis, setAnalysis] = useState(null);
-  const [selectedAction, setSelectedAction] = useState(null);
+  const [niveauBesoin, setNiveauBesoin] = useState(null);
+  const [selectedKeywords, setSelectedKeywords] = useState([]);
+  const [selectedActions, setSelectedActions] = useState([]);
   const [finalText, setFinalText] = useState("");
   const [saving, setSaving] = useState(false);
   const [hasNeed, setHasNeed] = useState(needStatus?.has_need || false);
@@ -564,10 +572,25 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
         );
         setAnalysis(response.data);
         setHasNeed(response.data.has_need);
-        setFinalText(response.data.pre_filled_text || "");
-        // Pré-sélectionner la première action suggérée
-        if (response.data.suggested_actions?.length > 0) {
-          setSelectedAction(response.data.suggested_actions[0]);
+        
+        // Pré-sélectionner les mots-clés détectés
+        const detected = response.data.detected_keywords || [];
+        setSelectedKeywords(detected);
+        
+        // Pré-cocher les actions suggérées (basées sur les mots-clés détectés)
+        const suggested = response.data.suggested_actions || [];
+        const preSelectedActions = suggested
+          .filter(a => a.id !== "autre" && detected.includes(a.id))
+          .slice(0, 3);
+        setSelectedActions(preSelectedActions);
+        
+        // Pré-définir le niveau de besoin selon le nombre de mots-clés
+        if (detected.length >= 3) {
+          setNiveauBesoin("important");
+        } else if (detected.length >= 2) {
+          setNiveauBesoin("moyen");
+        } else if (detected.length >= 1) {
+          setNiveauBesoin("leger");
         }
       } catch (error) {
         console.error("Erreur analyse:", error);
@@ -579,27 +602,65 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
     loadAnalysis();
   }, [qData]);
 
-  // Mettre à jour le texte quand l'action change
+  // Auto-générer le compte-rendu quand les sélections changent
   useEffect(() => {
-    if (selectedAction && selectedAction.id !== "autre") {
-      setFinalText(`L'apprenant a exprimé un besoin de ${selectedAction.id}.\nAction mise en place : ${selectedAction.label}`);
-    } else if (selectedAction && selectedAction.id === "autre") {
+    if (!niveauBesoin || selectedKeywords.length === 0) {
       setFinalText("");
+      return;
     }
-  }, [selectedAction]);
+    
+    const niveauLabel = NIVEAU_BESOIN_OPTIONS.find(n => n.id === niveauBesoin)?.label || niveauBesoin;
+    const keywordsStr = selectedKeywords.join(", ");
+    const actionsStr = selectedActions.map(a => a.label).join(" et ");
+    
+    let text = `Besoin identifié : ${keywordsStr} (niveau ${niveauLabel.toLowerCase()}).`;
+    if (actionsStr) {
+      text += `\nActions mises en place : ${actionsStr}.`;
+    }
+    
+    setFinalText(text);
+  }, [niveauBesoin, selectedKeywords, selectedActions]);
+
+  // Toggle action (checkbox)
+  const toggleAction = (action) => {
+    setSelectedActions(prev => {
+      const exists = prev.find(a => a.id === action.id);
+      if (exists) {
+        return prev.filter(a => a.id !== action.id);
+      } else {
+        // Max 3 actions
+        if (prev.length >= 3) {
+          toast.error("Maximum 3 actions sélectionnables");
+          return prev;
+        }
+        return [...prev, action];
+      }
+    });
+  };
 
   // Enregistrer
   const handleSave = async () => {
+    if (!niveauBesoin) {
+      toast.error("Veuillez sélectionner le niveau du besoin");
+      return;
+    }
+    if (selectedActions.length === 0) {
+      toast.error("Veuillez sélectionner au moins une action");
+      return;
+    }
+    
     setSaving(true);
     try {
       await axios.post(`${API}/api/teachers/questionnaire-action/save`, {
         student_id: eleve.id,
         student_name: eleve.nom,
         questionnaire_type: qType,
-        selected_keywords: selectedAction && selectedAction.id !== "autre" ? [selectedAction.id] : [],
-        selected_actions: selectedAction ? [selectedAction.label] : [],
-        final_text: finalText,
-        has_need: hasNeed && selectedAction !== null
+        questionnaire_id: qData?.id,
+        niveau_besoin: niveauBesoin,
+        mots_cles: selectedKeywords,
+        actions: selectedActions.map(a => a.label),
+        compte_rendu_final: finalText,
+        has_need: true
       }, { headers: getAuthHeaders() });
       onSave();
     } catch (error) {
@@ -618,9 +679,11 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
         student_id: eleve.id,
         student_name: eleve.nom,
         questionnaire_type: qType,
-        selected_keywords: [],
-        selected_actions: [],
-        final_text: "Analyse effectuée. Aucun besoin particulier. Le dispositif est maintenu.",
+        questionnaire_id: qData?.id,
+        niveau_besoin: null,
+        mots_cles: [],
+        actions: [],
+        compte_rendu_final: "Analyse effectuée. Aucun besoin particulier. Le dispositif est maintenu.",
         has_need: false
       }, { headers: getAuthHeaders() });
       onSave();
@@ -641,7 +704,7 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
   }
 
   const detectedKeywords = analysis?.detected_keywords || [];
-  const suggestedActions = analysis?.suggested_actions || [];
+  const allActions = analysis?.suggested_actions?.filter(a => a.id !== "autre") || [];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -676,9 +739,47 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
             </div>
           ) : (
             <>
-              {/* Section 1: Mots-clés détectés */}
+              {/* Section A: Qualification du besoin (OBLIGATOIRE) */}
               <div className="mb-5">
-                <h3 className="font-semibold text-gray-800 mb-2 text-sm">Mots-clés détectés</h3>
+                <h3 className="font-semibold text-gray-800 mb-2 text-sm flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">A</span>
+                  Niveau du besoin <span className="text-red-500">*</span>
+                </h3>
+                <div className="flex gap-3">
+                  {NIVEAU_BESOIN_OPTIONS.map((niveau) => (
+                    <label key={niveau.id} className={`flex-1 p-3 rounded-lg border-2 cursor-pointer transition-all text-center ${
+                      niveauBesoin === niveau.id 
+                        ? niveau.color === "green" ? "border-green-500 bg-green-50" 
+                          : niveau.color === "orange" ? "border-orange-500 bg-orange-50"
+                          : "border-red-500 bg-red-50"
+                        : "border-gray-200 hover:bg-gray-50"
+                    }`}>
+                      <input 
+                        type="radio" 
+                        name="niveau" 
+                        value={niveau.id}
+                        checked={niveauBesoin === niveau.id}
+                        onChange={() => setNiveauBesoin(niveau.id)}
+                        className="sr-only"
+                      />
+                      <span className={`font-medium ${
+                        niveauBesoin === niveau.id 
+                          ? niveau.color === "green" ? "text-green-700" 
+                            : niveau.color === "orange" ? "text-orange-700"
+                            : "text-red-700"
+                          : "text-gray-700"
+                      }`}>{niveau.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section B: Mots-clés détectés */}
+              <div className="mb-5">
+                <h3 className="font-semibold text-gray-800 mb-2 text-sm flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">B</span>
+                  Mots-clés détectés
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   {detectedKeywords.length > 0 ? (
                     detectedKeywords.map((kw) => (
@@ -721,41 +822,56 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
                 )}
               </div>
 
-              {/* Section 2: Actions suggérées (max 3, radio buttons) */}
+              {/* Section C: Actions pédagogiques (multi-sélection, max 3) */}
               <div className="mb-5">
-                <h3 className="font-semibold text-gray-800 mb-2 text-sm">Choisir une action</h3>
+                <h3 className="font-semibold text-gray-800 mb-2 text-sm flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs">C</span>
+                  Actions pédagogiques <span className="text-gray-500 text-xs font-normal">(max 3)</span>
+                </h3>
                 <div className="space-y-2">
-                  {suggestedActions.slice(0, 3).map((action, idx) => (
-                    <label key={idx} className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                      selectedAction?.id === action.id 
-                        ? "border-orange-400 bg-orange-50" 
-                        : "border-gray-200 hover:bg-gray-50"
-                    }`}>
-                      <input 
-                        type="radio" 
-                        name="action" 
-                        checked={selectedAction?.id === action.id}
-                        onChange={() => setSelectedAction(action)}
-                        className="mt-1 text-orange-500 focus:ring-orange-500"
-                      />
-                      <div>
-                        <p className="font-medium text-gray-800">{action.id === "autre" ? "Autre" : action.id}</p>
-                        <p className="text-sm text-gray-600">{action.label}</p>
-                      </div>
-                    </label>
-                  ))}
+                  {allActions.map((action, idx) => {
+                    const isSelected = selectedActions.find(a => a.id === action.id);
+                    const isPreSuggested = detectedKeywords.includes(action.id);
+                    return (
+                      <label key={idx} className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                        isSelected 
+                          ? "border-orange-400 bg-orange-50" 
+                          : "border-gray-200 hover:bg-gray-50"
+                      }`}>
+                        <input 
+                          type="checkbox" 
+                          checked={!!isSelected}
+                          onChange={() => toggleAction(action)}
+                          className="mt-1 rounded text-orange-500 focus:ring-orange-500"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-800 flex items-center gap-2">
+                            {action.id}
+                            {isPreSuggested && <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">suggéré</span>}
+                          </p>
+                          <p className="text-sm text-gray-600">{action.label}</p>
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
+                {selectedActions.length > 0 && (
+                  <p className="text-xs text-gray-500 mt-2">{selectedActions.length}/3 actions sélectionnées</p>
+                )}
               </div>
 
-              {/* Section 3: Compte-rendu */}
+              {/* Section D: Compte-rendu (auto-généré) */}
               <div className="mb-4">
-                <h3 className="font-semibold text-gray-800 mb-2 text-sm">Compte-rendu formateur</h3>
-                <p className="text-xs text-gray-500 mb-2">Ce texte sera enregistré comme trace Qualiopi. Vous pouvez le modifier.</p>
+                <h3 className="font-semibold text-gray-800 mb-2 text-sm flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center text-xs">D</span>
+                  Compte-rendu formateur
+                </h3>
+                <p className="text-xs text-gray-500 mb-2">Ce texte est généré automatiquement. Vous pouvez le modifier avant validation.</p>
                 <textarea 
                   value={finalText}
                   onChange={(e) => setFinalText(e.target.value)}
                   className="w-full border rounded-lg p-3 h-24 text-sm"
-                  placeholder="Décrivez l'action pédagogique mise en place..."
+                  placeholder="Le compte-rendu sera généré automatiquement..."
                 />
               </div>
             </>
@@ -770,10 +886,10 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
               <Button variant="outline" onClick={onClose}>Annuler</Button>
               <Button 
                 onClick={handleSave} 
-                disabled={saving || !selectedAction}
+                disabled={saving || !niveauBesoin || selectedActions.length === 0}
                 className="bg-orange-500 hover:bg-orange-600 text-white"
               >
-                {saving ? "Enregistrement..." : "Définir"}
+                {saving ? "Enregistrement..." : "Définir l'action"}
               </Button>
             </div>
           </div>
