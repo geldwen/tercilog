@@ -85,60 +85,35 @@ const BilanQualitePage = () => {
     const q3Soumis = lignes.filter(e => e.q3?.submitted).length;
     const q3EnAttente = lignes.length - q3Soumis;
     
-    // Listes des élèves en attente pour chaque questionnaire
-    const q1EnAttenteList = lignes.filter(e => !e.q1?.submitted);
-    const q2EnAttenteList = lignes.filter(e => !e.q2?.submitted);
-    const q3EnAttenteList = lignes.filter(e => !e.q3?.submitted);
-    
     return {
-      q1: { soumis: q1Soumis, enAttente: q1EnAttente, enAttenteList: q1EnAttenteList },
-      q2: { soumis: q2Soumis, enAttente: q2EnAttente, enAttenteList: q2EnAttenteList },
-      q3: { soumis: q3Soumis, enAttente: q3EnAttente, enAttenteList: q3EnAttenteList },
+      q1: { soumis: q1Soumis, enAttente: q1EnAttente },
+      q2: { soumis: q2Soumis, enAttente: q2EnAttente },
+      q3: { soumis: q3Soumis, enAttente: q3EnAttente },
       nbEleves: lignes.length
     };
   }, [lignes]);
 
-  // Relancer TOUS les apprenants en attente pour un questionnaire
-  const handleRelanceMasse = async (questionnaireType, enAttenteList) => {
-    if (enAttenteList.length === 0) {
-      toast.info("Aucun apprenant en attente pour ce questionnaire");
-      return;
-    }
+  // Relancer un apprenant pour un questionnaire spécifique
+  const handleRelanceIndividuel = async (eleve, questionnaireType) => {
+    const key = `${eleve.id}-${questionnaireType}`;
+    setRelanceLoading(key);
     
-    const confirm = window.confirm(
-      `Envoyer une relance à ${enAttenteList.length} apprenant(s) pour ${questionnaireType} ?`
-    );
-    if (!confirm) return;
-    
-    setRelanceLoading(questionnaireType);
-    
-    let successCount = 0;
-    let errorCount = 0;
-    
-    for (const eleve of enAttenteList) {
-      try {
-        await axios.post(`${API}/api/teachers/relance-questionnaire`, {
-          student_id: eleve.id,
-          questionnaire: questionnaireType,
-          student_email: eleve.email,
-          student_name: eleve.nom
-        }, {
-          headers: getAuthHeaders()
-        });
-        successCount++;
-      } catch (error) {
-        console.error(`Erreur relance ${eleve.nom}:`, error);
-        errorCount++;
-      }
-    }
-    
-    setRelanceLoading(null);
-    
-    if (successCount > 0) {
-      toast.success(`${successCount} relance(s) envoyée(s) avec succès`);
-    }
-    if (errorCount > 0) {
-      toast.error(`${errorCount} erreur(s) lors de l'envoi`);
+    try {
+      await axios.post(`${API}/api/teachers/relance-questionnaire`, {
+        student_id: eleve.id,
+        questionnaire: questionnaireType,
+        student_email: eleve.email,
+        student_name: eleve.nom
+      }, {
+        headers: getAuthHeaders()
+      });
+      
+      toast.success(`Relance envoyée à ${eleve.nom} pour le questionnaire ${questionnaireType}`);
+    } catch (error) {
+      console.error(`Erreur relance:`, error);
+      toast.error(error.response?.data?.detail || "Erreur lors de l'envoi de la relance");
+    } finally {
+      setRelanceLoading(null);
     }
   };
 
@@ -153,7 +128,7 @@ const BilanQualitePage = () => {
     });
   };
 
-  // Export PDF simplifié
+  // Export PDF
   const exportPDF = () => {
     const doc = new jsPDF({ unit: "pt" });
     const title = `Rapport Qualité Qualiopi — ${activeParcours} — ${annee}`;
@@ -204,24 +179,6 @@ const BilanQualitePage = () => {
     }
   };
 
-  // Déterminer les actions Qualiopi disponibles pour un apprenant
-  const getActionsQualiopi = (eleve) => {
-    const actions = [];
-    
-    // Actions "Consulter" pour chaque questionnaire soumis
-    if (eleve.q1?.submitted) {
-      actions.push({ type: "voir", label: "Q1", data: eleve.q1 });
-    }
-    if (eleve.q2?.submitted) {
-      actions.push({ type: "voir", label: "Q2", data: eleve.q2 });
-    }
-    if (eleve.q3?.submitted) {
-      actions.push({ type: "voir", label: "Q3", data: eleve.q3 });
-    }
-    
-    return actions;
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-6">
@@ -236,7 +193,7 @@ const BilanQualitePage = () => {
           </div>
         </div>
 
-        {/* Onglets Parcours avec couleurs */}
+        {/* Onglets Parcours */}
         <div className="mb-6">
           <div className="flex border-b border-gray-200">
             {PARCOURS_TABS.map((parcours) => {
@@ -264,7 +221,7 @@ const BilanQualitePage = () => {
           </div>
         </div>
 
-        {/* Filtre année uniquement */}
+        {/* Filtre année */}
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-wrap gap-6 items-end">
@@ -279,7 +236,6 @@ const BilanQualitePage = () => {
                   onChange={(e) => setAnnee(Number(e.target.value))}
                 />
               </div>
-
               <div className="ml-auto">
                 <Button
                   onClick={exportPDF}
@@ -299,7 +255,7 @@ const BilanQualitePage = () => {
           <div className="text-center py-12">Chargement des données...</div>
         ) : (
           <>
-            {/* Titre parcours avec couleur */}
+            {/* Titre parcours */}
             <div 
               className="mb-6 p-4 rounded-lg border-2"
               style={{ 
@@ -323,7 +279,7 @@ const BilanQualitePage = () => {
               </p>
             </div>
 
-            {/* Tableau de bord - 3 cartes avec bouton Relancer */}
+            {/* Tableau de bord - 3 cartes (sans boutons relancer) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               {/* Q1 - Besoins */}
               <Card className="border-2 border-blue-200">
@@ -331,7 +287,7 @@ const BilanQualitePage = () => {
                   <div className="text-center">
                     <h3 className="text-sm font-semibold text-blue-800 mb-1">Q1 - Questionnaire d&apos;entrée</h3>
                     <p className="text-xs text-gray-500 mb-4">(Besoins)</p>
-                    <div className="flex justify-center gap-8 mb-4">
+                    <div className="flex justify-center gap-8">
                       <div className="text-center">
                         <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-2 shadow-md">
                           <span className="text-white font-bold text-xl">{compteurs.q1.soumis}</span>
@@ -345,19 +301,6 @@ const BilanQualitePage = () => {
                         <span className="text-sm text-red-700 font-medium">En attente</span>
                       </div>
                     </div>
-                    {/* Bouton Relancer */}
-                    {compteurs.q1.enAttente > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRelanceMasse("Q1", compteurs.q1.enAttenteList)}
-                        disabled={relanceLoading === "Q1"}
-                        className="text-blue-600 border-blue-300 hover:bg-blue-50 w-full"
-                      >
-                        <Mail className="w-4 h-4 mr-1" />
-                        {relanceLoading === "Q1" ? "Envoi..." : `📧 Relancer ${compteurs.q1.enAttente} apprenant(s)`}
-                      </Button>
-                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -368,7 +311,7 @@ const BilanQualitePage = () => {
                   <div className="text-center">
                     <h3 className="text-sm font-semibold text-orange-800 mb-1">Q2 - Questionnaire mi-parcours</h3>
                     <p className="text-xs text-gray-500 mb-4">(Suivi)</p>
-                    <div className="flex justify-center gap-8 mb-4">
+                    <div className="flex justify-center gap-8">
                       <div className="text-center">
                         <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-2 shadow-md">
                           <span className="text-white font-bold text-xl">{compteurs.q2.soumis}</span>
@@ -382,19 +325,6 @@ const BilanQualitePage = () => {
                         <span className="text-sm text-red-700 font-medium">En attente</span>
                       </div>
                     </div>
-                    {/* Bouton Relancer */}
-                    {compteurs.q2.enAttente > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRelanceMasse("Q2", compteurs.q2.enAttenteList)}
-                        disabled={relanceLoading === "Q2"}
-                        className="text-orange-600 border-orange-300 hover:bg-orange-50 w-full"
-                      >
-                        <Mail className="w-4 h-4 mr-1" />
-                        {relanceLoading === "Q2" ? "Envoi..." : `📧 Relancer ${compteurs.q2.enAttente} apprenant(s)`}
-                      </Button>
-                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -405,7 +335,7 @@ const BilanQualitePage = () => {
                   <div className="text-center">
                     <h3 className="text-sm font-semibold text-purple-800 mb-1">Q3 - Questionnaire de fin</h3>
                     <p className="text-xs text-gray-500 mb-4">(Satisfaction)</p>
-                    <div className="flex justify-center gap-8 mb-4">
+                    <div className="flex justify-center gap-8">
                       <div className="text-center">
                         <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-2 shadow-md">
                           <span className="text-white font-bold text-xl">{compteurs.q3.soumis}</span>
@@ -419,25 +349,12 @@ const BilanQualitePage = () => {
                         <span className="text-sm text-red-700 font-medium">En attente</span>
                       </div>
                     </div>
-                    {/* Bouton Relancer */}
-                    {compteurs.q3.enAttente > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRelanceMasse("Q3", compteurs.q3.enAttenteList)}
-                        disabled={relanceLoading === "Q3"}
-                        className="text-purple-600 border-purple-300 hover:bg-purple-50 w-full"
-                      >
-                        <Mail className="w-4 h-4 mr-1" />
-                        {relanceLoading === "Q3" ? "Envoi..." : `📧 Relancer ${compteurs.q3.enAttente} apprenant(s)`}
-                      </Button>
-                    )}
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Tableau simplifié par apprenant */}
+            {/* Tableau par apprenant */}
             <Card>
               <CardContent className="pt-6">
                 <h2 className="text-xl font-bold mb-2" style={{ color: parcoursColors.textColor }}>
@@ -455,7 +372,7 @@ const BilanQualitePage = () => {
                         <th className="text-center font-semibold px-4 py-3">Q1 - Besoins</th>
                         <th className="text-center font-semibold px-4 py-3">Q2 - Mi-parcours</th>
                         <th className="text-center font-semibold px-4 py-3">Q3 - Fin</th>
-                        <th className="text-center font-semibold px-4 py-3">Actions Qualiopi</th>
+                        <th className="text-center font-semibold px-4 py-3">Actions formateur</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -466,80 +383,69 @@ const BilanQualitePage = () => {
                           </td>
                         </tr>
                       ) : (
-                        lignes.map((e) => {
-                          const actionsQualiopi = getActionsQualiopi(e);
-                          return (
-                            <tr key={e.id} className="border-t hover:bg-gray-50">
-                              <td className="px-4 py-3 font-medium">{e.nom}</td>
-                              <td className="px-4 py-3 text-center">
-                                <StatusDot 
-                                  submitted={e.q1?.submitted} 
-                                  submittedAt={e.q1?.submitted_at}
-                                  studentName={e.nom}
-                                  onView={() => handleVoirQuestionnaire(e, "Q1", e.q1)}
-                                />
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                <StatusDot 
-                                  submitted={e.q2?.submitted} 
-                                  submittedAt={e.q2?.submitted_at}
-                                  studentName={e.nom}
-                                  onView={() => handleVoirQuestionnaire(e, "Q2", e.q2)}
-                                />
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                <StatusDot 
-                                  submitted={e.q3?.submitted} 
-                                  submittedAt={e.q3?.submitted_at}
-                                  studentName={e.nom}
-                                  onView={() => handleVoirQuestionnaire(e, "Q3", e.q3)}
-                                />
-                              </td>
-                              <td className="px-4 py-3">
-                                <div className="flex flex-wrap gap-1 justify-center">
-                                  {actionsQualiopi.length > 0 ? (
-                                    actionsQualiopi.map((action, idx) => (
-                                      <Button
-                                        key={idx}
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleVoirQuestionnaire(e, action.label, action.data)}
-                                        className="text-green-600 hover:bg-green-50 px-2 py-1 h-auto"
-                                        title={`Consulter ${action.label}`}
-                                      >
-                                        <Eye className="w-3 h-3 mr-1" />
-                                        {action.label}
-                                      </Button>
-                                    ))
-                                  ) : (
-                                    <span className="text-gray-400 text-xs">Aucun questionnaire soumis</span>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })
+                        lignes.map((e) => (
+                          <tr key={e.id} className="border-t hover:bg-gray-50">
+                            <td className="px-4 py-3 font-medium">{e.nom}</td>
+                            <td className="px-4 py-3 text-center">
+                              <QuestionnaireCell 
+                                submitted={e.q1?.submitted}
+                                submittedAt={e.q1?.submitted_at}
+                                studentName={e.nom}
+                                questionnaireType="Q1"
+                                questionnaireLabel="Questionnaire d'entrée (Besoins)"
+                                onView={() => handleVoirQuestionnaire(e, "Q1", e.q1)}
+                                onRelance={() => handleRelanceIndividuel(e, "Q1")}
+                                relanceLoading={relanceLoading === `${e.id}-Q1`}
+                              />
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <QuestionnaireCell 
+                                submitted={e.q2?.submitted}
+                                submittedAt={e.q2?.submitted_at}
+                                studentName={e.nom}
+                                questionnaireType="Q2"
+                                questionnaireLabel="Questionnaire mi-parcours (Suivi)"
+                                onView={() => handleVoirQuestionnaire(e, "Q2", e.q2)}
+                                onRelance={() => handleRelanceIndividuel(e, "Q2")}
+                                relanceLoading={relanceLoading === `${e.id}-Q2`}
+                              />
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <QuestionnaireCell 
+                                submitted={e.q3?.submitted}
+                                submittedAt={e.q3?.submitted_at}
+                                studentName={e.nom}
+                                questionnaireType="Q3"
+                                questionnaireLabel="Questionnaire de fin (Satisfaction)"
+                                onView={() => handleVoirQuestionnaire(e, "Q3", e.q3)}
+                                onRelance={() => handleRelanceIndividuel(e, "Q3")}
+                                relanceLoading={relanceLoading === `${e.id}-Q3`}
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <ActionsFormateur 
+                                eleve={e}
+                                onConsulter={(type, data) => handleVoirQuestionnaire(e, type, data)}
+                              />
+                            </td>
+                          </tr>
+                        ))
                       )}
                     </tbody>
                   </table>
                 </div>
 
-                {/* Légende simplifiée */}
+                {/* Légende */}
                 <div className="mt-6 pt-4 border-t">
-                  <div className="flex gap-6 items-center text-sm">
+                  <div className="flex flex-wrap gap-6 items-center text-sm">
                     <div className="flex items-center gap-2">
                       <span className="w-4 h-4 rounded-full bg-green-500 inline-block"></span>
-                      <span className="text-gray-600">Soumis par l&apos;apprenant (cliquez pour consulter)</span>
+                      <span className="text-gray-600">Soumis (cliquez pour consulter)</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-4 h-4 rounded-full bg-red-500 inline-block"></span>
-                      <span className="text-gray-600">En attente</span>
+                      <span className="text-gray-600">En attente (cliquez pour relancer)</span>
                     </div>
-                  </div>
-                  <div className="mt-3 text-xs text-gray-500">
-                    <strong>Q1</strong> = Questionnaire d&apos;entrée (besoins) · 
-                    <strong> Q2</strong> = Questionnaire mi-parcours · 
-                    <strong> Q3</strong> = Questionnaire de fin de formation
                   </div>
                 </div>
               </CardContent>
@@ -548,7 +454,7 @@ const BilanQualitePage = () => {
         )}
       </div>
 
-      {/* Modal de visualisation du questionnaire */}
+      {/* Modal de visualisation */}
       {selectedQuestionnaire && (
         <QuestionnaireModal
           questionnaire={selectedQuestionnaire}
@@ -560,8 +466,17 @@ const BilanQualitePage = () => {
   );
 };
 
-// Composant pastille de statut avec tooltip et clic
-const StatusDot = ({ submitted, submittedAt, studentName, onView }) => {
+// Composant cellule questionnaire avec statut et action contextuelle
+const QuestionnaireCell = ({ 
+  submitted, 
+  submittedAt, 
+  studentName, 
+  questionnaireType,
+  questionnaireLabel,
+  onView, 
+  onRelance,
+  relanceLoading 
+}) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const formatDate = (dateStr) => {
@@ -580,6 +495,7 @@ const StatusDot = ({ submitted, submittedAt, studentName, onView }) => {
     }
   };
 
+  // SOUMIS : pastille verte cliquable pour consulter
   if (submitted) {
     return (
       <div className="relative inline-block">
@@ -588,33 +504,27 @@ const StatusDot = ({ submitted, submittedAt, studentName, onView }) => {
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
           className="inline-flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
-          title="Cliquez pour consulter"
+          title="Consulter la réponse"
         >
-          <span className="w-5 h-5 rounded-full bg-green-500 inline-flex items-center justify-center shadow-sm">
+          <span className="w-6 h-6 rounded-full bg-green-500 inline-flex items-center justify-center shadow-sm">
             <Eye className="w-3 h-3 text-white" />
           </span>
           <span className="text-green-700 text-xs font-medium">Soumis</span>
         </button>
         
-        {/* Tooltip au survol */}
+        {/* Tooltip */}
         {showTooltip && (
           <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
             <div className="text-xs">
               <p className="font-semibold text-gray-800 mb-1">{studentName}</p>
-              <p className="text-gray-600 mb-2">
-                📅 Soumis le {formatDate(submittedAt)}
-              </p>
+              <p className="text-gray-600 mb-2">📅 {formatDate(submittedAt)}</p>
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onView();
-                }}
-                className="w-full text-center py-1.5 bg-green-500 text-white rounded text-xs font-medium hover:bg-green-600 transition-colors"
+                onClick={(e) => { e.stopPropagation(); onView(); }}
+                className="w-full text-center py-1.5 bg-green-500 text-white rounded text-xs font-medium hover:bg-green-600"
               >
-                👁️ Consulter le questionnaire
+                👁️ Consulter la réponse
               </button>
             </div>
-            {/* Flèche du tooltip */}
             <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-px">
               <div className="border-8 border-transparent border-t-white"></div>
             </div>
@@ -624,26 +534,116 @@ const StatusDot = ({ submitted, submittedAt, studentName, onView }) => {
     );
   }
   
+  // EN ATTENTE : pastille rouge avec bouton relancer
   return (
-    <span className="inline-flex items-center gap-1">
-      <span className="w-5 h-5 rounded-full bg-red-500 inline-block shadow-sm"></span>
-      <span className="text-red-700 text-xs font-medium">En attente</span>
-    </span>
+    <div className="relative inline-block">
+      <button
+        onClick={onRelance}
+        disabled={relanceLoading}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        className="inline-flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity disabled:opacity-50"
+        title="Relancer l'apprenant"
+      >
+        <span className="w-6 h-6 rounded-full bg-red-500 inline-flex items-center justify-center shadow-sm">
+          <Mail className="w-3 h-3 text-white" />
+        </span>
+        <span className="text-red-700 text-xs font-medium">
+          {relanceLoading ? "..." : "En attente"}
+        </span>
+      </button>
+      
+      {/* Tooltip */}
+      {showTooltip && !relanceLoading && (
+        <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-60 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+          <div className="text-xs">
+            <p className="font-semibold text-gray-800 mb-1">{studentName}</p>
+            <p className="text-gray-600 mb-2">⏳ {questionnaireLabel} en attente</p>
+            <button
+              onClick={(e) => { e.stopPropagation(); onRelance(); }}
+              className="w-full text-center py-1.5 bg-orange-500 text-white rounded text-xs font-medium hover:bg-orange-600"
+            >
+              📧 Envoyer une relance
+            </button>
+          </div>
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-px">
+            <div className="border-8 border-transparent border-t-white"></div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
-// Modal pour afficher le questionnaire en lecture seule avec signature
-const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
-  const { eleve, eleveId, type, data, submittedAt } = questionnaire;
+// Composant Actions formateur
+const ActionsFormateur = ({ eleve, onConsulter }) => {
+  const questionnairesSubmitted = [];
   
-  // Labels des questionnaires
+  if (eleve.q1?.submitted) questionnairesSubmitted.push({ type: "Q1", label: "Besoins", data: eleve.q1 });
+  if (eleve.q2?.submitted) questionnairesSubmitted.push({ type: "Q2", label: "Mi-parcours", data: eleve.q2 });
+  if (eleve.q3?.submitted) questionnairesSubmitted.push({ type: "Q3", label: "Fin", data: eleve.q3 });
+  
+  if (questionnairesSubmitted.length === 0) {
+    return <span className="text-gray-400 text-xs italic">Aucun retour à traiter</span>;
+  }
+  
+  return (
+    <div className="flex flex-col gap-1">
+      {questionnairesSubmitted.map((q) => (
+        <div key={q.type} className="flex items-center gap-1">
+          {/* Consulter */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onConsulter(q.type, q.data)}
+            className="text-green-600 hover:bg-green-50 px-2 py-1 h-auto text-xs"
+            title={`Consulter ${q.label}`}
+          >
+            <Eye className="w-3 h-3 mr-1" />
+            Consulter {q.label}
+          </Button>
+        </div>
+      ))}
+      
+      {/* Actions Phase 2 (à implémenter) */}
+      {questionnairesSubmitted.length > 0 && (
+        <div className="flex items-center gap-1 mt-1 pt-1 border-t border-gray-100">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:bg-blue-50 px-2 py-1 h-auto text-xs opacity-60"
+            title="Traiter le retour (Phase 2)"
+            disabled
+          >
+            <Edit3 className="w-3 h-3 mr-1" />
+            Traiter
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-purple-600 hover:bg-purple-50 px-2 py-1 h-auto text-xs opacity-60"
+            title="Ajouter trace (Phase 2)"
+            disabled
+          >
+            <FileText className="w-3 h-3 mr-1" />
+            Trace
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Modal questionnaire
+const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
+  const { eleve, type, data, submittedAt } = questionnaire;
+  
   const questionnaireLabels = {
     "Q1": "Questionnaire d'entrée (Besoins)",
     "Q2": "Questionnaire mi-parcours (Suivi)",
     "Q3": "Questionnaire de fin (Satisfaction)"
   };
 
-  // Labels lisibles pour les champs
   const fieldLabels = {
     niveau_initial: "Niveau initial estimé",
     objectifs: "Objectifs de formation",
@@ -676,11 +676,8 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     temoignage: "Témoignage",
     evaluation_globale: "Évaluation globale",
     acquis_formation: "Acquis de la formation",
-    answers: "Réponses",
-    reponses: "Réponses",
   };
 
-  // Champs à ignorer
   const ignoredFields = [
     'submitted', 'submitted_at', 'student_id', 'id', '_id', 
     'created_at', 'updated_at', 'score_ressenti_progression',
@@ -688,13 +685,12 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     'signature', 'signature_data', 'signed_at'
   ];
 
-  // Formater une valeur pour l'affichage
   const formatValue = (value) => {
     if (value === null || value === undefined) return "—";
     if (typeof value === 'boolean') return value ? "Oui" : "Non";
     if (Array.isArray(value)) {
       if (value.length === 0) return "—";
-      return value.map(v => typeof v === 'object' ? JSON.stringify(v) : String(v)).join(", ");
+      return value.join(", ");
     }
     if (typeof value === 'object') {
       const entries = Object.entries(value)
@@ -705,10 +701,8 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     return String(value);
   };
 
-  // Extraire les réponses du questionnaire
   const getResponses = () => {
     if (!data) return [];
-    
     const responses = [];
     
     Object.entries(data).forEach(([key, value]) => {
@@ -737,8 +731,6 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
   };
 
   const responses = getResponses();
-  
-  // Récupérer la signature
   const signatureData = data?.signature || data?.signature_data;
   const signedAt = data?.signed_at || data?.submitted_at;
 
@@ -751,10 +743,7 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
             <h2 className="text-lg font-bold">{type} - {questionnaireLabels[type]}</h2>
             <p className="text-green-100 text-sm">{eleve}</p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-green-700 rounded-full transition-colors"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-green-700 rounded-full">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -767,7 +756,7 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
         </div>
 
         {/* Contenu */}
-        <div className="p-6 overflow-y-auto max-h-[50vh]">
+        <div className="p-6 overflow-y-auto max-h-[45vh]">
           {responses.length > 0 ? (
             <div className="space-y-4">
               {responses.map((item, index) => (
@@ -786,22 +775,20 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
           )}
         </div>
 
-        {/* Section Signature Qualiopi */}
+        {/* Section Signature */}
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
           <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
             <Edit3 className="w-4 h-4" />
-            Signature de l'apprenant
+            Signature de l&apos;apprenant
           </h3>
           
           {signatureData ? (
             <div className="bg-white rounded-lg border-2 border-gray-200 p-4">
-              {/* Affichage de la signature visuelle */}
               <div className="flex flex-col items-center">
-                {/* Image de signature */}
                 {signatureData.startsWith('data:image') ? (
                   <img 
                     src={signatureData} 
-                    alt="Signature de l'apprenant"
+                    alt="Signature"
                     className="max-w-full h-auto max-h-24 border border-gray-300 rounded bg-white"
                   />
                 ) : (
@@ -809,33 +796,23 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
                     <p className="text-gray-500 italic text-center">Signature enregistrée</p>
                   </div>
                 )}
-                
-                {/* Nom et date */}
                 <div className="mt-3 text-center">
                   <p className="font-semibold text-gray-800">{eleve}</p>
-                  <p className="text-xs text-gray-500">
-                    Signé le {formatDate(signedAt)}
-                  </p>
+                  <p className="text-xs text-gray-500">Signé le {formatDate(signedAt)}</p>
                 </div>
               </div>
             </div>
           ) : (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-              <p className="text-yellow-700 text-sm">
-                ⚠️ Aucune signature enregistrée pour ce questionnaire
-              </p>
+              <p className="text-yellow-700 text-sm">⚠️ Aucune signature enregistrée</p>
             </div>
           )}
         </div>
 
         {/* Footer */}
         <div className="p-4 bg-gray-100 border-t flex justify-between items-center">
-          <p className="text-xs text-gray-500">
-            Document conforme aux exigences Qualiopi
-          </p>
-          <Button onClick={onClose} variant="outline">
-            Fermer
-          </Button>
+          <p className="text-xs text-gray-500">Document conforme Qualiopi</p>
+          <Button onClick={onClose} variant="outline">Fermer</Button>
         </div>
       </div>
     </div>
