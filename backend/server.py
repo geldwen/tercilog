@@ -811,7 +811,7 @@ def send_welcome_email(to_email: str, student_name: str, student_email: str, tem
       <tr>
         <td style="padding: 16px; background-color: #f9fafb; border-radius: 6px; border-left: 4px solid #1f4acc;">
           <p style="margin: 0 0 8px 0; font-size: 14px; color: #333333;"><strong>Identifiant :</strong> {student_email}</p>
-          <p style="margin: 0 0 8px 0; font-size: 14px; color: #333333;"><strong>Code secret (temporaire) :</strong> {temp_password}</p>
+          <p style="margin: 0 0 8px 0; font-size: 14px; color: #333333;"><strong>Code d'accès :</strong> {temp_password}</p>
         </td>
       </tr>
       <tr>
