@@ -893,11 +893,50 @@ export default function TeacherDashboard({ user, onLogout }) {
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <img src="https://customer-assets.emergentagent.com/job_f0bae013-d5d3-4906-a078-392b9e03aa37/artifacts/tiidl44l_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="Terciform" className="h-10" />
-              <div className="border-l border-gray-300 pl-3">
-                <h1 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>Espace Professeur</h1>
+              <div className="border-l border-gray-300 pl-4">
+                <h1 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>Espace Administrateur</h1>
                 <p className="text-sm text-gray-600">{user.name}</p>
+              </div>
+              {/* Boutons d'action dans le header */}
+              <div className="flex items-center gap-2 ml-6 pl-6 border-l border-gray-200">
+                <Button
+                  onClick={() => {
+                    setShowPlanning(!showPlanning);
+                    setShowBilling(false);
+                  }}
+                  size="sm"
+                  className="inline-flex items-center gap-1.5 bg-blue-800 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-md text-sm"
+                >
+                  <CalendarDays className="w-4 h-4" />
+                  {showPlanning ? 'Retour' : 'Planning'}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowBilling(!showBilling);
+                    setShowPlanning(false);
+                  }}
+                  size="sm"
+                  className="inline-flex items-center gap-1.5 bg-pink-600 hover:bg-pink-700 text-white font-medium px-3 py-1.5 rounded-md text-sm"
+                >
+                  <Euro className="w-4 h-4" />
+                  {showBilling ? 'Retour' : 'Facturation'}
+                </Button>
+                <Button
+                  onClick={() => window.location.href = '/qualite/bilan'}
+                  size="sm"
+                  className="inline-flex items-center gap-1.5 bg-[#2B8A3E] hover:bg-[#237A32] text-white font-medium px-3 py-1.5 rounded-md text-sm"
+                >
+                  📊 Bilan Qualité
+                </Button>
+                <Button
+                  onClick={() => window.location.href = '/bilan-tests'}
+                  size="sm"
+                  className="inline-flex items-center gap-1.5 bg-[#7c3aed] hover:bg-[#6b29d4] text-white font-medium px-3 py-1.5 rounded-md text-sm"
+                >
+                  📈 Bilan Tests
+                </Button>
               </div>
             </div>
             <Button onClick={onLogout} variant="outline" className="gap-2"><LogOut className="w-4 h-4" />Déconnexion</Button>
@@ -906,46 +945,6 @@ export default function TeacherDashboard({ user, onLogout }) {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Barre d'actions avec boutons Planning et Facturation */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>
-            {showPlanning ? 'Planning général' : showBilling ? 'Facturation' : 'Séances par mois'}
-          </h2>
-          <div className="ml-auto flex items-center gap-2">
-            <Button
-              onClick={() => {
-                setShowPlanning(!showPlanning);
-                setShowBilling(false);
-              }}
-              className="inline-flex items-center gap-2 bg-blue-800 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md shadow-sm"
-            >
-              <CalendarDays className="w-5 h-5" />
-              {showPlanning ? 'Retour Séances' : 'Planning'}
-            </Button>
-            <Button
-              onClick={() => {
-                setShowBilling(!showBilling);
-                setShowPlanning(false);
-              }}
-              className="inline-flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white font-semibold px-4 py-2 rounded-md shadow-sm"
-            >
-              <Euro className="w-5 h-5" />
-              {showBilling ? 'Retour Séances' : 'Facturation'}
-            </Button>
-            <Button
-              onClick={() => window.location.href = '/qualite/bilan'}
-              className="inline-flex items-center gap-2 bg-[#2B8A3E] hover:bg-[#237A32] text-white font-semibold px-4 py-2 rounded-md shadow-sm"
-            >
-              📊 Bilan Qualité
-            </Button>
-            <Button
-              onClick={() => window.location.href = '/bilan-tests'}
-              className="inline-flex items-center gap-2 bg-[#7c3aed] hover:bg-[#6b29d4] text-white font-semibold px-4 py-2 rounded-md shadow-sm"
-            >
-              📈 Bilan des tests
-            </Button>
-          </div>
-        </div>
 
         {showPlanning ? (
           <PlanningView sessions={sessions} onSessionsUpdate={loadSessions} />
