@@ -464,6 +464,7 @@ const BilanQualitePage = () => {
                                 needStatus={needStatuses[e.id]}
                                 onVoir={handleVoir}
                                 onDefinirAction={handleDefinirAction}
+                                onRefresh={() => loadNeedStatuses(lignes.map(el => el.id))}
                               />
                             </td>
                           </tr>
