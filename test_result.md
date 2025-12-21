@@ -1004,3 +1004,15 @@ agent_communication:
         - working: "unknown"
           agent: "main"
           comment: "PHASE 2 SIMPLIFIED: Removed niveauBesoin completely. CHANGES: 1) KEYWORD NORMALIZER: distanciel->adaptation du format, planning->flexibilité/organisation, etc. 2) buildBesoinSentence(): converts keywords to human-readable phrases like 'renforcer la pratique orale, développer le vocabulaire'. 3) MODAL DÉFINIR: Removed niveau selector, shows red alert '🔴 Un besoin a été identifié...', normalized keywords as chips, max 3 checkboxes for actions, auto-generated compte-rendu with format 'Le bénéficiaire a exprimé un besoin de : X. Actions mises en place par le formateur : Y.' 4) MODAL DÉTAIL: Shows only 'Besoin du bénéficiaire' (orange box) + 'Actions mises en place' (blue box) + compte-rendu, NO keywords displayed, NO niveau. 5) TABLE SUMMARY: 'Qx — Action définie' + truncated besoin text + date + 'Voir' button. 6) BACKEND: Updated save endpoint with besoin_text, actions_text, keywords_internal fields."
+
+  - task: "Bilan Qualité - Phase 2 COMPLETE (Signature + Informatique keywords + Q labels)"
+    implemented: true
+    working: "unknown"
+    file: "BilanQualitePage.js, server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "unknown"
+          agent: "main"
+          comment: "PHASE 2 COMPLETE IMPLEMENTATION: 1) SIGNATURE MANUELLE: Added SignaturePad component (canvas) for mandatory signature, stores signature_image (base64 PNG), signed_at, signed_by. Modal cannot be validated without signature (error message shown). Button renamed to 'Signer et Valider'. Detail modal now shows signature image with date/author. 2) INFORMATIQUE KEYWORDS: Full keyword->need mapping for IT track (bases/souris/clavier, Word/Excel/PowerPoint, internet/email, sécurité, rythme/pratique/autonomie, matériel/format/planning). NEED_TO_ACTION_INFORMATIQUE mapping for suggested actions. 3) Q1/Q2/Q3 LABELS: Table headers now show 'Q1 (Besoins)', 'Q2 (Mi-parcours)', 'Q3 (Fin de formation)' with descriptive sublabels. 4) DELETE ENDPOINT: Added DELETE /api/teachers/questionnaire-action/{student_id}/{questionnaire_type} to allow recreating corrupted traces (for Isleme fix). 5) BLUE BADGE in table shows only 'Qx — Action définie' + timestamp, no besoin text (accessed via eye icon detail modal)."
