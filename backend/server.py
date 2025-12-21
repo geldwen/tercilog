@@ -3682,6 +3682,33 @@ async def save_questionnaire_action(
     }
 
 
+@api_router.delete("/teachers/questionnaire-action/{student_id}/{questionnaire_type}")
+async def delete_questionnaire_action(
+    student_id: str,
+    questionnaire_type: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Supprime une action formateur existante pour un élève/questionnaire.
+    Utile pour recréer une trace corrompue.
+    """
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    if questionnaire_type not in ["Q1", "Q2", "Q3"]:
+        raise HTTPException(status_code=400, detail="Type de questionnaire invalide")
+    
+    result = await db.questionnaire_actions.delete_many({
+        "student_id": student_id,
+        "questionnaire_type": questionnaire_type
+    })
+    
+    return {
+        "message": f"Action {questionnaire_type} supprimée pour l'élève {student_id}",
+        "deleted_count": result.deleted_count
+    }
+
+
 @api_router.get("/teachers/questionnaire-actions/{student_id}")
 async def get_student_questionnaire_actions(
     student_id: str,
