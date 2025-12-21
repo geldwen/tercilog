@@ -3611,6 +3611,15 @@ async def save_questionnaire_action(
     compte_rendu_final = data.get("compte_rendu_final", "")
     has_need = data.get("has_need", False)
     
+    # ============ SIGNATURE (Phase 2 - Qualiopi) ============
+    signature_image = data.get("signature_image")  # base64 PNG
+    signed_at = data.get("signed_at")  # ISO timestamp
+    signed_by = data.get("signed_by", current_user.name)  # Nom formateur
+    
+    # Validation: signature obligatoire si has_need est True
+    if has_need and not signature_image:
+        raise HTTPException(status_code=400, detail="Signature requise pour valider la trace Qualiopi.")
+    
     # Rétrocompatibilité avec l'ancien format
     selected_keywords = data.get("selected_keywords", mots_cles)
     selected_actions = data.get("selected_actions", [a.get("label", a) if isinstance(a, dict) else a for a in actions])
@@ -3619,7 +3628,7 @@ async def save_questionnaire_action(
     if not all([student_id, questionnaire_type]):
         raise HTTPException(status_code=400, detail="student_id et questionnaire_type requis")
     
-    # Créer l'enregistrement de traçabilité (Phase 2 Simplifié)
+    # Créer l'enregistrement de traçabilité (Phase 2 avec signature)
     action_record = {
         "id": str(uuid.uuid4()),
         "student_id": student_id,
@@ -3634,6 +3643,10 @@ async def save_questionnaire_action(
         "besoin_text": besoin_text,  # "Le bénéficiaire a exprimé un besoin de..."
         "actions_text": actions_text,  # "Actions mises en place par le formateur..."
         "compte_rendu_final": compte_rendu_final if compte_rendu_final else final_text,
+        # ============ SIGNATURE (Phase 2 - Qualiopi) ============
+        "signature_image": signature_image,  # base64 PNG
+        "signed_at": signed_at or datetime.now(timezone.utc).isoformat(),
+        "signed_by": signed_by,
         # Anciens champs pour rétrocompatibilité
         "selected_keywords": selected_keywords if selected_keywords else mots_cles,
         "selected_actions": selected_actions,
