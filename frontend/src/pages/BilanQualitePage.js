@@ -840,9 +840,9 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
 };
 
 // ============================================================================
-// MODAL DÉFINIR ACTION (Phase 2 Simplifié - SANS niveau de besoin)
+// MODAL DÉFINIR ACTION (Phase 2 avec Signature manuelle)
 // ============================================================================
-const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }) => {
+const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave, parcours = "Anglais" }) => {
   const [loading, setLoading] = useState(true);
   const [analysis, setAnalysis] = useState(null);
   const [selectedKeywords, setSelectedKeywords] = useState([]);
@@ -850,6 +850,8 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
   const [finalText, setFinalText] = useState("");
   const [saving, setSaving] = useState(false);
   const [hasNeed, setHasNeed] = useState(needStatus?.has_need || false);
+  const [signatureData, setSignatureData] = useState(null);
+  const [signatureError, setSignatureError] = useState(false);
 
   // Charger l'analyse
   useEffect(() => {
@@ -857,7 +859,7 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
       try {
         const response = await axios.post(
           `${API}/api/teachers/questionnaire-action/analyze`,
-          { questionnaire_data: qData },
+          { questionnaire_data: qData, parcours: parcours },
           { headers: getAuthHeaders() }
         );
         setAnalysis(response.data);
@@ -882,7 +884,7 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
       }
     };
     loadAnalysis();
-  }, [qData]);
+  }, [qData, parcours]);
 
   // Auto-générer le compte-rendu quand les sélections changent
   useEffect(() => {
@@ -903,7 +905,7 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
         return prev.filter(a => a.id !== action.id);
       } else {
         if (prev.length >= 3) {
-          toast.error("Maximum 3 actions sélectionnables");
+          toast.error("Maximum 3 besoins sélectionnables");
           return prev;
         }
         return [...prev, action];
@@ -911,10 +913,18 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
     });
   };
 
-  // Enregistrer
+  // Enregistrer avec signature
   const handleSave = async () => {
+    // Validation: au moins une action
     if (selectedActions.length === 0) {
-      toast.error("Veuillez sélectionner au moins une action");
+      toast.error("Veuillez sélectionner au moins un besoin");
+      return;
+    }
+    
+    // Validation: signature obligatoire
+    if (!signatureData) {
+      setSignatureError(true);
+      toast.error("Signature requise pour valider la trace Qualiopi.");
       return;
     }
     
@@ -929,24 +939,29 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
         student_name: eleve.nom,
         questionnaire_type: qType,
         questionnaire_id: qData?.id,
-        keywords_internal: selectedKeywords, // Stocké mais non affiché dans le détail
+        keywords_internal: selectedKeywords,
         mots_cles: selectedKeywords,
         actions: selectedActions.map(a => ({ key: a.id, label: a.label })),
         besoin_text: besoinText,
         actions_text: actionsText,
         compte_rendu_final: finalText,
-        has_need: true
+        has_need: true,
+        // ============ SIGNATURE ============
+        signature_image: signatureData,
+        signed_at: new Date().toISOString(),
+        signed_by: localStorage.getItem("userName") || "Formateur"
       }, { headers: getAuthHeaders() });
       onSave();
     } catch (error) {
       console.error("Erreur enregistrement:", error);
-      toast.error("Erreur lors de l'enregistrement");
+      const msg = error.response?.data?.detail || "Erreur lors de l'enregistrement";
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
   };
 
-  // Valider "Aucun besoin"
+  // Valider "Aucun besoin" (pas de signature requise)
   const handleValiderAucunBesoin = async () => {
     setSaving(true);
     try {
@@ -961,7 +976,11 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave }
         besoin_text: "Aucun besoin particulier identifié.",
         actions_text: "Le dispositif est maintenu en l'état.",
         compte_rendu_final: "Analyse effectuée. Aucun besoin particulier. Le dispositif est maintenu.",
-        has_need: false
+        has_need: false,
+        // Pas de signature requise pour "aucun besoin"
+        signature_image: null,
+        signed_at: null,
+        signed_by: null
       }, { headers: getAuthHeaders() });
       onSave();
     } catch (error) {
