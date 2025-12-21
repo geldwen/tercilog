@@ -1713,7 +1713,18 @@ export default function TeacherDashboard({ user, onLogout }) {
                   </form>
                 </DialogContent>
               </Dialog>
+              </div>
+            </div>
 
+            {/* Indicateur de recherche active */}
+            {filteredSessionsSearch !== null && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between">
+                <p className="text-sm text-emerald-700 flex items-center gap-2">
+                  <Search className="w-4 h-4" />
+                  <span className="font-medium">{filteredSessionsSearch.length} séance(s) trouvée(s)</span> pour votre recherche
+                </p>
+              </div>
+            )}
 
             <div className="grid gap-4">
               {groupedSessionsList.length === 0 ? (
