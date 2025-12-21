@@ -801,7 +801,18 @@ const ActionDetailModal = ({ action, qType, eleve, onClose, onDelete }) => {
           )}
         </div>
         
-        <div className="p-4 bg-gray-100 border-t flex justify-end rounded-b-xl">
+        <div className="p-4 bg-gray-100 border-t flex justify-between items-center rounded-b-xl">
+          {/* Bouton supprimer pour recréer avec signature (si pas de signature) */}
+          {!signatureImage && (
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-sm text-red-600 hover:text-red-800 hover:underline disabled:opacity-50"
+            >
+              {deleting ? "Suppression..." : "🗑️ Supprimer pour recréer avec signature"}
+            </button>
+          )}
+          {signatureImage && <div />}
           <Button onClick={onClose}>Fermer</Button>
         </div>
       </div>
