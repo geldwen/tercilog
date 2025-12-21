@@ -685,7 +685,9 @@ const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) 
 // MODAL DÉTAIL DE L'ACTION (avec signature affichée)
 // Affiche: 1) Besoin du bénéficiaire 2) Actions mises en place 3) Compte-rendu 4) Signature
 // ============================================================================
-const ActionDetailModal = ({ action, qType, eleve, onClose }) => {
+const ActionDetailModal = ({ action, qType, eleve, onClose, onDelete }) => {
+  const [deleting, setDeleting] = useState(false);
+  
   // Récupérer les textes (nouveau format ou générer depuis ancien)
   const besoinText = action.besoin_text || buildBesoinSentence(action.mots_cles || action.selected_keywords || []);
   const actionsText = action.actions_text || (
@@ -706,6 +708,27 @@ const ActionDetailModal = ({ action, qType, eleve, onClose }) => {
       const date = new Date(dateStr);
       return `${date.toLocaleDateString('fr-FR')} à ${date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
     } catch { return ""; }
+  };
+  
+  // Supprimer l'action pour la recréer avec signature
+  const handleDelete = async () => {
+    if (!window.confirm("Supprimer cette action pour la recréer avec signature ?")) return;
+    
+    setDeleting(true);
+    try {
+      await axios.delete(
+        `${API}/api/teachers/questionnaire-action/${eleve.id}/${qType}`,
+        { headers: getAuthHeaders() }
+      );
+      toast.success("Action supprimée. Vous pouvez maintenant la recréer avec signature.");
+      if (onDelete) onDelete();
+      onClose();
+    } catch (error) {
+      console.error("Erreur suppression:", error);
+      toast.error("Erreur lors de la suppression");
+    } finally {
+      setDeleting(false);
+    }
   };
   
   return (
