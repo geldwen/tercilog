@@ -680,7 +680,8 @@ const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction, on
           action={detailModal.action} 
           qType={detailModal.qType}
           eleve={detailModal.eleve}
-          onClose={() => setDetailModal(null)} 
+          onClose={() => setDetailModal(null)}
+          onDelete={handleActionDeleted}
         />
       )}
     </div>
