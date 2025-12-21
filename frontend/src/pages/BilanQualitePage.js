@@ -673,8 +673,8 @@ const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) 
 };
 
 // ============================================================================
-// MODAL DÉTAIL DE L'ACTION (SANS niveau, SANS mots-clés affichés)
-// Affiche: 1) Besoin du bénéficiaire 2) Actions mises en place 3) Compte-rendu
+// MODAL DÉTAIL DE L'ACTION (avec signature affichée)
+// Affiche: 1) Besoin du bénéficiaire 2) Actions mises en place 3) Compte-rendu 4) Signature
 // ============================================================================
 const ActionDetailModal = ({ action, qType, eleve, onClose }) => {
   // Récupérer les textes (nouveau format ou générer depuis ancien)
@@ -686,9 +686,22 @@ const ActionDetailModal = ({ action, qType, eleve, onClose }) => {
   );
   const compteRendu = action.compte_rendu_final || action.final_text || "";
   
+  // Signature
+  const signatureImage = action.signature_image;
+  const signedAt = action.signed_at;
+  const signedBy = action.signed_by || action.created_by || action.teacher_name;
+  
+  const formatSignatureDate = (dateStr) => {
+    if (!dateStr) return "";
+    try {
+      const date = new Date(dateStr);
+      return `${date.toLocaleDateString('fr-FR')} à ${date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+    } catch { return ""; }
+  };
+  
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
         {/* Header bleu */}
         <div className="bg-blue-600 text-white p-4 flex justify-between items-center rounded-t-xl">
           <div>
@@ -698,7 +711,7 @@ const ActionDetailModal = ({ action, qType, eleve, onClose }) => {
           <button onClick={onClose} className="p-2 hover:bg-blue-700 rounded-full"><X className="w-5 h-5" /></button>
         </div>
         
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 overflow-y-auto max-h-[60vh]">
           {/* Besoin du bénéficiaire */}
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Besoin du bénéficiaire</p>
@@ -729,11 +742,31 @@ const ActionDetailModal = ({ action, qType, eleve, onClose }) => {
             </div>
           )}
           
-          {/* Métadonnées */}
-          <div className="border-t pt-4 text-xs text-gray-500">
-            <p>Créé par : <span className="font-medium text-gray-700">{action.created_by || action.teacher_name}</span></p>
-            <p>Date : <span className="font-medium text-gray-700">{formatActionDate(action.created_at)}</span></p>
-          </div>
+          {/* Signature formateur */}
+          {signatureImage && (
+            <div className="border-t pt-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Signature formateur</p>
+              <div className="bg-white border rounded-lg p-3">
+                <img 
+                  src={signatureImage} 
+                  alt="Signature formateur" 
+                  className="max-h-24 mx-auto"
+                />
+              </div>
+              <div className="mt-2 text-xs text-gray-600">
+                <p>Signé le : <span className="font-medium">{formatSignatureDate(signedAt)}</span></p>
+                <p>Par : <span className="font-medium">{signedBy}</span></p>
+              </div>
+            </div>
+          )}
+          
+          {/* Métadonnées (si pas de signature) */}
+          {!signatureImage && (
+            <div className="border-t pt-4 text-xs text-gray-500">
+              <p>Créé par : <span className="font-medium text-gray-700">{action.created_by || action.teacher_name}</span></p>
+              <p>Date : <span className="font-medium text-gray-700">{formatActionDate(action.created_at)}</span></p>
+            </div>
+          )}
         </div>
         
         <div className="p-4 bg-gray-100 border-t flex justify-end rounded-b-xl">
