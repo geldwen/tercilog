@@ -567,9 +567,15 @@ const formatActionDate = (dateStr) => {
 // ============================================================================
 // COLONNE ACTIONS FORMATEUR (3 lignes fixes Q1/Q2/Q3) - Badge bleu avec timestamp
 // ============================================================================
-const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction }) => {
+const ActionsFormateurColumn = ({ eleve, needStatus, onVoir, onDefinirAction, onRefresh }) => {
   const [detailModal, setDetailModal] = useState(null);
   const qTypes = ["Q1", "Q2", "Q3"];
+  
+  // Callback après suppression d'action
+  const handleActionDeleted = () => {
+    setDetailModal(null);
+    if (onRefresh) onRefresh();
+  };
   
   return (
     <div className="space-y-2">
