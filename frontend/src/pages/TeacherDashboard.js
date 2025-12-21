@@ -972,6 +972,63 @@ export default function TeacherDashboard({ user, onLogout }) {
     setSearchError('');
   };
 
+  // Fonction de recherche de séance par date
+  const handleSearchSession = () => {
+    setSearchSessionError('');
+    
+    if (!searchSessionMonth) {
+      setSearchSessionError('Veuillez sélectionner au moins un mois');
+      return;
+    }
+
+    // Construire la date de recherche
+    const monthStr = searchSessionMonth.toString().padStart(2, '0');
+    let searchDate = `${searchSessionYear}-${monthStr}`;
+    let dateLabel = `${monthNames.find(m => m.num === parseInt(searchSessionMonth))?.label} ${searchSessionYear}`;
+    
+    if (searchSessionDay) {
+      const dayStr = searchSessionDay.toString().padStart(2, '0');
+      searchDate = `${searchSessionYear}-${monthStr}-${dayStr}`;
+      dateLabel = `${searchSessionDay} ${monthNames.find(m => m.num === parseInt(searchSessionMonth))?.label} ${searchSessionYear}`;
+    }
+
+    // Filtrer les séances
+    const results = sessions.filter(session => {
+      if (searchSessionDay) {
+        // Recherche par jour précis
+        return session.date === searchDate;
+      } else {
+        // Recherche par mois
+        return session.date.startsWith(searchDate);
+      }
+    });
+
+    if (results.length === 0) {
+      setSearchSessionError(`Aucune séance trouvée pour le ${dateLabel}. Cette séance n'existe pas ou a été supprimée.`);
+      return;
+    }
+
+    // Succès - fermer le modal et afficher les résultats
+    setFilteredSessionsSearch(results);
+    setShowSearchSession(false);
+    setSearchSessionMonth('');
+    setSearchSessionDay('');
+  };
+
+  // Fonction pour réinitialiser la recherche de séances
+  const resetSessionSearch = () => {
+    setFilteredSessionsSearch(null);
+    setSearchSessionMonth('');
+    setSearchSessionDay('');
+    setSearchSessionError('');
+  };
+
+  // Générer la liste des jours pour un mois donné
+  const getDaysInMonth = (year, month) => {
+    if (!month) return [];
+    const daysCount = new Date(year, month, 0).getDate();
+    return Array.from({ length: daysCount }, (_, i) => i + 1);
+  };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: TERCIFORM_BLUE }}></div></div>;
 
