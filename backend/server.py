@@ -3525,7 +3525,6 @@ def detect_need_in_questionnaire(questionnaire_data: dict, parcours: str = "Angl
 
 
 @api_router.post("/teachers/questionnaire-action/analyze")
-@api_router.post("/teachers/questionnaire-action/analyze")
 async def analyze_questionnaire_for_action(
     data: dict,
     current_user: User = Depends(get_current_user)
