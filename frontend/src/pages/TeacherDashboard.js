@@ -2302,11 +2302,39 @@ export default function TeacherDashboard({ user, onLogout }) {
             </div>
 
             <div className="grid gap-4">
-              {studentsWithSessionsThisMonth.length === 0 ? (
-                <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucun élève avec séances ce mois</CardContent></Card>
+              {students.length === 0 ? (
+                <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucun élève enregistré</CardContent></Card>
               ) : (
-                studentsWithSessionsThisMonth.map(student => {
-                  const studentSessions = sessions.filter(s => s.student_id === student.id && s.date.startsWith(selectedMonth));
+                students.map(student => {
+                  // Récupérer TOUTES les séances de l'élève
+                  const allStudentSessions = sessions
+                    .filter(s => s.student_id === student.id)
+                    .sort((a, b) => new Date(a.date) - new Date(b.date)); // Ordre chronologique (plus ancien au plus récent)
+                  
+                  // Grouper les séances par mois
+                  const sessionsByMonth = {};
+                  allStudentSessions.forEach(session => {
+                    const monthKey = session.date.substring(0, 7); // "YYYY-MM"
+                    if (!sessionsByMonth[monthKey]) {
+                      sessionsByMonth[monthKey] = [];
+                    }
+                    sessionsByMonth[monthKey].push(session);
+                  });
+                  
+                  // Trier les mois chronologiquement
+                  const sortedMonths = Object.keys(sessionsByMonth).sort();
+                  
+                  // Formater le nom du mois
+                  const formatMonthLabel = (monthKey) => {
+                    const [year, month] = monthKey.split('-');
+                    const monthName = monthNames.find(m => m.num === parseInt(month))?.label || month;
+                    return `${monthName} ${year}`;
+                  };
+                  
+                  // Déterminer si une séance est à venir
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  
                   return (
                     <Card key={student.id} className="shadow-md card-hover border-2" style={{ borderColor: TERCIFORM_BLUE }}>
                       <CardContent className="pt-6">
