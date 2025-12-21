@@ -2469,6 +2469,19 @@ export default function TeacherDashboard({ user, onLogout }) {
               )}
             </div>
           </TabsContent>
+
+          {/* Onglet Formateur (vide pour le moment) */}
+          <TabsContent value="formateur" className="space-y-6">
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mb-6">
+                <PenTool className="w-12 h-12 text-amber-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Espace Formateur</h2>
+              <p className="text-gray-500 text-center max-w-md">
+                Cette section sera bientôt disponible.
+              </p>
+            </div>
+          </TabsContent>
           </Tabs>
           </div>
           </>
