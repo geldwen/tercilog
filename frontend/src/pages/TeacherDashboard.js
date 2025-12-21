@@ -1713,7 +1713,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                   </form>
                 </DialogContent>
               </Dialog>
-              </div>
             </div>
 
             {/* Indicateur de recherche active */}
