@@ -953,30 +953,17 @@ export default function TeacherDashboard({ user, onLogout }) {
           <BillingView sessions={sessions} onSessionsUpdate={loadSessions} />
         ) : (
           <>
-          {/* Filigrane de l'onglet actif */}
+          {/* Fond coloré selon l'onglet actif - comme un papier peint */}
           <div 
-            className="fixed inset-0 pointer-events-none z-0 flex items-center justify-center overflow-hidden"
-            style={{ top: '80px' }}
-          >
-            <span 
-              className={`text-[20vw] font-black uppercase tracking-widest select-none transform -rotate-12 ${
-                activeTab === 'sessions' 
-                  ? 'text-emerald-500/10' 
-                  : activeTab === 'students' 
-                    ? 'text-violet-500/10' 
-                    : 'text-amber-500/10'
-              }`}
-              style={{ 
-                WebkitTextStroke: activeTab === 'sessions' 
-                  ? '3px rgba(16, 185, 129, 0.15)' 
-                  : activeTab === 'students' 
-                    ? '3px rgba(139, 92, 246, 0.15)' 
-                    : '3px rgba(245, 158, 11, 0.15)'
-              }}
-            >
-              {activeTab === 'sessions' ? 'SÉANCES' : activeTab === 'students' ? 'ÉLÈVES' : 'FORMATEURS'}
-            </span>
-          </div>
+            className={`fixed inset-0 pointer-events-none z-0 transition-colors duration-500 ${
+              activeTab === 'sessions' 
+                ? 'bg-emerald-100/50' 
+                : activeTab === 'students' 
+                  ? 'bg-violet-100/50' 
+                  : 'bg-amber-100/50'
+            }`}
+            style={{ top: '72px' }}
+          />
 
           <Tabs defaultValue="sessions" value={activeTab} onValueChange={setActiveTab} className="space-y-6 relative z-10">
           {/* Gros boutons de navigation centrés */}
