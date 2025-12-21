@@ -31,11 +31,139 @@ const PARCOURS_CONFIG = {
 
 const PARCOURS_TABS = Object.keys(PARCOURS_CONFIG);
 
-// Labels des questionnaires
+// Labels des questionnaires (avec descriptions pour clarté)
 const QUESTIONNAIRE_LABELS = {
   "Q1": "Questionnaire d'entrée (Besoins)",
   "Q2": "Questionnaire mi-parcours",
   "Q3": "Questionnaire de fin"
+};
+
+// Labels courts pour les colonnes du tableau
+const QUESTIONNAIRE_SHORT_LABELS = {
+  "Q1": "Q1 (Besoins)",
+  "Q2": "Q2 (Mi-parcours)",
+  "Q3": "Q3 (Fin de formation)"
+};
+
+// ============================================================================
+// COMPOSANT SIGNATURE PAD (Canvas pour signature manuelle)
+// ============================================================================
+const SignaturePad = ({ onChange, initialValue = null }) => {
+  const canvasRef = React.useRef(null);
+  const [isDrawing, setIsDrawing] = React.useState(false);
+  const [hasSignature, setHasSignature] = React.useState(!!initialValue);
+
+  // Initialiser le canvas
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Charger signature initiale si présente
+    if (initialValue) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0);
+        setHasSignature(true);
+      };
+      img.src = initialValue;
+    }
+  }, [initialValue]);
+
+  const getCoords = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    if (e.touches) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top) * scaleY
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
+  };
+
+  const startDrawing = (e) => {
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const coords = getCoords(e);
+    
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#111827';
+    ctx.beginPath();
+    ctx.moveTo(coords.x, coords.y);
+    setIsDrawing(true);
+  };
+
+  const draw = (e) => {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const coords = getCoords(e);
+    
+    ctx.lineTo(coords.x, coords.y);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    if (!isDrawing) return;
+    setIsDrawing(false);
+    setHasSignature(true);
+    
+    const canvas = canvasRef.current;
+    const dataUrl = canvas.toDataURL('image/png');
+    onChange(dataUrl);
+  };
+
+  const clearSignature = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    setHasSignature(false);
+    onChange(null);
+  };
+
+  return (
+    <div>
+      <canvas
+        ref={canvasRef}
+        width={520}
+        height={140}
+        className="border border-gray-300 rounded-lg w-full cursor-crosshair bg-white"
+        style={{ touchAction: 'none' }}
+        onMouseDown={startDrawing}
+        onMouseMove={draw}
+        onMouseUp={stopDrawing}
+        onMouseLeave={stopDrawing}
+        onTouchStart={startDrawing}
+        onTouchMove={draw}
+        onTouchEnd={stopDrawing}
+      />
+      <div className="mt-2 flex items-center justify-between">
+        <button 
+          type="button" 
+          onClick={clearSignature}
+          className="text-sm text-gray-600 hover:text-gray-800 underline"
+        >
+          Effacer
+        </button>
+        {hasSignature && (
+          <span className="text-xs text-green-600">✓ Signature présente</span>
+        )}
+      </div>
+    </div>
+  );
 };
 
 const BilanQualitePage = () => {
