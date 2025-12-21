@@ -2469,11 +2469,21 @@ export default function TeacherDashboard({ user, onLogout }) {
 
             </div>
 
+            {/* Indicateur de recherche active */}
+            {filteredStudents !== null && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                <p className="text-sm text-blue-700 flex items-center gap-2">
+                  <Search className="w-4 h-4" />
+                  <span className="font-medium">{filteredStudents.length} élève(s) trouvé(s)</span> pour votre recherche
+                </p>
+              </div>
+            )}
+
             <div className="grid gap-4">
-              {students.length === 0 ? (
+              {(filteredStudents !== null ? filteredStudents : students).length === 0 ? (
                 <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucun élève enregistré</CardContent></Card>
               ) : (
-                students.map(student => {
+                (filteredStudents !== null ? filteredStudents : students).map(student => {
                   // Récupérer TOUTES les séances de l'élève
                   const allStudentSessions = sessions
                     .filter(s => s.student_id === student.id)
