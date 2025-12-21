@@ -892,6 +892,78 @@ export default function TeacherDashboard({ user, onLogout }) {
     return hasSessionThisMonth || startDateInMonth || createdInMonth;
   });
 
+  // Fonction pour normaliser le texte (enlever accents et mettre en minuscules)
+  const normalizeSearchText = (text) => {
+    if (!text) return '';
+    return text
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  };
+
+  // Fonction pour normaliser un numéro de téléphone (enlever espaces, tirets, points)
+  const normalizePhone = (phone) => {
+    if (!phone) return '';
+    return phone.replace(/[\s\-\.]/g, '');
+  };
+
+  // Fonction de recherche d'élève
+  const handleSearchStudent = () => {
+    setSearchError('');
+    
+    if (!searchQuery.trim()) {
+      setSearchError('Veuillez entrer un nom, prénom ou numéro de téléphone');
+      return;
+    }
+
+    const query = searchQuery.trim();
+    const normalizedQuery = normalizeSearchText(query);
+    const normalizedPhoneQuery = normalizePhone(query);
+
+    // Recherche dans les élèves
+    const results = students.filter(student => {
+      // Recherche par nom (insensible aux accents)
+      const normalizedName = normalizeSearchText(student.name);
+      if (normalizedName.includes(normalizedQuery)) {
+        return true;
+      }
+
+      // Recherche par téléphone (sans espaces)
+      if (student.phone) {
+        const normalizedStudentPhone = normalizePhone(student.phone);
+        if (normalizedStudentPhone.includes(normalizedPhoneQuery)) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+
+    if (results.length === 0) {
+      // Déterminer le type de recherche pour le message d'erreur
+      const isPhoneSearch = /^[0-9\s\-\.]+$/.test(query);
+      if (isPhoneSearch) {
+        setSearchError(`Ce numéro "${query}" n'existe pas dans vos élèves`);
+      } else {
+        setSearchError(`Ce nom ou prénom "${query}" n'existe pas dans vos élèves`);
+      }
+      return;
+    }
+
+    // Succès - fermer le modal et afficher les résultats
+    setFilteredStudents(results);
+    setShowSearchStudent(false);
+    setSearchQuery('');
+  };
+
+  // Fonction pour réinitialiser la recherche et afficher tous les élèves
+  const resetStudentSearch = () => {
+    setFilteredStudents(null);
+    setSearchQuery('');
+    setSearchError('');
+  };
+
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: TERCIFORM_BLUE }}></div></div>;
 
