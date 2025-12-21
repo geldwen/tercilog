@@ -1074,7 +1074,7 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave, 
               </div>
 
               {/* Section: Compte-rendu formateur */}
-              <div className="mb-4">
+              <div className="mb-5">
                 <h3 className="font-bold text-gray-900 mb-3 text-base">Compte-rendu formateur</h3>
                 <p className="text-xs text-gray-500 mb-2">Ce texte est généré automatiquement. Vous pouvez le modifier avant validation.</p>
                 <textarea 
@@ -1083,6 +1083,37 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave, 
                   className="w-full border rounded-lg p-3 h-28 text-sm"
                   placeholder="Le compte-rendu sera généré automatiquement..."
                 />
+              </div>
+
+              {/* Section: Signature formateur (OBLIGATOIRE) */}
+              <div className={`mb-4 p-4 rounded-lg border-2 ${signatureError && !signatureData ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'}`}>
+                <h3 className="font-bold text-gray-900 mb-3 text-base">
+                  Signature formateur <span className="text-red-500">*</span>
+                </h3>
+                <p className="text-xs text-gray-500 mb-3">Signature manuscrite obligatoire pour validation Qualiopi.</p>
+                
+                <SignaturePad 
+                  onChange={(data) => {
+                    setSignatureData(data);
+                    setSignatureError(false);
+                  }} 
+                />
+                
+                {signatureData && (
+                  <div className="mt-3 text-xs text-gray-600 flex items-center gap-2">
+                    <span>Signé le :</span>
+                    <span className="font-medium">{new Date().toLocaleDateString('fr-FR')} à {new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="mx-2">|</span>
+                    <span>Par :</span>
+                    <span className="font-medium">{localStorage.getItem("userName") || "Formateur"}</span>
+                  </div>
+                )}
+                
+                {signatureError && !signatureData && (
+                  <p className="mt-2 text-sm text-red-600 font-medium">
+                    Signature requise pour valider la trace Qualiopi.
+                  </p>
+                )}
               </div>
             </>
           )}
@@ -1096,10 +1127,10 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave, 
               <Button variant="outline" onClick={onClose}>Annuler</Button>
               <Button 
                 onClick={handleSave} 
-                disabled={saving || selectedActions.length === 0}
-                className="bg-orange-500 hover:bg-orange-600 text-white"
+                disabled={saving || selectedActions.length === 0 || !signatureData}
+                className="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
               >
-                {saving ? "Enregistrement..." : "Définir"}
+                {saving ? "Enregistrement..." : "Signer et Valider"}
               </Button>
             </div>
           </div>
