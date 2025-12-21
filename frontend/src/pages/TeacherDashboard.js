@@ -1036,10 +1036,32 @@ export default function TeacherDashboard({ user, onLogout }) {
             </div>
 
           <Tabs defaultValue="sessions" className="space-y-6">
-          <TabsList className="bg-white border border-gray-200 shadow-sm">
-            <TabsTrigger value="sessions" className="data-[state=active]:text-white"><Calendar className="w-4 h-4 mr-2" />Séances</TabsTrigger>
-            <TabsTrigger value="students" className="data-[state=active]:text-white"><Users className="w-4 h-4 mr-2" />Élèves</TabsTrigger>
-          </TabsList>
+          {/* Gros boutons de navigation centrés */}
+          <div className="flex justify-center gap-6 mb-8">
+            <TabsList className="bg-transparent border-0 shadow-none p-0 h-auto gap-6">
+              <TabsTrigger 
+                value="sessions" 
+                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-emerald-500 data-[state=inactive]:text-white data-[state=active]:bg-emerald-600 data-[state=active]:text-white hover:shadow-xl"
+              >
+                <Calendar className="w-5 h-5 mr-3" />
+                SÉANCES
+              </TabsTrigger>
+              <TabsTrigger 
+                value="students" 
+                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-violet-500 data-[state=inactive]:text-white data-[state=active]:bg-violet-600 data-[state=active]:text-white hover:shadow-xl"
+              >
+                <Users className="w-5 h-5 mr-3" />
+                ÉLÈVES
+              </TabsTrigger>
+              <TabsTrigger 
+                value="formateur" 
+                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-amber-500 data-[state=inactive]:text-white data-[state=active]:bg-amber-600 data-[state=active]:text-white hover:shadow-xl"
+              >
+                <PenTool className="w-5 h-5 mr-3" />
+                FORMATEUR
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="sessions" className="space-y-6">
             <div className="flex justify-between items-center">
