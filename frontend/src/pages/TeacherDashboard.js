@@ -78,6 +78,14 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [filteredStudents, setFilteredStudents] = useState(null); // null = afficher tous, [] = aucun résultat, [...] = résultats filtrés
   const [searchError, setSearchError] = useState('');
 
+  // États pour la recherche de séance
+  const [showSearchSession, setShowSearchSession] = useState(false);
+  const [searchSessionYear, setSearchSessionYear] = useState(new Date().getFullYear());
+  const [searchSessionMonth, setSearchSessionMonth] = useState('');
+  const [searchSessionDay, setSearchSessionDay] = useState('');
+  const [filteredSessionsSearch, setFilteredSessionsSearch] = useState(null); // null = utiliser filteredSessions par défaut
+  const [searchSessionError, setSearchSessionError] = useState('');
+
   // États pour le modal d'envoi de justificatifs signés
   const [attendanceStudent, setAttendanceStudent] = useState(null);
   const [attendanceMode, setAttendanceMode] = useState('month'); // 'session' ou 'month'
