@@ -952,9 +952,38 @@ export default function TeacherDashboard({ user, onLogout }) {
           <BillingView sessions={sessions} onSessionsUpdate={loadSessions} />
         ) : (
           <>
-            <div className="mb-6">
+          <Tabs defaultValue="sessions" className="space-y-6">
+          {/* Gros boutons de navigation centrés */}
+          <div className="flex justify-center gap-6 mb-8">
+            <TabsList className="bg-transparent border-0 shadow-none p-0 h-auto gap-6">
+              <TabsTrigger 
+                value="sessions" 
+                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-emerald-500 data-[state=inactive]:text-white data-[state=active]:bg-emerald-600 data-[state=active]:text-white hover:shadow-xl"
+              >
+                <Calendar className="w-5 h-5 mr-3" />
+                SÉANCES
+              </TabsTrigger>
+              <TabsTrigger 
+                value="students" 
+                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-violet-500 data-[state=inactive]:text-white data-[state=active]:bg-violet-600 data-[state=active]:text-white hover:shadow-xl"
+              >
+                <Users className="w-5 h-5 mr-3" />
+                ÉLÈVES
+              </TabsTrigger>
+              <TabsTrigger 
+                value="formateurs" 
+                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-amber-500 data-[state=inactive]:text-white data-[state=active]:bg-amber-600 data-[state=active]:text-white hover:shadow-xl"
+              >
+                <PenTool className="w-5 h-5 mr-3" />
+                FORMATEURS
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Onglet SÉANCES */}
+          <TabsContent value="sessions" className="space-y-6">
             {/* Filtres Année et Mois */}
-            <div className="flex items-center gap-4 mb-6 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium text-gray-600">Année :</label>
                 <select
@@ -987,38 +1016,37 @@ export default function TeacherDashboard({ user, onLogout }) {
             </div>
 
             {/* Statistiques du mois sélectionné */}
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <Card className="card-hover border-2 shadow-md" style={{ borderColor: TERCIFORM_BLUE }}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Heures totales du mois</p>
-                        <p className="text-xs text-gray-500 mb-2">{monthNames.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</p>
-                        <p className="text-3xl font-bold" style={{ color: TERCIFORM_BLUE }}>
-                          {filteredSessions.reduce((sum, s) => sum + (s.duration_hours || 0), 0)}h
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">{filteredSessions.length} séance(s)</p>
-                      </div>
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
-                        <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
-                      </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="card-hover border-2 shadow-md" style={{ borderColor: TERCIFORM_BLUE }}>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Heures totales du mois</p>
+                      <p className="text-xs text-gray-500 mb-2">{monthNames.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</p>
+                      <p className="text-3xl font-bold" style={{ color: TERCIFORM_BLUE }}>
+                        {filteredSessions.reduce((sum, s) => sum + (s.duration_hours || 0), 0)}h
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">{filteredSessions.length} séance(s)</p>
                     </div>
-                  </CardContent>
-                </Card>
-                <Card className="card-hover border-2 shadow-md" style={{ borderColor: TERCIFORM_BLUE }}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Heures restantes du mois</p>
-                        <p className="text-xs text-gray-500 mb-2">{monthNames.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</p>
-                        <p className="text-3xl font-bold text-green-600">
-                          {filteredSessions.filter(s => !s.signature).reduce((sum, s) => sum + (s.duration_hours || 0), 0)}h
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">{filteredSessions.filter(s => !s.signature).length} séance(s) non émargée(s)</p>
-                      </div>
-                      <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                        <Clock className="w-6 h-6 text-green-600" />
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
+                      <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="card-hover border-2 shadow-md" style={{ borderColor: TERCIFORM_BLUE }}>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Heures restantes du mois</p>
+                      <p className="text-xs text-gray-500 mb-2">{monthNames.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</p>
+                      <p className="text-3xl font-bold text-green-600">
+                        {filteredSessions.filter(s => !s.signature).reduce((sum, s) => sum + (s.duration_hours || 0), 0)}h
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">{filteredSessions.filter(s => !s.signature).length} séance(s) non émargée(s)</p>
+                    </div>
+                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                      <Clock className="w-6 h-6 text-green-600" />
                       </div>
                     </div>
                   </CardContent>
