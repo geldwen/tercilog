@@ -266,7 +266,7 @@ const BilanQualitePage = () => {
 
   // Ouvrir modal définir action
   const handleDefinirAction = (eleve, qType, qData, needStatus) => {
-    setActionModal({ eleve, qType, qData, needStatus });
+    setActionModal({ eleve, qType, qData, needStatus, parcours: activeParcours });
   };
 
   // Callback après enregistrement action
