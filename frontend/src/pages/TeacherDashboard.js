@@ -957,10 +957,10 @@ export default function TeacherDashboard({ user, onLogout }) {
           <div 
             className={`fixed inset-0 pointer-events-none z-0 transition-colors duration-500 ${
               activeTab === 'sessions' 
-                ? 'bg-emerald-200/70' 
+                ? 'bg-emerald-300' 
                 : activeTab === 'students' 
-                  ? 'bg-violet-200/70' 
-                  : 'bg-amber-200/70'
+                  ? 'bg-violet-300' 
+                  : 'bg-amber-300'
             }`}
             style={{ top: '72px' }}
           />
