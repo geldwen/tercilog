@@ -2252,7 +2252,7 @@ class TerciFormTester:
             self.log(f"REACT_APP_BACKEND_URL from /app/frontend/.env: {frontend_env_url}")
             
             # Expected URL
-            expected_url = "https://bilan-qualite.preview.emergentagent.com"
+            expected_url = "https://student-portal-223.preview.emergentagent.com"
             url_correct = frontend_env_url == expected_url
             
             self.log(f"Expected URL: {expected_url}")
@@ -2294,8 +2294,8 @@ class TerciFormTester:
             # Looking at the send_attendance_email function in server.py:
             # frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '')
             
-            # Since REACT_APP_BACKEND_URL = "https://bilan-qualite.preview.emergentagent.com"
-            # The button URL will be: "https://bilan-qualite.preview.emergentagent.com"
+            # Since REACT_APP_BACKEND_URL = "https://student-portal-223.preview.emergentagent.com"
+            # The button URL will be: "https://student-portal-223.preview.emergentagent.com"
             
             button_url = frontend_env_url.replace('/api', '') if frontend_env_url else ''
             self.log(f"🔗 URL that will be in the email button: {button_url}")
