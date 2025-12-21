@@ -2447,55 +2447,76 @@ export default function TeacherDashboard({ user, onLogout }) {
                               </Button>
                             </div>
                           </div>
-                          {studentSessions.length > 0 && (
+                          {sortedMonths.length > 0 && (
                             <div className="border-t pt-4">
                               <h4 className="text-sm font-semibold text-gray-700 mb-3">Historique des séances</h4>
-                              <div className="space-y-2">
-                                {studentSessions.map(session => (
-                                  <div key={session.id} className="flex items-center justify-between text-sm py-3 px-4 bg-gray-50 rounded-lg">
-                                    <div className="flex items-center gap-3 flex-1 flex-wrap">
-                                      <span className="font-medium text-gray-900">{session.subject}</span>
-                                      <span className="text-gray-500">le {new Date(session.date).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                                      <span className="font-semibold text-gray-700">{session.duration_hours}h</span>
-                                      {session.status === 'confirmed' && session.validated_at && (
-                                        <span className="text-xs text-green-700 font-medium">
-                                          - Confirmée le {formatDateWithDay(session.validated_at)}
-                                        </span>
-                                      )}
-                                      {session.status === 'rejected' && session.validated_at && (
-                                        <span className="text-xs text-red-700 font-medium">
-                                          - Refusée le {formatDateWithDay(session.validated_at)}
-                                        </span>
-                                      )}
-                                      {session.status === 'pending' && (
-                                        <span className="text-xs text-yellow-700 font-medium flex items-center gap-1">
-                                          <AlertCircle className="w-4 h-4" />
-                                          - En attente de validation
-                                        </span>
-                                      )}
+                              <div className="space-y-4">
+                                {sortedMonths.map(monthKey => {
+                                  const monthSessions = sessionsByMonth[monthKey];
+                                  return (
+                                    <div key={monthKey} className="space-y-2">
+                                      {/* En-tête du mois */}
+                                      <div className="flex items-center gap-2 py-2 px-3 bg-violet-100 rounded-lg">
+                                        <Calendar className="w-4 h-4 text-violet-600" />
+                                        <span className="font-bold text-violet-800">{formatMonthLabel(monthKey)}</span>
+                                        <span className="text-sm text-violet-600">({monthSessions.length} séance{monthSessions.length > 1 ? 's' : ''})</span>
+                                      </div>
+                                      {/* Séances du mois */}
+                                      {monthSessions.map(session => {
+                                        const sessionDate = new Date(session.date);
+                                        sessionDate.setHours(0, 0, 0, 0);
+                                        const isFuture = sessionDate > today;
+                                        
+                                        return (
+                                          <div key={session.id} className={`flex items-center justify-between text-sm py-3 px-4 rounded-lg ${isFuture ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'}`}>
+                                            <div className="flex items-center gap-3 flex-1 flex-wrap">
+                                              {isFuture && <span className="px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded">À VENIR</span>}
+                                              <span className="font-medium text-gray-900">{session.subject}</span>
+                                              <span className="text-gray-500">le {new Date(session.date).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                              <span className="font-semibold text-gray-700">{session.duration_hours}h</span>
+                                              {session.status === 'confirmed' && session.validated_at && (
+                                                <span className="text-xs text-green-700 font-medium">
+                                                  - Confirmée le {formatDateWithDay(session.validated_at)}
+                                                </span>
+                                              )}
+                                              {session.status === 'rejected' && session.validated_at && (
+                                                <span className="text-xs text-red-700 font-medium">
+                                                  - Refusée le {formatDateWithDay(session.validated_at)}
+                                                </span>
+                                              )}
+                                              {session.status === 'pending' && (
+                                                <span className="text-xs text-yellow-700 font-medium flex items-center gap-1">
+                                                  <AlertCircle className="w-4 h-4" />
+                                                  - En attente de validation
+                                                </span>
+                                              )}
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                              {session.signature && session.signed_at && (
+                                                <div className="flex items-center gap-2">
+                                                  <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                                                    ✓ Émargé le {formatDateTimeWithDay(session.signed_at)}
+                                                  </span>
+                                                  <img 
+                                                    src={session.signature} 
+                                                    alt="Signature" 
+                                                    className="h-10 border-2 border-green-600 rounded bg-white p-1 cursor-pointer hover:scale-150 transition-transform"
+                                                    title="Signature de l'élève"
+                                                  />
+                                                </div>
+                                              )}
+                                              {session.signature_status === "pending" && !session.signature && (
+                                                <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
+                                                  ⏳ En attente d'émargement
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                      {session.signature && session.signed_at && (
-                                        <div className="flex items-center gap-2">
-                                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
-                                            ✓ Émargé le {formatDateTimeWithDay(session.signed_at)}
-                                          </span>
-                                          <img 
-                                            src={session.signature} 
-                                            alt="Signature" 
-                                            className="h-10 border-2 border-green-600 rounded bg-white p-1 cursor-pointer hover:scale-150 transition-transform"
-                                            title="Signature de l'élève"
-                                          />
-                                        </div>
-                                      )}
-                                      {session.signature_status === "pending" && !session.signature && (
-                                        <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
-                                          ⏳ En attente d'émargement
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             </div>
                           )}
