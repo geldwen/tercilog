@@ -3325,35 +3325,103 @@ KEYWORD_TO_ACTION_ANGLAIS = {
 }
 
 # Mots-clés pédagogiques pour le parcours INFORMATIQUE (débutants)
+# Structure: internal keywords -> human-readable NEED labels
 KEYWORDS_INFORMATIQUE = {
-    "competences_numeriques": ["bases informatiques", "utilisation ordinateur", "système fichiers", "bureautique", "traitement de texte", "tableur", "présentation", "internet", "email", "sécurité"],
-    "pedagogie_methodes": ["rythme", "manipulation", "répétition", "pas à pas", "autonomie", "confiance"],
-    "organisation_conditions": ["matériel", "distanciel", "présentiel", "disponibilité", "support papier"]
+    "bases_usage_ordinateur": ["debutant", "bases", "notions", "niveau faible", "souris", "clavier", "manipulation", "clic", "taper", "dossiers", "fichiers", "explorateur", "organisation"],
+    "outils_bureautique": ["word", "traitement de texte", "mise en page", "excel", "tableur", "formule", "cellule", "powerpoint", "presentation", "diaporama"],
+    "internet_messagerie": ["internet", "navigation", "recherche", "email", "messagerie", "piece jointe"],
+    "securite": ["mot de passe", "phishing", "virus", "arnaque", "securite"],
+    "pedagogie": ["rythme", "trop rapide", "trop lent", "pratique", "exercices", "manipuler", "repetition", "revoir", "revision", "pas a pas", "etape", "explications", "autonomie", "bloque", "peur", "confiance"],
+    "organisation_materiel": ["materiel", "ordinateur", "equipement", "distanciel", "presentiel", "hybride", "horaire", "planning", "disponibilite"]
 }
 
-# Actions suggérées INFORMATIQUE
+# Actions suggérées INFORMATIQUE - Mapping internal keywords -> human NEED labels
 KEYWORD_TO_ACTION_INFORMATIQUE = {
-    "bases informatiques": "Reprendre les fondamentaux informatiques",
-    "utilisation ordinateur": "Exercices de manipulation souris/clavier",
-    "système fichiers": "Travail sur l'organisation des fichiers",
-    "bureautique": "Renforcer la pratique bureautique",
-    "traitement de texte": "Exercices Word ciblés",
-    "tableur": "Exercices Excel ciblés",
-    "présentation": "Exercices PowerPoint ciblés",
-    "internet": "Accompagnement navigation web",
-    "email": "Pratique messagerie guidée",
-    "sécurité": "Sensibilisation sécurité informatique",
-    "rythme": "Ajuster le rythme des séances",
-    "manipulation": "Augmenter les exercices pratiques",
-    "répétition": "Revoir les notions plusieurs fois",
-    "pas à pas": "Fournir des guides détaillés",
-    "autonomie": "Accompagnement progressif vers l'autonomie",
-    "confiance": "Encouragements et mise en confiance",
-    "matériel": "Vérifier/adapter le matériel",
-    "distanciel": "Adapter le format distanciel",
-    "présentiel": "Privilégier le présentiel",
-    "disponibilité": "Ajuster selon les disponibilités",
-    "support papier": "Fournir des documents imprimés"
+    # A) Bases / usage ordinateur
+    "debutant": "Reprendre les bases informatiques",
+    "bases": "Reprendre les bases informatiques",
+    "notions": "Reprendre les bases informatiques",
+    "niveau faible": "Reprendre les bases informatiques",
+    "souris": "Améliorer l'aisance avec clavier/souris",
+    "clavier": "Améliorer l'aisance avec clavier/souris",
+    "manipulation": "Améliorer l'aisance avec clavier/souris",
+    "clic": "Améliorer l'aisance avec clavier/souris",
+    "taper": "Améliorer l'aisance avec clavier/souris",
+    "dossiers": "Savoir gérer fichiers et dossiers",
+    "fichiers": "Savoir gérer fichiers et dossiers",
+    "explorateur": "Savoir gérer fichiers et dossiers",
+    "organisation": "Savoir gérer fichiers et dossiers",
+    # B) Outils
+    "word": "Renforcer Word (traitement de texte)",
+    "traitement de texte": "Renforcer Word (traitement de texte)",
+    "mise en page": "Renforcer Word (traitement de texte)",
+    "excel": "Renforcer Excel (tableur)",
+    "tableur": "Renforcer Excel (tableur)",
+    "formule": "Renforcer Excel (tableur)",
+    "cellule": "Renforcer Excel (tableur)",
+    "powerpoint": "Renforcer PowerPoint (présentations)",
+    "presentation": "Renforcer PowerPoint (présentations)",
+    "diaporama": "Renforcer PowerPoint (présentations)",
+    "internet": "Mieux utiliser Internet (navigation/recherche)",
+    "navigation": "Mieux utiliser Internet (navigation/recherche)",
+    "recherche": "Mieux utiliser Internet (navigation/recherche)",
+    "email": "Mieux utiliser la messagerie (e-mails)",
+    "messagerie": "Mieux utiliser la messagerie (e-mails)",
+    "piece jointe": "Mieux utiliser la messagerie (e-mails)",
+    # C) Sécurité
+    "mot de passe": "Renforcer la sécurité numérique",
+    "phishing": "Renforcer la sécurité numérique",
+    "virus": "Renforcer la sécurité numérique",
+    "arnaque": "Renforcer la sécurité numérique",
+    "securite": "Renforcer la sécurité numérique",
+    # D) Pédagogie
+    "rythme": "Adapter le rythme",
+    "trop rapide": "Adapter le rythme",
+    "trop lent": "Adapter le rythme",
+    "pratique": "Ajouter plus de pratique guidée",
+    "exercices": "Ajouter plus de pratique guidée",
+    "manipuler": "Ajouter plus de pratique guidée",
+    "repetition": "Ajouter des temps de révision",
+    "revoir": "Ajouter des temps de révision",
+    "revision": "Ajouter des temps de révision",
+    "pas a pas": "Consignes plus 'pas à pas'",
+    "etape": "Consignes plus 'pas à pas'",
+    "explications": "Consignes plus 'pas à pas'",
+    "autonomie": "Renforcer l'autonomie et la confiance",
+    "bloque": "Renforcer l'autonomie et la confiance",
+    "peur": "Renforcer l'autonomie et la confiance",
+    "confiance": "Renforcer l'autonomie et la confiance",
+    # E) Organisation / matériel
+    "materiel": "Adapter le matériel / l'équipement",
+    "ordinateur": "Adapter le matériel / l'équipement",
+    "equipement": "Adapter le matériel / l'équipement",
+    "distanciel": "Adapter le format",
+    "presentiel": "Adapter le format",
+    "hybride": "Adapter le format",
+    "horaire": "Adapter l'organisation",
+    "planning": "Adapter l'organisation",
+    "disponibilite": "Adapter l'organisation"
+}
+
+# Actions mises en place suggestions pour Informatique (NEED -> action suggestion)
+NEED_TO_ACTION_INFORMATIQUE = {
+    "Reprendre les bases informatiques": "Reprise structurée des fondamentaux + exercices progressifs",
+    "Améliorer l'aisance avec clavier/souris": "Ateliers de manipulation guidée",
+    "Savoir gérer fichiers et dossiers": "Exercices dédiés organisation fichiers/dossiers",
+    "Renforcer Word (traitement de texte)": "Exercices ciblés sur l'outil + cas pratiques",
+    "Renforcer Excel (tableur)": "Exercices ciblés sur l'outil + cas pratiques",
+    "Renforcer PowerPoint (présentations)": "Exercices ciblés sur l'outil + cas pratiques",
+    "Mieux utiliser Internet (navigation/recherche)": "Parcours guidé de navigation/recherche",
+    "Mieux utiliser la messagerie (e-mails)": "Atelier e-mail (envoi, pièces jointes, réponses)",
+    "Renforcer la sécurité numérique": "Sensibilisation phishing + bonnes pratiques mots de passe",
+    "Adapter le rythme": "Ralentissement + pauses + vérifications régulières",
+    "Ajouter plus de pratique guidée": "Augmentation du temps de manipulation",
+    "Ajouter des temps de révision": "Rituels de révision en début/fin de séance",
+    "Consignes plus 'pas à pas'": "Fiches étapes + démonstration puis reproduction",
+    "Renforcer l'autonomie et la confiance": "Accompagnement individualisé + objectifs intermédiaires",
+    "Adapter le matériel / l'équipement": "Vérification équipement + alternative proposée",
+    "Adapter le format": "Adaptation distanciel/présentiel selon contraintes",
+    "Adapter l'organisation": "Ajustement créneaux / planning"
 }
 
 # Mots déclencheurs de besoin (pour la détection automatique)
