@@ -1616,39 +1616,6 @@ export default function TeacherDashboard({ user, onLogout }) {
           </TabsContent>
 
           <TabsContent value="students" className="space-y-6">
-            {/* Filtres Année et Mois - identique à SÉANCES */}
-            <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-600">Année :</label>
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-                  style={{ color: TERCIFORM_BLUE }}
-                >
-                  {yearsList.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-600">Mois :</label>
-                <select
-                  value={selectedMonthNum}
-                  onChange={(e) => setSelectedMonthNum(parseInt(e.target.value))}
-                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-                  style={{ color: TERCIFORM_BLUE }}
-                >
-                  {monthNames.map(m => (
-                    <option key={m.num} value={m.num}>{m.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="ml-auto text-sm text-gray-500">
-                Période : <span className="font-medium" style={{ color: TERCIFORM_BLUE }}>{monthNames.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</span>
-              </div>
-            </div>
-
             <div className="flex justify-end items-center">
               <Dialog open={showCreateStudent} onOpenChange={setShowCreateStudent}>
                 <DialogTrigger asChild>
