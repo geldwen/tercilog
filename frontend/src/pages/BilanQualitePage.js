@@ -323,7 +323,7 @@ const BilanQualitePage = () => {
             <Button variant="outline" onClick={() => navigate(-1)}>
               <ArrowLeft className="w-4 h-4 mr-2" />Retour
             </Button>
-            <h1 className="text-3xl font-bold text-gray-900">Bilan Qualité Qualiopi</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Bilan Qualité</h1>
           </div>
         </div>
 
