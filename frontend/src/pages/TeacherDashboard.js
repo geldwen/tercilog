@@ -1694,7 +1694,97 @@ export default function TeacherDashboard({ user, onLogout }) {
           </TabsContent>
 
           <TabsContent value="students" className="space-y-6">
-            <div className="flex justify-end items-center">
+            <div className="flex justify-end items-center gap-3">
+              {/* Bouton pour réinitialiser la recherche si filtre actif */}
+              {filteredStudents !== null && (
+                <Button 
+                  onClick={resetStudentSearch}
+                  variant="outline"
+                  className="gap-2 border-gray-400 text-gray-600 hover:bg-gray-100"
+                >
+                  <XCircle className="w-4 h-4" />
+                  Afficher tous les élèves ({students.length})
+                </Button>
+              )}
+              
+              {/* Bouton Rechercher un élève */}
+              <Dialog open={showSearchStudent} onOpenChange={(open) => {
+                setShowSearchStudent(open);
+                if (!open) {
+                  setSearchQuery('');
+                  setSearchError('');
+                }
+              }}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 text-white" style={{ backgroundColor: '#4A6FA5' }}>
+                    <Search className="w-4 h-4" />
+                    Rechercher un élève
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Search className="w-5 h-5" style={{ color: TERCIFORM_BLUE }} />
+                      Rechercher un élève
+                    </DialogTitle>
+                    <DialogDescription>
+                      Recherchez par nom, prénom ou numéro de téléphone
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label>Nom, prénom ou téléphone</Label>
+                      <Input 
+                        placeholder="ex: Cédric, Dupont, 0612345678..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setSearchError('');
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleSearchStudent();
+                          }
+                        }}
+                        autoFocus
+                      />
+                      <p className="text-xs text-gray-500">
+                        💡 La recherche fonctionne avec ou sans accents (Cédric = Cedric)
+                      </p>
+                    </div>
+                    
+                    {searchError && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-sm text-red-700 flex items-center gap-2">
+                          <XCircle className="w-4 h-4" />
+                          {searchError}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <DialogFooter>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setShowSearchStudent(false)}
+                    >
+                      Annuler
+                    </Button>
+                    <Button 
+                      type="button"
+                      onClick={handleSearchStudent}
+                      style={{ backgroundColor: TERCIFORM_BLUE }}
+                      className="text-white gap-2"
+                    >
+                      <Search className="w-4 h-4" />
+                      Soumettre
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Bouton Ajouter un élève */}
               <Dialog open={showCreateStudent} onOpenChange={setShowCreateStudent}>
                 <DialogTrigger asChild>
                   <Button className="gap-2 text-white" style={{ backgroundColor: TERCIFORM_BLUE }}><Plus className="w-4 h-4" />Ajouter un élève</Button>
