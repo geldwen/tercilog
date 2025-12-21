@@ -882,8 +882,10 @@ export default function TeacherDashboard({ user, onLogout }) {
   const filteredSessions = sessions.filter(s => s.date.startsWith(selectedMonth));
 
   // Grouper par date + matière + horaire
+  // Utiliser les résultats de recherche si disponibles, sinon les séances du mois sélectionné
+  const sessionsToDisplay = filteredSessionsSearch !== null ? filteredSessionsSearch : filteredSessions;
   const groupedSessions = {};
-  filteredSessions.forEach(session => {
+  sessionsToDisplay.forEach(session => {
     const key = `${session.date}_${session.subject}_${session.start_time}_${session.end_time}`;
     if (!groupedSessions[key]) {
       groupedSessions[key] = { subject: session.subject, date: session.date, start_time: session.start_time, end_time: session.end_time, duration_hours: session.duration_hours, sessions: [] };
