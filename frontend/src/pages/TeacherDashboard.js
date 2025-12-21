@@ -2468,8 +2468,8 @@ export default function TeacherDashboard({ user, onLogout }) {
             </div>
           </TabsContent>
 
-          {/* Onglet Formateur (vide pour le moment) */}
-          <TabsContent value="formateur" className="space-y-6">
+          {/* Onglet Formateurs (vide pour le moment) */}
+          <TabsContent value="formateurs" className="space-y-6">
             <div className="flex flex-col items-center justify-center py-16">
               <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mb-6">
                 <PenTool className="w-12 h-12 text-amber-600" />
