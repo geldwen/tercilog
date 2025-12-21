@@ -1250,11 +1250,14 @@ export default function TeacherDashboard({ user, onLogout }) {
                       <div className="space-y-3">
                         {todaySessions.map(session => {
                           const student = students.find(st => st.id === session.student_id);
-                          const isVisio = session.location?.toLowerCase().includes('visio') || 
+                          const isVisio = session.modality === 'distanciel' || 
+                                         session.meeting_link ||
+                                         session.visio_link ||
+                                         session.location?.toLowerCase().includes('visio') || 
                                          session.location?.toLowerCase().includes('teams') || 
                                          session.location?.toLowerCase().includes('zoom') ||
-                                         session.location?.toLowerCase().includes('meet') ||
-                                         session.visio_link;
+                                         session.location?.toLowerCase().includes('meet');
+                          const visioLink = session.meeting_link || session.visio_link;
                           
                           return (
                             <div 
