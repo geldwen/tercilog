@@ -1291,11 +1291,11 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  {isVisio && session.visio_link && (
+                                  {isVisio && visioLink && (
                                     <Button 
                                       size="sm" 
                                       className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-                                      onClick={() => window.open(session.visio_link, '_blank')}
+                                      onClick={() => window.open(visioLink, '_blank')}
                                     >
                                       <Video className="w-4 h-4" />
                                       Rejoindre en visio
