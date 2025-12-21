@@ -61,6 +61,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [documentsStudent, setDocumentsStudent] = useState(null);
   const [showPlanning, setShowPlanning] = useState(false);
   const [showBilling, setShowBilling] = useState(false);
+  const [activeTab, setActiveTab] = useState("sessions"); // Pour le filigrane
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonthNum, setSelectedMonthNum] = useState(new Date().getMonth() + 1);
   const [editingStudent, setEditingStudent] = useState(null);
