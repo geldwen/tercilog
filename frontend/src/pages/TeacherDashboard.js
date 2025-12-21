@@ -72,6 +72,12 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [isDrawing, setIsDrawing] = useState(false);
   const canvasRef = useRef(null);
 
+  // États pour la recherche d'élève
+  const [showSearchStudent, setShowSearchStudent] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredStudents, setFilteredStudents] = useState(null); // null = afficher tous, [] = aucun résultat, [...] = résultats filtrés
+  const [searchError, setSearchError] = useState('');
+
   // États pour le modal d'envoi de justificatifs signés
   const [attendanceStudent, setAttendanceStudent] = useState(null);
   const [attendanceMode, setAttendanceMode] = useState('month'); // 'session' ou 'month'
