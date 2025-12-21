@@ -2515,6 +2515,17 @@ export default function TeacherDashboard({ user, onLogout }) {
 
           {/* Onglet Formateurs (vide pour le moment) */}
           <TabsContent value="formateurs" className="space-y-6">
+            {/* Bouton créer un formateur */}
+            <div className="flex justify-end">
+              <Button 
+                className="gap-2 text-white"
+                style={{ backgroundColor: TERCIFORM_BLUE }}
+              >
+                <Plus className="w-4 h-4" />
+                Créer un nouveau formateur
+              </Button>
+            </div>
+
             <div className="flex flex-col items-center justify-center py-16">
               <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mb-6">
                 <PenTool className="w-12 h-12 text-amber-600" />
