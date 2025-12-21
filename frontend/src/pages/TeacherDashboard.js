@@ -1060,37 +1060,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                   <Card className="card-hover border-0 shadow-md"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600">Total des heures refusées</p><p className="text-3xl font-bold text-red-600 mt-1">{stats.rejected_hours || 0}h</p><p className="text-xs text-gray-500 mt-1">{stats.rejected_sessions} séance(s)</p></div><div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center"><XCircle className="w-6 h-6 text-red-600" /></div></div></CardContent></Card>
                 </div>
               )}
-            </div>
 
-          <Tabs defaultValue="sessions" className="space-y-6">
-          {/* Gros boutons de navigation centrés */}
-          <div className="flex justify-center gap-6 mb-8">
-            <TabsList className="bg-transparent border-0 shadow-none p-0 h-auto gap-6">
-              <TabsTrigger 
-                value="sessions" 
-                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-emerald-500 data-[state=inactive]:text-white data-[state=active]:bg-emerald-600 data-[state=active]:text-white hover:shadow-xl"
-              >
-                <Calendar className="w-5 h-5 mr-3" />
-                SÉANCES
-              </TabsTrigger>
-              <TabsTrigger 
-                value="students" 
-                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-violet-500 data-[state=inactive]:text-white data-[state=active]:bg-violet-600 data-[state=active]:text-white hover:shadow-xl"
-              >
-                <Users className="w-5 h-5 mr-3" />
-                ÉLÈVES
-              </TabsTrigger>
-              <TabsTrigger 
-                value="formateur" 
-                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-amber-500 data-[state=inactive]:text-white data-[state=active]:bg-amber-600 data-[state=active]:text-white hover:shadow-xl"
-              >
-                <PenTool className="w-5 h-5 mr-3" />
-                FORMATEUR
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="sessions" className="space-y-6">
+            {/* Liste des Séances */}
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-900">Liste des Séances</h2>
               <Dialog open={showCreateSession} onOpenChange={setShowCreateSession}>
