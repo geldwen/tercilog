@@ -410,9 +410,18 @@ const BilanQualitePage = () => {
                     <thead className="bg-gray-100">
                       <tr>
                         <th className="text-left font-semibold px-4 py-3">Apprenant</th>
-                        <th className="text-center font-semibold px-4 py-3">Q1</th>
-                        <th className="text-center font-semibold px-4 py-3">Q2</th>
-                        <th className="text-center font-semibold px-4 py-3">Q3</th>
+                        <th className="text-center font-semibold px-4 py-3">
+                          <div className="text-sm">Q1</div>
+                          <div className="text-[10px] font-normal text-gray-500">(Besoins)</div>
+                        </th>
+                        <th className="text-center font-semibold px-4 py-3">
+                          <div className="text-sm">Q2</div>
+                          <div className="text-[10px] font-normal text-gray-500">(Mi-parcours)</div>
+                        </th>
+                        <th className="text-center font-semibold px-4 py-3">
+                          <div className="text-sm">Q3</div>
+                          <div className="text-[10px] font-normal text-gray-500">(Fin de formation)</div>
+                        </th>
                         <th className="text-left font-semibold px-4 py-3 w-96">Actions formateur</th>
                       </tr>
                     </thead>
