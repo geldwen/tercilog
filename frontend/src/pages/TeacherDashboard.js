@@ -1220,10 +1220,135 @@ export default function TeacherDashboard({ user, onLogout }) {
             {/* Liste des Séances */}
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-900">Liste des Séances</h2>
-              <Dialog open={showCreateSession} onOpenChange={setShowCreateSession}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2 text-white" style={{ backgroundColor: TERCIFORM_BLUE }}><Plus className="w-4 h-4" />Créer une séance</Button>
-                </DialogTrigger>
+              <div className="flex items-center gap-3">
+                {/* Bouton pour réinitialiser la recherche si filtre actif */}
+                {filteredSessionsSearch !== null && (
+                  <Button 
+                    onClick={resetSessionSearch}
+                    variant="outline"
+                    className="gap-2 border-gray-400 text-gray-600 hover:bg-gray-100"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Afficher toutes les séances
+                  </Button>
+                )}
+                
+                {/* Bouton Rechercher une séance */}
+                <Dialog open={showSearchSession} onOpenChange={(open) => {
+                  setShowSearchSession(open);
+                  if (!open) {
+                    setSearchSessionMonth('');
+                    setSearchSessionDay('');
+                    setSearchSessionError('');
+                  }
+                }}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2 text-white" style={{ backgroundColor: '#4A6FA5' }}>
+                      <Search className="w-4 h-4" />
+                      Rechercher une séance
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Search className="w-5 h-5" style={{ color: TERCIFORM_BLUE }} />
+                        Rechercher une séance
+                      </DialogTitle>
+                      <DialogDescription>
+                        Recherchez par date (année, mois, jour)
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      {/* Sélecteur Année */}
+                      <div className="space-y-2">
+                        <Label>Année *</Label>
+                        <select
+                          value={searchSessionYear}
+                          onChange={(e) => setSearchSessionYear(parseInt(e.target.value))}
+                          className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md"
+                        >
+                          {yearsList.map(year => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Sélecteur Mois */}
+                      <div className="space-y-2">
+                        <Label>Mois *</Label>
+                        <select
+                          value={searchSessionMonth}
+                          onChange={(e) => {
+                            setSearchSessionMonth(e.target.value);
+                            setSearchSessionDay(''); // Reset jour quand mois change
+                            setSearchSessionError('');
+                          }}
+                          className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md"
+                        >
+                          <option value="">-- Sélectionner un mois --</option>
+                          {monthNames.map(m => (
+                            <option key={m.num} value={m.num}>{m.label}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Sélecteur Jour (optionnel) */}
+                      <div className="space-y-2">
+                        <Label>Jour (optionnel)</Label>
+                        <select
+                          value={searchSessionDay}
+                          onChange={(e) => {
+                            setSearchSessionDay(e.target.value);
+                            setSearchSessionError('');
+                          }}
+                          className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md"
+                          disabled={!searchSessionMonth}
+                        >
+                          <option value="">-- Tous les jours du mois --</option>
+                          {getDaysInMonth(searchSessionYear, parseInt(searchSessionMonth)).map(day => (
+                            <option key={day} value={day}>{day}</option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-gray-500">
+                          💡 Laissez vide pour afficher toutes les séances du mois
+                        </p>
+                      </div>
+                      
+                      {searchSessionError && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-700 flex items-center gap-2">
+                            <XCircle className="w-4 h-4 flex-shrink-0" />
+                            {searchSessionError}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    <DialogFooter>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setShowSearchSession(false)}
+                      >
+                        Annuler
+                      </Button>
+                      <Button 
+                        type="button"
+                        onClick={handleSearchSession}
+                        style={{ backgroundColor: TERCIFORM_BLUE }}
+                        className="text-white gap-2"
+                      >
+                        <Search className="w-4 h-4" />
+                        Soumettre
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Bouton Créer une séance */}
+                <Dialog open={showCreateSession} onOpenChange={setShowCreateSession}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2 text-white" style={{ backgroundColor: TERCIFORM_BLUE }}><Plus className="w-4 h-4" />Créer une séance</Button>
+                  </DialogTrigger>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader><DialogTitle>Créer des séances</DialogTitle><DialogDescription>Créer une ou plusieurs séances pour un élève</DialogDescription></DialogHeader>
                   <form onSubmit={handleCreateMultiSessions} className="space-y-4">
