@@ -6849,10 +6849,22 @@ class TerciFormTester:
                     
                     # Check for overallStars field in the response
                     # The overallStars should be calculated from evaluation_globale or overallRating
-                    if "overallRating" in q3_data or "evaluation_globale" in q3_data:
+                    evaluation_globale = q3_data.get("answers", {}).get("answers", {}).get("evaluation_globale", "")
+                    if evaluation_globale:
                         overall_stars_found = True
-                        rating = q3_data.get("overallRating") or q3_data.get("evaluation_globale")
-                        self.log(f"   ✅ Rating field found: {rating}")
+                        self.log(f"   ✅ evaluation_globale field found: {evaluation_globale}")
+                        
+                        # Extract star rating from evaluation_globale
+                        if "⭐ Bon" in evaluation_globale or "3" in evaluation_globale:
+                            rating = 3
+                        elif "⭐⭐ Très bon" in evaluation_globale or "4" in evaluation_globale:
+                            rating = 4
+                        elif "⭐ Moyen" in evaluation_globale or "2" in evaluation_globale:
+                            rating = 2
+                        elif "⭐ Insatisfaisant" in evaluation_globale or "1" in evaluation_globale:
+                            rating = 1
+                        else:
+                            rating = None
                         
                         # Check for specific test students
                         if "Eloise" in student_name and "RUIZ" in student_name:
@@ -6868,8 +6880,14 @@ class TerciFormTester:
                                 self.log(f"   ✅ Isleme BAGHOUZ has correct rating=2 (2 stars = Moyen)")
                             else:
                                 self.log(f"   ⚠️ Isleme BAGHOUZ has rating={rating}, expected 2")
+                        
+                        if "coucouille" in student_name.lower():
+                            if rating == 3:
+                                self.log(f"   ✅ {student_name} has correct rating=3 (3 stars = Bon)")
+                            else:
+                                self.log(f"   ⚠️ {student_name} has rating={rating}, expected 3 for 'Bon'")
                     else:
-                        self.log(f"   ⚠️ Rating field missing for {student_name}")
+                        self.log(f"   ⚠️ evaluation_globale field missing for {student_name}")
             
             if not students_with_q3:
                 self.log("❌ No students with Q3 data found in qualite report", "ERROR")
