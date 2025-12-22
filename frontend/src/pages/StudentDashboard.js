@@ -210,6 +210,7 @@ export default function StudentDashboard({ user, onLogout }) {
       } else {
         // Pour Bureautique et Anglais : utiliser les endpoints existants
         const isBureautique = user?.parcours === "Bureautique";
+        const isAnglais = user?.parcours === "Anglais" || (!user?.parcours);
         const q1Endpoint = isBureautique ? 'bureautique-formation-needs' : 'formation-needs';
         const q2Endpoint = isBureautique ? 'bureautique-mid-course-questionnaire' : 'mid-course-questionnaire';
         const q3Endpoint = isBureautique ? 'bureautique-end-course-questionnaire' : 'end-course-questionnaire';
@@ -225,6 +226,16 @@ export default function StudentDashboard({ user, onLogout }) {
         // Vérifier questionnaire fin de formation
         const endCourseRes = await axios.get(`${API}/students/${user.id}/${q3Endpoint}`, { headers });
         setEndCourseSubmitted(endCourseRes.data.exists);
+        
+        // Vérifier questionnaire de satisfaction (Q4) - uniquement pour Anglais
+        if (isAnglais) {
+          try {
+            const satisfactionRes = await axios.get(`${API}/students/${user.id}/satisfaction-questionnaire`, { headers });
+            setSatisfactionSubmitted(satisfactionRes.data.exists);
+          } catch (e) {
+            setSatisfactionSubmitted(false);
+          }
+        }
       }
     } catch (error) {
       console.error("Erreur lors du chargement du statut des questionnaires");
