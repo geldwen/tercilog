@@ -24,19 +24,7 @@ export default function EndCourseQuestionnaire({ open, onClose, studentId }) {
     domaines_autre: '',
     aise_professionnel: '',
     points_renforcer: '',
-    objectifs_atteints: '',
-    
-    // 3. Appréciation de la formation
-    contenu_adapte: '',
-    rythme_duree: '',
-    formateur_satisfaisant: '',
-    evaluation_globale: '',
-    recommandation: '',
-    
-    // 4. Perspectives
-    utilisation_competences: '',
-    formation_complementaire: '',
-    formation_complementaire_details: ''
+    objectifs_atteints: ''
   });
 
   const [signature, setSignature] = useState('');
@@ -91,19 +79,28 @@ export default function EndCourseQuestionnaire({ open, onClose, studentId }) {
     }
   };
 
+  // Horodatage actuel
+  const currentTimestamp = new Date().toLocaleString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#8B5A2B]">
-            3) Questionnaire de fin de formation
+          <DialogTitle className="text-2xl font-bold text-[#1E3A5F]">
+            Q3 – Questionnaire de fin de formation
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* 1. INFORMATIONS GÉNÉRALES */}
           <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-lg font-bold text-gray-900">1. Informations générales</h3>
+            <h3 className="text-lg font-bold text-gray-900">📋 1. Informations générales</h3>
             
             <div className="space-y-2">
               <Label>Nom et prénom</Label>
@@ -196,12 +193,6 @@ export default function EndCourseQuestionnaire({ open, onClose, studentId }) {
                     <span>{option}</span>
                   </label>
                 ))}
-                <Input
-                  value={formData.domaines_autre}
-                  onChange={(e) => updateField('domaines_autre', e.target.value)}
-                  placeholder="Autre : ..."
-                  className="ml-6"
-                />
               </div>
             </div>
 
@@ -255,152 +246,13 @@ export default function EndCourseQuestionnaire({ open, onClose, studentId }) {
             </div>
           </div>
 
-          {/* 3. APPRÉCIATION */}
-          <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-lg font-bold text-gray-900">💬 3. Appréciation de la formation</h3>
-            
-            <div className="space-y-2">
-              <Label>Le contenu et les supports ont-ils été adaptés à vos besoins ? *</Label>
-              <div className="space-y-2">
-                {['Tout à fait', 'Plutôt oui', 'Plutôt non', 'Pas du tout'].map(option => (
-                  <label key={option} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="contenu_adapte"
-                      value={option}
-                      checked={formData.contenu_adapte === option}
-                      onChange={(e) => updateField('contenu_adapte', e.target.value)}
-                      className="w-4 h-4"
-                    />
-                    <span>{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Le rythme et la durée de la formation vous ont-ils convenu ? *</Label>
-              <div className="space-y-2">
-                {['Oui tout à fait', 'Plutôt oui', 'Plutôt non', 'Pas du tout'].map(option => (
-                  <label key={option} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="rythme_duree"
-                      value={option}
-                      checked={formData.rythme_duree === option}
-                      onChange={(e) => updateField('rythme_duree', e.target.value)}
-                      className="w-4 h-4"
-                    />
-                    <span>{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Le formateur a-t-il répondu à vos attentes (écoute, pédagogie, disponibilité) ? *</Label>
-              <div className="space-y-2">
-                {['Tout à fait', 'Plutôt oui', 'Plutôt non', 'Pas du tout'].map(option => (
-                  <label key={option} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="formateur_satisfaisant"
-                      value={option}
-                      checked={formData.formateur_satisfaisant === option}
-                      onChange={(e) => updateField('formateur_satisfaisant', e.target.value)}
-                      className="w-4 h-4"
-                    />
-                    <span>{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Comment évalueriez-vous globalement la formation ? *</Label>
-              <div className="space-y-2">
-                {['⭐ Excellent', '⭐ Bon', '⭐ Moyen', '⭐ Insatisfaisant'].map(option => (
-                  <label key={option} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="evaluation_globale"
-                      value={option}
-                      checked={formData.evaluation_globale === option}
-                      onChange={(e) => updateField('evaluation_globale', e.target.value)}
-                      className="w-4 h-4"
-                    />
-                    <span>{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Recommanderiez-vous cette formation à d'autres personnes ? *</Label>
-              <div className="flex gap-4">
-                {['Oui', 'Non', 'Peut-être'].map(option => (
-                  <label key={option} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="recommandation"
-                      value={option}
-                      checked={formData.recommandation === option}
-                      onChange={(e) => updateField('recommandation', e.target.value)}
-                      className="w-4 h-4"
-                    />
-                    <span>{option}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* 4. PERSPECTIVES */}
-          <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-lg font-bold text-gray-900">🧩 4. Perspectives et suite du parcours</h3>
-            
-            <div className="space-y-2">
-              <Label>Comment comptez-vous utiliser vos nouvelles compétences ?</Label>
-              <textarea
-                value={formData.utilisation_competences}
-                onChange={(e) => updateField('utilisation_competences', e.target.value)}
-                rows={3}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
-                placeholder="Votre réponse..."
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Souhaitez-vous poursuivre avec une formation complémentaire ?</Label>
-              <div className="flex gap-4">
-                {['Oui', 'Non'].map(option => (
-                  <label key={option} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="formation_complementaire"
-                      value={option}
-                      checked={formData.formation_complementaire === option}
-                      onChange={(e) => updateField('formation_complementaire', e.target.value)}
-                      className="w-4 h-4"
-                    />
-                    <span>{option}</span>
-                  </label>
-                ))}
-              </div>
-              {formData.formation_complementaire === 'Oui' && (
-                <Input
-                  value={formData.formation_complementaire_details}
-                  onChange={(e) => updateField('formation_complementaire_details', e.target.value)}
-                  placeholder="Si oui, précisez..."
-                  className="mt-2"
-                />
-              )}
-            </div>
-          </div>
-
           {/* SIGNATURE ET SOUMISSION */}
           <div className="space-y-4 p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
-            <h3 className="text-lg font-bold text-gray-900">✍️ 5. Validation</h3>
+            <h3 className="text-lg font-bold text-gray-900">✍️ Validation</h3>
+            
+            <div className="text-sm text-gray-600 bg-white p-3 rounded border">
+              <strong>Horodatage :</strong> {currentTimestamp}
+            </div>
             
             <div className="space-y-2">
               <Label>Signature du stagiaire * (horodatée)</Label>
@@ -410,7 +262,7 @@ export default function EndCourseQuestionnaire({ open, onClose, studentId }) {
             <Button
               type="submit"
               disabled={submitting || !signature}
-              className="w-full py-6 text-lg font-bold bg-[#8B5A2B] hover:bg-[#7A4F26] text-white"
+              className="w-full py-6 text-lg font-bold bg-[#1E3A5F] hover:bg-[#152d4a] text-white"
             >
               {submitting ? 'Soumission en cours...' : 'Soumettre le questionnaire de fin de formation'}
             </Button>
