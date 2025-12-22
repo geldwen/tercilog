@@ -947,6 +947,7 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
 
 // ============================================================================
 // MODAL DÉFINIR ACTION (Phase 2 avec Signature manuelle)
+// Pour Q3: utilise l'endpoint /api/ai/q3/suggest pour analyser le Block B
 // ============================================================================
 const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave, parcours = "Anglais" }) => {
   const [loading, setLoading] = useState(true);
@@ -958,30 +959,61 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave, 
   const [hasNeed, setHasNeed] = useState(needStatus?.has_need || false);
   const [signatureData, setSignatureData] = useState(null);
   const [signatureError, setSignatureError] = useState(false);
+  const [q3Stars, setQ3Stars] = useState(null);
 
-  // Charger l'analyse
+  // Charger l'analyse - endpoint différent pour Q3 (Block B satisfaction)
   useEffect(() => {
     const loadAnalysis = async () => {
       try {
-        const response = await axios.post(
-          `${API}/api/teachers/questionnaire-action/analyze`,
-          { questionnaire_data: qData, parcours: parcours },
-          { headers: getAuthHeaders() }
-        );
-        setAnalysis(response.data);
-        setHasNeed(response.data.has_need);
+        let response;
         
-        // Pré-sélectionner les mots-clés détectés (normalisés)
-        const detected = response.data.detected_keywords || [];
-        const normalized = normalizeKeywords(detected);
-        setSelectedKeywords(normalized);
-        
-        // Pré-cocher les actions suggérées (max 2 par défaut)
-        const suggested = response.data.suggested_actions || [];
-        const preSelectedActions = suggested
-          .filter(a => a.id !== "autre")
-          .slice(0, 2);
-        setSelectedActions(preSelectedActions);
+        if (qType === "Q3") {
+          // Pour Q3: utiliser l'endpoint AI spécifique qui analyse le Block B
+          response = await axios.post(
+            `${API}/api/ai/q3/suggest`,
+            { q3_data: qData },
+            { headers: getAuthHeaders() }
+          );
+          
+          setAnalysis(response.data);
+          setHasNeed(response.data.has_need);
+          setQ3Stars(response.data.overall_stars);
+          
+          // Pré-cocher les actions suggérées (max 2 par défaut)
+          const suggested = response.data.suggested_actions || [];
+          const preSelectedActions = suggested.slice(0, 2);
+          setSelectedActions(preSelectedActions);
+          
+          // Pour Q3, les keywords sont les "detected_issues"
+          setSelectedKeywords(response.data.detected_issues || []);
+          
+          // Pré-remplir le texte
+          if (response.data.report_draft) {
+            setFinalText(response.data.report_draft);
+          }
+        } else {
+          // Pour Q1/Q2: utiliser l'endpoint standard
+          response = await axios.post(
+            `${API}/api/teachers/questionnaire-action/analyze`,
+            { questionnaire_data: qData, parcours: parcours },
+            { headers: getAuthHeaders() }
+          );
+          
+          setAnalysis(response.data);
+          setHasNeed(response.data.has_need);
+          
+          // Pré-sélectionner les mots-clés détectés (normalisés)
+          const detected = response.data.detected_keywords || [];
+          const normalized = normalizeKeywords(detected);
+          setSelectedKeywords(normalized);
+          
+          // Pré-cocher les actions suggérées (max 2 par défaut)
+          const suggested = response.data.suggested_actions || [];
+          const preSelectedActions = suggested
+            .filter(a => a.id !== "autre")
+            .slice(0, 2);
+          setSelectedActions(preSelectedActions);
+        }
       } catch (error) {
         console.error("Erreur analyse:", error);
         toast.error("Erreur lors de l'analyse");
@@ -990,7 +1022,7 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave, 
       }
     };
     loadAnalysis();
-  }, [qData, parcours]);
+  }, [qData, parcours, qType]);
 
   // Auto-générer le compte-rendu quand les sélections changent
   useEffect(() => {
