@@ -3069,6 +3069,17 @@ async def get_qualite_report(
                 logger.warning(f"Error calculating quality scores for student {student_name}: {e}")
                 # En cas d'erreur, garder les valeurs None
         
+        # Extraire overallRating (étoiles) depuis les données Q3
+        q3_overall_stars = None
+        if q3 and q3_submitted:
+            # overallRating peut être envoyé directement ou dans evaluation_globale
+            q3_overall_stars = q3.get("overallRating") or q3.get("evaluation_globale")
+            if q3_overall_stars:
+                try:
+                    q3_overall_stars = int(q3_overall_stars)
+                except (ValueError, TypeError):
+                    q3_overall_stars = None
+        
         q3_data = {
             "submitted": q3_submitted,
             "submitted_at": q3.get("submitted_at") if (q3 and q3_submitted) else None,
@@ -3076,6 +3087,7 @@ async def get_qualite_report(
             "score_satisfaction": score_satisfaction,
             "difficulties": difficulties,
             "mastered_skills": mastered_skills,
+            "overallStars": q3_overall_stars,  # Étoiles Q3 pour affichage dans Bilan Qualité
             # Inclure toutes les réponses pour la consultation
             **({k: v for k, v in q3.items() if k not in ['_id', 'student_id']} if (q3 and q3_submitted) else {})
         }
