@@ -1,97 +1,105 @@
-<analysis>**original_problem_statement**: The user's primary goal is to overhaul the existing Bilan Qualité (Quality Report) module to be simpler, more readable, and compliant with French Qualiopi certification standards. This involves a multi-phase implementation.
-
-Phase 1 focused on simplifying the UI by introducing course-specific tabs (Anglais, Informatique), removing complex statistics in favor of simple Soumis (Submitted) / En attente (Pending) statuses, and refining the user actions.
-
-Phase 2, which is currently in progress, involves implementing the Actions formateur (Teacher Actions) logic. When a student's questionnaire response indicates a need, the system must flag it. The teacher then uses a modal to analyze the feedback, define a corrective action, and create a formal, traceable record for audit purposes.
-
-The user has provided very specific, iterative requirements for the UI/UX of this feature, emphasizing simplicity and ensuring the teacher remains the final decision-maker, with AI playing a purely assistive role (extracting keywords).
-
-Earlier in the session, the agent also implemented refinements for a Jitsi video integration and created a system for sending automatic 15-minute email reminders for upcoming sessions. A critical data loss issue occurred after a fork, emptying the preview database, which means data-dependent features can only be fully tested on the production environment.
+<analysis>**original_problem_statement**: The user's goal is a comprehensive UI/UX and functional overhaul. This session focused on:
+1.  **Dashboard Redesign**: Completely revamping the Espace Administrateur by fixing the layout, adding colored background themes for each tab, and implementing new features.
+2.  **New Features**:
+    -   Adding search functionality for both students () and sessions ().
+    -   Creating a Séance du jour (Today's Sessions) component to highlight daily appointments.
+    -   Displaying all of a student's sessions in their profile, grouped by month.
+3.  **Backend Enhancements**: Implementing email reminders for teachers 15 minutes before a session and updating the student reminder email with a new logo and branding.
+4.  **Questionnaire Refactoring**: A major restructuring of the end-of-course questionnaires, merging the pedagogical and satisfaction surveys into a single new Q3 form with two distinct blocks (Block A and Block B).
 
 **User's preferred language**: French
 
 **what currently exists?**
-The application is a full-stack student management platform (React/FastAPI/MongoDB).
-- **Jitsi & Email Reminders**: The UI refinements for the Jitsi button and the 15-minute email reminder system are complete and have been deployed.
-- **Bilan Qualité Page ()**: This page has been completely overhauled for Phase 1 and is partially implemented for Phase 2.
-    - **Phase 1 (Complete)**: The UI is simplified with course-specific colored tabs, summary cards for each questionnaire (Q1, Q2, Q3), and a simplified student table showing 🟢 Soumis or 🔴 En attente statuses. Individual reminder buttons are present in each En attente cell.
-    - **Phase 2 (In Progress)**: The backend has been updated to include business logic () that detects needs in submitted questionnaires and provides data for a new Définir une action modal. Keyword grids for both Anglais and Informatique courses have been added to . The frontend  has been updated with the logic and UI for the new Actions formateur column and the Définir une action modal.
+The application is a full-stack student management platform.
+-   **Teacher/Admin Dashboard ()**: This page is now highly functional but extremely large and complex (>3400 lines).
+    -   The broken layout from the previous session has been fixed.
+    -   It features three main tabs: SÉANCES (green), ÉLÈVES (purple), and FORMATEURS (orange), each with a full-page colored background that changes on selection.
+    -   **SÉANCES tab**: Contains a Séance du jour card with a red border that displays today's sessions, distinguishing between remote (blue, computer icon, Rejoindre button) and in-person (yellow, school icon). It also has a search feature for sessions.
+    -   **ÉLÈVES tab**: Displays all students. The student detail view now shows *all* of their past and future sessions, grouped by month chronologically. A search feature for students by name or phone has been added.
+    -   **FORMATEURS tab**: Contains a placeholder button to Créer un nouveau formateur.
+-   **Backend ()**:
+    -   An  background task now sends reminder emails to both the student and the teacher 15 minutes before a session.
+    -   The student reminder email template has been updated with the user's logo and brand colors.
+    -   The logic for handling questionnaires has been significantly altered to support a new two-part Q3, although this implementation is incomplete.
+-   **Questionnaires**:
+    -   The end-of-course process was refactored. The previous Q3 (pedagogical) and Q4 (satisfaction) have been merged into a single new component, , which presents a form with Block A (pedagogical) and Block B (satisfaction).
+    -   All code and UI related to the separate Q4 questionnaire have been removed.
 
 **Last working item**:
--   **Last item agent was working**: Implementing the final UI simplification for the Définir une action modal in the Bilan Qualité page, as per the user's latest detailed specifications. This involves making the UI cleaner, showing only detected keywords by default, limiting the number of suggested actions, and changing the Définir button to orange.
+-   **Last item agent was working**: Implementing a major refactoring of the Q3 questionnaire based on a detailed user specification. The goal was to merge the pedagogical and satisfaction surveys into a single Q3 form with two blocks (A and B). The agent successfully updated the Q3 component () and removed the now-obsolete Q4 component and its related UI and state from  and .
 -   **Status**: IN PROGRESS
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: Frontend testing agent
+-   **Which testing method agent to use?**: both. The frontend testing agent is needed to verify the new Q3 submission flow from the student's perspective and the updated  page. The backend testing agent is needed to test the new Q3 submission endpoint and the AI helper endpoint.
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: Finalize the Définir une action Modal UI (Priority: P0)
--   **Issue 2**: Data Mismatch for Q2 English Submissions (Priority: P0)
--   **Issue 3**: Welcome email for new students is missing the password (Priority: P1)
+-   **Issue 1**: Complete the Q3 refactoring (Priority: P0)
+-   **Issue 2**: Welcome email for new students is missing the password (Priority: P1)
+-   **Issue 3**: Data Mismatch for Q2 English Submissions (Priority: P1)
 -   **Issue 4**:  file instability (Priority: P2)
+-   **Issue 5**: User needs to reset Q1 action traces for Isleme and Micheline (Priority: USER VERIFICATION PENDING)
 
 **Issues Detail**:
--   **Issue 1**: Finalize the Définir une action Modal UI
-    -   **Description**: The current Définir une action modal is too verbose. The user provided a detailed specification to simplify it by hiding AI reasoning, showing only detected keywords by default (with an option to expand), presenting a maximum of three suggested actions (radio buttons), and making the Définir button orange.
-    -   **Attempted fixes**: The agent successfully updated  with the new keyword grids for Informatique and simplified the API response structure to support this new UI.
+-   **Issue 1**: Complete the Q3 refactoring
+    -   **Description**: The user provided a detailed spec to merge two questionnaires into a single Q3 form with Block A (pedagogical) and Block B (satisfaction). The implementation is incomplete. Key remaining tasks are displaying the star rating from Block B on the , creating a backend AI helper to suggest actions based on Block B answers, and updating the Définir une action modal to use these suggestions.
+    -   **Attempted fixes**: The agent correctly removed the old, separate Q4 questionnaire and updated the  component with the new two-block structure.
     -   **Next debug checklist**:
-        1.  Modify  to implement the new simplified modal UI as per the user's latest spec.
-        2.  Ensure the Définir une action button in the Actions formateur column is orange ().
-        3.  Thoroughly test the modal flow: click Définir, verify the simplified UI, check the Afficher tous les mots-clés expansion, select an action, edit the report text, and validate saving.
-    -   **Why fix this issue and what will be achieved with the fix?**: To meet the user's explicit and non-negotiable UI/UX requirements for the Qualiopi feature.
+        1.  In , ensure the  endpoint correctly saves the  and  data from the new Q3 form.
+        2.  Update the  function in  to retrieve the  value from the  data of submitted Q3 questionnaires.
+        3.  Pass  to the frontend .
+        4.  Implement the star rating display () in the Q3 column of the .
+        5.  Create the new  endpoint in  using the logic provided by the user to generate needs/actions from Block B data.
+        6.  In , when Définir une action for Q3 is clicked, call the new AI endpoint and pass the suggestions to the .
+        7.  Ensure the Définir une action flow for Q3 only considers Block B for its analysis, as specified.
+        8.  As a final polish, remove the title 💬 3. Appréciation de la formation from the Q3 form ().
+    -   **Why fix this issue and what will be achieved with the fix?**: This is the user's highest priority request and fundamentally changes the end-of-course evaluation workflow.
     -   **Status**: IN PROGRESS
     -   **Is recurring issue?**: N
     -   **Should Test frontend/backend/both after fix?**: both
     -   **Blocked on other issue**: None
--   **Issue 2**: Data Mismatch for Q2 English Submissions
-    -   **Description**: The user reported that two students (Micheline and Isleme) submitted their Q2 English questionnaire, but it still appears as 🔴 En attente on the Bilan Qualité page. This is a critical data integrity bug.
-    -   **Attempted fixes**: The agent created a debug endpoint () in  to inspect the relevant data from the database. However, the agent never received the output from the user and moved on to other tasks.
-    -   **Next debug checklist**:
-        1.  Politely ask the user to log into the production environment () and access the debug URL: .
-        2.  Request the user to paste the full JSON output.
-        3.  Analyze the JSON to compare the  stored in the  collection against the student's actual uid=0(root) gid=0(root) groups=0(root) from the  collection.
-        4.  Correct the backend query in the  function in  if there is a mismatch in the lookup key.
-    -   **Why fix this issue and what will be achieved with the fix?**: The Qualiopi report is useless if its data is inaccurate. This fix is essential for the feature's reliability.
-    -   **Status**: BLOCKED
+-   **Issue 2**: Welcome email for new students is missing the password
+    -   **Description**: A critical bug where the welcome email does not contain the password, preventing new users from logging in.
+    -   **Attempted fixes**: The agent modified the email template text in  but did not verify if the password variable is correctly passed and rendered.
+    -   **Next debug checklist**: Review  in , ensure the password variable is passed to the template, and create a test student to verify the sent email content.
+    -   **Why fix this issue and what will be achieved with the fix?**: New user onboarding is fundamentally broken without this.
+    -   **Status**: IN PROGRESS
     -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: backend
-    -   **Blocked on other issue**: Waiting for debug output from the user.
--   **Issue 3**: Welcome email for new students is missing the password
-    -   **Description**: A critical issue from the previous fork that was never addressed. When a new student is created, the welcome email they receive does not include their auto-generated password, preventing them from logging in.
+    -   **Blocked on other issue**: None
+-   **Issue 3**: Data Mismatch for Q2 English Submissions
+    -   **Description**: A long-standing data integrity bug where submitted questionnaires are not correctly reflected in the Bilan Qualité report.
     -   **Attempted fixes**: None in this session.
-    -   **Next debug checklist**:
-        1.  Review the  function in .
-        2.  Check the email template to ensure the password variable is correctly referenced.
-        3.  Add logging to print the final rendered HTML content of the email before it's sent.
-        4.  Trigger the function by creating a test student and inspect the logs.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is critical for new user onboarding, which is currently broken.
+    -   **Next debug checklist**: Analyze the  function in  to find the logic error matching student IDs between collections.
+    -   **Why fix this issue and what will be achieved with the fix?**: The quality report is unreliable until this is fixed.
     -   **Status**: NOT STARTED
     -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: backend
     -   **Blocked on other issue**: None
 -   **Issue 4**:  file instability
-    -   **Description**: A high-risk infrastructure issue where the  file spontaneously reverts to pointing  at the preview environment, causing production outages (white screen).
-    -   **Attempted fixes**: The agent has manually corrected the file multiple times. This is likely a platform-level issue.
-    -   **Next debug checklist**: The agent must be vigilant and verify the contents of  before every deployment and after any production issue.
-    -   **Why fix this issue and what will be achieved with the fix?**: To prevent catastrophic production failures.
-    -   **Status**: RESOLVED (for now, but high risk)
+    -   **Description**: A platform issue where  can revert, causing outages. Requires constant monitoring.
+    -   **Status**: NOT STARTED
     -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: N/A (requires vigilance)
-    -   **Blocked on other issue**: None
+    -   **Should Test frontend/backend/both after fix?**: N/A
+-   **Issue 5**: User needs to reset Q1 action traces for Isleme and Micheline
+    -   **Description**: The user needs to delete old action traces to recreate them with the new signature workflow. A delete button and endpoint were created for this purpose.
+    -   **Status**: USER VERIFICATION PENDING
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: N/A
 
 **In progress Task List**:
--   **Task 1**: Complete Phase 2 of Bilan Qualité Module (Priority: P0)
-    -   **Description**: This is the main ongoing task, which includes finishing the Actions formateur feature. It fully encompasses Issue 1.
-    -   **Where to resume**:  has been updated. The next step is to modify  to implement the simplified Définir une action modal UI according to the user's latest specification.
-    -   **What will be achieved with this?**: A complete, user-friendly, and Qualiopi-compliant system for teachers to track and respond to student feedback.
+-   **Task 1**: Complete the Q3 refactoring (Priority: P0)
+    -   **Description**: This task is identical to Issue 1 and is the highest priority.
+    -   **Where to resume**: Start in  to adjust the backend data models and API endpoints to support the new two-block Q3 structure and the AI helper. Then move to  to implement the frontend changes.
+    -   **What will be achieved with this?**: A complete, user-specified end-of-course evaluation flow that integrates pedagogical and satisfaction feedback.
     -   **Status**: IN PROGRESS
     -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on something**: None.
+    -   **Blocked on something**: None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
+    -   **P0**: Implement the modal for Créer un nouveau formateur (user will provide details later).
     -   **P1**: Complete the frontend integration for the pedagogical analysis report ().
-    -   **P2**: Refactor  and  into smaller components to reduce complexity.
+    -   **P2**: Refactor  and  into smaller components.
     -   **P3**: Make test selection dropdowns dynamic.
 -   **Future Tasks**:
     -   **P4**: Implement  type resource uploads/downloads.
@@ -99,95 +107,101 @@ The application is a full-stack student management platform (React/FastAPI/Mongo
     -   **P6**: Build a full CRUD interface for quiz templates.
 
 **Completed work in this session**
--   **Jitsi Button Refinements**: The Rejoindre la visio button UI was updated on both student and teacher dashboards and deployed.
--   **Automatic Email Reminders**: A system to send reminder emails 15 minutes before sessions was implemented in the backend and deployed.
--   **Bilan Qualité Overhaul (Phase 1 & Phase 2 Foundation)**:
-    -   The  UI was completely refactored with course-specific tabs, simplified cards, and a refined student table.
-    -   The Actions column was iteratively redesigned based on user feedback to move reminders to individual cells and introduce the Actions formateur concept.
-    -   Backend logic and endpoints were created in  to support questionnaire analysis (), saving actions (), and individual reminders ().
-    -   The backend keyword grids for Qualiopi analysis were updated to include both Anglais and Informatique courses.
+-   **Teacher Dashboard Overhaul**:
+    -   Fixed the broken  component.
+    -   Implemented a colored background wallpaper that changes based on the active tab.
+    -   Added a Rechercher un élève feature with a modal and filtering logic.
+    -   Added a Rechercher une séance feature with a modal and date-based filtering.
+    -   Added a Séance du jour (Today's Sessions) component with logic for remote vs. in-person sessions and attendance buttons.
+-   **Student List Refactor**:
+    -   Modified the ÉLÈVES tab to show all student sessions, grouped by month chronologically.
+-   **Backend & Email Enhancements**:
+    -   Updated the  task in  to also email the teacher.
+    -   Updated the student reminder email template with the Terciform logo and brand colors.
+-   **Student Dashboard UI Tweak**:
+    -   Added Me connecter à ma séance text above the Rejoindre la visio button.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1**: Data Mismatch for Q2 English Submissions (now listed in the Pending Issues list as P0).
--   **Issue 2**: The welcome email for new students is missing the password (now listed in the Pending Issues list as P1).
+-   The welcome email password fix remains unverified and is likely still broken (Issue 2).
+-   The Q2 English submission data mismatch bug remains unfixed (Issue 3).
 
 **Known issue recurrence from previous fork**
 -   **Issue recurrence in previous fork**:  instability.
--   **Recurrence count**: High (occurred once this session, corrected by the agent).
--   **Status**: RESOLVED (for now).
+-   **Recurrence count**: High.
+-   **Status**: NOT STARTED (Requires constant monitoring).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend Business Logic**: Complex rule-based logic in  () to parse questionnaire responses and flag them for teacher review based on keywords and specific answer patterns, without using generative AI for decisions.
--   **APScheduler**: Used to schedule the 15-minute email reminders. The agent modified an existing job.
--   **Complex Frontend State**: Heavy use of React hooks (, , ) in  to manage the state of tabs, filters, fetched data, and the complex Définir une action modal.
--   **Dynamic API Endpoints**: Creation of multiple new FastAPI endpoints to support the Qualiopi workflow, including data analysis, saving actions, and debugging.
+-   **Complex Component State (React)**:  manages an enormous amount of state for tabs, multiple search modals, search results, and dynamic UI elements, making it difficult to maintain.
+-   **Backend Scheduler (APScheduler)**: A background job in  runs periodically to send reminder emails.
+-   **Data Transformation in Frontend**: The ÉLÈVES tab now performs complex grouping and sorting of session data directly in the React component.
 
 **key DB schema**
--   **New Collection**:  is used by the backend to store the traceability record for each teacher-defined action, including selected keywords, the final report text, the creator, and a timestamp.
+-   **sessions**: The  (distanciel, presentiel) and  fields are now used to drive the UI. The  flag is used by the scheduler.
+-   **end_course_questionnaires**: The schema for these documents is changing to a nested structure with  and  objects to support the new Q3 format.
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--    (Main file for the entire Qualiopi feature, needs refactoring)
--    (Main file for all backend logic, heavily modified for Qualiopi)
--    (Critical configuration file, must be monitored)
+-    (Heavily modified, needs refactoring)
+-    (Target for the next step of the Q3 refactor)
+-    (Target for the next step of the Q3 refactor)
+-    (Core of the current in-progress task)
+-    (Was modified to clean up old questionnaire logic)
 
 **Areas that need refactoring**:
--    has become a monolithic file exceeding 1000 lines. It urgently needs to be broken down into smaller, manageable components (e.g., , , , ).
--    is also becoming very large. The Qualiopi-related endpoints and helper functions should be moved to a dedicated router file (e.g., ).
+-   ** is critically overgrown.** At over 3,400 lines, it is unmaintainable and must be broken down into smaller, focused components (e.g., , , , ).
+-    is still over 1,100 lines and is a good candidate for refactoring.
 
 **key api endpoints**
--   : Sends a reminder for a specific questionnaire to a student.
--   : Analyzes a submitted questionnaire to detect needs and provide data for the Définir une action modal.
--   : Saves the teacher's defined action for Qualiopi traceability.
--   : Debug endpoint to investigate data discrepancies.
+-   **Modified**:  is being refactored to handle the new two-block Q3 payload.
+-   **To be added**:  is required for the new Q3 workflow to provide AI-driven suggestions.
+-   **Modified**: The background task  was updated to email the teacher.
 
 **Critical Info for New Agent**
--   **Address the User's Latest Spec First**: Your immediate priority is to implement the UI simplification for the Définir une action modal in  as detailed in the user's last message. This is the current active task.
--   **Data Discrepancy is a Blocker**: The user is blocked by a critical bug where submitted questionnaires are not showing up correctly. Once you finish the current UI task, you must prioritize resolving this. You will need to ask the user to provide the output of the debug endpoint.
--   **Preview DB is Empty**: The preview environment's database has been reset. Features relying on existing data (like the Qualiopi report) can only be fully tested and validated by the user on the production environment.
--   **Follow User Specs Strictly**: The user provides very detailed, iterative specifications. Adhere to them precisely, especially regarding UI/UX and business logic for Qualiopi compliance.
--   **French Language**: The user's primary language is French. All communication must be in French.
+-   **IMMEDIATE TASK**: You are mid-way through a major refactoring of the Q3 questionnaire based on a detailed user spec. You have removed the obsolete Q4 component. You must now implement the rest of the spec: showing the star rating in , creating the backend AI helper (), and integrating it with the Définir une action modal.
+-   **CODE HEALTH WARNING**:  has become a mega-component and is a significant technical debt. Propose refactoring it as soon as the current Q3 task is complete.
+-   **PERSISTENT BUGS**: Do not forget the critical, unresolved bug where the welcome email is missing the user's password. This needs a proper fix and verification, not just a text change.
 
 **documents and test_reports created in this job**
--   None.
+-   User uploaded  with public URL: 
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: (Provides a very detailed spec to simplify the Définir une action modal UI for both English and Informatique tracks, including making the Définir button orange).
-2.  **User**: (Provides the final spec for Phase 2 Actions formateur with a complex and verbose modal UI).
-3.  **User**: We want to finalize Phase 2. Provides strict rules for Actions formateur: 3 fixed lines per student, binary GREEN/RED status, rules for status change, and detailed specs for the Définir une action button/modal, including AI-assisted keyword extraction and a final report validated by the teacher.
-4.  **User**: Clarifies the business logic. Actions formateur column should only have teacher actions (Consulter, Traiter, Trace). Reminders should not be in that column. Global reminders on cards should be removed. Individual reminders should be on the pending cells.
-5.  **User**: There is a blocking inconsistency. A Soumis (Submitted) questionnaire, when clicked, shows No response available. This should never happen. All submitted questionnaires must show their responses.
-6.  **User**: Micheline and Isleme completed the Q2 for English, but it appears as red (pending).
-7.  **User**: I want to finalize Phase 1 with further adjustments: tabs should keep the course color, remove the TOTAL card, keep only 3 cards (Q1, Q2, Q3), add an info sentence, change Non soumis to En attente, refine the Actions column, and add a tooltip/click action on the green submitted dot to view the response.
-8.  **User**: Okay to start Phase 1. Prioritize Anglais and Informatique courses.
-9.  **User**: I'm working on the existing Quality Questionnaires module. I don't want a new system. Provides a detailed 7-point spec for simplifying the existing module for Qualiopi compliance (Phase 1).
-10. **User**: Everything works in production (). There's no data problem there. It's in the preview () that data disappears. But the result in production is what's important.
+1.  **User**: Provides a very detailed technical specification for merging Q3 and Q4 into a new two-block Q3, including showing star ratings in the Bilan Qualité and creating an AI helper.
+2.  **User**: Asks to remove the title 💬 3. Appréciation de la formation from the new Q4/Q3 component.
+3.  **User**: Asks for 15-minute email reminders to be sent to the professor and questions if a previous reminder was sent for Cedric Raison.
+4.  **User**: Asks to add the Terciform logo and navy blue color to the student reminder email. Also requests a UI change for the visio button in the student dashboard.
+5.  **User**: Asks for the Rejoindre en visio button to be moved next to the Séance du jour title and to add emargement buttons to each student line.
+6.  **User**: Asks for screenshots of the Séance du jour component in different states (visio, presential, none).
+7.  **User**: Asks to create a Séance du jour bubble on the SÉANCES tab with specific UI for visio, presential, and no-session states.
+8.  **User**: Asks to implement a rechercher une seance feature in the SÉANCES tab with a modal for filtering by date.
+9.  **User**: Asks to implement a rechercher un eleve feature in the ÉLÈVES tab with a modal for searching by name/phone.
+10. **User**: Asks to show ALL sessions for a student in their profile, grouped by month, and to remove the date filter from the main ÉLÈVES tab.
 
 **Project Health Check:**
--   **Broken**: The Bilan Qualité page has a critical data integrity bug (Q2 submissions not appearing). New user onboarding is broken due to the missing password in the welcome email.
+-   **Broken**:
+    -   The end-of-course questionnaire flow is non-functional due to the incomplete Q3 refactoring.
+    -   New User Onboarding (welcome email) is still considered broken pending verification.
+    -   Q2 Data Mismatch bug persists.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
--   **Jitsi Meet**: Used for video conferencing via simple URL generation. No API key required.
+-   **Jitsi Meet**: Used for video conferencing via URL generation. No API key.
+-   **Custom Signature Pad**: A custom HTML Canvas component. No third-party library.
 
 **Testing status**
 -   **Testing agent used after significant changes**: NO
 -   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: None
--   **Known regressions**:
-    -    file instability remains a high risk.
-    -   Q2 questionnaire data for the Anglais course is not being correctly identified as submitted.
+-   **Test files created**: None.
+-   **Known regressions**: The end-of-course questionnaire functionality is currently regressed due to the ongoing refactor.
 
 **Credentials to test flow:**
--   **Teacher**:  / 
--   **Student (Ghislain AKIANA)**:  / 
+-   **Teacher/Admin**:  / 
+-   **Student (Ghislain AKIANA - Informatique course)**:  / 
 
 **What agent forgot to execute**
--   The agent did not resolve the critical data mismatch issue for Q2 submissions. After creating a debug endpoint, it moved on to a new user request without getting the necessary information to fix the bug.
--   The critical bug where the welcome email is missing the password has been carried over from the previous fork and completely ignored during this session.
--   The planned refactoring of large components like  and  has not been performed, and the latter has grown significantly more complex.</analysis>
+-   The agent did not complete the full implementation of the user's detailed specification for the Q3 questionnaire refactoring.
+-   The agent has consistently failed to perform a root-cause analysis and definitive fix for the long-standing missing password in welcome email bug.</analysis>
