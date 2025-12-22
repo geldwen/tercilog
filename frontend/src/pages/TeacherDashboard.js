@@ -2367,22 +2367,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                               ))}
                             </select>
                           </div>
-                          {/* Q4 - Satisfaction - Anglais uniquement */}
-                          {studentForm.parcours === "Anglais" && questionnaireModels[studentForm.parcours]?.q4 && (
-                            <div className="space-y-2">
-                              <Label className="text-sm">Questionnaire de satisfaction (Q4)</Label>
-                              <select 
-                                value={selectedQuestionnaires.q4}
-                                onChange={(e) => setSelectedQuestionnaires({...selectedQuestionnaires, q4: e.target.value})}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                              >
-                                <option value="">-- Choisir un modèle --</option>
-                                {questionnaireModels[studentForm.parcours]?.q4.map(model => (
-                                  <option key={model} value={model}>{model}</option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
                         </div>
                       )}
                     </div>
@@ -2707,22 +2691,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                               ))}
                             </select>
                           </div>
-                          {/* Q4 - Satisfaction - Anglais uniquement */}
-                          {studentForm.parcours === "Anglais" && questionnaireModels[studentForm.parcours]?.q4 && (
-                            <div className="space-y-2">
-                              <Label className="text-sm">Questionnaire de satisfaction (Q4)</Label>
-                              <select 
-                                value={selectedQuestionnaires.q4}
-                                onChange={(e) => setSelectedQuestionnaires({...selectedQuestionnaires, q4: e.target.value})}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                              >
-                                <option value="">-- Choisir un modèle --</option>
-                                {questionnaireModels[studentForm.parcours]?.q4.map(model => (
-                                  <option key={model} value={model}>{model}</option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
                         </div>
                       )}
                     </div>
