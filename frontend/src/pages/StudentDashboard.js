@@ -1175,22 +1175,6 @@ export default function StudentDashboard({ user, onLogout }) {
                       <span className="text-sm bg-orange-500 text-white px-3 py-1.5 rounded-full font-semibold">À valider</span>
                     )}
                   </Button>
-                  {/* Q4 - Questionnaire de satisfaction - Anglais seulement */}
-                  {(user?.parcours === "Anglais" || !user?.parcours) && (
-                    <Button 
-                      onClick={() => !satisfactionSubmitted && setShowSatisfactionDialog(true)} 
-                      style={{backgroundColor: satisfactionSubmitted ? '#22c55e' : '#0D2040', padding: '20px 24px'}}
-                      className="w-full justify-between items-center text-base"
-                      disabled={satisfactionSubmitted}
-                    >
-                      <span className="text-base font-medium">4) Questionnaire de satisfaction</span>
-                      {satisfactionSubmitted ? (
-                        <span className="text-sm bg-white text-green-600 px-3 py-1.5 rounded-full font-semibold">✓ Validé</span>
-                      ) : (
-                        <span className="text-sm bg-orange-500 text-white px-3 py-1.5 rounded-full font-semibold">À valider</span>
-                      )}
-                    </Button>
-                  )}
                 </div>
               </CardContent>
             </Card>
