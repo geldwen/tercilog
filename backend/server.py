@@ -3713,6 +3713,144 @@ async def analyze_questionnaire_for_action(
     }
 
 
+# =============================================================================
+# AI Q3 SUGGEST - Analyse le Block B du Q3 pour suggestions d'actions
+# =============================================================================
+@api_router.post("/ai/q3/suggest")
+async def ai_q3_suggest_actions(
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Analyse le Block B (satisfaction) du Q3 pour suggérer des actions.
+    Utilisé dans le modal "Définir une action" pour Q3.
+    """
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    q3_data = data.get("q3_data", {})
+    
+    # Extraire les réponses du Block B
+    contenu_adapte = q3_data.get("contenu_adapte", "")
+    rythme_duree = q3_data.get("rythme_duree", "")
+    formateur_satisfaisant = q3_data.get("formateur_satisfaisant", "")
+    evaluation_globale = q3_data.get("evaluation_globale") or q3_data.get("overallRating")
+    recommandation = q3_data.get("recommandation", "")
+    avis_formation = q3_data.get("avis_formation", "")
+    
+    # Analyser les réponses négatives/mitigées du Block B
+    negative_responses = ["Plutôt non", "Pas du tout", "Non"]
+    mitigated_responses = ["Plutôt oui", "Peut-être"]
+    
+    detected_issues = []
+    suggested_actions = []
+    has_need = False
+    
+    # Analyse contenu/supports
+    if contenu_adapte in negative_responses:
+        detected_issues.append("contenu_non_adapte")
+        suggested_actions.append({
+            "id": "adapter_contenu",
+            "label": "Adapter les contenus et supports pédagogiques"
+        })
+        has_need = True
+    elif contenu_adapte in mitigated_responses:
+        detected_issues.append("contenu_partiellement_adapte")
+    
+    # Analyse rythme/durée
+    if rythme_duree in negative_responses:
+        detected_issues.append("rythme_inadapte")
+        suggested_actions.append({
+            "id": "ajuster_rythme",
+            "label": "Ajuster le rythme ou la durée des séances"
+        })
+        has_need = True
+    elif rythme_duree in mitigated_responses:
+        detected_issues.append("rythme_partiellement_adapte")
+    
+    # Analyse formateur
+    if formateur_satisfaisant in negative_responses:
+        detected_issues.append("formateur_insatisfaisant")
+        suggested_actions.append({
+            "id": "ameliorer_accompagnement",
+            "label": "Améliorer l'accompagnement pédagogique"
+        })
+        has_need = True
+    elif formateur_satisfaisant in mitigated_responses:
+        detected_issues.append("formateur_partiellement_satisfaisant")
+    
+    # Analyse évaluation globale (étoiles)
+    try:
+        stars = int(evaluation_globale) if evaluation_globale else None
+    except (ValueError, TypeError):
+        stars = None
+    
+    if stars and stars <= 2:
+        detected_issues.append("evaluation_basse")
+        if not any(a["id"] == "ameliorer_accompagnement" for a in suggested_actions):
+            suggested_actions.append({
+                "id": "revoir_dispositif",
+                "label": "Revoir le dispositif de formation"
+            })
+        has_need = True
+    
+    # Analyse recommandation
+    if recommandation == "Non":
+        detected_issues.append("non_recommande")
+        has_need = True
+    
+    # Analyse avis libre pour mots-clés négatifs
+    avis_lower = avis_formation.lower() if avis_formation else ""
+    negative_keywords = ["difficile", "compliqué", "pas assez", "manque", "problème", "déçu", "insatisfait", "long", "court", "lent", "rapide"]
+    for keyword in negative_keywords:
+        if keyword in avis_lower:
+            detected_issues.append(f"avis_negatif_{keyword}")
+            has_need = True
+            break
+    
+    # Si pas assez d'actions suggérées mais besoin détecté
+    if has_need and len(suggested_actions) == 0:
+        suggested_actions.append({
+            "id": "analyser_feedback",
+            "label": "Analyser le feedback et adapter la formation"
+        })
+    
+    # Ajouter des actions génériques si nécessaire
+    if len(suggested_actions) < 3 and has_need:
+        generic_actions = [
+            {"id": "renforcer_pratique", "label": "Renforcer la mise en pratique"},
+            {"id": "personnaliser", "label": "Personnaliser davantage le parcours"},
+            {"id": "feedback_regulier", "label": "Mettre en place un feedback plus régulier"}
+        ]
+        for action in generic_actions:
+            if len(suggested_actions) >= 3:
+                break
+            if not any(a["id"] == action["id"] for a in suggested_actions):
+                suggested_actions.append(action)
+    
+    # Générer le rapport préliminaire
+    if has_need:
+        issues_text = ", ".join([i.replace("_", " ") for i in detected_issues[:3]])
+        report_draft = f"Le bénéficiaire a exprimé des réserves concernant : {issues_text}.\nDes ajustements sont envisagés pour améliorer la qualité de la formation."
+    else:
+        report_draft = "L'apprenant est globalement satisfait de la formation.\nAucune action corrective n'est nécessaire."
+    
+    # Étoiles pour affichage
+    stars_label = None
+    if stars:
+        stars_labels = {4: "Excellent", 3: "Bon", 2: "Moyen", 1: "Insatisfaisant"}
+        stars_label = stars_labels.get(stars)
+    
+    return {
+        "has_need": has_need,
+        "detected_issues": detected_issues,
+        "suggested_actions": suggested_actions[:6],  # Max 6 actions
+        "report_draft": report_draft,
+        "overall_stars": stars,
+        "overall_stars_label": stars_label
+    }
+
+
 @api_router.post("/teachers/questionnaire-action/save")
 async def save_questionnaire_action(
     data: dict,
