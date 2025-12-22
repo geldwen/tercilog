@@ -1153,6 +1153,21 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave, 
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[65vh]">
+          {/* Pour Q3: Afficher les étoiles d'évaluation globale */}
+          {qType === "Q3" && q3Stars && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-amber-800 font-medium text-sm">Évaluation globale de la formation :</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{"⭐".repeat(q3Stars)}</span>
+                  <span className="text-amber-700 text-sm font-medium">
+                    {q3Stars === 4 ? "Excellent" : q3Stars === 3 ? "Bon" : q3Stars === 2 ? "Moyen" : "Insatisfaisant"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Cas: Aucun besoin détecté */}
           {!hasNeed ? (
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -1160,7 +1175,11 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave, 
                 <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
                 <div className="flex-1">
                   <p className="font-semibold text-green-700">Aucun besoin particulier détecté</p>
-                  <p className="text-sm text-green-600 mt-1">Vous pouvez valider le maintien du dispositif.</p>
+                  <p className="text-sm text-green-600 mt-1">
+                    {qType === "Q3" 
+                      ? "L'apprenant est globalement satisfait. Vous pouvez valider le maintien du dispositif."
+                      : "Vous pouvez valider le maintien du dispositif."}
+                  </p>
                 </div>
               </div>
               <div className="mt-4">
@@ -1173,9 +1192,13 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave, 
             </div>
           ) : (
             <>
-              {/* Message simple (sans icône rouge) */}
+              {/* Message simple - adapté pour Q3 */}
               <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                <p className="text-gray-700 font-medium text-sm">Un ou plusieurs besoins ont été identifiés dans la réponse de l&apos;apprenant.</p>
+                <p className="text-gray-700 font-medium text-sm">
+                  {qType === "Q3" 
+                    ? "Des points d'amélioration ont été identifiés dans les réponses de satisfaction (Block B)."
+                    : "Un ou plusieurs besoins ont été identifiés dans la réponse de l'apprenant."}
+                </p>
               </div>
 
               {/* Section: Besoins du bénéficiaire (remplace "Actions pédagogiques") */}
