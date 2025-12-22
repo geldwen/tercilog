@@ -684,7 +684,7 @@ async def send_session_reminders():
 </body>
 </html>"""
                     
-                    # Envoyer l'email
+                    # Envoyer l'email à l'élève
                     email_sent = send_email(student_email, email_subject, email_html)
                     
                     if email_sent:
@@ -696,6 +696,64 @@ async def send_session_reminders():
                         
                         reminders_sent += 1
                         logger.info(f"✅ Rappel 15min envoyé à {student_email} pour la séance du {session_date} à {session_time}")
+                        
+                        # ======= ENVOI RAPPEL AU PROFESSEUR =======
+                        teacher_email = student.get("teacher_email")
+                        if teacher_email:
+                            # Construire l'email pour le professeur
+                            if modality == "distanciel" or not modality or modality == "":
+                                teacher_email_subject = f"📹 Rappel : Séance VISIO avec {student_name} dans 15 min"
+                                location_text = "en <strong style='color: #E91E63;'>visio</strong>"
+                                meeting_link_html = ""
+                                meeting_link_value = session.get("meeting_link", "")
+                                if meeting_link_value:
+                                    meeting_link_html = f"""
+                                    <p style="margin: 20px 0; text-align: center;">
+                                        <a href="{meeting_link_value}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%); color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">📹 Rejoindre la visio</a>
+                                    </p>"""
+                            else:
+                                teacher_email_subject = f"📍 Rappel : Séance PRÉSENTIEL avec {student_name} dans 15 min"
+                                location_text = f"en <strong style='color: #059669;'>présentiel</strong> à {full_address}"
+                                meeting_link_html = ""
+                            
+                            teacher_email_html = f"""<html>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+<div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <div style="background: linear-gradient(135deg, #1E3A5F 0%, #2D5A87 100%); padding: 24px; text-align: center;">
+    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">⏰ Rappel Séance - 15 minutes</h1>
+  </div>
+  
+  <div style="padding: 32px 24px;">
+    <p style="margin: 0 0 20px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
+        Bonjour,
+    </p>
+    
+    <p style="margin: 0 0 20px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
+        Votre séance avec <strong>{student_name}</strong> {location_text} débutera à <strong style="color: #1E3A5F;">{session_time}</strong>.
+    </p>
+    
+    <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0;">
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;"><strong>📅 Date :</strong> {session_date}</p>
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;"><strong>🕐 Heure :</strong> {session_time} - {session.get('end_time', '')}</p>
+      <p style="margin: 0 0 8px 0; font-size: 14px; color: #6b7280;"><strong>📚 Matière :</strong> {session.get('subject', '')}</p>
+      <p style="margin: 0; font-size: 14px; color: #6b7280;"><strong>👤 Élève :</strong> {student_name}</p>
+    </div>
+    {meeting_link_html}
+  </div>
+  
+  <div style="background-color: #f8fafc; padding: 16px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+    <p style="margin: 0; font-size: 12px; color: #6b7280;">Email automatique envoyé par Terciform</p>
+  </div>
+</div>
+</body>
+</html>"""
+                            
+                            teacher_email_sent = send_email(teacher_email, teacher_email_subject, teacher_email_html)
+                            if teacher_email_sent:
+                                logger.info(f"✅ Rappel 15min envoyé au PROFESSEUR {teacher_email} pour la séance avec {student_name}")
+                            else:
+                                logger.error(f"❌ Échec envoi rappel au professeur {teacher_email}")
+                        # ======= FIN ENVOI RAPPEL PROFESSEUR =======
                     else:
                         logger.error(f"❌ Échec envoi rappel à {student_email}")
             
