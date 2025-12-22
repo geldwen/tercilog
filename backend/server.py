@@ -600,13 +600,16 @@ async def send_session_reminders():
                     timestamp_now = datetime.now().strftime("%d/%m/%Y à %H:%M")
                     
                     # Construire le message selon la modalité
+                    logo_url = "https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png"
+                    
                     if modality == "distanciel" or not modality or modality == "":
-                        # Message pour DISTANCIEL
+                        # Message pour DISTANCIEL - Bleu marine avec logo Terciform
                         email_subject = f"📹 Votre séance en visio commence dans 15 min"
                         email_html = f"""<html>
 <body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
 <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-  <div style="background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%); padding: 24px; text-align: center;">
+  <div style="background: linear-gradient(135deg, #1E3A5F 0%, #2D5A87 100%); padding: 24px; text-align: center;">
+    <img src="{logo_url}" alt="Terciform" style="max-width: 180px; height: auto; margin-bottom: 16px;">
     <h1 style="color: #ffffff; margin: 0; font-size: 24px;">📹 Rappel - Séance Visio</h1>
   </div>
   
@@ -616,7 +619,7 @@ async def send_session_reminders():
     </p>
     
     <p style="margin: 0 0 20px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
-        Votre séance en visio avec <strong>{teacher_name}</strong> a lieu dans <strong style="color: #E91E63;">15 minutes</strong>.
+        Votre séance en visio avec <strong>{teacher_name}</strong> a lieu dans <strong style="color: #1E3A5F;">15 minutes</strong>.
     </p>
     
     <p style="margin: 0 0 20px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
@@ -625,7 +628,7 @@ async def send_session_reminders():
     </p>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://teachportal-12.emergent.host" style="display: inline-block; background-color: #E91E63; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+      <a href="https://teachportal-12.emergent.host" style="display: inline-block; background-color: #1E3A5F; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
         Accéder à mon espace élève
       </a>
     </div>
@@ -635,20 +638,21 @@ async def send_session_reminders():
     </p>
   </div>
   
-  <div style="background-color: #f9fafb; padding: 16px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
-    <p style="margin: 0; font-size: 12px; color: #9ca3af;">Email envoyé le {timestamp_now}</p>
-    <p style="margin: 4px 0 0 0; font-size: 12px; color: #9ca3af;">TerciForm - Plateforme de formation</p>
+  <div style="background-color: #f0f4f8; padding: 16px 24px; text-align: center; border-top: 1px solid #1E3A5F;">
+    <p style="margin: 0; font-size: 12px; color: #1E3A5F;">Email envoyé le {timestamp_now}</p>
+    <p style="margin: 4px 0 0 0; font-size: 12px; color: #1E3A5F; font-weight: bold;">Terciform - Propulsez vos compétences</p>
   </div>
 </div>
 </body>
 </html>"""
                     else:
-                        # Message pour PRÉSENTIEL
+                        # Message pour PRÉSENTIEL - Bleu marine avec logo Terciform
                         email_subject = f"📍 Votre séance en présentiel commence dans 15 min"
                         email_html = f"""<html>
 <body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
 <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-  <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 24px; text-align: center;">
+  <div style="background: linear-gradient(135deg, #1E3A5F 0%, #2D5A87 100%); padding: 24px; text-align: center;">
+    <img src="{logo_url}" alt="Terciform" style="max-width: 180px; height: auto; margin-bottom: 16px;">
     <h1 style="color: #ffffff; margin: 0; font-size: 24px;">📍 Rappel - Séance Présentiel</h1>
   </div>
   
@@ -658,15 +662,15 @@ async def send_session_reminders():
     </p>
     
     <p style="margin: 0 0 20px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
-        Votre séance avec <strong>{teacher_name}</strong> a lieu dans <strong style="color: #059669;">15 minutes</strong>.
+        Votre séance avec <strong>{teacher_name}</strong> a lieu dans <strong style="color: #1E3A5F;">15 minutes</strong>.
     </p>
     
     <p style="margin: 0 0 10px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
         Merci de vous rendre à :
     </p>
     
-    <div style="background-color: #d1fae5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
-      <p style="margin: 0; font-size: 18px; color: #065f46; font-weight: bold;">
+    <div style="background-color: #e8f4fc; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1E3A5F;">
+      <p style="margin: 0; font-size: 18px; color: #1E3A5F; font-weight: bold;">
         📍 {full_address}
       </p>
     </div>
@@ -676,9 +680,9 @@ async def send_session_reminders():
     </p>
   </div>
   
-  <div style="background-color: #f9fafb; padding: 16px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
-    <p style="margin: 0; font-size: 12px; color: #9ca3af;">Email envoyé le {timestamp_now}</p>
-    <p style="margin: 4px 0 0 0; font-size: 12px; color: #9ca3af;">TerciForm - Plateforme de formation</p>
+  <div style="background-color: #f0f4f8; padding: 16px 24px; text-align: center; border-top: 1px solid #1E3A5F;">
+    <p style="margin: 0; font-size: 12px; color: #1E3A5F;">Email envoyé le {timestamp_now}</p>
+    <p style="margin: 4px 0 0 0; font-size: 12px; color: #1E3A5F; font-weight: bold;">Terciform - Propulsez vos compétences</p>
   </div>
 </div>
 </body>
