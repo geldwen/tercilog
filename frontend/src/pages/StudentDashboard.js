@@ -35,7 +35,6 @@ export default function StudentDashboard({ user, onLogout }) {
   const [showNeedsDialog, setShowNeedsDialog] = useState(false);
   const [showMidCourseDialog, setShowMidCourseDialog] = useState(false);
   const [showEndCourseDialog, setShowEndCourseDialog] = useState(false);
-  const [showSatisfactionDialog, setShowSatisfactionDialog] = useState(false); // Q4
   const [activeQuestionnaire, setActiveQuestionnaire] = useState(null);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   
@@ -43,7 +42,6 @@ export default function StudentDashboard({ user, onLogout }) {
   const [formationNeedsSubmitted, setFormationNeedsSubmitted] = useState(false);
   const [midCourseSubmitted, setMidCourseSubmitted] = useState(false);
   const [endCourseSubmitted, setEndCourseSubmitted] = useState(false);
-  const [satisfactionSubmitted, setSatisfactionSubmitted] = useState(false); // Q4
   const [showSignatureDialog, setShowSignatureDialog] = useState(false);
   const [currentSessionToSign, setCurrentSessionToSign] = useState(null);
   const [studentResources, setStudentResources] = useState([]);
