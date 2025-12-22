@@ -14,6 +14,7 @@ import SignatureCanvas from 'react-signature-canvas';
 import FormationNeedsQuestionnaire from "@/components/FormationNeedsQuestionnaire";
 import MidCourseQuestionnaire from "@/components/MidCourseQuestionnaire";
 import EndCourseQuestionnaire from "@/components/EndCourseQuestionnaire";
+import SatisfactionQuestionnaire from "@/components/SatisfactionQuestionnaire";
 import BureautiqueFormationNeedsQuestionnaire from "@/components/BureautiqueFormationNeedsQuestionnaire";
 import BureautiqueMidCourseQuestionnaire from "@/components/BureautiqueMidCourseQuestionnaire";
 import BureautiqueEndCourseQuestionnaire from "@/components/BureautiqueEndCourseQuestionnaire";
