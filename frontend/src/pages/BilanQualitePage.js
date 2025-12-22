@@ -435,14 +435,36 @@ const BilanQualitePage = () => {
                             {["Q1", "Q2", "Q3"].map((qType) => {
                               const qData = e[qType.toLowerCase()];
                               const submitted = qData?.submitted;
+                              
+                              // Pour Q3: afficher les étoiles si soumis
+                              const isQ3 = qType === "Q3";
+                              const q3Stars = isQ3 && submitted ? qData?.overallStars : null;
+                              
+                              // Helper pour afficher les étoiles avec label
+                              const renderStars = (stars) => {
+                                const labels = { 4: "Excellent", 3: "Bon", 2: "Moyen", 1: "Insatisfaisant" };
+                                const starsDisplay = "⭐".repeat(stars || 0);
+                                return (
+                                  <div className="flex flex-col items-center">
+                                    <span className="text-sm">{starsDisplay}</span>
+                                    <span className="text-[10px] text-gray-500">{labels[stars] || ""}</span>
+                                  </div>
+                                );
+                              };
+                              
                               return (
                                 <td key={qType} className="px-4 py-3 text-center">
                                   {submitted ? (
                                     <button onClick={() => handleVoir(e, qType, qData)} 
-                                      className="inline-flex items-center gap-1 text-green-700 hover:opacity-80">
-                                      <span className="w-5 h-5 rounded-full bg-green-500 inline-flex items-center justify-center">
-                                        <Eye className="w-3 h-3 text-white" />
-                                      </span>
+                                      className="inline-flex flex-col items-center gap-1 text-green-700 hover:opacity-80">
+                                      {/* Pour Q3: Afficher les étoiles si disponibles */}
+                                      {isQ3 && q3Stars ? (
+                                        renderStars(q3Stars)
+                                      ) : (
+                                        <span className="w-5 h-5 rounded-full bg-green-500 inline-flex items-center justify-center">
+                                          <Eye className="w-3 h-3 text-white" />
+                                        </span>
+                                      )}
                                       <span className="text-xs">Soumis</span>
                                     </button>
                                   ) : (
