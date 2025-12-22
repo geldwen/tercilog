@@ -1766,6 +1766,59 @@ async def get_bureautique_mid_course_questionnaire(
     return {"exists": True, "questionnaire": questionnaire}
 
 
+# ========== QUESTIONNAIRE DE SATISFACTION Q4 - ANGLAIS ==========
+@api_router.post("/students/{student_id}/satisfaction-questionnaire")
+async def submit_satisfaction_questionnaire(
+    student_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Soumettre le questionnaire de satisfaction (Q4)"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    questionnaire = {
+        "id": str(uuid.uuid4()),
+        "student_id": student_id,
+        **data,
+        "submitted_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    existing = await db.satisfaction_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if existing:
+        await db.satisfaction_questionnaires.update_one(
+            {"student_id": student_id},
+            {"$set": questionnaire}
+        )
+        logger.info(f"Satisfaction questionnaire (Q4) updated for student {student_id}")
+    else:
+        await db.satisfaction_questionnaires.insert_one(questionnaire)
+        logger.info(f"Satisfaction questionnaire (Q4) submitted for student {student_id}")
+    
+    return {"message": "Questionnaire de satisfaction soumis avec succès", "questionnaire": questionnaire}
+
+
+@api_router.get("/students/{student_id}/satisfaction-questionnaire")
+async def get_satisfaction_questionnaire(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer le questionnaire de satisfaction (Q4)"""
+    if current_user.role not in ["student", "teacher"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    if current_user.role == "student" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    questionnaire = await db.satisfaction_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    
+    if not questionnaire:
+        return {"exists": False}
+    
+    return {"exists": True, "questionnaire": questionnaire}
+
+
 @api_router.post("/students/{student_id}/bureautique-end-course-questionnaire")
 async def submit_bureautique_end_course_questionnaire(
     student_id: str,
