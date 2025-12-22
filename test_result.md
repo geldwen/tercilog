@@ -122,7 +122,7 @@ user_problem_statement: "Test Q3 refactoring: stars display in Bilan Qualité, A
 backend:
   - task: "AI Q3 Suggest Endpoint"
     implemented: true
-    working: true
+    working: false
     file: "server.py"
     stuck_count: 0
     priority: "high"
@@ -131,6 +131,9 @@ backend:
         - working: true
           agent: "main"
           comment: "✅ Created POST /api/ai/q3/suggest endpoint that analyzes Block B satisfaction data. Returns has_need, detected_issues, suggested_actions, report_draft, and overall_stars. Tested via curl - correctly identifies negative responses (contenu_adapte='Plutôt non', etc.) and generates appropriate corrective actions."
+        - working: false
+          agent: "testing"
+          comment: "❌ Infrastructure issue: AI Q3 suggest endpoint (/api/ai/q3/suggest) is implemented and working internally (backend logs show 200 OK responses) but not accessible via external URL (returns 404). This appears to be a routing or load balancer configuration issue, not a code issue. The endpoint function is correctly defined and the fallback mechanism for direct data input has been added."
 
   - task: "Q3 OverallStars in Qualite Report"
     implemented: true
@@ -143,6 +146,9 @@ backend:
         - working: true
           agent: "main"
           comment: "✅ Modified get_qualite_report to extract overallStars from Q3 data (from overallRating or evaluation_globale fields). The stars value (1-4) is now included in q3_data response."
+        - working: true
+          agent: "testing"
+          comment: "✅ Successfully tested: Q3 data includes evaluation_globale field which is correctly parsed to extract star ratings. Found student 'coucouille' with evaluation_globale='⭐ Bon' which correctly maps to 3 stars. The qualite report endpoint is accessible and returning Q3 data with proper rating fields."
 
 frontend:
   - task: "Q3 Stars Display in Bilan Qualité Table"
