@@ -3799,12 +3799,16 @@ async def ai_q3_suggest_actions(
         detected_issues.append("non_recommande")
         has_need = True
     
-    # Analyse avis libre pour mots-clés négatifs
+    # Analyse avis libre pour mots-clés négatifs (recherche de mots entiers)
+    import re
     avis_lower = avis_formation.lower() if avis_formation else ""
-    negative_keywords = ["difficile", "compliqué", "pas assez", "manque", "problème", "déçu", "insatisfait", "long", "court", "lent", "rapide"]
+    # Mots négatifs à rechercher comme mots entiers (pas de substring match)
+    negative_keywords = ["difficile", "compliqué", "pas assez", "manque", "problème", "déçu", "insatisfait", "trop long", "trop court", "trop lent", "trop rapide", "ennuyeux", "incomplet"]
     for keyword in negative_keywords:
-        if keyword in avis_lower:
-            detected_issues.append(f"avis_negatif_{keyword}")
+        # Recherche du mot entier avec word boundaries
+        pattern = r'\b' + re.escape(keyword) + r'\b'
+        if re.search(pattern, avis_lower):
+            detected_issues.append(f"avis_negatif_{keyword.replace(' ', '_')}")
             has_need = True
             break
     
