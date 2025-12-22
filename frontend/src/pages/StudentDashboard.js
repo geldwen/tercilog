@@ -1309,6 +1309,16 @@ export default function StudentDashboard({ user, onLogout }) {
             }}
             studentId={user?.id}
           />
+          
+          {/* Q4 - Questionnaire de satisfaction - Anglais */}
+          <SatisfactionQuestionnaire
+            open={showSatisfactionDialog}
+            onClose={() => {
+              setShowSatisfactionDialog(false);
+              loadQuestionnairesStatus();
+            }}
+            studentId={user?.id}
+          />
         </>
       )}
 
