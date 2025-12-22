@@ -161,7 +161,8 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [selectedQuestionnaires, setSelectedQuestionnaires] = useState({
     q1: "",
     q2: "",
-    q3: ""
+    q3: "",
+    q4: "" // Q4 - Satisfaction - Anglais uniquement
   });
 
   // Modèles de tests disponibles par parcours
@@ -193,7 +194,8 @@ export default function TeacherDashboard({ user, onLogout }) {
     "Anglais": {
       q1: ["Q1 - Besoins anglais v1"],
       q2: ["Q2 - Mi-parcours anglais v1"],
-      q3: ["Q3 - Fin formation anglais v1"]
+      q3: ["Q3 - Fin formation anglais v1"],
+      q4: ["Q4 - Satisfaction formation anglais v1"] // Nouveau Q4
     },
     "Bureautique": {
       q1: ["Q1 - Besoins bureautique v1"],
