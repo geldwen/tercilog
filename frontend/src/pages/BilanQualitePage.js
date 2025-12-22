@@ -1201,9 +1201,12 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave, 
                 </p>
               </div>
 
-              {/* Section: Besoins du bénéficiaire (remplace "Actions pédagogiques") */}
+              {/* Section: Besoins du bénéficiaire / Points d'amélioration Q3 */}
               <div className="mb-5">
-                <h3 className="font-bold text-gray-900 mb-3 text-base">Besoins du bénéficiaire <span className="text-gray-400 text-sm font-normal">(max 3)</span></h3>
+                <h3 className="font-bold text-gray-900 mb-3 text-base">
+                  {qType === "Q3" ? "Actions correctives suggérées" : "Besoins du bénéficiaire"} 
+                  <span className="text-gray-400 text-sm font-normal"> (max 3)</span>
+                </h3>
                 <div className="space-y-2">
                   {allActions.slice(0, 6).map((action, idx) => {
                     const isSelected = selectedActions.find(a => a.id === action.id);
