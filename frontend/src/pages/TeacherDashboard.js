@@ -466,7 +466,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       setIncludeTests(false);
       setIncludeQuestionnaires(true);
       setSelectedTests({ positionnement: "", miParcours: "", fin: "" });
-      setSelectedQuestionnaires({ q1: "", q2: "", q3: "" });
+      setSelectedQuestionnaires({ q1: "", q2: "", q3: "", q4: "" });
       loadData(selectedMonth);
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur");
