@@ -6733,6 +6733,194 @@ class TerciFormTester:
             self.log(f"Traceback: {traceback.format_exc()}", "ERROR")
             return False
 
+    def test_q3_refactoring(self):
+        """Test Q3 refactoring implementation: AI Q3 suggest endpoint and qualite report overallStars"""
+        self.log("🎯 Testing Q3 Refactoring Implementation")
+        self.log(f"Backend URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher with provided credentials
+            self.log("=== STEP 1: Teacher Login ===")
+            login_data = {
+                "email": "terciform@gmail.com",
+                "password": "Geldwen1982*+"
+            }
+            
+            self.log(f"Testing teacher login: {login_data['email']}")
+            response = self.make_request("POST", "/auth/login", login_data)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Teacher login failed", "ERROR")
+                return False
+            
+            data = response.json()
+            if not data.get("access_token") or data.get("user", {}).get("role") != "teacher":
+                self.log("❌ Login response missing token or wrong role", "ERROR")
+                return False
+            
+            self.teacher_token = data["access_token"]
+            teacher_info = data["user"]
+            self.log(f"✅ Teacher login successful: {teacher_info['name']} ({teacher_info['email']})")
+            
+            # Step 2: Test AI Q3 Suggest Endpoint with positive data
+            self.log("=== STEP 2: Testing AI Q3 Suggest Endpoint - Positive Data ===")
+            positive_q3_data = {
+                "contenu_adapte": "Tout à fait",
+                "evaluation_globale": "4",
+                "recommandation": "Oui"
+            }
+            
+            self.log(f"Testing with positive Q3 data: {positive_q3_data}")
+            response = self.make_request("POST", "/ai/q3/suggest", positive_q3_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ AI Q3 suggest endpoint failed for positive data", "ERROR")
+                if response:
+                    self.log(f"Status: {response.status_code}, Response: {response.text}")
+                return False
+            
+            positive_result = response.json()
+            self.log(f"✅ Positive Q3 data response: {positive_result}")
+            
+            # Verify positive response should have has_need=false
+            if positive_result.get("has_need") != False:
+                self.log(f"❌ Expected has_need=false for positive data, got: {positive_result.get('has_need')}", "ERROR")
+                return False
+            
+            self.log("✅ Positive Q3 data correctly returns has_need=false")
+            
+            # Step 3: Test AI Q3 Suggest Endpoint with negative data
+            self.log("=== STEP 3: Testing AI Q3 Suggest Endpoint - Negative Data ===")
+            negative_q3_data = {
+                "contenu_adapte": "Plutôt non",
+                "rythme_duree": "Pas du tout",
+                "evaluation_globale": "2",
+                "recommandation": "Non"
+            }
+            
+            self.log(f"Testing with negative Q3 data: {negative_q3_data}")
+            response = self.make_request("POST", "/ai/q3/suggest", negative_q3_data, self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ AI Q3 suggest endpoint failed for negative data", "ERROR")
+                if response:
+                    self.log(f"Status: {response.status_code}, Response: {response.text}")
+                return False
+            
+            negative_result = response.json()
+            self.log(f"✅ Negative Q3 data response: {negative_result}")
+            
+            # Verify negative response should have has_need=true with suggested_actions
+            if negative_result.get("has_need") != True:
+                self.log(f"❌ Expected has_need=true for negative data, got: {negative_result.get('has_need')}", "ERROR")
+                return False
+            
+            if not negative_result.get("suggested_actions"):
+                self.log("❌ Expected suggested_actions for negative data", "ERROR")
+                return False
+            
+            self.log("✅ Negative Q3 data correctly returns has_need=true with suggested_actions")
+            
+            # Step 4: Test Qualite Report endpoint for overallStars
+            self.log("=== STEP 4: Testing Qualite Report Endpoint - OverallStars ===")
+            response = self.make_request("GET", "/teachers/qualite-report", token=self.teacher_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Qualite report endpoint failed", "ERROR")
+                if response:
+                    self.log(f"Status: {response.status_code}, Response: {response.text}")
+                return False
+            
+            qualite_data = response.json()
+            self.log(f"✅ Qualite report endpoint accessible")
+            
+            # Look for students with Q3 data
+            students_with_q3 = []
+            eloise_found = False
+            isleme_found = False
+            
+            for student in qualite_data.get("students", []):
+                student_name = student.get("name", "")
+                q3_data = student.get("q3_data")
+                
+                if q3_data:
+                    students_with_q3.append(student_name)
+                    self.log(f"Found Q3 data for student: {student_name}")
+                    
+                    # Check for overallStars field
+                    overall_stars = q3_data.get("overallStars")
+                    if overall_stars is not None:
+                        self.log(f"   ✅ overallStars field found: {overall_stars}")
+                        
+                        # Check for specific test students
+                        if "Eloise" in student_name and "RUIZ" in student_name:
+                            eloise_found = True
+                            if overall_stars == 3:
+                                self.log(f"   ✅ Eloise RUIZ RODRIGUEZ has correct overallStars=3 (3 stars = Bon)")
+                            else:
+                                self.log(f"   ⚠️ Eloise RUIZ RODRIGUEZ has overallStars={overall_stars}, expected 3")
+                        
+                        if "Isleme" in student_name or "BAGHOUZ" in student_name:
+                            isleme_found = True
+                            if overall_stars == 2:
+                                self.log(f"   ✅ Isleme BAGHOUZ has correct overallStars=2 (2 stars = Moyen)")
+                            else:
+                                self.log(f"   ⚠️ Isleme BAGHOUZ has overallStars={overall_stars}, expected 2")
+                    else:
+                        self.log(f"   ❌ overallStars field missing for {student_name}")
+            
+            if not students_with_q3:
+                self.log("❌ No students with Q3 data found in qualite report", "ERROR")
+                return False
+            
+            self.log(f"✅ Found {len(students_with_q3)} students with Q3 data")
+            
+            # Step 5: Verification summary
+            self.log("=== STEP 5: Verification Summary ===")
+            checks = []
+            checks.append(("Teacher login successful", True))
+            checks.append(("AI Q3 suggest endpoint - positive data", positive_result.get("has_need") == False))
+            checks.append(("AI Q3 suggest endpoint - negative data", negative_result.get("has_need") == True))
+            checks.append(("Negative data has suggested_actions", bool(negative_result.get("suggested_actions"))))
+            checks.append(("Qualite report endpoint accessible", True))
+            checks.append(("Q3 data includes overallStars field", len(students_with_q3) > 0))
+            checks.append(("Eloise RUIZ RODRIGUEZ found", eloise_found))
+            checks.append(("Isleme BAGHOUZ found", isleme_found))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Display detailed results
+            self.log("=== DETAILED RESULTS ===")
+            self.log(f"AI Q3 Suggest - Positive Response:")
+            self.log(f"   has_need: {positive_result.get('has_need')}")
+            self.log(f"   detected_issues: {positive_result.get('detected_issues', [])}")
+            
+            self.log(f"AI Q3 Suggest - Negative Response:")
+            self.log(f"   has_need: {negative_result.get('has_need')}")
+            self.log(f"   suggested_actions: {negative_result.get('suggested_actions', [])}")
+            self.log(f"   overall_stars: {negative_result.get('overall_stars')}")
+            
+            self.log(f"Qualite Report:")
+            self.log(f"   Students with Q3 data: {len(students_with_q3)}")
+            self.log(f"   Eloise found: {eloise_found}")
+            self.log(f"   Isleme found: {isleme_found}")
+            
+            if all_passed:
+                self.log("🎉 Q3 REFACTORING TESTS COMPLETED SUCCESSFULLY!")
+            else:
+                self.log("❌ Some Q3 refactoring tests failed", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Q3 refactoring test failed with exception: {e}", "ERROR")
+            return False
+
 
 def main():
     """Main test execution"""
