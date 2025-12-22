@@ -3730,6 +3730,10 @@ async def ai_q3_suggest_actions(
     
     q3_data = data.get("q3_data", {})
     
+    # Fallback: si q3_data est vide, utiliser les données directement
+    if not q3_data:
+        q3_data = data
+    
     # Extraire les réponses du Block B
     contenu_adapte = q3_data.get("contenu_adapte", "")
     rythme_duree = q3_data.get("rythme_duree", "")
