@@ -955,6 +955,96 @@ def send_session_reminder_email(to_email: str, student_name: str, subject: str, 
     return send_email(to_email, "⏰ TerciForm - Votre séance commence dans 5 minutes", html_body)
 
 
+def send_session_modified_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str):
+    """Envoyer un email de notification de modification de séance à l'élève"""
+    portal_url = get_student_portal_url()
+    
+    # Formater la date si possible
+    try:
+        from datetime import datetime
+        date_obj = datetime.strptime(date, "%Y-%m-%d")
+        formatted_date = date_obj.strftime("%A %d %B %Y").capitalize()
+        # Traduction française des jours
+        day_translations = {
+            "Monday": "Lundi", "Tuesday": "Mardi", "Wednesday": "Mercredi",
+            "Thursday": "Jeudi", "Friday": "Vendredi", "Saturday": "Samedi", "Sunday": "Dimanche"
+        }
+        month_translations = {
+            "January": "janvier", "February": "février", "March": "mars", "April": "avril",
+            "May": "mai", "June": "juin", "July": "juillet", "August": "août",
+            "September": "septembre", "October": "octobre", "November": "novembre", "December": "décembre"
+        }
+        for en, fr in day_translations.items():
+            formatted_date = formatted_date.replace(en, fr)
+        for en, fr in month_translations.items():
+            formatted_date = formatted_date.replace(en, fr)
+    except:
+        formatted_date = date
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <!-- Header avec logo -->
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">📅 Modification de séance</h1>
+            </div>
+            
+            <!-- Contenu -->
+            <div style="padding: 30px;">
+                <p style="font-size: 16px;">Bonjour <strong>{student_name}</strong>,</p>
+                
+                <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                    <p style="margin: 0; color: #856404; font-weight: bold; font-size: 16px;">
+                        ⚠️ Une séance a été modifiée par votre formateur.
+                    </p>
+                </div>
+                
+                <p style="font-size: 15px;">Veuillez trouver votre nouveau planning dans votre espace personnel.</p>
+                
+                <div style="background-color: #e8f4fd; border-left: 4px solid #1e3a5f; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Détails de la nouvelle séance :</p>
+                    <p style="margin: 5px 0;"><strong>Matière :</strong> {subject}</p>
+                    <p style="margin: 5px 0;"><strong>Date :</strong> {formatted_date}</p>
+                    <p style="margin: 5px 0;"><strong>Horaires :</strong> {start_time} - {end_time}</p>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{portal_url}" style="background-color: #1e3a5f; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
+                        🔗 Accéder à mon espace
+                    </a>
+                </div>
+                
+                <p style="color: #dc2626; font-size: 14px; margin-top: 20px;">
+                    ⚠️ <strong>Important :</strong> En cas d'absence à une séance validée, les heures de formation seront perdues.
+                </p>
+                
+                <p style="margin-top: 30px; color: #666;">
+                    Cordialement,<br>
+                    <strong>L'équipe TerciForm</strong>
+                </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+                <p style="margin: 0; color: #666; font-size: 12px;">
+                    Cet email a été envoyé automatiquement par TerciForm.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    email_sent = send_email(to_email, "📅 TerciForm - Modification de votre séance", html_body)
+    if email_sent:
+        logger.info(f"Email de modification de séance envoyé à {to_email}")
+    else:
+        logger.error(f"Échec envoi email de modification à {to_email}")
+    return email_sent
+
+
 # Routes
 @api_router.post("/auth/register", response_model=User)
 async def save_student_resources(student_id: str, parcours: str, resources: dict):
