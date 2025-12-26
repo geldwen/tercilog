@@ -126,9 +126,10 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
       ...s,
       origin: 'emergent',
       title: s.subject,
-      center: s.organism || 'Séance',
+      // Utiliser l'organisme de la séance OU celui de l'élève (student_organism)
+      center: s.organism || s.student_organism || '',
       participant: s.student_name,
-      color: getCenterColor(s.organism || '')
+      color: getCenterColor(s.organism || s.student_organism || '')
     })),
     ...planningEvents.filter(e => e.date && e.date.startsWith(activeMonth)).map(e => ({
       ...e,
