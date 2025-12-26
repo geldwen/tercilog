@@ -501,12 +501,12 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
         <div className="overflow-x-auto">
           <div className="inline-flex min-w-full">
             {/* Colonne des heures */}
-            <div className="sticky left-0 z-10 bg-gray-50 border-r" style={{ width: '60px' }}>
-              <div className="h-12 border-b bg-gray-100"></div>
+            <div className="sticky left-0 z-10 bg-gray-50 border-r border-gray-400" style={{ width: '60px' }}>
+              <div className="h-12 border-b border-gray-400 bg-gray-100"></div>
               {HOURS.map(hour => (
                 <div
                   key={hour}
-                  className="border-b text-xs text-gray-600 flex items-start justify-center pt-1 font-medium"
+                  className="border-b border-gray-400 text-xs text-gray-600 flex items-start justify-center pt-1 font-medium"
                   style={{ height: `${HOUR_HEIGHT_PX}px` }}
                 >
                   {String(hour).padStart(2, '0')}:00
