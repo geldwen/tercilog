@@ -500,17 +500,44 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
       </div>
 
       {/* Calendrier */}
-      <div className="border rounded-lg overflow-hidden bg-white">
-        <div className="overflow-x-auto" style={{ maxHeight: '75vh', overflowY: 'auto' }}>
-          <div className="inline-flex min-w-full">
-            {/* Colonne des heures */}
-            <div className="sticky left-0 z-20 bg-gray-50 border-r border-gray-400" style={{ width: '60px' }}>
-              {/* Header vide pour aligner avec les dates */}
-              <div className="h-12 border-b border-gray-400 bg-gray-100 sticky top-0 z-30"></div>
+      <div className="border rounded-lg overflow-hidden bg-white flex flex-col" style={{ maxHeight: '80vh' }}>
+        {/* HEADER FIGÉ - Ligne des dates */}
+        <div className="flex-shrink-0 border-b border-gray-400 bg-gray-100">
+          <div className="flex">
+            {/* Case vide pour aligner avec colonne heures */}
+            <div className="flex-shrink-0 border-r border-gray-400 bg-gray-100" style={{ width: '60px', height: '48px' }}></div>
+            {/* Headers des jours */}
+            <div className="flex overflow-x-auto" id="planning-header">
+              {monthDays.map(({ day, date, dayName }) => (
+                <div 
+                  key={date} 
+                  className="flex-shrink-0 border-r border-gray-400 flex flex-col items-center justify-center text-xs font-semibold bg-gray-100"
+                  style={{ width: '130px', height: '48px' }}
+                >
+                  <span className="text-gray-500">{dayName}</span>
+                  <span className="text-gray-800">{String(day).padStart(2, '0')}/{activeMonth.split('-')[1]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        {/* CONTENU SCROLLABLE - Grille horaire */}
+        <div 
+          className="flex-1 overflow-auto"
+          onScroll={(e) => {
+            // Synchroniser le scroll horizontal du header
+            const header = document.getElementById('planning-header');
+            if (header) header.scrollLeft = e.target.scrollLeft;
+          }}
+        >
+          <div className="flex min-w-max">
+            {/* Colonne des heures - sticky left */}
+            <div className="sticky left-0 z-20 bg-gray-50 border-r border-gray-400 flex-shrink-0" style={{ width: '60px' }}>
               {HOURS.map(hour => (
                 <div
                   key={hour}
-                  className="border-b border-gray-400 text-xs text-gray-600 flex items-start justify-center pt-1 font-medium"
+                  className="border-b border-gray-400 text-xs text-gray-600 flex items-start justify-center pt-1 font-medium bg-gray-50"
                   style={{ height: `${HOUR_HEIGHT_PX}px` }}
                 >
                   {String(hour).padStart(2, '0')}:00
@@ -524,15 +551,9 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
               const { eventLanes, maxLanes } = calculateLanes(dayEvents);
               
               return (
-                <div key={date} className="border-r border-gray-400" style={{ minWidth: '130px', width: '130px' }}>
-                  {/* En-tête jour - FIGÉ */}
-                  <div className="h-12 border-b border-gray-400 bg-gray-100 flex flex-col items-center justify-center text-xs font-semibold sticky top-0 z-10">
-                    <span className="text-gray-500">{dayName}</span>
-                    <span className="text-gray-800">{String(day).padStart(2, '0')}/{activeMonth.split('-')[1]}</span>
-                  </div>
-
+                <div key={date} className="border-r border-gray-400 flex-shrink-0" style={{ width: '130px' }}>
                   {/* Grille horaire */}
-                  <div className="relative" style={{ height: `${HOURS.length * HOUR_HEIGHT_PX}px`, position: 'relative' }}>
+                  <div className="relative" style={{ height: `${HOURS.length * HOUR_HEIGHT_PX}px` }}>
                     {/* Lignes horaires cliquables - PLUS FONCÉES */}
                     {HOURS.map(hour => (
                       <div
