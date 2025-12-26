@@ -801,8 +801,8 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                   <p><strong>Date :</strong> {eventToDelete.date}</p>
                   <p><strong>Créneau :</strong> {eventToDelete.start_time} - {eventToDelete.end_time}</p>
                   <p><strong>Centre :</strong> {eventToDelete.center || eventToDelete.organism || '-'}</p>
-                  {eventToDelete.participants && eventToDelete.participants.length > 0 && (
-                    <p><strong>Participants :</strong> {eventToDelete.participants.join(', ')}</p>
+                  {eventToDelete.students && eventToDelete.students.length > 0 && (
+                    <p><strong>Élèves :</strong> {eventToDelete.students.join(', ')}</p>
                   )}
                   {eventToDelete.origin === 'emergent' && (
                     <p className="text-orange-600 font-medium mt-2">⚠️ Attention : Cette séance Emergent sera supprimée définitivement !</p>
