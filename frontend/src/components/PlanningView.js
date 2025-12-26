@@ -520,20 +520,20 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
               const { eventLanes, maxLanes } = calculateLanes(dayEvents);
               
               return (
-                <div key={date} className="border-r" style={{ minWidth: '140px', width: '140px' }}>
+                <div key={date} className="border-r border-gray-400" style={{ minWidth: '160px', width: '160px' }}>
                   {/* En-tête jour */}
-                  <div className="h-12 border-b bg-gray-100 flex flex-col items-center justify-center text-xs font-semibold">
+                  <div className="h-12 border-b border-gray-400 bg-gray-100 flex flex-col items-center justify-center text-xs font-semibold">
                     <span className="text-gray-500">{dayName}</span>
                     <span className="text-gray-800">{String(day).padStart(2, '0')}/{activeMonth.split('-')[1]}</span>
                   </div>
 
                   {/* Grille horaire */}
                   <div className="relative" style={{ height: `${HOURS.length * HOUR_HEIGHT_PX}px`, position: 'relative' }}>
-                    {/* Lignes horaires cliquables */}
+                    {/* Lignes horaires cliquables - PLUS FONCÉES */}
                     {HOURS.map(hour => (
                       <div
                         key={hour}
-                        className="absolute w-full border-b bg-green-50 hover:bg-green-100 cursor-pointer transition-colors"
+                        className="absolute w-full border-b border-gray-400 bg-green-50 hover:bg-green-100 cursor-pointer transition-colors"
                         style={{ top: `${(hour - 8) * HOUR_HEIGHT_PX}px`, height: `${HOUR_HEIGHT_PX}px` }}
                         onClick={() => handleCellClick(date, hour)}
                       ></div>
