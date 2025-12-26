@@ -205,6 +205,7 @@ class Session(BaseModel):
     hourly_rate_source: str = "auto"  # auto (calculé) ou manual (saisi par utilisateur)
     amount: float = 0.0  # Montant total calculé (durée × coût horaire)
     organism: str = ""  # Organisme/Centre de formation
+    student_organism: str = ""  # Organisme de l'élève (pour affichage planning)
     modality: str = "distanciel"  # distanciel ou présentiel
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
