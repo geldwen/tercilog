@@ -177,9 +177,9 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
     eventsByDate[event.date].push(event);
   });
 
-  // Appliquer le grouping sur chaque jour
+  // Appliquer le grouping sur chaque jour (fusion des élèves sur même créneau)
   Object.keys(eventsByDate).forEach(date => {
-    eventsByDate[date] = groupEventsByKey(eventsByDate[date]);
+    eventsByDate[date] = groupEventsByTimeSlot(eventsByDate[date]);
   });
 
   // Calcul position PARFAIT avec PX_PER_MIN
