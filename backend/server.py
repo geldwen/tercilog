@@ -4366,32 +4366,73 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
     doc['created_at'] = doc['created_at'].isoformat()
     await db.sessions.insert_one(doc)
     
-    # Send email to student
+    # Send email to student with logo and gradient design
     portal_url = get_student_portal_url()
     email_body = f"""
     <html>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #1e3a5f;">Nouvelle séance de formation TerciForm</h2>
-            <p>Bonjour {student['name']},</p>
-            <p><strong>Vous avez été affecté à la séance {session_data.subject} du {session_data.date} de {session_data.start_time} à {session_data.end_time}.</strong></p>
-            <p>Veuillez confirmer votre présence en vous connectant à la plateforme :</p>
-            <div style="margin: 30px 0;">
-                <a href="{portal_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Accédez à TerciLog</a>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <!-- Header avec logo et dégradé -->
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">📅 Nouvelle séance programmée</h1>
             </div>
-            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Identifiant de connexion :</p>
-                <p style="margin: 5px 0;"><strong>Identifiant :</strong> {student['email']}</p>
+            
+            <!-- Contenu -->
+            <div style="padding: 30px;">
+                <p style="font-size: 16px;">Bonjour <strong>{student['name']}</strong>,</p>
+                
+                <div style="background-color: #d1fae5; border: 1px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                    <p style="margin: 0; color: #065f46; font-weight: bold; font-size: 16px;">
+                        ✅ Vous avez été affecté(e) à une nouvelle séance de formation.
+                    </p>
+                </div>
+                
+                <!-- Détails de la séance -->
+                <div style="background-color: #e8f4fd; border-left: 4px solid #1e3a5f; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Détails de la séance :</p>
+                    <p style="margin: 5px 0;"><strong>Matière :</strong> {session_data.subject}</p>
+                    <p style="margin: 5px 0;"><strong>Date :</strong> {session_data.date}</p>
+                    <p style="margin: 5px 0;"><strong>Horaires :</strong> {session_data.start_time} - {session_data.end_time}</p>
+                </div>
+                
+                <p style="font-size: 15px;">Veuillez confirmer votre présence en vous connectant à la plateforme :</p>
+                
+                <!-- Bouton -->
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{portal_url}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
+                        🔗 Confirmer ma présence
+                    </a>
+                </div>
+                
+                <!-- Cadre identifiant -->
+                <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 0; font-size: 14px;"><strong>Identifiant de connexion :</strong> {student['email']}</p>
+                </div>
+                
+                <p style="color: #dc2626; font-size: 14px; margin-top: 20px;">
+                    ⚠️ <strong>Important :</strong> En cas d'absence à une séance validée, les heures de formation seront perdues.
+                </p>
+                
+                <p style="margin-top: 30px; color: #333;">
+                    Cordialement,<br>
+                    <strong>L'équipe TerciForm</strong>
+                </p>
             </div>
-            <p style="color: #dc2626; font-weight: bold;">⚠️ Important : En cas d'absence d'une séance validée, les heures de formation seront perdues.</p>
-            <p>Cordialement,<br>Votre formateur</p>
+            
+            <!-- Footer -->
+            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+                <p style="margin: 0; color: #666; font-size: 12px;">
+                    Cet email a été envoyé automatiquement par TerciForm.
+                </p>
+            </div>
         </div>
     </body>
     </html>
     """
     
     # Envoyer l'email de confirmation à l'élève
-    email_sent = send_email(student['email'], f"Nouvelle séance TerciForm - {session_data.subject}", email_body)
+    email_sent = send_email(student['email'], f"📅 TerciForm - Nouvelle séance : {session_data.subject}", email_body)
     
     if email_sent:
         logger.info(f"Email de confirmation envoyé à {student['email']} pour la séance {session.id}")
