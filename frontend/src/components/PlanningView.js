@@ -140,26 +140,28 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
     }))
   ];
 
-  // FUSION DES PARTICIPANTS : Grouper par clé unique
-  const groupEventsByKey = (events) => {
+  // FUSION DES PARTICIPANTS : Grouper par créneau IDENTIQUE (date + heure + organisme)
+  const groupEventsByTimeSlot = (events) => {
     const groups = new Map();
     
     events.forEach(event => {
-      // Clé = session_id (Emergent) ou date|start|end|subject|center
-      const groupKey = event.session_id || event.id || 
-        `${event.date}|${event.start_time}|${event.end_time}|${event.subject || event.title}|${event.center || ''}`;
+      // Clé de groupement = date + créneau horaire + organisme (pour regrouper plusieurs élèves sur même créneau)
+      const groupKey = `${event.date}|${event.start_time}|${event.end_time}|${event.organism || event.center || 'default'}`;
       
       if (!groups.has(groupKey)) {
         groups.set(groupKey, {
           ...event,
-          participants: [],
+          students: [],
           groupKey
         });
       }
       
       const group = groups.get(groupKey);
-      if (event.participant) {
-        group.participants.push(event.participant);
+      
+      // Ajouter le nom de l'élève si présent
+      const studentName = event.student_name || event.participant;
+      if (studentName && !group.students.includes(studentName)) {
+        group.students.push(studentName);
       }
     });
     
