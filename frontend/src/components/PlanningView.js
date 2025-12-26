@@ -690,7 +690,6 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
           </div>
         </div>
       </div>
-
       {/* Modal création événement */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="max-w-md">
