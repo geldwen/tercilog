@@ -4515,7 +4515,7 @@ async def teacher_sign_session(session_id: str, signature_data: dict, current_us
 
 
 @api_router.put("/sessions/{session_id}")
-async def update_session(session_id: str, data: dict, current_user: User = Depends(get_current_user)):
+async def update_session(session_id: str, data: dict, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user)):
     """Mettre à jour une séance (ex: ajouter un lien visio)"""
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
@@ -4524,6 +4524,19 @@ async def update_session(session_id: str, data: dict, current_user: User = Depen
     session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
     if not session_doc:
         raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Détecter si date ou horaires changent (pour envoi email)
+    date_or_time_changed = False
+    old_date = session_doc.get("date")
+    old_start_time = session_doc.get("start_time")
+    old_end_time = session_doc.get("end_time")
+    
+    if "date" in data and data["date"] != old_date:
+        date_or_time_changed = True
+    if "start_time" in data and data["start_time"] != old_start_time:
+        date_or_time_changed = True
+    if "end_time" in data and data["end_time"] != old_end_time:
+        date_or_time_changed = True
     
     # Préparer les données de mise à jour
     update_data = {}
@@ -4558,6 +4571,25 @@ async def update_session(session_id: str, data: dict, current_user: User = Depen
     
     # Récupérer la séance mise à jour
     updated_session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    
+    # Envoyer email si date ou horaires ont changé
+    if date_or_time_changed:
+        student_id = session_doc.get("student_id")
+        if student_id:
+            student = await db.users.find_one({"id": student_id}, {"_id": 0})
+            if student and student.get("email"):
+                # Envoyer l'email en arrière-plan
+                background_tasks.add_task(
+                    send_session_modified_email,
+                    student["email"],
+                    student.get("name", ""),
+                    updated_session.get("subject", ""),
+                    updated_session.get("date", ""),
+                    updated_session.get("start_time", ""),
+                    updated_session.get("end_time", "")
+                )
+                logger.info(f"Email de modification de séance programmé pour {student['email']}")
+    
     return Session(**updated_session)
 
 
