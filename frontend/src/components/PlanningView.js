@@ -545,40 +545,48 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                     {eventLanes.map(({ event, laneIndex }, idx) => {
                       const pos = getEventPosition(event.start_time, event.end_time);
                       const laneWidth = 100 / maxLanes;
-                      const textSize = maxLanes >= 3 ? 'text-xs' : 'text-sm md:text-base';
+                      const textSize = maxLanes >= 3 ? 'text-[10px]' : 'text-xs';
                       
-                      // Affichage participants
-                      const participantsList = event.participants || [];
-                      const displayParticipants = participantsList.length > 0 
-                        ? participantsList.slice(0, 2).join(', ') + 
-                          (participantsList.length > 2 ? ` (+${participantsList.length - 2})` : '')
-                        : event.participant || event.student_name || event.center;
+                      // Affichage des élèves groupés
+                      const studentsList = event.students || [];
+                      const displayStudents = studentsList.length > 0 
+                        ? studentsList.length <= 2
+                          ? studentsList.join(', ')
+                          : `${studentsList.slice(0, 2).join(', ')} (+${studentsList.length - 2})`
+                        : event.student_name || '';
+                      
+                      // Organisme / Centre
+                      const organism = event.organism || event.center || '';
+                      // Matière
+                      const subject = event.subject || '';
+                      // Intitulé de formation
+                      const title = event.title || event.subject || 'Séance';
                       
                       return (
                         <div
                           key={event.groupKey || event.id || idx}
-                          className={`absolute rounded-md ${textSize} font-medium leading-tight shadow-sm overflow-hidden px-2 py-1 md:px-3 md:py-2 group`}
+                          className={`absolute rounded-md ${textSize} font-medium leading-tight shadow-md overflow-hidden px-2 py-1.5 group`}
                           style={{
                             top: pos.top,
                             height: pos.height,
-                            left: `calc(${laneIndex * laneWidth}% + 3px)`,
-                            width: `calc(${laneWidth}% - 6px)`,
-                            minHeight: '40px',
+                            left: `calc(${laneIndex * laneWidth}% + 2px)`,
+                            width: `calc(${laneWidth}% - 4px)`,
+                            minHeight: '50px',
                             backgroundColor: event.color || '#3B82F6',
                             color: 'white',
                             position: 'absolute'
                           }}
-                          title={`${event.title || event.subject}\n${displayParticipants}\n${event.start_time}-${event.end_time}${participantsList.length > 0 ? '\n\nParticipants: ' + participantsList.join(', ') : ''}`}
+                          title={`📚 ${title}\n🏢 ${organism}\n📖 ${subject}\n👥 ${studentsList.length > 0 ? studentsList.join(', ') : '-'}\n⏰ ${event.start_time}-${event.end_time}`}
                         >
                           {/* Menu contextuel */}
-                          <div className="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                          <div className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <button
                                   onClick={(e) => e.stopPropagation()}
-                                  className="p-1 rounded bg-black/30 hover:bg-black/50 text-white"
+                                  className="p-0.5 rounded bg-black/30 hover:bg-black/50 text-white"
                                 >
-                                  <MoreVertical size={14} />
+                                  <MoreVertical size={12} />
                                 </button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-40">
@@ -625,27 +633,50 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
 
                           {/* Icône verrou pour Emergent */}
                           {event.origin === 'emergent' && (
-                            <div className="absolute top-1.5 left-1.5 z-10" title="Séance Emergent">
-                              <Lock size={12} className="text-white/70" />
+                            <div className="absolute top-1 left-1 z-10" title="Séance Emergent">
+                              <Lock size={10} className="text-white/70" />
                             </div>
                           )}
 
-                          {/* Icône participants multiples */}
-                          {participantsList.length > 1 && (
-                            <div className="absolute top-1.5 left-7 z-10" title={`${participantsList.length} participants`}>
-                              <Users size={12} className="text-white/70" />
+                          {/* Icône élèves multiples */}
+                          {studentsList.length > 1 && (
+                            <div className="absolute top-1 left-5 z-10" title={`${studentsList.length} élèves`}>
+                              <Users size={10} className="text-white/70" />
                             </div>
                           )}
 
-                          {/* Contenu */}
-                          <div className="font-semibold truncate overflow-hidden text-ellipsis whitespace-nowrap">
-                            {event.title || event.subject}
-                          </div>
-                          <div className="text-xs truncate overflow-hidden text-ellipsis whitespace-nowrap">
-                            {displayParticipants}
-                          </div>
-                          <div className="text-xs">
-                            {event.start_time}–{event.end_time}
+                          {/* Contenu de la bulle - AMÉLIORÉ */}
+                          <div className="flex flex-col h-full justify-between pt-3">
+                            {/* Ligne 1: Intitulé de formation (gras) */}
+                            <div className="font-bold truncate text-white leading-tight">
+                              {title}
+                            </div>
+                            
+                            {/* Ligne 2: Organisme/Centre */}
+                            {organism && (
+                              <div className="text-[10px] text-white/90 truncate leading-tight">
+                                🏢 {organism}
+                              </div>
+                            )}
+                            
+                            {/* Ligne 3: Matière (si différente du titre) */}
+                            {subject && subject !== title && (
+                              <div className="text-[10px] text-white/80 truncate leading-tight">
+                                📖 {subject}
+                              </div>
+                            )}
+                            
+                            {/* Ligne 4: Élève(s) - affiché uniquement si présent */}
+                            {displayStudents && (
+                              <div className="text-[10px] text-white/90 truncate leading-tight font-medium">
+                                👤 {displayStudents}
+                              </div>
+                            )}
+                            
+                            {/* Ligne 5: Horaires */}
+                            <div className="text-[9px] text-white/70 mt-auto">
+                              {event.start_time}–{event.end_time}
+                            </div>
                           </div>
                         </div>
                       );
