@@ -545,17 +545,14 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                     {eventLanes.map(({ event, laneIndex }, idx) => {
                       const pos = getEventPosition(event.start_time, event.end_time);
                       const laneWidth = 100 / maxLanes;
-                      const textSize = maxLanes >= 3 ? 'text-[10px]' : 'text-xs';
                       
-                      // Affichage des élèves groupés
+                      // Affichage des élèves groupés - SANS COUPURE
                       const studentsList = event.students || [];
                       const displayStudents = studentsList.length > 0 
-                        ? studentsList.length <= 2
-                          ? studentsList.join(', ')
-                          : `${studentsList.slice(0, 2).join(', ')} (+${studentsList.length - 2})`
+                        ? studentsList.join(', ')
                         : event.student_name || '';
                       
-                      // Organisme / Centre
+                      // Organisme / Centre de formation
                       const organism = event.organism || event.center || '';
                       // Matière
                       const subject = event.subject || '';
@@ -565,16 +562,18 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                       return (
                         <div
                           key={event.groupKey || event.id || idx}
-                          className={`absolute rounded-md ${textSize} font-medium leading-tight shadow-md overflow-hidden px-2 py-1.5 group`}
+                          className="absolute rounded-md font-medium shadow-md overflow-hidden px-2 py-2 group"
                           style={{
                             top: pos.top,
                             height: pos.height,
                             left: `calc(${laneIndex * laneWidth}% + 2px)`,
                             width: `calc(${laneWidth}% - 4px)`,
-                            minHeight: '50px',
+                            minHeight: '70px',
                             backgroundColor: event.color || '#3B82F6',
                             color: 'white',
-                            position: 'absolute'
+                            position: 'absolute',
+                            fontSize: '13px',
+                            lineHeight: '1.3'
                           }}
                           title={`📚 ${title}\n🏢 ${organism}\n📖 ${subject}\n👥 ${studentsList.length > 0 ? studentsList.join(', ') : '-'}\n⏰ ${event.start_time}-${event.end_time}`}
                         >
@@ -634,48 +633,48 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                           {/* Icône verrou pour Emergent */}
                           {event.origin === 'emergent' && (
                             <div className="absolute top-1 left-1 z-10" title="Séance Emergent">
-                              <Lock size={10} className="text-white/70" />
+                              <Lock size={11} className="text-white/70" />
                             </div>
                           )}
 
                           {/* Icône élèves multiples */}
                           {studentsList.length > 1 && (
                             <div className="absolute top-1 left-5 z-10" title={`${studentsList.length} élèves`}>
-                              <Users size={10} className="text-white/70" />
+                              <Users size={11} className="text-white/70" />
                             </div>
                           )}
 
-                          {/* Contenu de la bulle - AMÉLIORÉ */}
-                          <div className="flex flex-col h-full justify-between pt-3">
-                            {/* Ligne 1: Intitulé de formation (gras) */}
-                            <div className="font-bold truncate text-white leading-tight">
+                          {/* Contenu de la bulle - TEXTE PLUS GROS, SANS COUPURE */}
+                          <div className="flex flex-col h-full pt-4" style={{ gap: '2px' }}>
+                            {/* Ligne 1: Intitulé de formation (gras, plus gros) */}
+                            <div className="font-bold text-white" style={{ fontSize: '14px' }}>
                               {title}
                             </div>
                             
-                            {/* Ligne 2: Organisme/Centre */}
+                            {/* Ligne 2: Centre de formation / Organisme */}
                             {organism && (
-                              <div className="text-[10px] text-white/90 truncate leading-tight">
+                              <div className="text-white/95" style={{ fontSize: '12px' }}>
                                 🏢 {organism}
                               </div>
                             )}
                             
                             {/* Ligne 3: Matière (si différente du titre) */}
                             {subject && subject !== title && (
-                              <div className="text-[10px] text-white/80 truncate leading-tight">
+                              <div className="text-white/90" style={{ fontSize: '12px' }}>
                                 📖 {subject}
                               </div>
                             )}
                             
-                            {/* Ligne 4: Élève(s) - affiché uniquement si présent */}
+                            {/* Ligne 4: Élève(s) - SANS COUPURE */}
                             {displayStudents && (
-                              <div className="text-[10px] text-white/90 truncate leading-tight font-medium">
+                              <div className="text-white font-semibold" style={{ fontSize: '12px', wordWrap: 'break-word' }}>
                                 👤 {displayStudents}
                               </div>
                             )}
                             
                             {/* Ligne 5: Horaires */}
-                            <div className="text-[9px] text-white/70 mt-auto">
-                              {event.start_time}–{event.end_time}
+                            <div className="text-white/80 mt-auto" style={{ fontSize: '11px' }}>
+                              ⏰ {event.start_time}–{event.end_time}
                             </div>
                           </div>
                         </div>
