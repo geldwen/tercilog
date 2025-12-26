@@ -501,11 +501,12 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
 
       {/* Calendrier */}
       <div className="border rounded-lg overflow-hidden bg-white">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" style={{ maxHeight: '75vh', overflowY: 'auto' }}>
           <div className="inline-flex min-w-full">
             {/* Colonne des heures */}
-            <div className="sticky left-0 z-10 bg-gray-50 border-r border-gray-400" style={{ width: '60px' }}>
-              <div className="h-12 border-b border-gray-400 bg-gray-100"></div>
+            <div className="sticky left-0 z-20 bg-gray-50 border-r border-gray-400" style={{ width: '60px' }}>
+              {/* Header vide pour aligner avec les dates */}
+              <div className="h-12 border-b border-gray-400 bg-gray-100 sticky top-0 z-30"></div>
               {HOURS.map(hour => (
                 <div
                   key={hour}
@@ -524,8 +525,8 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
               
               return (
                 <div key={date} className="border-r border-gray-400" style={{ minWidth: '130px', width: '130px' }}>
-                  {/* En-tête jour */}
-                  <div className="h-12 border-b border-gray-400 bg-gray-100 flex flex-col items-center justify-center text-xs font-semibold">
+                  {/* En-tête jour - FIGÉ */}
+                  <div className="h-12 border-b border-gray-400 bg-gray-100 flex flex-col items-center justify-center text-xs font-semibold sticky top-0 z-10">
                     <span className="text-gray-500">{dayName}</span>
                     <span className="text-gray-800">{String(day).padStart(2, '0')}/{activeMonth.split('-')[1]}</span>
                   </div>
