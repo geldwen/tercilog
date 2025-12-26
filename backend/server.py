@@ -4404,7 +4404,17 @@ async def get_sessions(current_user: User = Depends(get_current_user)):
     else:
         sessions = await db.sessions.find({"student_id": current_user.id}, {"_id": 0}).to_list(1000)
     
-    return [Session(**s) for s in sessions]
+    # Enrichir chaque session avec l'organisme de l'élève si pas déjà présent
+    enriched_sessions = []
+    for s in sessions:
+        # Si organism est vide, récupérer celui de l'élève
+        if not s.get('organism') and s.get('student_id'):
+            student = await db.users.find_one({"id": s['student_id']}, {"_id": 0, "organism": 1})
+            if student and student.get('organism'):
+                s['student_organism'] = student['organism']
+        enriched_sessions.append(s)
+    
+    return [Session(**s) for s in enriched_sessions]
 
 @api_router.patch("/sessions/{session_id}/validate", response_model=Session)
 async def validate_session(session_id: str, validation: SessionValidate, current_user: User = Depends(get_current_user)):
