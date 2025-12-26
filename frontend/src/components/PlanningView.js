@@ -33,7 +33,7 @@ const MONTH_NAMES = [
 
 const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 8); // 8h à 21h
-const HOUR_HEIGHT_PX = 70; // Hauteur d'une ligne horaire en px (augmentée pour lisibilité)
+const HOUR_HEIGHT_PX = 80; // Hauteur d'une ligne horaire en px (augmentée pour lisibilité)
 const PX_PER_MIN = HOUR_HEIGHT_PX / 60; // pixels par minute
 
 export default function PlanningView({ sessions, onSessionsUpdate }) {
