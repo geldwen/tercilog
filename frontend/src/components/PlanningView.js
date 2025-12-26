@@ -522,7 +522,7 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
               const { eventLanes, maxLanes } = calculateLanes(dayEvents);
               
               return (
-                <div key={date} className="border-r border-gray-400" style={{ minWidth: '160px', width: '160px' }}>
+                <div key={date} className="border-r border-gray-400" style={{ minWidth: '200px', width: '200px' }}>
                   {/* En-tête jour */}
                   <div className="h-12 border-b border-gray-400 bg-gray-100 flex flex-col items-center justify-center text-xs font-semibold">
                     <span className="text-gray-500">{dayName}</span>
