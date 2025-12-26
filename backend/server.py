@@ -844,59 +844,61 @@ def send_welcome_email(to_email: str, student_name: str, student_email: str, tem
     
     portal_url = get_student_portal_url()
     
-    html_body = f"""<html>
-<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
-<div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-  <div style="background-color: #1f4acc; padding: 24px; text-align: center;">
-    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Bienvenue dans votre espace TerciLog</h1>
-  </div>
-  
-  <div style="padding: 32px 24px;">
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-family: Arial, Helvetica, sans-serif;">
-      <tr>
-        <td style="padding: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">
-          Bonjour {student_name},
-        </td>
-      </tr>
-      <tr>
-        <td style="padding: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">
-          Bienvenue dans votre espace TerciLog. Merci de vous connecter pour confirmer vos séances et accéder à votre parcours de formation.
-        </td>
-      </tr>
-      <tr>
-        <td style="padding: 8px 0 24px 0; text-align: center;">
-          <a href="{portal_url}" target="_blank" 
-             style="background: #1f4acc; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 6px; display: inline-block; font-weight: bold; font-size: 16px;">
-            Accéder à TerciLog
-          </a>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding: 16px; background-color: #f9fafb; border-radius: 6px; border-left: 4px solid #1f4acc;">
-          <p style="margin: 0 0 8px 0; font-size: 14px; color: #333333;"><strong>Identifiant :</strong> {student_email}</p>
-          <p style="margin: 0 0 8px 0; font-size: 14px; color: #333333;"><strong>Code d'accès :</strong> {temp_password}</p>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding: 16px 0 0 0; font-size: 12px; color: #6b7280; line-height: 1.5;">
-          Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br>
-          <a href="{portal_url}" style="color: #1f4acc; text-decoration: underline;">{portal_url}</a>
-        </td>
-      </tr>
-    </table>
-  </div>
-  
-  <div style="background-color: #f9fafb; padding: 16px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
-    <p style="margin: 0; font-size: 14px; color: #6b7280;">
-      Bien cordialement,<br>
-      <strong style="color: #333333;">L'équipe Terciform</strong>
-    </p>
-  </div>
-</div>
-</body>
-</html>"""
+    html_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <!-- Header avec logo et dégradé -->
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">🎉 Bienvenue sur TerciForm !</h1>
+            </div>
+            
+            <!-- Contenu -->
+            <div style="padding: 30px;">
+                <p style="font-size: 16px;">Bonjour <strong>{student_name}</strong>,</p>
+                
+                <p style="font-size: 15px;">Bienvenue dans votre espace de formation TerciForm. Votre compte a été créé avec succès.</p>
+                
+                <p style="font-size: 15px;">Merci de vous connecter pour confirmer vos séances et accéder à votre parcours de formation.</p>
+                
+                <!-- Cadre identifiants -->
+                <div style="background-color: #e8f4fd; border-left: 4px solid #1e3a5f; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">🔐 Vos identifiants de connexion :</p>
+                    <p style="margin: 5px 0; font-size: 14px;"><strong>Identifiant :</strong> {student_email}</p>
+                    <p style="margin: 5px 0; font-size: 14px;"><strong>Mot de passe :</strong> {temp_password}</p>
+                </div>
+                
+                <!-- Bouton -->
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{portal_url}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
+                        🔗 Accéder à mon espace
+                    </a>
+                </div>
+                
+                <p style="font-size: 12px; color: #666; margin-top: 20px;">
+                    Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br>
+                    <a href="{portal_url}" style="color: #1e3a5f;">{portal_url}</a>
+                </p>
+                
+                <p style="margin-top: 30px; color: #333;">
+                    Cordialement,<br>
+                    <strong>L'équipe TerciForm</strong>
+                </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+                <p style="margin: 0; color: #666; font-size: 12px;">
+                    Cet email a été envoyé automatiquement par TerciForm.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
     
-    return send_email(to_email, "Bienvenue dans votre espace TerciLog", html_body)
+    return send_email(to_email, "🎉 Bienvenue sur TerciForm - Vos identifiants", html_body)
 
 
 def send_session_reminder_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str, meeting_link: str = ""):
