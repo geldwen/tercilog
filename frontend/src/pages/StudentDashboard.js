@@ -622,13 +622,19 @@ export default function StudentDashboard({ user, onLogout }) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <button
             onClick={() => setActiveTab('formation')}
-            className={`p-6 rounded-lg shadow-md transition-all duration-200 text-left ${
+            className={`p-6 rounded-lg shadow-md transition-all duration-200 text-left relative ${
               activeTab === 'formation'
                 ? 'ring-2 ring-blue-500'
                 : 'hover:shadow-lg'
             }`}
             style={{ backgroundColor: '#E6F0FF' }}
           >
+            {/* Badge notification */}
+            {getFormationNotificationCount() > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg animate-pulse">
+                {getFormationNotificationCount()}
+              </span>
+            )}
             <div className="flex items-center gap-3 mb-2">
               <BookOpen size={28} style={{color: TERCIFORM_BLUE}} />
               <h2 className="text-xl font-bold" style={{color: TERCIFORM_BLUE}}>Ma formation</h2>
@@ -654,13 +660,19 @@ export default function StudentDashboard({ user, onLogout }) {
 
           <button
             onClick={() => setActiveTab('avis')}
-            className={`p-6 rounded-lg shadow-md transition-all duration-200 text-left ${
+            className={`p-6 rounded-lg shadow-md transition-all duration-200 text-left relative ${
               activeTab === 'avis'
                 ? 'ring-2 ring-pink-500'
                 : 'hover:shadow-lg'
             }`}
             style={{ backgroundColor: '#FDE7F3' }}
           >
+            {/* Badge notification */}
+            {getObjectifsNotificationCount() > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg animate-pulse">
+                {getObjectifsNotificationCount()}
+              </span>
+            )}
             <div className="flex items-center gap-3 mb-2">
               <MessageSquare size={28} style={{color: TERCIFORM_BLUE}} />
               <h2 className="text-xl font-bold" style={{color: TERCIFORM_BLUE}}>Mes objectifs</h2>
