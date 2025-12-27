@@ -2560,6 +2560,26 @@ export default function TeacherDashboard({ user, onLogout }) {
                     <div className="p-4 border-2 border-indigo-200 rounded-lg bg-indigo-50 space-y-3">
                       <h4 className="font-bold text-indigo-900">👤 Assigner un formateur</h4>
                       
+                      {/* Dropdown historique des formateurs */}
+                      {teacherHistory.length > 0 && (
+                        <div className="space-y-2">
+                          <Label className="text-indigo-700">📋 Sélectionner depuis l'historique</Label>
+                          <select 
+                            className="w-full border rounded-md p-2 text-sm bg-white"
+                            onChange={(e) => {
+                              const teacher = teacherHistory.find(t => t.key === e.target.value);
+                              if (teacher) applyTeacherFromHistory(teacher);
+                            }}
+                            value=""
+                          >
+                            <option value="">-- Choisir un formateur existant --</option>
+                            {teacherHistory.map(t => (
+                              <option key={t.key} value={t.key}>{t.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      
                       {/* Sélection photo de profil */}
                       <div className="space-y-2">
                         <Label>Photo de profil</Label>
