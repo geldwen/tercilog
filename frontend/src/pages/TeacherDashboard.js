@@ -2203,8 +2203,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                                       });
                                       setStudentForm({ 
                                         ...studentForm, 
-                                        profile_picture_type: 'custom', 
-                                        profile_picture: response.data.url 
+                                        teacher_profile_picture_type: 'custom', 
+                                        teacher_profile_picture: response.data.url 
                                       });
                                     } catch (error) {
                                       alert('Erreur lors de l\'upload de l\'image');
@@ -2527,8 +2527,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                                       });
                                       setStudentForm({ 
                                         ...studentForm, 
-                                        profile_picture_type: 'custom', 
-                                        profile_picture: response.data.url 
+                                        teacher_profile_picture_type: 'custom', 
+                                        teacher_profile_picture: response.data.url 
                                       });
                                     } catch (error) {
                                       alert('Erreur lors de l\'upload de l\'image');
