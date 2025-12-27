@@ -2180,7 +2180,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                             <p className="text-xs">Femme</p>
                           </div>
                           <div 
-                            className={`cursor-pointer border-2 rounded-lg p-3 text-center ${studentForm.profile_picture_type === 'custom' ? 'border-indigo-500 bg-indigo-100' : 'border-gray-300'}`}
+                            className={`cursor-pointer border-2 rounded-lg p-3 text-center ${studentForm.teacher_profile_picture_type === 'custom' ? 'border-indigo-500 bg-indigo-100' : 'border-gray-300'}`}
                           >
                             <label className="cursor-pointer">
                               <input 
@@ -2504,7 +2504,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                             <p className="text-xs">Femme</p>
                           </div>
                           <div 
-                            className={`cursor-pointer border-2 rounded-lg p-3 text-center ${studentForm.profile_picture_type === 'custom' ? 'border-indigo-500 bg-indigo-100' : 'border-gray-300'}`}
+                            className={`cursor-pointer border-2 rounded-lg p-3 text-center ${studentForm.teacher_profile_picture_type === 'custom' ? 'border-indigo-500 bg-indigo-100' : 'border-gray-300'}`}
                           >
                             <label className="cursor-pointer">
                               <input 
