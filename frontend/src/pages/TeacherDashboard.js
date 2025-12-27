@@ -2548,7 +2548,38 @@ export default function TeacherDashboard({ user, onLogout }) {
                       <div className="space-y-2"><Label>Date de sortie</Label><Input type="date" value={studentForm.end_date} onChange={(e) => setStudentForm({ ...studentForm, end_date: e.target.value })} /></div>
                     </div>
                     <div className="space-y-2"><Label>Heures totales</Label><Input type="number" step="0.5" min="0" placeholder="ex: 20" value={studentForm.total_hours} onChange={(e) => setStudentForm({ ...studentForm, total_hours: parseFloat(e.target.value) || 0 })} /></div>
-                    <Button type="submit" className="w-full text-white" style={{ backgroundColor: TERCIFORM_BLUE }}>Créer l'élève</Button>
+                    
+                    {/* Boutons : Créer + Ajouter un autre */}
+                    <div className="flex gap-2">
+                      <Button type="submit" className="flex-1 text-white" style={{ backgroundColor: TERCIFORM_BLUE }}>
+                        Créer l'élève
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        className="flex-1 border-green-500 text-green-700 hover:bg-green-50"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsMultiMode(true);
+                          // Soumettre le formulaire via ref
+                          e.target.form?.requestSubmit();
+                        }}
+                      >
+                        ➕ Créer et ajouter un autre
+                      </Button>
+                    </div>
+                    
+                    {/* Liste des élèves créés en mode multi */}
+                    {multiStudents.length > 0 && (
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm text-green-800 font-medium mb-2">✅ {multiStudents.length} élève(s) créé(s) :</p>
+                        <ul className="text-xs text-green-700 space-y-1">
+                          {multiStudents.map((s, i) => (
+                            <li key={i}>• {s.name} ({s.email})</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </form>
                 </DialogContent>
               </Dialog>
