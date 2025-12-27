@@ -261,6 +261,45 @@ export default function TeacherDashboard({ user, onLogout }) {
       setSessions(sessionsRes.data);
       setStudents(studentsRes.data);
       setStats(statsRes.data);
+      
+      // Charger l'historique des lieux de formation depuis les élèves
+      const locations = [];
+      const teachers = [];
+      studentsRes.data.forEach(s => {
+        // Historique lieux
+        if (s.formation_building || s.formation_address) {
+          const locationKey = `${s.formation_building || ''}|${s.formation_street_number || ''}|${s.formation_street || ''}|${s.formation_postal_code || ''}|${s.formation_city || ''}`;
+          if (!locations.find(l => l.key === locationKey) && (s.formation_building || s.formation_city)) {
+            locations.push({
+              key: locationKey,
+              label: s.formation_building ? `${s.formation_building} - ${s.formation_city || ''}` : s.formation_city,
+              building: s.formation_building || '',
+              street_number: s.formation_street_number || '',
+              street: s.formation_street || '',
+              postal_code: s.formation_postal_code || '',
+              city: s.formation_city || '',
+              country: s.formation_country || 'France',
+              transports: s.formation_transports || ''
+            });
+          }
+        }
+        // Historique formateurs
+        if (s.teacher_name && s.teacher_email) {
+          const teacherKey = s.teacher_email;
+          if (!teachers.find(t => t.key === teacherKey)) {
+            teachers.push({
+              key: teacherKey,
+              label: `${s.teacher_name} (${s.teacher_email})`,
+              name: s.teacher_name,
+              email: s.teacher_email,
+              phone: s.teacher_phone || '',
+              profile_picture: s.teacher_profile_picture || '/api/profile-pictures/homme_default.png'
+            });
+          }
+        }
+      });
+      setLocationHistory(locations);
+      setTeacherHistory(teachers);
     } catch (error) {
       toast.error("Erreur chargement");
     } finally {
