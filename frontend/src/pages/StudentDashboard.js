@@ -48,6 +48,27 @@ export default function StudentDashboard({ user, onLogout }) {
   
   // Livret d'accueil states
   const [livretStatus, setLivretStatus] = useState({ signed: false, signed_at: null });
+
+  // Calcul des notifications pour les onglets
+  const getFormationNotificationCount = () => {
+    // Compte les séances non confirmées par l'élève (à signer/valider)
+    const unconfirmedSessions = sessions.filter(s => {
+      const sessionDate = new Date(s.date);
+      const now = new Date();
+      // Séances passées ou du jour non signées
+      return sessionDate <= now && !s.signature && s.status !== 'rejected';
+    });
+    return unconfirmedSessions.length;
+  };
+
+  const getObjectifsNotificationCount = () => {
+    // Compte les questionnaires non soumis
+    let count = 0;
+    if (!formationNeedsSubmitted) count++;
+    if (!midCourseSubmitted) count++;
+    if (!endCourseSubmitted) count++;
+    return count;
+  };
   const [showLivretSignatureDialog, setShowLivretSignatureDialog] = useState(false);
   const [livretAcceptedCheckbox, setLivretAcceptedCheckbox] = useState(false);
   const [livretSignature, setLivretSignature] = useState('');
