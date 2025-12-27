@@ -2827,6 +2827,26 @@ export default function TeacherDashboard({ user, onLogout }) {
                       <div className="p-4 border-2 border-purple-200 rounded-lg bg-purple-50 space-y-3">
                         <h4 className="font-bold text-purple-900">📍 Adresse de la formation</h4>
                         
+                        {/* Dropdown historique des lieux */}
+                        {locationHistory.length > 0 && (
+                          <div className="space-y-2">
+                            <Label className="text-purple-700">📋 Sélectionner depuis l'historique</Label>
+                            <select 
+                              className="w-full border rounded-md p-2 text-sm bg-white"
+                              onChange={(e) => {
+                                const location = locationHistory.find(l => l.key === e.target.value);
+                                if (location) applyLocationFromHistory(location);
+                              }}
+                              value=""
+                            >
+                              <option value="">-- Choisir un lieu existant --</option>
+                              {locationHistory.map(l => (
+                                <option key={l.key} value={l.key}>{l.label}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                        
                         <div className="grid grid-cols-3 gap-2">
                           <div className="space-y-2 col-span-2">
                             <Label>Établissement / Bâtiment</Label>
