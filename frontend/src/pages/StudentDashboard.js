@@ -696,7 +696,7 @@ export default function StudentDashboard({ user, onLogout }) {
                     <>
                       <div className="flex items-center gap-4 mb-3">
                         <img 
-                          src={user.profile_picture ? `${process.env.REACT_APP_BACKEND_URL}${user.profile_picture}` : `${process.env.REACT_APP_BACKEND_URL}/api/profile-pictures/homme_default.png`}
+                          src={user.teacher_profile_picture ? `${process.env.REACT_APP_BACKEND_URL}${user.teacher_profile_picture}` : `${process.env.REACT_APP_BACKEND_URL}/api/profile-pictures/homme_default.png`}
                           alt={user.teacher_name}
                           className="rounded-full object-cover border-3"
                           style={{width: '130px', height: '130px', borderColor: '#2763FF', borderWidth: '3px'}}
