@@ -1219,143 +1219,104 @@ export default function TeacherDashboard({ user, onLogout }) {
                 </div>
               )}
 
-            {/* Bulle Séance du jour */}
+            {/* Bulle Séance du jour - Compacte avec icônes */}
             {(() => {
               const today = new Date().toISOString().split('T')[0];
               const todaySessions = sessions.filter(s => s.date === today);
-              const todayFormatted = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+              const todayFormatted = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
               
               // Vérifier s'il y a des séances en visio aujourd'hui
               const hasVisioToday = todaySessions.some(session => 
                 session.modality === 'distanciel' || 
                 session.meeting_link ||
-                session.visio_link ||
-                session.location?.toLowerCase().includes('visio') || 
-                session.location?.toLowerCase().includes('teams') || 
-                session.location?.toLowerCase().includes('zoom') ||
-                session.location?.toLowerCase().includes('meet')
+                session.visio_link
               );
               const visioLinkToday = todaySessions.find(s => s.meeting_link || s.visio_link);
               
+              // Icône selon la matière
+              const getSubjectIcon = (subject) => {
+                const subjectLower = (subject || '').toLowerCase();
+                if (subjectLower.includes('anglais')) return '🇬🇧';
+                if (subjectLower.includes('informatique') || subjectLower.includes('bureautique')) return '💻';
+                if (subjectLower.includes('français')) return '🇫🇷';
+                if (subjectLower.includes('math')) return '🔢';
+                if (subjectLower.includes('espagnol')) return '🇪🇸';
+                if (subjectLower.includes('allemand')) return '🇩🇪';
+                return '📚';
+              };
+              
               return (
-                <Card className="border-4 border-red-500 shadow-lg bg-white">
-                  <CardContent className="pt-6">
-                    {/* En-tête avec titre et bouton Rejoindre en visio */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                          <CalendarDays className="w-5 h-5 text-red-600" />
-                        </div>
+                <Card className="border-2 border-red-400 shadow-md bg-gradient-to-r from-red-50 to-orange-50">
+                  <CardContent className="py-4 px-5">
+                    {/* En-tête compact */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <CalendarDays className="w-5 h-5 text-red-500" />
                         <div>
-                          <h3 className="text-lg font-bold text-red-600">Séances du jour</h3>
-                          <p className="text-sm text-gray-500 capitalize">{todayFormatted}</p>
+                          <span className="font-bold text-red-600">Séances du jour</span>
+                          <span className="text-xs text-gray-500 ml-2 capitalize">({todayFormatted})</span>
                         </div>
                       </div>
-                      {/* Bouton Rejoindre en visio à côté du titre */}
                       {hasVisioToday && visioLinkToday && (
                         <Button 
                           size="sm" 
-                          className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                          className="bg-blue-600 hover:bg-blue-700 text-white gap-1 h-8 text-xs"
                           onClick={() => window.open(visioLinkToday.meeting_link || visioLinkToday.visio_link, '_blank')}
                         >
-                          <Video className="w-4 h-4" />
-                          Rejoindre en visio
+                          <Video className="w-3 h-3" />
+                          Rejoindre
                         </Button>
                       )}
                     </div>
                     
                     {todaySessions.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                          <Smile className="w-12 h-12 text-green-500" />
-                        </div>
-                        <p className="text-lg font-medium text-gray-600">Vous n'avez aucune séance aujourd'hui</p>
-                        <p className="text-sm text-gray-400 mt-1">Profitez de votre journée ! 🌴</p>
+                      <div className="flex items-center gap-3 py-2 text-center justify-center">
+                        <span className="text-2xl">🌴</span>
+                        <p className="text-sm text-gray-600">Aucune séance aujourd'hui</p>
                       </div>
                     ) : (
-                      <div className="space-y-2">
-                        {todaySessions.map(session => {
+                      <div className="space-y-1.5">
+                        {todaySessions.slice(0, 4).map(session => {
                           const student = students.find(st => st.id === session.student_id);
-                          const isVisio = session.modality === 'distanciel' || 
-                                         session.meeting_link ||
-                                         session.visio_link ||
-                                         session.location?.toLowerCase().includes('visio') || 
-                                         session.location?.toLowerCase().includes('teams') || 
-                                         session.location?.toLowerCase().includes('zoom') ||
-                                         session.location?.toLowerCase().includes('meet');
+                          const isVisio = session.modality === 'distanciel' || session.meeting_link;
                           
                           return (
                             <div 
                               key={session.id} 
-                              className="p-3 rounded-lg border border-gray-200 bg-gray-50"
+                              className="flex items-center justify-between p-2 rounded bg-white border border-gray-100 text-sm"
                             >
-                              <div className="flex items-center justify-between flex-wrap gap-2">
-                                <div className="flex items-center gap-3">
-                                  {isVisio ? (
-                                    <Monitor className="w-5 h-5 text-blue-600" />
-                                  ) : (
-                                    <School className="w-5 h-5 text-amber-600" />
-                                  )}
-                                  <div>
-                                    <span className="font-semibold text-gray-900">{student?.name || 'Élève inconnu'}</span>
-                                    <span className="text-gray-500 mx-2">•</span>
-                                    <span className="text-gray-700">{session.subject}</span>
-                                    <span className="text-gray-500 mx-2">•</span>
-                                    <span className="text-gray-600">{session.start_time} - {session.end_time}</span>
-                                    <span className="text-gray-500 mx-1">({session.duration_hours}h)</span>
-                                    {!isVisio && session.location && (
-                                      <span className="text-gray-500 ml-2">📍 {session.location}</span>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {/* Bouton Émargement élève */}
-                                  {!session.signature ? (
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline"
-                                      className="gap-1 text-xs border-orange-300 text-orange-700 hover:bg-orange-50"
-                                      onClick={() => {
-                                        setCurrentSessionToSign(session);
-                                      }}
-                                    >
-                                      <Edit className="w-3 h-3" />
-                                      Émargement élève
-                                    </Button>
-                                  ) : (
-                                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
-                                      ✓ Élève émargé
-                                    </span>
-                                  )}
-                                  {/* Bouton Émargement professeur */}
-                                  {!session.teacher_signature ? (
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline"
-                                      className="gap-1 text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
-                                      onClick={() => {
-                                        setCurrentSessionToSign(session);
-                                        setShowTeacherSignatureDialog(true);
-                                      }}
-                                    >
-                                      <PenTool className="w-3 h-3" />
-                                      Émargement prof
-                                    </Button>
-                                  ) : (
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
-                                      ✓ Prof émargé
-                                    </span>
-                                  )}
-                                </div>
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <span className="text-lg">{getSubjectIcon(session.subject)}</span>
+                                {isVisio ? (
+                                  <Monitor className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                                ) : (
+                                  <School className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                                )}
+                                <span className="font-medium truncate">{student?.name || 'Élève'}</span>
+                                <span className="text-gray-400">•</span>
+                                <span className="text-gray-600 truncate">{session.subject}</span>
+                                <span className="text-gray-400 text-xs">({session.start_time}-{session.end_time})</span>
+                              </div>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                {session.signature ? (
+                                  <span className="text-green-500 text-xs">✓</span>
+                                ) : (
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost"
+                                    className="h-6 px-2 text-xs text-orange-600 hover:bg-orange-50"
+                                    onClick={() => setCurrentSessionToSign(session)}
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </Button>
+                                )}
                               </div>
                             </div>
                           );
                         })}
-                        <div className="text-center pt-2">
-                          <p className="text-sm text-gray-500">
-                            {todaySessions.length} séance(s) • {todaySessions.reduce((sum, s) => sum + (s.duration_hours || 0), 0)}h au total
-                          </p>
-                        </div>
+                        {todaySessions.length > 4 && (
+                          <p className="text-xs text-gray-500 text-center">+{todaySessions.length - 4} autres séances</p>
+                        )}
                       </div>
                     )}
                   </CardContent>
