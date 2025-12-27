@@ -508,8 +508,25 @@ export default function TeacherDashboard({ user, onLogout }) {
         resources: resources
       });
       toast.success("Élève créé !");
-      setShowCreateStudent(false);
-      setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0, parcours: "Anglais", teacher_name: "", teacher_email: "", teacher_phone: "", teacher_profile_picture: "/api/profile-pictures/homme_default.png", teacher_profile_picture_type: "homme", formation_address: "", formation_building: "", formation_street: "", formation_postal_code: "", formation_city: "", formation_country: "France", formation_transports: "" });
+      
+      // Si mode multi, ajouter à la liste et réinitialiser le formulaire
+      if (isMultiMode) {
+        setMultiStudents([...multiStudents, { ...studentForm }]);
+        // Garder les infos du formateur et lieu pour le prochain élève
+        setStudentForm(prev => ({ 
+          ...prev, 
+          name: "", 
+          phone: "", 
+          email: "", 
+          password: "",
+          // Garder : organism, session_type, parcours, teacher_*, formation_*
+        }));
+        toast.info("Vous pouvez ajouter un autre élève");
+      } else {
+        setShowCreateStudent(false);
+        setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0, parcours: "Anglais", teacher_name: "", teacher_email: "", teacher_phone: "", teacher_profile_picture: "/api/profile-pictures/homme_default.png", teacher_profile_picture_type: "homme", formation_address: "", formation_building: "", formation_street: "", formation_postal_code: "", formation_city: "", formation_country: "France", formation_transports: "" });
+      }
+      
       setIncludeTests(false);
       setIncludeQuestionnaires(true);
       setSelectedTests({ positionnement: "", miParcours: "", fin: "" });
@@ -518,6 +535,34 @@ export default function TeacherDashboard({ user, onLogout }) {
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur");
     }
+  };
+  
+  // Fonction pour appliquer un lieu depuis l'historique
+  const applyLocationFromHistory = (location) => {
+    setStudentForm(prev => ({
+      ...prev,
+      formation_building: location.building,
+      formation_street_number: location.street_number,
+      formation_street: location.street,
+      formation_postal_code: location.postal_code,
+      formation_city: location.city,
+      formation_country: location.country,
+      formation_transports: location.transports
+    }));
+    toast.success("Lieu appliqué !");
+  };
+  
+  // Fonction pour appliquer un formateur depuis l'historique
+  const applyTeacherFromHistory = (teacher) => {
+    setStudentForm(prev => ({
+      ...prev,
+      teacher_name: teacher.name,
+      teacher_email: teacher.email,
+      teacher_phone: teacher.phone,
+      teacher_profile_picture: teacher.profile_picture,
+      teacher_profile_picture_type: teacher.profile_picture?.includes('homme_default') ? 'homme' : teacher.profile_picture?.includes('femme_default') ? 'femme' : 'custom'
+    }));
+    toast.success("Formateur appliqué !");
   };
 
   const handleDeleteSession = async (sessionId) => {
