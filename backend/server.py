@@ -125,6 +125,7 @@ class User(BaseModel):
     teacher_email: str = ""  # Email du formateur
     teacher_phone: str = ""  # Téléphone du formateur
     profile_picture: str = ""  # URL de la photo de profil (homme/femme/custom)
+    teacher_profile_picture: str = ""  # URL de la photo du formateur
     welcome_email_sent: bool = False  # Email de bienvenue envoyé ou non
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     # Champs pour le lieu de formation (si présentiel)
