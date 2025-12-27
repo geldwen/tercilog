@@ -155,7 +155,8 @@ class UserCreate(BaseModel):
     teacher_name: str = ""  # Nom du formateur
     teacher_email: str = ""  # Email du formateur
     teacher_phone: str = ""  # Téléphone du formateur
-    profile_picture: str = ""  # URL de la photo de profil
+    profile_picture: str = ""  # URL de la photo de profil de l'élève
+    teacher_profile_picture: str = ""  # URL de la photo du formateur
     # Champs pour le lieu de formation (si présentiel)
     formation_address: str = ""
     formation_building: str = ""
