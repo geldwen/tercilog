@@ -150,6 +150,16 @@ export default function TeacherDashboard({ user, onLogout }) {
     formation_transports: ""
   });
   
+  // États pour création multiple d'élèves
+  const [multiStudents, setMultiStudents] = useState([]);
+  const [isMultiMode, setIsMultiMode] = useState(false);
+  
+  // Historique des lieux de formation (auto-complétion)
+  const [locationHistory, setLocationHistory] = useState([]);
+  
+  // Historique des formateurs (auto-complétion)
+  const [teacherHistory, setTeacherHistory] = useState([]);
+  
   // États pour les tests et questionnaires
   const [includeTests, setIncludeTests] = useState(false);
   const [includeQuestionnaires, setIncludeQuestionnaires] = useState(true); // Par défaut Oui
