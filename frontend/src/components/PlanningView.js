@@ -41,6 +41,25 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonthNum, setSelectedMonthNum] = useState(currentDate.getMonth() + 1);
   
+  // Fonctions de navigation des mois
+  const goToPreviousMonth = () => {
+    if (selectedMonthNum === 1) {
+      setSelectedMonthNum(12);
+      setSelectedYear(selectedYear - 1);
+    } else {
+      setSelectedMonthNum(selectedMonthNum - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (selectedMonthNum === 12) {
+      setSelectedMonthNum(1);
+      setSelectedYear(selectedYear + 1);
+    } else {
+      setSelectedMonthNum(selectedMonthNum + 1);
+    }
+  };
+  
   // Calculer activeMonth à partir de l'année et du mois sélectionnés
   const activeMonth = useMemo(() => {
     const monthStr = selectedMonthNum.toString().padStart(2, '0');
