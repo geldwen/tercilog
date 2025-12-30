@@ -1253,8 +1253,17 @@ export default function TeacherDashboard({ user, onLogout }) {
 
           {/* Onglet SÉANCES */}
           <TabsContent value="sessions" className="space-y-6">
-            {/* Filtres Année et Mois */}
+            {/* Filtres Année et Mois avec boutons navigation */}
             <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+              {/* Bouton Mois Précédent */}
+              <button
+                onClick={goToPreviousMonth}
+                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors"
+                title="Mois précédent"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+              </button>
+              
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium text-gray-600">Année :</label>
                 <select
@@ -1281,6 +1290,16 @@ export default function TeacherDashboard({ user, onLogout }) {
                   ))}
                 </select>
               </div>
+              
+              {/* Bouton Mois Suivant */}
+              <button
+                onClick={goToNextMonth}
+                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors"
+                title="Mois suivant"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-600" />
+              </button>
+              
               <div className="ml-auto text-sm text-gray-500">
                 Période : <span className="font-medium" style={{ color: TERCIFORM_BLUE }}>{monthNames.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</span>
               </div>
