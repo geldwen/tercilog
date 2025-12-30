@@ -91,6 +91,35 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  // Fonctions de navigation pour attendanceMonth (Facturation)
+  const goToPreviousAttendanceMonth = () => {
+    if (!attendanceMonth) {
+      const now = new Date();
+      setAttendanceMonth(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
+      return;
+    }
+    const [year, month] = attendanceMonth.split('-').map(Number);
+    if (month === 1) {
+      setAttendanceMonth(`${year - 1}-12`);
+    } else {
+      setAttendanceMonth(`${year}-${String(month - 1).padStart(2, '0')}`);
+    }
+  };
+
+  const goToNextAttendanceMonth = () => {
+    if (!attendanceMonth) {
+      const now = new Date();
+      setAttendanceMonth(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
+      return;
+    }
+    const [year, month] = attendanceMonth.split('-').map(Number);
+    if (month === 12) {
+      setAttendanceMonth(`${year + 1}-01`);
+    } else {
+      setAttendanceMonth(`${year}-${String(month + 1).padStart(2, '0')}`);
+    }
+  };
+
   // États pour la recherche d'élève
   const [showSearchStudent, setShowSearchStudent] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
