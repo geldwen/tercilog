@@ -3437,7 +3437,17 @@ export default function TeacherDashboard({ user, onLogout }) {
             ) : attendanceMode === 'month' ? (
               <div className="space-y-2">
                 <Label>Sélectionner un mois</Label>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
+                  {/* Bouton Mois Précédent */}
+                  <button
+                    type="button"
+                    onClick={goToPreviousAttendanceMonth}
+                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors"
+                    title="Mois précédent"
+                  >
+                    <ChevronLeft className="w-4 h-4 text-gray-600" />
+                  </button>
+                  
                   <select 
                     className="flex-1 px-3 py-2 border rounded-md"
                     value={attendanceMonth ? attendanceMonth.split('-')[0] : selectedYear}
@@ -3464,6 +3474,16 @@ export default function TeacherDashboard({ user, onLogout }) {
                       <option key={m.num} value={m.num}>{m.label}</option>
                     ))}
                   </select>
+                  
+                  {/* Bouton Mois Suivant */}
+                  <button
+                    type="button"
+                    onClick={goToNextAttendanceMonth}
+                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors"
+                    title="Mois suivant"
+                  >
+                    <ChevronRight className="w-4 h-4 text-gray-600" />
+                  </button>
                 </div>
               </div>
             ) : attendanceMode === 'complete' ? (
