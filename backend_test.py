@@ -8237,6 +8237,8 @@ def main():
             success = tester.test_email_notification_features()
             # Always cleanup
             tester.cleanup_email_test_data()
+        elif test_name == "warning":
+            success = tester.test_warning_message_in_session_creation_email()
         elif test_name == "tercilog-stabilization":
             success = tester.test_tercilog_stabilization()
         elif test_name == "ghizzo":
