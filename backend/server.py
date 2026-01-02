@@ -5448,7 +5448,7 @@ def build_header(title: str):
 
 
 def generate_student_planning_pdf(student: dict, sessions: list, month: str, month_label: str):
-    """Générer un PDF du planning de l'élève pour TOUT le parcours"""
+    """Générer un PDF du planning de l'élève pour TOUT le parcours avec signatures si disponibles"""
     buffer = io.BytesIO()
     
     doc = SimpleDocTemplate(
@@ -5465,11 +5465,12 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
     normal_style = ParagraphStyle('Normal', parent=styles['Normal'], fontSize=9)
     bold_style = ParagraphStyle('Bold', parent=styles['Normal'], fontSize=10, fontName='Helvetica-Bold')
     cell_style = ParagraphStyle('CellStyle', parent=styles['Normal'], fontSize=9, leading=11, wordWrap='CJK')
+    signature_style = ParagraphStyle('SignatureStyle', parent=styles['Normal'], fontSize=8, textColor=colors.HexColor('#065f46'))
     
     story = []
     
     # En-tête avec logo et titre
-    story.append(build_header(f"Planning de {student['name']}"))
+    story.append(build_header(f"Planning de formation - {student['name']}"))
     story.append(Spacer(0, 12))
     
     # Informations élève (sans Heures restantes)
@@ -5502,65 +5503,190 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
         sessions_sorted = sorted(sessions, key=lambda s: s.get('date', ''))
         total_hours = sum(s.get('duration_hours', 0) for s in sessions_sorted)
         
-        # Texte sans balises HTML
-        story.append(Paragraph(f"Parcours complet : {len(sessions_sorted)} séance(s) — {total_hours}h", bold_style))
+        # Compter les séances signées
+        signed_count = sum(1 for s in sessions_sorted if s.get('signature_status') == 'signed')
+        signed_hours = sum(s.get('duration_hours', 0) for s in sessions_sorted if s.get('signature_status') == 'signed')
+        
+        # Texte de résumé
+        if signed_count == 0:
+            summary_text = f"Parcours complet : {len(sessions_sorted)} séance(s) — {total_hours}h"
+        elif signed_count == len(sessions_sorted):
+            summary_text = f"Parcours complet émargé : {len(sessions_sorted)} séance(s) — {total_hours}h (toutes signées)"
+        else:
+            summary_text = f"Parcours : {len(sessions_sorted)} séance(s) — {total_hours}h dont {signed_count} émargée(s) ({signed_hours}h)"
+        
+        story.append(Paragraph(summary_text, bold_style))
         story.append(Spacer(0, 8))
         
         # Mapping
-        days_fr = {'Mon': 'Lun', 'Tue': 'Mar', 'Wed': 'Mer', 'Thu': 'Jeu', 'Fri': 'Ven', 'Sat': 'Sam', 'Sun': 'Dim'}
         status_fr = {'pending': 'En attente', 'confirmed': 'Confirmée', 'rejected': 'Refusée'}
         
-        # Colonnes proportionnelles - Planning: Date 18% | Matière 38% | Horaires 14% | Durée 10% | Statut 20%
-        col_widths = [
-            0.18 * doc.width,
-            0.38 * doc.width,
-            0.14 * doc.width,
-            0.10 * doc.width,
-            0.20 * doc.width
-        ]
+        # Vérifier s'il y a des signatures pour ajouter les colonnes
+        has_any_signature = any(s.get('signature') or s.get('teacher_signature') for s in sessions_sorted)
         
-        header_style = ParagraphStyle('HeaderStyle', parent=styles['Normal'], fontSize=10, fontName='Helvetica-Bold', textColor=colors.white)
-        
-        table_data = [[
-            Paragraph('Date', header_style),
-            Paragraph('Matière', header_style),
-            Paragraph('Horaires', header_style),
-            Paragraph('Durée', header_style),
-            Paragraph('Statut', header_style)
-        ]]
-        
-        for session in sessions_sorted:
-            # Date FR - format complet: mardi 04/11/2025
-            date_formatted = format_fr_date(session.get('date', ''))
+        if has_any_signature:
+            # Colonnes avec signatures: Date 14% | Matière 26% | Horaires 12% | Durée 8% | Statut 14% | Élève 13% | Formateur 13%
+            col_widths = [
+                0.14 * doc.width,
+                0.26 * doc.width,
+                0.12 * doc.width,
+                0.08 * doc.width,
+                0.14 * doc.width,
+                0.13 * doc.width,
+                0.13 * doc.width
+            ]
             
-            # Matière avec Paragraph pour wrap
-            matiere = Paragraph(session.get('subject', ''), cell_style)
+            header_style = ParagraphStyle('HeaderStyle', parent=styles['Normal'], fontSize=9, fontName='Helvetica-Bold', textColor=colors.white)
             
-            # Horaires format: 14:00 - 16:00
-            horaires = f"{session.get('start_time', '')} - {session.get('end_time', '')}"
-            duree = f"{session.get('duration_hours', 0)}h"
+            table_data = [[
+                Paragraph('Date', header_style),
+                Paragraph('Matière', header_style),
+                Paragraph('Horaires', header_style),
+                Paragraph('Durée', header_style),
+                Paragraph('Statut', header_style),
+                Paragraph('Élève', header_style),
+                Paragraph('Formateur', header_style)
+            ]]
             
-            # Statut en toutes lettres
-            statut = status_fr.get(session.get('status', ''), session.get('status', ''))
-            statut_paragraph = Paragraph(statut, cell_style)
+            for session in sessions_sorted:
+                # Date FR
+                date_formatted = format_fr_date(session.get('date', ''))
+                
+                # Matière
+                matiere = Paragraph(session.get('subject', ''), cell_style)
+                
+                # Horaires
+                horaires = f"{session.get('start_time', '')} - {session.get('end_time', '')}"
+                duree = f"{session.get('duration_hours', 0)}h"
+                
+                # Statut
+                statut = status_fr.get(session.get('status', ''), session.get('status', ''))
+                statut_paragraph = Paragraph(statut, cell_style)
+                
+                # Signature élève
+                student_sig_content = []
+                if session.get('signature'):
+                    try:
+                        sig_data = session['signature']
+                        if sig_data.startswith('data:image'):
+                            sig_data = sig_data.split(',')[1]
+                        sig_bytes = base64.b64decode(sig_data)
+                        sig_img = PILImage.open(io.BytesIO(sig_bytes))
+                        sig_img.thumbnail((60, 25))
+                        img_buffer = io.BytesIO()
+                        sig_img.save(img_buffer, format='PNG')
+                        img_buffer.seek(0)
+                        student_sig_content.append(Image(img_buffer, width=60, height=25))
+                        if session.get('signed_at'):
+                            try:
+                                signed_dt = datetime.fromisoformat(session['signed_at'].replace('Z', '+00:00'))
+                                student_sig_content.append(Paragraph(f"{signed_dt.strftime('%d/%m %H:%M')}", signature_style))
+                            except:
+                                pass
+                    except Exception as e:
+                        student_sig_content.append(Paragraph("✓ Signé", signature_style))
+                else:
+                    student_sig_content.append(Paragraph("-", cell_style))
+                
+                # Signature formateur
+                teacher_sig_content = []
+                if session.get('teacher_signature'):
+                    try:
+                        sig_data = session['teacher_signature']
+                        if sig_data.startswith('data:image'):
+                            sig_data = sig_data.split(',')[1]
+                        sig_bytes = base64.b64decode(sig_data)
+                        sig_img = PILImage.open(io.BytesIO(sig_bytes))
+                        sig_img.thumbnail((60, 25))
+                        img_buffer = io.BytesIO()
+                        sig_img.save(img_buffer, format='PNG')
+                        img_buffer.seek(0)
+                        teacher_sig_content.append(Image(img_buffer, width=60, height=25))
+                        if session.get('teacher_signed_at'):
+                            try:
+                                signed_dt = datetime.fromisoformat(session['teacher_signed_at'].replace('Z', '+00:00'))
+                                teacher_sig_content.append(Paragraph(f"{signed_dt.strftime('%d/%m %H:%M')}", signature_style))
+                            except:
+                                pass
+                    except Exception as e:
+                        teacher_sig_content.append(Paragraph("✓ Signé", signature_style))
+                else:
+                    teacher_sig_content.append(Paragraph("-", cell_style))
+                
+                table_data.append([
+                    Paragraph(date_formatted, cell_style),
+                    matiere,
+                    Paragraph(horaires, cell_style),
+                    Paragraph(duree, cell_style),
+                    statut_paragraph,
+                    student_sig_content if len(student_sig_content) == 1 else student_sig_content,
+                    teacher_sig_content if len(teacher_sig_content) == 1 else teacher_sig_content
+                ])
             
+            # Ligne Totaux
+            totals_style = ParagraphStyle('TotalsStyle', parent=styles['Normal'], fontSize=9, fontName='Helvetica-Bold')
             table_data.append([
-                Paragraph(date_formatted, cell_style),
-                matiere,
-                Paragraph(horaires, cell_style),
-                Paragraph(duree, cell_style),
-                statut_paragraph
+                Paragraph('TOTAUX', totals_style),
+                '',
+                '',
+                Paragraph(f'{total_hours}h', totals_style),
+                Paragraph(f'{len(sessions_sorted)} séance(s)', totals_style),
+                Paragraph(f'{signed_count} signée(s)', totals_style),
+                ''
             ])
-        
-        # Ligne Totaux
-        totals_style = ParagraphStyle('TotalsStyle', parent=styles['Normal'], fontSize=9, fontName='Helvetica-Bold')
-        table_data.append([
-            Paragraph('TOTAUX', totals_style),
-            '',
-            '',
-            Paragraph(f'{total_hours}h', totals_style),
-            Paragraph(f'{len(sessions_sorted)} séance(s)', totals_style)
-        ])
+            
+        else:
+            # Colonnes sans signatures: Date 18% | Matière 38% | Horaires 14% | Durée 10% | Statut 20%
+            col_widths = [
+                0.18 * doc.width,
+                0.38 * doc.width,
+                0.14 * doc.width,
+                0.10 * doc.width,
+                0.20 * doc.width
+            ]
+            
+            header_style = ParagraphStyle('HeaderStyle', parent=styles['Normal'], fontSize=10, fontName='Helvetica-Bold', textColor=colors.white)
+            
+            table_data = [[
+                Paragraph('Date', header_style),
+                Paragraph('Matière', header_style),
+                Paragraph('Horaires', header_style),
+                Paragraph('Durée', header_style),
+                Paragraph('Statut', header_style)
+            ]]
+            
+            for session in sessions_sorted:
+                # Date FR
+                date_formatted = format_fr_date(session.get('date', ''))
+                
+                # Matière
+                matiere = Paragraph(session.get('subject', ''), cell_style)
+                
+                # Horaires
+                horaires = f"{session.get('start_time', '')} - {session.get('end_time', '')}"
+                duree = f"{session.get('duration_hours', 0)}h"
+                
+                # Statut
+                statut = status_fr.get(session.get('status', ''), session.get('status', ''))
+                statut_paragraph = Paragraph(statut, cell_style)
+                
+                table_data.append([
+                    Paragraph(date_formatted, cell_style),
+                    matiere,
+                    Paragraph(horaires, cell_style),
+                    Paragraph(duree, cell_style),
+                    statut_paragraph
+                ])
+            
+            # Ligne Totaux
+            totals_style = ParagraphStyle('TotalsStyle', parent=styles['Normal'], fontSize=9, fontName='Helvetica-Bold')
+            table_data.append([
+                Paragraph('TOTAUX', totals_style),
+                '',
+                '',
+                Paragraph(f'{total_hours}h', totals_style),
+                Paragraph(f'{len(sessions_sorted)} séance(s)', totals_style)
+            ])
         
         sessions_table = Table(table_data, colWidths=col_widths, repeatRows=1)
         sessions_table.setStyle(TableStyle([
@@ -5570,10 +5696,10 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, 0), 10),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('LEFTPADDING', (0, 0), (-1, -1), 6),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
-            ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 4),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
             ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.HexColor('#f9f9f9')]),
             ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#e8f0f7')),
         ]))
