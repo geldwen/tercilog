@@ -190,10 +190,15 @@ async def check_48h_confirmation_reminders():
 
 async def run_service():
     """Boucle principale du service"""
-    logger.info("Attendance email service started")
+    logger.info("Attendance and confirmation reminder service started")
     while True:
         try:
+            # Vérifier les emails d'émargement (séances terminées)
             await check_and_send_emails()
+            
+            # Vérifier les rappels de confirmation 48h avant
+            await check_48h_confirmation_reminders()
+            
         except Exception as e:
             logger.error(f"Error in service loop: {e}")
         
