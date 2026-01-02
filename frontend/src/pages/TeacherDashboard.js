@@ -1047,6 +1047,15 @@ export default function TeacherDashboard({ user, onLogout }) {
     return hasSessionThisMonth || startDateInMonth || createdInMonth;
   });
 
+  // Liste des élèves actifs (avec heures restantes > 0)
+  // Les élèves à 0 heures sont "historisés" : masqués de la liste mais consultables via recherche
+  const activeStudents = useMemo(() => {
+    return students.filter(student => {
+      const remainingHours = student.credit_hours || 0;
+      return remainingHours > 0;
+    });
+  }, [students]);
+
   // Fonction pour normaliser le texte (enlever accents et mettre en minuscules)
   const normalizeSearchText = (text) => {
     if (!text) return '';
