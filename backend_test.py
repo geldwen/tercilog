@@ -400,14 +400,15 @@ class TerciFormTester:
             teacher_info = data["user"]
             self.log(f"✅ Teacher login successful: {teacher_info['name']} ({teacher_info['email']})")
             
-            # Step 2: Create test student with specific details
+            # Step 2: Create test student with specific details (use unique email to avoid conflicts)
             self.log("Step 2: Create test student")
             import time
             unique_suffix = int(time.time())
+            test_email = f"test.email.fictif.{unique_suffix}@terciform.com"
             
             student_data = {
                 "name": "Test Email Fictif",
-                "email": "terciform@gmail.com",  # Use terciform email to receive emails
+                "email": test_email,  # Use unique email to avoid conflicts
                 "password": "test123",
                 "parcours": "Anglais",
                 "total_hours": 10,
@@ -423,6 +424,7 @@ class TerciFormTester:
             
             student = response.json()
             self.created_student_id = student["id"]
+            self.student_email = test_email  # Store the actual email used
             self.log(f"✅ Test student created successfully:")
             self.log(f"   ID: {student['id']}")
             self.log(f"   Name: {student['name']}")
@@ -478,6 +480,7 @@ class TerciFormTester:
             self.log(f"✅ Session modified successfully:")
             self.log(f"   New Time: {modified_session['start_time']} - {modified_session['end_time']}")
             self.log("✅ This should trigger the modified session email with warning message")
+            self.log(f"✅ Email should be sent to: {test_email}")
             
             return True
             
@@ -493,13 +496,15 @@ class TerciFormTester:
             # Step 1: Login as the test student
             self.log("Step 1: Login as test student")
             student_login_data = {
-                "email": "terciform@gmail.com",
+                "email": self.student_email,  # Use the actual email from test 1
                 "password": "test123"
             }
             
             response = self.make_request("POST", "/auth/login", student_login_data)
             if not response or response.status_code != 200:
                 self.log("❌ Student login failed", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
                 return False
             
             data = response.json()
