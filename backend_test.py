@@ -24,7 +24,7 @@ class TerciFormTester:
         self.student_token = None
         self.created_student_id = None
         self.created_session_id = None
-        self.student_email = "terciform@gmail.com"
+        self.student_email = "terciform@gmail.com"  # Default, will be updated in tests
         self.student_password = "Test2024!"
         
     def log(self, message, level="INFO"):
