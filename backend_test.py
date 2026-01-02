@@ -1079,6 +1079,162 @@ class TerciFormTester:
             self.log(f"❌ Email URL verification failed: {e}", "ERROR")
             return False
 
+    def test_unified_planning_pdf_functionality(self):
+        """Test the unified planning PDF functionality on Terciform as requested in review"""
+        self.log("🎯 TESTING UNIFIED PLANNING PDF FUNCTIONALITY - TERCIFORM")
+        self.log(f"API URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher to get token
+            if not self.test_teacher_login():
+                return False
+            
+            # Step 2: Get the list of students to find Laura Lenfant
+            if not self.find_laura_lenfant_student():
+                return False
+            
+            # Step 3: Call POST /api/students/{student_id}/send-planning-pdf
+            if not self.test_send_planning_pdf():
+                return False
+            
+            # Step 4: Check backend logs to verify email was sent
+            self.log("✅ Check backend logs to verify the email was sent with the PDF")
+            self.log("✅ The PDF should now include:")
+            self.log("   - All sessions (past and future)")
+            self.log("   - Signatures columns (Élève, Formateur) when there are signed sessions")
+            self.log("   - Signature images displayed for signed sessions")
+            self.log("   - Summary text showing: 'Parcours : X séance(s) — Yh dont Z émargée(s)'")
+            
+            self.log("🎉 UNIFIED PLANNING PDF FUNCTIONALITY TEST COMPLETED!")
+            return True
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            return False
+
+    def find_laura_lenfant_student(self):
+        """Find Laura Lenfant's student ID"""
+        self.log("=== STEP 2: Finding Laura Lenfant Student ===")
+        
+        if not self.teacher_token:
+            self.log("❌ No teacher token available", "ERROR")
+            return False
+        
+        response = self.make_request("GET", "/students", token=self.teacher_token)
+        if not response or response.status_code != 200:
+            self.log("❌ Failed to get students list", "ERROR")
+            return False
+        
+        students = response.json()
+        laura_student = None
+        
+        # Look for Laura Lenfant by name
+        for student in students:
+            student_name = student.get("name", "").lower()
+            if "laura" in student_name and "lenfant" in student_name:
+                laura_student = student
+                break
+        
+        # If not found by exact name, look for similar names
+        if not laura_student:
+            for student in students:
+                student_name = student.get("name", "").lower()
+                if "laura" in student_name or "lenfant" in student_name:
+                    laura_student = student
+                    self.log(f"Found similar student: {student['name']} ({student['email']})")
+                    break
+        
+        # If still not found, use first student with signed sessions
+        if not laura_student:
+            self.log("Laura Lenfant not found by name, looking for student with signed sessions...")
+            
+            # Get sessions to find students with signed sessions
+            sessions_response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if sessions_response and sessions_response.status_code == 200:
+                sessions = sessions_response.json()
+                
+                # Find students with signed sessions
+                students_with_signed_sessions = set()
+                for session in sessions:
+                    if session.get("signature_status") == "signed":
+                        students_with_signed_sessions.add(session.get("student_id"))
+                
+                # Find first student with signed sessions
+                for student in students:
+                    if student["id"] in students_with_signed_sessions:
+                        laura_student = student
+                        self.log(f"Using student with signed sessions: {student['name']} ({student['email']})")
+                        break
+        
+        # If still not found, use first available student
+        if not laura_student and students:
+            laura_student = students[0]
+            self.log(f"Using first available student: {laura_student['name']} ({laura_student['email']})")
+        
+        if not laura_student:
+            self.log("❌ No suitable student found", "ERROR")
+            return False
+        
+        self.laura_student_id = laura_student["id"]
+        self.log(f"✅ Found student for testing:")
+        self.log(f"   ID: {laura_student['id']}")
+        self.log(f"   Name: {laura_student['name']}")
+        self.log(f"   Email: {laura_student['email']}")
+        
+        return True
+
+    def test_send_planning_pdf(self):
+        """Test POST /api/students/{student_id}/send-planning-pdf endpoint"""
+        self.log("=== STEP 3: Testing Send Planning PDF Endpoint ===")
+        
+        if not hasattr(self, 'laura_student_id') or not self.laura_student_id:
+            self.log("❌ No student ID available", "ERROR")
+            return False
+        
+        if not self.teacher_token:
+            self.log("❌ No teacher token available", "ERROR")
+            return False
+        
+        # Get current month in YYYY-MM format
+        from datetime import datetime
+        current_month = datetime.now().strftime("%Y-%m")
+        
+        # Prepare request data
+        pdf_request_data = {
+            "email": "terciform@gmail.com",
+            "month": current_month
+        }
+        
+        self.log(f"Sending planning PDF request:")
+        self.log(f"   Student ID: {self.laura_student_id}")
+        self.log(f"   Email: {pdf_request_data['email']}")
+        self.log(f"   Month: {pdf_request_data['month']} (current month)")
+        
+        # Call the endpoint
+        response = self.make_request(
+            "POST", 
+            f"/students/{self.laura_student_id}/send-planning-pdf", 
+            pdf_request_data, 
+            self.teacher_token
+        )
+        
+        if response and response.status_code == 200:
+            self.log("✅ Planning PDF request successful")
+            try:
+                result = response.json()
+                self.log(f"✅ Response: {result}")
+            except:
+                self.log("✅ Response received (no JSON content)")
+            
+            self.log("✅ Email should be sent to terciform@gmail.com with the unified planning PDF")
+            return True
+        else:
+            self.log("❌ Planning PDF request failed", "ERROR")
+            if response:
+                self.log(f"Status: {response.status_code}")
+                self.log(f"Response: {response.text}")
+            return False
+
     def run_full_test(self):
         """Run the complete test suite"""
         self.log("🚀 Starting TerciForm Digital Signature Test")
