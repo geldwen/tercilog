@@ -221,6 +221,18 @@ backend:
           comment: "✅ Successfully tested: Q3 data includes evaluation_globale field which is correctly parsed to extract star ratings. Found student 'coucouille' with evaluation_globale='⭐ Bon' which correctly maps to 3 stars. The qualite report endpoint is accessible and returning Q3 data with proper rating fields."
 
 frontend:
+  - task: "Student List Button Changes - Remove 'Parcours émargé' Button"
+    implemented: true
+    working: true
+    file: "TeacherDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ STUDENT LIST BUTTON CHANGES VERIFICATION COMPLETED SUCCESSFULLY: Comprehensive testing of frontend changes on Terciform confirmed all requirements met. DETAILED RESULTS: ✅ Teacher login successful (terciform@gmail.com / Geldwen1982*+) - Jonathan G. authenticated, ✅ ÉLÈVES tab accessible and functional, ✅ Historized students indicator working correctly - displays '1 élève(s) historisé(s)' showing count of students with 0h remaining, ✅ 'Planning de formation' button PRESENT and correctly styled (red color #DC143C), ✅ 'Parcours émargé' button CORRECTLY REMOVED - no longer visible in student action dropdown, ✅ Students with 0 hours properly hidden from main list (only active students displayed), ✅ All other expected action buttons present: 'Modifier la fiche', 'Supprimer', 'Historique', 'Parcours élève'. VISUAL VERIFICATION: Screenshots captured showing Laura LENFANT student card with correct button layout - red 'Planning de formation' button visible, no 'Parcours émargé' button present. The frontend changes have been successfully implemented and are working as specified in the review request."
+
   - task: "Q3 Stars Display in Bilan Qualité Table"
     implemented: true
     working: true
