@@ -8083,7 +8083,11 @@ def main():
     if len(sys.argv) > 1:
         test_name = sys.argv[1]
         
-        if test_name == "tercilog-stabilization":
+        if test_name == "email":
+            success = tester.test_email_notification_features()
+            # Always cleanup
+            tester.cleanup_email_test_data()
+        elif test_name == "tercilog-stabilization":
             success = tester.test_tercilog_stabilization()
         elif test_name == "ghizzo":
             success = tester.test_ghizzo_credit_hours_correction()
