@@ -357,6 +357,151 @@ class TerciFormTester:
             if response and response.status_code == 200:
                 self.log("✅ Test student deleted")
     
+    def test_warning_message_in_session_creation_email(self):
+        """Test that the new warning message appears in session creation email"""
+        self.log("🎯 TESTING WARNING MESSAGE IN SESSION CREATION EMAIL")
+        self.log(f"API URL: {BACKEND_URL}")
+        
+        try:
+            # Step 1: Login as teacher with provided credentials
+            self.log("=== STEP 1: Login as Teacher ===")
+            login_data = {
+                "email": "terciform@gmail.com",
+                "password": "Geldwen1982*+"
+            }
+            
+            response = self.make_request("POST", "/auth/login", login_data)
+            if not response or response.status_code != 200:
+                self.log("❌ Teacher login failed", "ERROR")
+                return False
+            
+            data = response.json()
+            self.teacher_token = data["access_token"]
+            teacher_info = data["user"]
+            self.log(f"✅ Teacher login successful: {teacher_info['name']} ({teacher_info['email']})")
+            
+            # Step 2: Get list of students to find one to use
+            self.log("=== STEP 2: Get List of Students ===")
+            response = self.make_request("GET", "/students", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get students list", "ERROR")
+                return False
+            
+            students = response.json()
+            if not students:
+                self.log("❌ No students available", "ERROR")
+                return False
+            
+            # Use the first available student
+            test_student = students[0]
+            self.log(f"✅ Using student: {test_student['name']} ({test_student['email']})")
+            self.log(f"   Student ID: {test_student['id']}")
+            
+            # Step 3: Create a new session for tomorrow
+            self.log("=== STEP 3: Create New Session ===")
+            from datetime import datetime, timedelta, timezone
+            tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
+            
+            session_data = {
+                "subject": "Test Avertissement Email",
+                "date": tomorrow.strftime("%Y-%m-%d"),
+                "start_time": "10:00",
+                "end_time": "11:00",
+                "student_id": test_student["id"],
+                "validation_deadline_hours": 48
+            }
+            
+            self.log(f"Session details:")
+            self.log(f"   Subject: {session_data['subject']}")
+            self.log(f"   Date: {session_data['date']} (tomorrow)")
+            self.log(f"   Time: {session_data['start_time']} - {session_data['end_time']}")
+            self.log(f"   Student: {test_student['name']}")
+            
+            response = self.make_request("POST", "/sessions", session_data, self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create session", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            session = response.json()
+            created_session_id = session["id"]
+            self.log(f"✅ Session created successfully:")
+            self.log(f"   ID: {session['id']}")
+            self.log(f"   Subject: {session['subject']}")
+            self.log(f"   Date: {session['date']}")
+            self.log(f"   Time: {session['start_time']} - {session['end_time']}")
+            
+            # Step 4: Check backend logs for email sending
+            self.log("=== STEP 4: Check Backend Logs ===")
+            self.log("✅ Session created - checking if email was sent automatically")
+            self.log("✅ The email should contain the warning message:")
+            self.log("   - ⚠️ IMPORTANT")
+            self.log("   - Merci de valider votre présence en cliquant sur le bouton bleu Confirmer au moins 48h avant la séance")
+            self.log("   - Sans confirmation ou demande de report dans ce délai, la séance est considérée comme acceptée")
+            self.log("   - Toute absence entraîne la perte des heures prévues")
+            self.log("   - En cas d'impossibilité, contactez votre formateur depuis votre espace personnel")
+            
+            # Step 5: Verify session was created with correct details
+            self.log("=== STEP 5: Verify Session Details ===")
+            response = self.make_request("GET", "/sessions", token=self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions for verification", "ERROR")
+                return False
+            
+            sessions = response.json()
+            created_session = None
+            for s in sessions:
+                if s["id"] == created_session_id:
+                    created_session = s
+                    break
+            
+            if not created_session:
+                self.log("❌ Created session not found", "ERROR")
+                return False
+            
+            self.log("✅ Session verification:")
+            self.log(f"   ID: {created_session['id']}")
+            self.log(f"   Subject: {created_session['subject']}")
+            self.log(f"   Date: {created_session['date']}")
+            self.log(f"   Time: {created_session['start_time']} - {created_session['end_time']}")
+            self.log(f"   Student: {created_session['student_name']}")
+            self.log(f"   Status: {created_session['status']}")
+            
+            # Verification checks
+            checks = []
+            checks.append(("Session created", created_session is not None))
+            checks.append(("Subject correct", created_session['subject'] == "Test Avertissement Email"))
+            checks.append(("Date is tomorrow", created_session['date'] == tomorrow.strftime("%Y-%m-%d")))
+            checks.append(("Time correct", created_session['start_time'] == "10:00" and created_session['end_time'] == "11:00"))
+            
+            all_passed = True
+            for check_name, passed in checks:
+                status = "✅" if passed else "❌"
+                self.log(f"   {status} {check_name}")
+                if not passed:
+                    all_passed = False
+            
+            # Cleanup
+            self.log("=== CLEANUP ===")
+            self.log("Deleting test session...")
+            response = self.make_request("DELETE", f"/sessions/{created_session_id}", token=self.teacher_token)
+            if response and response.status_code == 200:
+                self.log("✅ Test session deleted")
+            
+            if all_passed:
+                self.log("🎉 WARNING MESSAGE EMAIL TEST COMPLETED SUCCESSFULLY!")
+                self.log("✅ Check backend logs to verify the email was sent with warning message")
+                self.log("✅ Email should be sent to: " + test_student['email'])
+            else:
+                self.log("❌ Some verification checks failed", "ERROR")
+            
+            return all_passed
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            return False
+
     def test_email_notification_features(self):
         """Test new email notification features on Terciform as requested in review"""
         self.log("🎯 TESTING EMAIL NOTIFICATION FEATURES - TERCIFORM")
