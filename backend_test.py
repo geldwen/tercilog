@@ -1207,7 +1207,7 @@ class TerciFormTester:
         
         self.log(f"Sending planning PDF request:")
         self.log(f"   Student ID: {self.laura_student_id}")
-        self.log(f"   Email: {pdf_request_data['email']}")
+        self.log(f"   Recipient Email: {pdf_request_data['recipient_email']}")
         self.log(f"   Month: {pdf_request_data['month']} (current month)")
         
         # Call the endpoint
