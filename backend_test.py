@@ -1201,7 +1201,7 @@ class TerciFormTester:
         
         # Prepare request data
         pdf_request_data = {
-            "email": "terciform@gmail.com",
+            "recipient_email": "terciform@gmail.com",
             "month": current_month
         }
         
