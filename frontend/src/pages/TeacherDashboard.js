@@ -962,7 +962,10 @@ export default function TeacherDashboard({ user, onLogout }) {
     try {
       const updateData = { ...studentForm };
       if (!updateData.password) delete updateData.password;
-      await axios.put(`${API}/students/${editingStudent.id}`, { ...updateData, credit_hours: updateData.total_hours });
+      // NE PAS envoyer credit_hours lors de la mise à jour - préserver les heures restantes existantes
+      // credit_hours est calculé automatiquement en fonction des séances
+      delete updateData.credit_hours;
+      await axios.put(`${API}/students/${editingStudent.id}`, updateData);
       toast.success("Élève modifié !");
       setShowEditStudent(false);
       setEditingStudent(null);
