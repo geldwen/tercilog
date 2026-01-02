@@ -14,8 +14,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv('/app/frontend/.env')
 
-# Configuration - Use production URL for testing
-BACKEND_URL = "https://teachportal-12.emergent.host"
+# Configuration - Use the URL from review request
+BACKEND_URL = "https://learn-portal-76.preview.emergentagent.com"
 API_BASE = f"{BACKEND_URL}/api"
 
 class TerciFormTester:
