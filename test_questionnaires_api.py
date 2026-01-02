@@ -2,7 +2,7 @@ import requests
 import json
 
 # URL backend
-API = "https://admin-portal-218.preview.emergentagent.com/api"
+API = "https://learn-portal-76.preview.emergentagent.com/api"
 
 # 1. Login professeur
 print("🔐 Connexion professeur...")
