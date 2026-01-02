@@ -8123,7 +8123,7 @@ def main():
             success = tester.test_q3_refactoring()
         else:
             print(f"Unknown test: {test_name}")
-            print("Available tests: tercilog-stabilization, ghizzo, islem, zazou, zazou-verify, islem-meet, student-debug, formation-needs, jojo-resources, informatique-pathway, informatique-visual, quiz-submission, crash-investigation, informatique-renamed, documents-management, nouveaux-quiz, q3-refactoring")
+            print("Available tests: email, tercilog-stabilization, ghizzo, islem, zazou, zazou-verify, islem-meet, student-debug, formation-needs, jojo-resources, informatique-pathway, informatique-visual, quiz-submission, crash-investigation, informatique-renamed, documents-management, nouveaux-quiz, q3-refactoring")
             sys.exit(1)
     else:
         # Run TerciLog stabilization tests by default
