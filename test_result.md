@@ -719,12 +719,14 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Unified Planning PDF Functionality with Signatures"
+    - "Student List Button Changes - Remove 'Parcours émargé' Button"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+    - agent: "testing"
+      message: "✅ COMPREHENSIVE FRONTEND BUTTON CHANGES TESTING COMPLETED SUCCESSFULLY: All requirements from the review request have been verified and are working correctly. The 'Parcours émargé' button has been successfully removed from the student action dropdown, while the 'Planning de formation' button remains present and functional. Historized students indicator is working properly, showing students with 0h remaining are hidden from the main list. No issues found - frontend changes implemented as specified."
     - agent: "testing"
       message: "🎯 UNIFIED PLANNING PDF FUNCTIONALITY TEST COMPLETED SUCCESSFULLY - All Review Requirements VERIFIED PERFECTLY. COMPREHENSIVE TEST EXECUTION: ✅ 1. Teacher login successful (terciform@gmail.com / Geldwen1982*+) with Jonathan G. authenticated, ✅ 2. Student identification successful - Found Laura LENFANT (laura13840@gmail.com) with signed sessions for testing, ✅ 3. Planning PDF request successful - Called POST /api/students/{student_id}/send-planning-pdf with recipient_email='terciform@gmail.com' and month='2026-01' (current month), ✅ 4. Backend logs verification confirmed - 'Planning PDF sent to terciform@gmail.com for student 0c7a9f99-8071-4015-a8a7-eb870984ce0c', ✅ 5. Frontend verification completed - Confirmed 'Parcours émargé' button has been removed (no references to handleOpenSendAttendance in button clicks), Only 'Planning de formation' button remains as specified. PDF FEATURES VERIFIED: The unified planning PDF now includes all sessions (past and future), signatures columns (Élève, Formateur) when there are signed sessions, signature images displayed for signed sessions, summary text showing 'Parcours : X séance(s) — Yh dont Z émargée(s)'. CRITICAL SUCCESS: The unified planning PDF functionality is working correctly and emails are being sent with the enhanced PDF content that includes signature information when available."
     - agent: "testing"
