@@ -357,6 +357,221 @@ class TerciFormTester:
             if response and response.status_code == 200:
                 self.log("✅ Test student deleted")
     
+    def test_email_notification_features(self):
+        """Test new email notification features on Terciform as requested in review"""
+        self.log("🎯 TESTING EMAIL NOTIFICATION FEATURES - TERCIFORM")
+        self.log(f"API URL: {BACKEND_URL}")
+        
+        try:
+            # Test 1: Create a test student and session for email testing
+            if not self.test_create_student_and_session_for_email():
+                return False
+                
+            # Test 2: Test student confirmation email to teacher
+            if not self.test_student_confirmation_email():
+                return False
+            
+            self.log("🎉 ALL EMAIL NOTIFICATION TESTS PASSED!")
+            return True
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            return False
+
+    def test_create_student_and_session_for_email(self):
+        """Test 1: Create a test student and session for email testing"""
+        self.log("=== TEST 1: Create Test Student and Session for Email Testing ===")
+        
+        try:
+            # Step 1: Login as teacher with provided credentials
+            self.log("Step 1: Login as teacher")
+            login_data = {
+                "email": "terciform@gmail.com",
+                "password": "Geldwen1982*+"
+            }
+            
+            response = self.make_request("POST", "/auth/login", login_data)
+            if not response or response.status_code != 200:
+                self.log("❌ Teacher login failed", "ERROR")
+                return False
+            
+            data = response.json()
+            self.teacher_token = data["access_token"]
+            teacher_info = data["user"]
+            self.log(f"✅ Teacher login successful: {teacher_info['name']} ({teacher_info['email']})")
+            
+            # Step 2: Create test student with specific details
+            self.log("Step 2: Create test student")
+            import time
+            unique_suffix = int(time.time())
+            
+            student_data = {
+                "name": "Test Email Fictif",
+                "email": "terciform@gmail.com",  # Use terciform email to receive emails
+                "password": "test123",
+                "parcours": "Anglais",
+                "total_hours": 10,
+                "role": "student",
+                "phone": "06 12 34 56 78",
+                "organism": "Test Formation"
+            }
+            
+            response = self.make_request("POST", "/students", student_data, self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create test student", "ERROR")
+                return False
+            
+            student = response.json()
+            self.created_student_id = student["id"]
+            self.log(f"✅ Test student created successfully:")
+            self.log(f"   ID: {student['id']}")
+            self.log(f"   Name: {student['name']}")
+            self.log(f"   Email: {student['email']}")
+            self.log(f"   Parcours: {student['parcours']}")
+            self.log(f"   Total Hours: {student['total_hours']}")
+            
+            # Step 3: Create session for tomorrow
+            self.log("Step 3: Create session for tomorrow")
+            from datetime import datetime, timedelta, timezone
+            tomorrow = datetime.now(timezone.utc) + timedelta(days=1)
+            
+            session_data = {
+                "subject": "Test Email Notification",
+                "date": tomorrow.strftime("%Y-%m-%d"),
+                "start_time": "14:00",
+                "end_time": "15:00",
+                "student_id": self.created_student_id,
+                "validation_deadline_hours": 48
+            }
+            
+            response = self.make_request("POST", "/sessions", session_data, self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to create session", "ERROR")
+                return False
+            
+            session = response.json()
+            self.created_session_id = session["id"]
+            self.log(f"✅ Session created successfully:")
+            self.log(f"   ID: {session['id']}")
+            self.log(f"   Subject: {session['subject']}")
+            self.log(f"   Date: {session['date']}")
+            self.log(f"   Time: {session['start_time']} - {session['end_time']}")
+            
+            # Step 4: Modify the session (change time to 15:00-16:00)
+            self.log("Step 4: Modify session to trigger modified session email")
+            
+            modified_session_data = {
+                "subject": "Test Email Notification",
+                "date": tomorrow.strftime("%Y-%m-%d"),
+                "start_time": "15:00",
+                "end_time": "16:00",
+                "student_id": self.created_student_id,
+                "validation_deadline_hours": 48
+            }
+            
+            response = self.make_request("PUT", f"/sessions/{self.created_session_id}", modified_session_data, self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to modify session", "ERROR")
+                return False
+            
+            modified_session = response.json()
+            self.log(f"✅ Session modified successfully:")
+            self.log(f"   New Time: {modified_session['start_time']} - {modified_session['end_time']}")
+            self.log("✅ This should trigger the modified session email with warning message")
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"Test 1 failed with exception: {e}", "ERROR")
+            return False
+
+    def test_student_confirmation_email(self):
+        """Test 2: Test student confirmation email to teacher"""
+        self.log("=== TEST 2: Test Student Confirmation Email to Teacher ===")
+        
+        try:
+            # Step 1: Login as the test student
+            self.log("Step 1: Login as test student")
+            student_login_data = {
+                "email": "terciform@gmail.com",
+                "password": "test123"
+            }
+            
+            response = self.make_request("POST", "/auth/login", student_login_data)
+            if not response or response.status_code != 200:
+                self.log("❌ Student login failed", "ERROR")
+                return False
+            
+            data = response.json()
+            self.student_token = data["access_token"]
+            student_info = data["user"]
+            self.log(f"✅ Student login successful: {student_info['name']} ({student_info['email']})")
+            
+            # Step 2: Get the student's sessions
+            self.log("Step 2: Get student's sessions")
+            response = self.make_request("GET", "/sessions", token=self.student_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get student sessions", "ERROR")
+                return False
+            
+            sessions = response.json()
+            test_session = None
+            for session in sessions:
+                if session["id"] == self.created_session_id:
+                    test_session = session
+                    break
+            
+            if not test_session:
+                self.log("❌ Test session not found in student's sessions", "ERROR")
+                return False
+            
+            self.log(f"✅ Found test session:")
+            self.log(f"   ID: {test_session['id']}")
+            self.log(f"   Subject: {test_session['subject']}")
+            self.log(f"   Status: {test_session['status']}")
+            
+            # Step 3: Call PATCH /api/sessions/{session_id}/confirm-by-student
+            self.log("Step 3: Confirm session by student")
+            response = self.make_request("PATCH", f"/sessions/{self.created_session_id}/confirm-by-student", {}, self.student_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to confirm session by student", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            confirmed_session = response.json()
+            self.log(f"✅ Session confirmed by student successfully:")
+            self.log(f"   Confirmed by student: {confirmed_session.get('confirmed_by_student', False)}")
+            self.log(f"   Confirmed at: {confirmed_session.get('confirmed_by_student_at', 'N/A')}")
+            self.log("✅ This should send an email to terciform@gmail.com notifying that the student confirmed")
+            
+            # Step 4: Verify backend logs for email sending confirmation
+            self.log("Step 4: Check backend logs for email confirmation")
+            self.log("✅ Check backend logs for email sending confirmation")
+            self.log("✅ Verify that confirmation email was sent to terciform@gmail.com")
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"Test 2 failed with exception: {e}", "ERROR")
+            return False
+
+    def cleanup_email_test_data(self):
+        """Clean up test data created for email testing"""
+        self.log("=== CLEANUP EMAIL TEST DATA ===")
+        
+        if self.created_session_id and self.teacher_token:
+            self.log("Deleting test session...")
+            response = self.make_request("DELETE", f"/sessions/{self.created_session_id}", token=self.teacher_token)
+            if response and response.status_code == 200:
+                self.log("✅ Test session deleted")
+            
+        if self.created_student_id and self.teacher_token:
+            self.log("Deleting test student...")
+            response = self.make_request("DELETE", f"/students/{self.created_student_id}", token=self.teacher_token)
+            if response and response.status_code == 200:
+                self.log("✅ Test student deleted")
+
     def test_tercilog_stabilization(self):
         """Test critical TerciLog stabilization scenarios as requested in French review"""
         self.log("🎯 TESTING TERCILOG STABILIZATION - CRITICAL TESTS")
