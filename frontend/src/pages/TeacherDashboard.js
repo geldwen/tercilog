@@ -3083,10 +3083,10 @@ export default function TeacherDashboard({ user, onLogout }) {
             )}
 
             <div className="grid gap-4">
-              {(filteredStudents !== null ? filteredStudents : students).length === 0 ? (
-                <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucun élève enregistré</CardContent></Card>
+              {(filteredStudents !== null ? filteredStudents : activeStudents).length === 0 ? (
+                <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">{filteredStudents !== null ? "Aucun élève trouvé" : "Aucun élève actif (tous historisés ou aucun élève enregistré)"}</CardContent></Card>
               ) : (
-                (filteredStudents !== null ? filteredStudents : students).map(student => {
+                (filteredStudents !== null ? filteredStudents : activeStudents).map(student => {
                   // Récupérer TOUTES les séances de l'élève
                   const allStudentSessions = sessions
                     .filter(s => s.student_id === student.id)
