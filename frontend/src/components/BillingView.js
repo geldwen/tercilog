@@ -50,6 +50,25 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
   const [planningEvents, setPlanningEvents] = useState([]);
   const [selectedCenter, setSelectedCenter] = useState('all'); // 'all' = tous les centres
 
+  // Fonctions de navigation des mois
+  const goToPreviousMonth = () => {
+    if (selectedMonthNum === 1) {
+      setSelectedMonthNum(12);
+      setSelectedYear(selectedYear - 1);
+    } else {
+      setSelectedMonthNum(selectedMonthNum - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (selectedMonthNum === 12) {
+      setSelectedMonthNum(1);
+      setSelectedYear(selectedYear + 1);
+    } else {
+      setSelectedMonthNum(selectedMonthNum + 1);
+    }
+  };
+
   // Charger les événements du planning
   useEffect(() => {
     const loadPlanningEvents = async () => {
