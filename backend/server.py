@@ -4790,6 +4790,18 @@ async def confirm_by_student(session_id: str, current_user: User = Depends(get_c
     
     logger.info(f"Student {current_user.id} confirmed session {session_id}")
     
+    # Envoyer un email au professeur pour notifier la confirmation
+    try:
+        send_student_confirmed_email(
+            student_name=current_user.name,
+            subject=session_doc.get('subject', 'Non spécifié'),
+            date=session_doc.get('date', ''),
+            start_time=session_doc.get('start_time', ''),
+            end_time=session_doc.get('end_time', '')
+        )
+    except Exception as e:
+        logger.error(f"Erreur envoi email de confirmation au professeur: {e}")
+    
     session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
     return Session(**session_doc)
 
