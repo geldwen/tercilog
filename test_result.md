@@ -117,7 +117,7 @@ frontend:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test new email notification features on Terciform: student creation emails, session modification emails, and student confirmation emails to teacher"
+user_problem_statement: "Test the unified planning PDF functionality on Terciform: verify the planning PDF now includes signatures when available"
 
 backend:
   - task: "Warning Message in Session Creation Email"
