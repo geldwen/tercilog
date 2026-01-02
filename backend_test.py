@@ -8455,13 +8455,15 @@ def main():
             success = tester.test_nouveaux_quiz_informatique()
         elif test_name == "q3-refactoring":
             success = tester.test_q3_refactoring()
+        elif test_name == "unified-planning-pdf":
+            success = tester.test_unified_planning_pdf_functionality()
         else:
             print(f"Unknown test: {test_name}")
-            print("Available tests: email, warning, tercilog-stabilization, ghizzo, islem, zazou, zazou-verify, islem-meet, student-debug, formation-needs, jojo-resources, informatique-pathway, informatique-visual, quiz-submission, crash-investigation, informatique-renamed, documents-management, nouveaux-quiz, q3-refactoring")
+            print("Available tests: email, warning, tercilog-stabilization, ghizzo, islem, zazou, zazou-verify, islem-meet, student-debug, formation-needs, jojo-resources, informatique-pathway, informatique-visual, quiz-submission, crash-investigation, informatique-renamed, documents-management, nouveaux-quiz, q3-refactoring, unified-planning-pdf")
             sys.exit(1)
     else:
-        # Run email notification tests by default
-        success = tester.test_email_notification_features()
+        # Run unified planning PDF test by default as requested in review
+        success = tester.test_unified_planning_pdf_functionality()
         # Always cleanup
         tester.cleanup_email_test_data()
     
