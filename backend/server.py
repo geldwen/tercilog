@@ -1015,15 +1015,30 @@ def send_session_modified_email(to_email: str, student_name: str, subject: str, 
                     <p style="margin: 5px 0;"><strong>Horaires :</strong> {start_time} - {end_time}</p>
                 </div>
                 
+                <!-- Message d'avertissement important -->
+                <div style="background-color: #fef2f2; border: 2px solid #dc2626; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                    <p style="margin: 0 0 12px 0; color: #dc2626; font-weight: bold; font-size: 17px;">
+                        ⚠️ IMPORTANT
+                    </p>
+                    <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 15px;">
+                        Merci de valider votre présence en cliquant sur le bouton bleu "Confirmer" au moins <strong>48h avant la séance</strong>.
+                    </p>
+                    <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 15px;">
+                        Sans confirmation ou demande de report dans ce délai, la séance est considérée comme acceptée.
+                    </p>
+                    <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 15px;">
+                        <strong>Toute absence entraîne la perte des heures prévues.</strong>
+                    </p>
+                    <p style="margin: 0; color: #991b1b; font-size: 15px;">
+                        En cas d'impossibilité, contactez votre formateur depuis votre espace personnel.
+                    </p>
+                </div>
+                
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="{portal_url}" style="background-color: #1e3a5f; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
                         🔗 Accéder à mon espace
                     </a>
                 </div>
-                
-                <p style="color: #dc2626; font-size: 14px; margin-top: 20px;">
-                    ⚠️ <strong>Important :</strong> En cas d'absence à une séance validée, les heures de formation seront perdues.
-                </p>
                 
                 <p style="margin-top: 30px; color: #666;">
                     Cordialement,<br>
