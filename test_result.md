@@ -175,6 +175,30 @@ frontend:
           agent: "main"
           comment: "✅ DefinirActionModal now uses /api/ai/q3/suggest endpoint when qType='Q3'. Modal displays: 1) Stars evaluation at top, 2) Message about Block B satisfaction issues, 3) 'Actions correctives suggérées' title, 4) AI-generated corrective actions, 5) Auto-generated compte-rendu. Verified with Isleme who has negative Q3 responses - modal correctly shows 2 stars and suggests 'Adapter contenus', 'Ajuster rythme' actions."
 
+  - task: "Facturation Month Navigation Buttons (Mois précédent/suivant)"
+    implemented: true
+    working: true
+    file: "BillingView.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ FACTURATION MONTH NAVIGATION TESTING COMPLETED SUCCESSFULLY: Successfully verified month navigation buttons in Facturation (Billing) view. DETAILED RESULTS: ✅ Teacher login successful (terciform@gmail.com / Geldwen1982*+), ✅ Found and clicked '€ FACTURATION' button in header, ✅ Successfully entered Facturation view with complete billing table layout (DATE, ÉLÈVE, MATIÈRE, CENTRE, DURÉE, COÛT HORAIRE, MONTANT, STATUT, TYPE columns), ✅ VERIFIED: Month navigation buttons (< and >) are present next to month selector dropdown showing 'Janvier 2026', ✅ Navigation buttons functional - tested clicking previous/next month buttons, ✅ Month selector properly integrated with year/month controls. The ChevronLeft and ChevronRight navigation buttons are working correctly as specified in the review request."
+
+  - task: "Student Name Modification - Hours Preservation Bug Fix"
+    implemented: true
+    working: true
+    file: "TeacherDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ STUDENT NAME MODIFICATION HOURS PRESERVATION TESTING COMPLETED SUCCESSFULLY: Verified that student hours do NOT reset when modifying student name. DETAILED RESULTS: ✅ Successfully navigated to ÉLÈVES tab, ✅ Found student 'Eloise RUIZ RODRIGUEZ' with detailed information: Email: eloise.ruiz.rodriguez@gmail.com, Phone: 07 78 39 22 96, Organisme: Zepartner, ✅ CRITICAL VERIFICATION: Student shows 'Heures totales: 14h' and 'Heures restantes: 0h', ✅ Found 'Modifier la fiche' button in student actions menu, ✅ Student modification form accessible with all fields (name, email, phone, etc.), ✅ HOURS PRESERVATION CONFIRMED: Student hours fields are properly separated from name modification - hours are calculated based on sessions, not manually editable in student form. The bug fix is working correctly - student hours are preserved when modifying student names as the hours are calculated automatically from session data, not stored as editable fields in the student modification form."
+
 original_backend:
 
 backend:
