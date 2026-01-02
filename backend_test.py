@@ -358,8 +358,8 @@ class TerciFormTester:
                 self.log("✅ Test student deleted")
     
     def test_warning_message_in_session_creation_email(self):
-        """Test that the new warning message appears in session creation email"""
-        self.log("🎯 TESTING WARNING MESSAGE IN SESSION CREATION EMAIL")
+        """Test that the new warning message appears in session modification email"""
+        self.log("🎯 TESTING WARNING MESSAGE IN SESSION MODIFICATION EMAIL")
         self.log(f"API URL: {BACKEND_URL}")
         
         try:
@@ -432,9 +432,35 @@ class TerciFormTester:
             self.log(f"   Date: {session['date']}")
             self.log(f"   Time: {session['start_time']} - {session['end_time']}")
             
-            # Step 4: Check backend logs for email sending
-            self.log("=== STEP 4: Check Backend Logs ===")
-            self.log("✅ Session created - checking if email was sent automatically")
+            # Step 4: Modify the session to trigger warning email
+            self.log("=== STEP 4: Modify Session to Trigger Warning Email ===")
+            modified_session_data = {
+                "subject": "Test Avertissement Email",
+                "date": tomorrow.strftime("%Y-%m-%d"),
+                "start_time": "14:00",  # Changed from 10:00 to 14:00
+                "end_time": "15:00",    # Changed from 11:00 to 15:00
+                "student_id": test_student["id"],
+                "validation_deadline_hours": 48
+            }
+            
+            self.log(f"Modified session details:")
+            self.log(f"   New Time: {modified_session_data['start_time']} - {modified_session_data['end_time']}")
+            self.log("   This should trigger the session modification email with warning message")
+            
+            response = self.make_request("PUT", f"/sessions/{created_session_id}", modified_session_data, self.teacher_token)
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to modify session", "ERROR")
+                if response:
+                    self.log(f"Response: {response.text}")
+                return False
+            
+            modified_session = response.json()
+            self.log(f"✅ Session modified successfully:")
+            self.log(f"   New Time: {modified_session['start_time']} - {modified_session['end_time']}")
+            
+            # Step 5: Check backend logs for email sending
+            self.log("=== STEP 5: Check Backend Logs ===")
+            self.log("✅ Session modified - email should be sent with warning message")
             self.log("✅ The email should contain the warning message:")
             self.log("   - ⚠️ IMPORTANT")
             self.log("   - Merci de valider votre présence en cliquant sur le bouton bleu Confirmer au moins 48h avant la séance")
@@ -442,38 +468,38 @@ class TerciFormTester:
             self.log("   - Toute absence entraîne la perte des heures prévues")
             self.log("   - En cas d'impossibilité, contactez votre formateur depuis votre espace personnel")
             
-            # Step 5: Verify session was created with correct details
-            self.log("=== STEP 5: Verify Session Details ===")
+            # Step 6: Verify session was modified with correct details
+            self.log("=== STEP 6: Verify Session Details ===")
             response = self.make_request("GET", "/sessions", token=self.teacher_token)
             if not response or response.status_code != 200:
                 self.log("❌ Failed to get sessions for verification", "ERROR")
                 return False
             
             sessions = response.json()
-            created_session = None
+            final_session = None
             for s in sessions:
                 if s["id"] == created_session_id:
-                    created_session = s
+                    final_session = s
                     break
             
-            if not created_session:
-                self.log("❌ Created session not found", "ERROR")
+            if not final_session:
+                self.log("❌ Modified session not found", "ERROR")
                 return False
             
             self.log("✅ Session verification:")
-            self.log(f"   ID: {created_session['id']}")
-            self.log(f"   Subject: {created_session['subject']}")
-            self.log(f"   Date: {created_session['date']}")
-            self.log(f"   Time: {created_session['start_time']} - {created_session['end_time']}")
-            self.log(f"   Student: {created_session['student_name']}")
-            self.log(f"   Status: {created_session['status']}")
+            self.log(f"   ID: {final_session['id']}")
+            self.log(f"   Subject: {final_session['subject']}")
+            self.log(f"   Date: {final_session['date']}")
+            self.log(f"   Time: {final_session['start_time']} - {final_session['end_time']}")
+            self.log(f"   Student: {final_session['student_name']}")
+            self.log(f"   Status: {final_session['status']}")
             
             # Verification checks
             checks = []
-            checks.append(("Session created", created_session is not None))
-            checks.append(("Subject correct", created_session['subject'] == "Test Avertissement Email"))
-            checks.append(("Date is tomorrow", created_session['date'] == tomorrow.strftime("%Y-%m-%d")))
-            checks.append(("Time correct", created_session['start_time'] == "10:00" and created_session['end_time'] == "11:00"))
+            checks.append(("Session modified", final_session is not None))
+            checks.append(("Subject correct", final_session['subject'] == "Test Avertissement Email"))
+            checks.append(("Date is tomorrow", final_session['date'] == tomorrow.strftime("%Y-%m-%d")))
+            checks.append(("Time modified correctly", final_session['start_time'] == "14:00" and final_session['end_time'] == "15:00"))
             
             all_passed = True
             for check_name, passed in checks:
@@ -491,7 +517,7 @@ class TerciFormTester:
             
             if all_passed:
                 self.log("🎉 WARNING MESSAGE EMAIL TEST COMPLETED SUCCESSFULLY!")
-                self.log("✅ Check backend logs to verify the email was sent with warning message")
+                self.log("✅ Check backend logs to verify the modification email was sent with warning message")
                 self.log("✅ Email should be sent to: " + test_student['email'])
             else:
                 self.log("❌ Some verification checks failed", "ERROR")
