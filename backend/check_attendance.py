@@ -101,6 +101,93 @@ async def check_and_send_emails():
         logger.error(f"Error in check_and_send_emails: {e}")
         raise
 
+
+async def check_48h_confirmation_reminders():
+    """Vérifie les séances dans 48h et envoie des rappels si pas confirmées"""
+    try:
+        # Connexion MongoDB
+        mongo_url = os.environ['MONGO_URL']
+        client = AsyncIOMotorClient(mongo_url)
+        db = client[os.environ['DB_NAME']]
+        
+        # Import des fonctions d'envoi d'email
+        from server import send_no_confirmation_reminder_to_teacher, send_no_confirmation_reminder_to_student
+        
+        now = datetime.now(timezone.utc)
+        # Calculer la fenêtre de 48h (entre 48h et 47h30 pour éviter les doublons)
+        target_time_start = now + timedelta(hours=47, minutes=30)
+        target_time_end = now + timedelta(hours=48, minutes=30)
+        
+        logger.info(f"Checking for sessions between {target_time_start} and {target_time_end} without confirmation")
+        
+        # Récupérer toutes les séances confirmées (par le prof) mais pas confirmées par l'élève
+        # dans la fenêtre de 48h
+        sessions = await db.sessions.find({
+            "status": {"$in": ["confirmed", "pending"]},
+            "confirmed_by_student": {"$ne": True},
+            "confirmation_48h_reminder_sent": {"$ne": True}  # Pas encore envoyé
+        }, {"_id": 0}).to_list(1000)
+        
+        reminders_sent = 0
+        for session_doc in sessions:
+            try:
+                # Construire la date et heure de début de séance
+                session_datetime_str = f"{session_doc['date']}T{session_doc['start_time']}:00"
+                
+                try:
+                    session_start = datetime.fromisoformat(session_datetime_str)
+                    if session_start.tzinfo is None:
+                        session_start = session_start.replace(tzinfo=timezone.utc)
+                except ValueError:
+                    logger.error(f"Invalid date format for session {session_doc.get('id')}: {session_datetime_str}")
+                    continue
+                
+                # Si la séance est dans la fenêtre de 48h
+                if target_time_start <= session_start <= target_time_end:
+                    logger.info(f"Session {session_doc['id']} is in 48h and not confirmed. Sending reminders...")
+                    
+                    # Envoyer email au professeur
+                    teacher_email_sent = send_no_confirmation_reminder_to_teacher(
+                        student_name=session_doc.get('student_name', 'Inconnu'),
+                        student_email=session_doc.get('student_email', ''),
+                        subject=session_doc.get('subject', 'Non spécifié'),
+                        date=session_doc.get('date', ''),
+                        start_time=session_doc.get('start_time', ''),
+                        end_time=session_doc.get('end_time', '')
+                    )
+                    
+                    # Envoyer email à l'élève
+                    student_email_sent = send_no_confirmation_reminder_to_student(
+                        to_email=session_doc.get('student_email', ''),
+                        student_name=session_doc.get('student_name', 'Inconnu'),
+                        date=session_doc.get('date', ''),
+                        start_time=session_doc.get('start_time', ''),
+                        end_time=session_doc.get('end_time', '')
+                    )
+                    
+                    if teacher_email_sent or student_email_sent:
+                        # Marquer le rappel comme envoyé
+                        await db.sessions.update_one(
+                            {"id": session_doc['id']},
+                            {"$set": {
+                                "confirmation_48h_reminder_sent": True,
+                                "confirmation_48h_reminder_sent_at": now.isoformat()
+                            }}
+                        )
+                        reminders_sent += 1
+                        logger.info(f"48h reminder sent for session {session_doc['id']}")
+                        
+            except Exception as e:
+                logger.error(f"Error processing 48h reminder for session {session_doc.get('id')}: {e}")
+                continue
+        
+        logger.info(f"48h reminder check completed. {reminders_sent} reminders sent.")
+        client.close()
+        
+    except Exception as e:
+        logger.error(f"Error in check_48h_confirmation_reminders: {e}")
+        raise
+
 async def run_service():
     """Boucle principale du service"""
     logger.info("Attendance email service started")
