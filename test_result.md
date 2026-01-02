@@ -117,7 +117,7 @@ frontend:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the unified planning PDF functionality on Terciform: verify the planning PDF now includes signatures when available"
+user_problem_statement: "Test the frontend changes on Terciform: verify button changes in student list - 'Planning de formation' button (red) still present, 'Parcours émargé' button (purple) has been REMOVED, historized students indicator shows students with 0h remaining, students with 0 hours are hidden from main list"
 
 backend:
   - task: "Unified Planning PDF Functionality with Signatures"
