@@ -8126,8 +8126,10 @@ def main():
             print("Available tests: email, tercilog-stabilization, ghizzo, islem, zazou, zazou-verify, islem-meet, student-debug, formation-needs, jojo-resources, informatique-pathway, informatique-visual, quiz-submission, crash-investigation, informatique-renamed, documents-management, nouveaux-quiz, q3-refactoring")
             sys.exit(1)
     else:
-        # Run TerciLog stabilization tests by default
-        success = tester.test_tercilog_stabilization()
+        # Run email notification tests by default
+        success = tester.test_email_notification_features()
+        # Always cleanup
+        tester.cleanup_email_test_data()
     
     sys.exit(0 if success else 1)
 
