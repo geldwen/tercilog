@@ -1065,7 +1065,201 @@ def send_session_modified_email(to_email: str, student_name: str, subject: str, 
     return email_sent
 
 
-# Routes
+def send_student_confirmed_email(student_name: str, subject: str, date: str, start_time: str, end_time: str):
+    """Envoyer un email au professeur quand un élève confirme sa séance"""
+    teacher_email = os.environ.get('GMAIL_USER', 'terciform@gmail.com')
+    
+    # Formater la date
+    try:
+        date_obj = datetime.strptime(date, "%Y-%m-%d")
+        formatted_date = date_obj.strftime("%d/%m/%Y")
+    except:
+        formatted_date = date
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <!-- Header avec logo -->
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">✅ Confirmation de séance</h1>
+            </div>
+            
+            <!-- Contenu -->
+            <div style="padding: 30px;">
+                <div style="background-color: #d1fae5; border: 1px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                    <p style="margin: 0; color: #065f46; font-weight: bold; font-size: 18px;">
+                        ✅ {student_name} a confirmé sa séance
+                    </p>
+                </div>
+                
+                <div style="background-color: #e8f4fd; border-left: 4px solid #1e3a5f; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Détails de la séance :</p>
+                    <p style="margin: 5px 0;"><strong>Matière :</strong> {subject}</p>
+                    <p style="margin: 5px 0;"><strong>Date :</strong> {formatted_date}</p>
+                    <p style="margin: 5px 0;"><strong>Horaires :</strong> {start_time} - {end_time}</p>
+                </div>
+                
+                <p style="margin-top: 30px; color: #666;">
+                    Cordialement,<br>
+                    <strong>L'équipe TerciForm</strong>
+                </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+                <p style="margin: 0; color: #666; font-size: 12px;">
+                    Cet email a été envoyé automatiquement par TerciForm.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    email_sent = send_email(teacher_email, f"✅ Confirmation - {student_name} - {formatted_date}", html_body)
+    if email_sent:
+        logger.info(f"Email de confirmation envoyé au professeur pour {student_name}")
+    else:
+        logger.error(f"Échec envoi email de confirmation au professeur pour {student_name}")
+    return email_sent
+
+
+def send_no_confirmation_reminder_to_teacher(student_name: str, student_email: str, subject: str, date: str, start_time: str, end_time: str):
+    """Envoyer un email au professeur si l'élève n'a pas confirmé 48h avant"""
+    teacher_email = os.environ.get('GMAIL_USER', 'terciform@gmail.com')
+    
+    # Formater la date
+    try:
+        date_obj = datetime.strptime(date, "%Y-%m-%d")
+        formatted_date = date_obj.strftime("%d/%m/%Y")
+    except:
+        formatted_date = date
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <!-- Header avec logo -->
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ Absence de confirmation</h1>
+            </div>
+            
+            <!-- Contenu -->
+            <div style="padding: 30px;">
+                <div style="background-color: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                    <p style="margin: 0; color: #92400e; font-weight: bold; font-size: 18px;">
+                        ⚠️ {student_name} n'a pas confirmé sa séance
+                    </p>
+                    <p style="margin: 10px 0 0 0; color: #92400e; font-size: 14px;">
+                        Prendre contact avec lui/elle
+                    </p>
+                </div>
+                
+                <div style="background-color: #e8f4fd; border-left: 4px solid #1e3a5f; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Détails de la séance :</p>
+                    <p style="margin: 5px 0;"><strong>Élève :</strong> {student_name}</p>
+                    <p style="margin: 5px 0;"><strong>Email :</strong> {student_email}</p>
+                    <p style="margin: 5px 0;"><strong>Matière :</strong> {subject}</p>
+                    <p style="margin: 5px 0;"><strong>Date :</strong> {formatted_date}</p>
+                    <p style="margin: 5px 0;"><strong>Horaires :</strong> {start_time} - {end_time}</p>
+                </div>
+                
+                <p style="margin-top: 30px; color: #666;">
+                    Cordialement,<br>
+                    <strong>L'équipe TerciForm</strong>
+                </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+                <p style="margin: 0; color: #666; font-size: 12px;">
+                    Cet email a été envoyé automatiquement par TerciForm.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    email_sent = send_email(teacher_email, f"⚠️ Non confirmé - {student_name} - {formatted_date}", html_body)
+    if email_sent:
+        logger.info(f"Email d'alerte non-confirmation envoyé au professeur pour {student_name}")
+    else:
+        logger.error(f"Échec envoi email d'alerte non-confirmation au professeur pour {student_name}")
+    return email_sent
+
+
+def send_no_confirmation_reminder_to_student(to_email: str, student_name: str, date: str, start_time: str, end_time: str):
+    """Envoyer un email à l'élève s'il n'a pas confirmé 48h avant"""
+    portal_url = get_student_portal_url()
+    
+    # Formater la date
+    try:
+        date_obj = datetime.strptime(date, "%Y-%m-%d")
+        formatted_date = date_obj.strftime("%d/%m/%Y")
+    except:
+        formatted_date = date
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <!-- Header avec logo -->
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">📅 Rappel de séance</h1>
+            </div>
+            
+            <!-- Contenu -->
+            <div style="padding: 30px;">
+                <p style="font-size: 16px;">Bonjour <strong>{student_name}</strong>,</p>
+                
+                <div style="background-color: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                    <p style="margin: 0; color: #92400e; font-size: 15px;">
+                        Vous n'avez pas confirmé votre présence pour la séance prévue le <strong>{formatted_date}</strong> à <strong>{start_time}</strong>.
+                    </p>
+                </div>
+                
+                <p style="font-size: 15px;">
+                    Conformément au règlement intérieur de TerciForm, <strong>la séance est considérée comme acceptée</strong>.
+                </p>
+                
+                <p style="font-size: 15px;">
+                    En cas d'empêchement exceptionnel, merci de contacter votre formateur depuis votre espace personnel.
+                </p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{portal_url}" style="background-color: #1e3a5f; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
+                        🔗 Accéder à mon espace
+                    </a>
+                </div>
+                
+                <p style="margin-top: 30px; color: #666;">
+                    Cordialement,<br>
+                    <strong>L'équipe TerciForm</strong>
+                </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+                <p style="margin: 0; color: #666; font-size: 12px;">
+                    Cet email a été envoyé automatiquement par TerciForm.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    email_sent = send_email(to_email, f"📅 TerciForm - Rappel séance du {formatted_date}", html_body)
+    if email_sent:
+        logger.info(f"Email de rappel non-confirmation envoyé à {to_email}")
+    else:
+        logger.error(f"Échec envoi email de rappel non-confirmation à {to_email}")
+    return email_sent
 @api_router.post("/auth/register", response_model=User)
 async def save_student_resources(student_id: str, parcours: str, resources: dict):
     """Sauvegarder les tests et questionnaires sélectionnés pour un élève"""
