@@ -4992,27 +4992,69 @@ async def resend_session_email(session_id: str, current_user: User = Depends(get
     
     email_body = f"""
     <html>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #1e3a5f;">Nouvelle séance de formation TerciForm</h2>
-            <p>Bonjour {student['name']},</p>
-            <p><strong>Vous avez été affecté à la séance {session_doc['subject']} du {session_doc['date']} de {session_doc['start_time']} à {session_doc['end_time']}.</strong></p>
-            <p>Veuillez confirmer votre présence en vous connectant à la plateforme :</p>
-            <div style="margin: 30px 0;">
-                <a href="{portal_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Accédez à TerciLog</a>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <!-- Header avec logo et dégradé -->
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">📅 Rappel de séance</h1>
             </div>
-            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Identifiant de connexion :</p>
-                <p style="margin: 5px 0;"><strong>Identifiant :</strong> {student['email']}</p>
+            
+            <!-- Contenu -->
+            <div style="padding: 30px;">
+                <p style="font-size: 16px;">Bonjour <strong>{student['name']}</strong>,</p>
+                
+                <p><strong>Vous avez été affecté(e) à la séance {session_doc['subject']} du {session_doc['date']} de {session_doc['start_time']} à {session_doc['end_time']}.</strong></p>
+                
+                <p>Veuillez confirmer votre présence en vous connectant à la plateforme :</p>
+                
+                <!-- Message d'avertissement important -->
+                <div style="background-color: #fef2f2; border: 2px solid #dc2626; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                    <p style="margin: 0 0 12px 0; color: #dc2626; font-weight: bold; font-size: 17px;">
+                        ⚠️ IMPORTANT
+                    </p>
+                    <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 15px;">
+                        Merci de valider votre présence en cliquant sur le bouton bleu "Confirmer" au moins <strong>48h avant la séance</strong>.
+                    </p>
+                    <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 15px;">
+                        Sans confirmation ou demande de report dans ce délai, la séance est considérée comme acceptée.
+                    </p>
+                    <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 15px;">
+                        <strong>Toute absence entraîne la perte des heures prévues.</strong>
+                    </p>
+                    <p style="margin: 0; color: #991b1b; font-size: 15px;">
+                        En cas d'impossibilité, contactez votre formateur depuis votre espace personnel.
+                    </p>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{portal_url}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
+                        🔗 Accéder à mon espace
+                    </a>
+                </div>
+                
+                <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 0; font-size: 14px;"><strong>Identifiant de connexion :</strong> {student['email']}</p>
+                </div>
+                
+                <p style="margin-top: 30px; color: #333;">
+                    Cordialement,<br>
+                    <strong>L'équipe TerciForm</strong>
+                </p>
             </div>
-            <p style="color: #dc2626; font-weight: bold;">⚠️ Important : En cas d'absence d'une séance validée, les heures de formation seront perdues.</p>
-            <p>Cordialement,<br>Votre formateur</p>
+            
+            <!-- Footer -->
+            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+                <p style="margin: 0; color: #666; font-size: 12px;">
+                    Cet email a été envoyé automatiquement par TerciForm.
+                </p>
+            </div>
         </div>
     </body>
     </html>
     """
     
-    send_email(student['email'], f"Nouvelle séance TerciForm - {session_doc['subject']}", email_body)
+    send_email(student['email'], f"📅 TerciForm - Rappel séance : {session_doc['subject']}", email_body)
     
     return {"message": "Email resent"}
 
