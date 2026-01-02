@@ -3066,6 +3066,18 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <p className="text-sm text-blue-700 flex items-center gap-2">
                   <Search className="w-4 h-4" />
                   <span className="font-medium">{filteredStudents.length} élève(s) trouvé(s)</span> pour votre recherche
+                  <span className="text-xs text-blue-500">(inclut les élèves historisés)</span>
+                </p>
+              </div>
+            )}
+
+            {/* Indicateur élèves historisés (masqués) */}
+            {filteredStudents === null && students.length > activeStudents.length && (
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
+                <p className="text-sm text-gray-600 flex items-center gap-2">
+                  <FolderOpen className="w-4 h-4" />
+                  <span>{students.length - activeStudents.length} élève(s) historisé(s)</span>
+                  <span className="text-xs text-gray-400">(0h restantes - utilisez la recherche pour les retrouver)</span>
                 </p>
               </div>
             )}
