@@ -512,15 +512,35 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
         </div>
         <div className="flex items-center gap-2">
           <label className="text-sm font-medium text-gray-600">Mois :</label>
-          <select
-            value={selectedMonthNum}
-            onChange={(e) => setSelectedMonthNum(parseInt(e.target.value))}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-pink-700"
-          >
-            {MONTH_NAMES.map(m => (
-              <option key={m.num} value={m.num}>{m.label}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToPreviousMonth}
+              className="h-9 w-9 p-0 border-pink-300 hover:bg-pink-50"
+              title="Mois précédent"
+            >
+              <ChevronLeft className="h-4 w-4 text-pink-600" />
+            </Button>
+            <select
+              value={selectedMonthNum}
+              onChange={(e) => setSelectedMonthNum(parseInt(e.target.value))}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500 text-pink-700"
+            >
+              {MONTH_NAMES.map(m => (
+                <option key={m.num} value={m.num}>{m.label}</option>
+              ))}
+            </select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToNextMonth}
+              className="h-9 w-9 p-0 border-pink-300 hover:bg-pink-50"
+              title="Mois suivant"
+            >
+              <ChevronRight className="h-4 w-4 text-pink-600" />
+            </Button>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <label className="text-sm font-medium text-gray-600">Centre :</label>
