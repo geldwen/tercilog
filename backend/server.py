@@ -4951,6 +4951,14 @@ async def update_session(session_id: str, data: dict, background_tasks: Backgrou
     # Mettre à jour la séance
     await db.sessions.update_one({"id": session_id}, {"$set": update_data})
     
+    # Si date ou horaires ont changé, réinitialiser la confirmation élève
+    if date_or_time_changed:
+        await db.sessions.update_one({"id": session_id}, {"$set": {
+            "confirmed_by_student": False,
+            "confirmed_by_student_at": None
+        }})
+        logger.info(f"Confirmation élève réinitialisée pour la séance {session_id} (date/heure modifiée)")
+    
     # Récupérer la séance mise à jour
     updated_session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
     
