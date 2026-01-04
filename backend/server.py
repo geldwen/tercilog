@@ -3669,7 +3669,7 @@ async def relance_questionnaire(
     </div>
     
     <p style="margin: 0 0 20px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
-        Ce questionnaire est important pour le suivi de votre formation et la démarche qualité Qualiopi.
+        Ce questionnaire est important pour le suivi de votre formation et notre démarche qualité.
     </p>
     
     <div style="text-align: center; margin: 30px 0;">
