@@ -4195,7 +4195,7 @@ async def save_questionnaire_action(
     
     # Validation: signature obligatoire si has_need est True
     if has_need and not signature_image:
-        raise HTTPException(status_code=400, detail="Signature requise pour valider la trace Qualiopi.")
+        raise HTTPException(status_code=400, detail="Signature requise pour valider cette action.")
     
     # Rétrocompatibilité avec l'ancien format
     selected_keywords = data.get("selected_keywords", mots_cles)
