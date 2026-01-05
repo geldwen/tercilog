@@ -743,6 +743,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   // État pour l'historique élève
   const [studentHistory, setStudentHistory] = useState([]);
   const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [historyCategory, setHistoryCategory] = useState('all'); // Catégorie sélectionnée
   const [historyStudent, setHistoryStudent] = useState(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
