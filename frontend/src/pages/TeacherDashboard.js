@@ -3509,12 +3509,14 @@ export default function TeacherDashboard({ user, onLogout }) {
               <div className="flex flex-wrap gap-1">
                 {[
                   { id: 'all', label: 'Tout', icon: '📋', count: studentHistory.length },
-                  { id: 'connection', label: 'Connexions', icon: '🔐', filter: e => e.category === 'Connexion' || e.type === 'connection' },
+                  { id: 'connection', label: 'Connexions', icon: '🔐', filter: e => e.category === 'Connexion' || e.type === 'connection' || e.type === 'login' },
+                  { id: 'visio', label: 'Visio', icon: '📹', filter: e => e.category === 'Visioconférence' || e.type === 'visio' || e.category?.toLowerCase().includes('visio') },
                   { id: 'email', label: 'Emails', icon: '📧', filter: e => e.type === 'email' || e.type === 'notification' || e.category?.toLowerCase().includes('email') },
                   { id: 'signature', label: 'Émargements', icon: '✍️', filter: e => e.type === 'signature' || e.type === 'signed' || e.category === 'Émargement' || e.category === 'Séance émargée' },
                   { id: 'session', label: 'Séances', icon: '📚', filter: e => e.type === 'session' || e.type === 'attendance' || e.category === 'Confirmation' || e.category?.includes('Séance') },
                   { id: 'questionnaire', label: 'Questionnaires', icon: '📝', filter: e => e.category?.includes('Questionnaire') || e.category?.includes('Q1') || e.category?.includes('Q2') || e.category?.includes('Q3') },
                   { id: 'test', label: 'Tests', icon: '🎯', filter: e => e.category?.includes('Test') || e.category?.includes('T1') || e.category?.includes('T2') || e.category?.includes('T3') },
+                  { id: 'livret', label: 'Livret', icon: '📖', filter: e => e.category?.includes('Livret') || e.type === 'livret' },
                   { id: 'account', label: 'Compte', icon: '👤', filter: e => e.type === 'account' || e.category === 'Compte créé' || e.category === 'Création compte' }
                 ].map(cat => {
                   const count = cat.id === 'all' ? studentHistory.length : studentHistory.filter(cat.filter || (() => false)).length;
