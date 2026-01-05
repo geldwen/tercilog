@@ -456,6 +456,50 @@ def format_fr_datetime(dt: datetime) -> str:
     except:
         return str(dt)
 
+
+# ============ SYSTÈME DE TRAÇABILITÉ ÉLÈVE (QUALIOPI) ============
+async def log_student_activity(
+    student_id: str,
+    student_name: str,
+    action: str,
+    details: dict = None,
+    actor: str = "student"
+):
+    """
+    Logger une activité élève pour la traçabilité Qualiopi.
+    
+    Actions possibles:
+    - login: Connexion à l'espace élève
+    - logout: Déconnexion
+    - signature: Émargement d'une séance
+    - questionnaire_q1: Remplissage du questionnaire Q1
+    - questionnaire_q2: Remplissage du questionnaire Q2
+    - questionnaire_q3: Remplissage du questionnaire Q3
+    - test_t1: Passation du test T1
+    - test_t2: Passation du test T2
+    - test_t3: Passation du test T3
+    - visio_join: Connexion à la visioconférence
+    - session_confirm: Confirmation d'une séance
+    - contact_formateur: Contact avec le formateur
+    - view_planning: Consultation du planning
+    - view_resources: Consultation des ressources
+    """
+    try:
+        log_entry = {
+            "id": str(uuid.uuid4()),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "student_id": student_id,
+            "student_name": student_name,
+            "action": action,
+            "actor": actor,
+            "details": details or {}
+        }
+        await db.student_activity_logs.insert_one(log_entry)
+        logger.info(f"Activity logged: {student_name} - {action}")
+    except Exception as e:
+        logger.error(f"Error logging student activity: {e}")
+
+
 def send_email(to_email: str, subject: str, html_body: str):
     """Send email using Gmail SMTP"""
     try:
