@@ -3567,12 +3567,14 @@ export default function TeacherDashboard({ user, onLogout }) {
                   {studentHistory
                     .filter(event => {
                       if (historyCategory === 'all') return true;
-                      if (historyCategory === 'connection') return event.category === 'Connexion' || event.type === 'connection';
+                      if (historyCategory === 'connection') return event.category === 'Connexion' || event.type === 'connection' || event.type === 'login';
+                      if (historyCategory === 'visio') return event.category === 'Visioconférence' || event.type === 'visio' || event.category?.toLowerCase().includes('visio');
                       if (historyCategory === 'email') return event.type === 'email' || event.type === 'notification' || event.category?.toLowerCase().includes('email');
                       if (historyCategory === 'signature') return event.type === 'signature' || event.type === 'signed' || event.category === 'Émargement' || event.category === 'Séance émargée';
                       if (historyCategory === 'session') return event.type === 'session' || event.type === 'attendance' || event.category === 'Confirmation' || event.category?.includes('Séance');
                       if (historyCategory === 'questionnaire') return event.category?.includes('Questionnaire') || event.category?.includes('Q1') || event.category?.includes('Q2') || event.category?.includes('Q3');
                       if (historyCategory === 'test') return event.category?.includes('Test') || event.category?.includes('T1') || event.category?.includes('T2') || event.category?.includes('T3');
+                      if (historyCategory === 'livret') return event.category?.includes('Livret') || event.type === 'livret';
                       if (historyCategory === 'account') return event.type === 'account' || event.category === 'Compte créé' || event.category === 'Création compte';
                       return true;
                     })
