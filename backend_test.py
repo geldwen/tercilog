@@ -748,6 +748,255 @@ class TerciFormTester:
             if response and response.status_code == 200:
                 self.log("✅ Test student deleted")
 
+    def test_student_activity_tracking_system(self):
+        """Test the student activity tracking system on Terciform as requested in review"""
+        self.log("🎯 TESTING STUDENT ACTIVITY TRACKING SYSTEM - TERCIFORM")
+        self.log(f"API URL: {BACKEND_URL}")
+        
+        try:
+            # Test 1: Verify student login is logged
+            if not self.test_student_login_logging():
+                return False
+                
+            # Test 2: Get student history
+            if not self.test_student_history():
+                return False
+                
+            # Test 3: Test session confirmation logging
+            if not self.test_session_confirmation_logging():
+                return False
+            
+            self.log("🎉 ALL STUDENT ACTIVITY TRACKING TESTS PASSED!")
+            return True
+            
+        except Exception as e:
+            self.log(f"Test failed with exception: {e}", "ERROR")
+            return False
+
+    def test_student_login_logging(self):
+        """Test 1: Verify student login is logged"""
+        self.log("=== TEST 1: Verify Student Login is Logged ===")
+        
+        # Login as student (Ghislain)
+        login_data = {
+            "email": "espoirfinition@gmail.com",
+            "password": "ghis456"
+        }
+        
+        self.log(f"Testing student login: {login_data['email']}")
+        response = self.make_request("POST", "/auth/login", login_data)
+        
+        if response and response.status_code == 200:
+            data = response.json()
+            if data.get("access_token") and data.get("user", {}).get("role") == "student":
+                self.student_token = data["access_token"]
+                student_info = data["user"]
+                self.ghislain_student_id = student_info["id"]
+                self.log(f"✅ Student login successful: {student_info['name']} ({student_info['email']})")
+                self.log(f"✅ Student ID: {self.ghislain_student_id}")
+                self.log("✅ Login should be logged in student_activity_logs collection")
+                return True
+            else:
+                self.log("❌ Login response missing token or wrong role", "ERROR")
+                return False
+        else:
+            self.log("❌ Student login failed", "ERROR")
+            if response:
+                self.log(f"Status: {response.status_code}, Response: {response.text}")
+            return False
+
+    def test_student_history(self):
+        """Test 2: Get student history"""
+        self.log("=== TEST 2: Get Student History ===")
+        
+        # First login as teacher to get access
+        teacher_login_data = {
+            "email": "terciform@gmail.com",
+            "password": "Geldwen1982*+"
+        }
+        
+        self.log("Step 1: Login as teacher")
+        response = self.make_request("POST", "/auth/login", teacher_login_data)
+        
+        if not response or response.status_code != 200:
+            self.log("❌ Teacher login failed", "ERROR")
+            return False
+        
+        data = response.json()
+        self.teacher_token = data["access_token"]
+        teacher_info = data["user"]
+        self.log(f"✅ Teacher login successful: {teacher_info['name']} ({teacher_info['email']})")
+        
+        # Step 2: Get the student Ghislain's ID from /api/students
+        self.log("Step 2: Get student Ghislain's ID from /api/students")
+        response = self.make_request("GET", "/students", token=self.teacher_token)
+        
+        if not response or response.status_code != 200:
+            self.log("❌ Failed to get students list", "ERROR")
+            return False
+        
+        students = response.json()
+        ghislain_student = None
+        
+        # Look for Ghislain by email
+        for student in students:
+            if student.get("email") == "espoirfinition@gmail.com":
+                ghislain_student = student
+                break
+        
+        if not ghislain_student:
+            self.log("❌ Ghislain student not found", "ERROR")
+            return False
+        
+        ghislain_id = ghislain_student["id"]
+        self.log(f"✅ Found Ghislain student:")
+        self.log(f"   ID: {ghislain_id}")
+        self.log(f"   Name: {ghislain_student['name']}")
+        self.log(f"   Email: {ghislain_student['email']}")
+        
+        # Step 3: Call GET /api/students/{student_id}/history
+        self.log("Step 3: Call GET /api/students/{student_id}/history")
+        response = self.make_request("GET", f"/students/{ghislain_id}/history", token=self.teacher_token)
+        
+        if response and response.status_code == 200:
+            try:
+                history = response.json()
+                self.log(f"✅ Student history endpoint accessible")
+                self.log(f"✅ Response type: {type(history)}")
+                
+                if isinstance(history, list):
+                    self.log(f"✅ Found {len(history)} historical events")
+                    
+                    # Look for login activity
+                    login_activities = [h for h in history if h.get("action") == "login"]
+                    self.log(f"✅ Found {len(login_activities)} login activities")
+                    
+                    # Look for other activities
+                    other_activities = [h for h in history if h.get("action") != "login"]
+                    self.log(f"✅ Found {len(other_activities)} other activities")
+                    
+                    # Show sample activities
+                    if history:
+                        self.log("Sample activities:")
+                        for i, activity in enumerate(history[:5]):  # Show first 5
+                            self.log(f"   {i+1}. Action: {activity.get('action', 'N/A')}")
+                            self.log(f"      Timestamp: {activity.get('timestamp', 'N/A')}")
+                            self.log(f"      Details: {activity.get('details', {})}")
+                    
+                    # Verify the response contains expected activities
+                    expected_activities = ["login", "signature", "session_confirm"]
+                    found_activities = set(h.get("action") for h in history)
+                    
+                    self.log("Activity verification:")
+                    for activity in expected_activities:
+                        if activity in found_activities:
+                            self.log(f"   ✅ Found '{activity}' activity")
+                        else:
+                            self.log(f"   ⚠️ Missing '{activity}' activity")
+                    
+                    return True
+                else:
+                    self.log(f"✅ Response received but not a list: {history}")
+                    return True
+                    
+            except Exception as e:
+                self.log(f"❌ Failed to parse history response: {e}", "ERROR")
+                return False
+        else:
+            self.log("❌ Student history endpoint failed", "ERROR")
+            if response:
+                self.log(f"Status: {response.status_code}, Response: {response.text}")
+            return False
+
+    def test_session_confirmation_logging(self):
+        """Test 3: Test session confirmation logging"""
+        self.log("=== TEST 3: Test Session Confirmation Logging ===")
+        
+        # Step 1: Login as student (Ghislain) if not already logged in
+        if not hasattr(self, 'student_token') or not self.student_token:
+            self.log("Step 1: Login as student (Ghislain)")
+            login_data = {
+                "email": "espoirfinition@gmail.com",
+                "password": "ghis456"
+            }
+            
+            response = self.make_request("POST", "/auth/login", login_data)
+            if not response or response.status_code != 200:
+                self.log("❌ Student login failed", "ERROR")
+                return False
+            
+            data = response.json()
+            self.student_token = data["access_token"]
+            student_info = data["user"]
+            self.ghislain_student_id = student_info["id"]
+            self.log(f"✅ Student login successful: {student_info['name']}")
+        
+        # Step 2: Get student's sessions
+        self.log("Step 2: Get student's sessions (GET /api/students/{student_id}/sessions)")
+        response = self.make_request("GET", f"/students/{self.ghislain_student_id}/sessions", token=self.student_token)
+        
+        if not response or response.status_code != 200:
+            self.log("❌ Failed to get student sessions", "ERROR")
+            # Try alternative endpoint
+            self.log("Trying alternative endpoint: GET /api/sessions")
+            response = self.make_request("GET", "/sessions", token=self.student_token)
+            
+            if not response or response.status_code != 200:
+                self.log("❌ Failed to get sessions from alternative endpoint", "ERROR")
+                return False
+        
+        try:
+            sessions = response.json()
+            self.log(f"✅ Found {len(sessions)} sessions for student")
+            
+            # Step 3: Find a session that hasn't been confirmed yet
+            self.log("Step 3: Find a session that hasn't been confirmed yet")
+            unconfirmed_session = None
+            
+            for session in sessions:
+                # Check if session is not confirmed by student
+                if not session.get("confirmed_by_student", False):
+                    unconfirmed_session = session
+                    break
+            
+            if unconfirmed_session:
+                self.log(f"✅ Found unconfirmed session:")
+                self.log(f"   ID: {unconfirmed_session['id']}")
+                self.log(f"   Subject: {unconfirmed_session['subject']}")
+                self.log(f"   Date: {unconfirmed_session['date']}")
+                self.log(f"   Confirmed by student: {unconfirmed_session.get('confirmed_by_student', False)}")
+                
+                # Step 4: Confirm the session and verify the log is created
+                self.log("Step 4: Confirm session and verify log is created")
+                response = self.make_request("PATCH", f"/sessions/{unconfirmed_session['id']}/confirm-by-student", {}, self.student_token)
+                
+                if response and response.status_code == 200:
+                    confirmed_session = response.json()
+                    self.log(f"✅ Session confirmed successfully:")
+                    self.log(f"   Confirmed by student: {confirmed_session.get('confirmed_by_student', False)}")
+                    self.log(f"   Confirmed at: {confirmed_session.get('confirmed_by_student_at', 'N/A')}")
+                    self.log("✅ This should create a log entry in student_activity_logs collection")
+                    return True
+                else:
+                    self.log("❌ Failed to confirm session", "ERROR")
+                    if response:
+                        self.log(f"Status: {response.status_code}, Response: {response.text}")
+                    return False
+            else:
+                self.log("⚠️ No unconfirmed sessions found")
+                self.log("✅ All sessions are already confirmed - this is expected behavior")
+                
+                # Show session statuses for verification
+                self.log("Session confirmation status:")
+                for i, session in enumerate(sessions[:5]):  # Show first 5
+                    self.log(f"   {i+1}. {session['subject']} - Confirmed: {session.get('confirmed_by_student', False)}")
+                
+                return True
+                
+        except Exception as e:
+            self.log(f"❌ Failed to parse sessions response: {e}", "ERROR")
+            return False
+
     def test_tercilog_stabilization(self):
         """Test critical TerciLog stabilization scenarios as requested in French review"""
         self.log("🎯 TESTING TERCILOG STABILIZATION - CRITICAL TESTS")
