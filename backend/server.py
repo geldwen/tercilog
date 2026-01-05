@@ -8982,6 +8982,14 @@ async def sign_livret_accueil(
         {"$set": {"livret_accueil": signature_data}}
     )
     
+    # Logger la signature du livret d'accueil (traçabilité Qualiopi)
+    await log_student_activity(
+        student_id=student_id,
+        student_name=student.get("name", ""),
+        action="livret_accueil_signed",
+        details={"signed_at": signature_data["signed_at"]}
+    )
+    
     return {
         "success": True,
         "message": "Livret d'accueil signé avec succès",
