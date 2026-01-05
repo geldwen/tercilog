@@ -4913,6 +4913,21 @@ async def sign_session(session_id: str, signature_data: dict, current_user: User
     
     logger.info(f"Student {current_user.id} signed session {session_id}. Deducted {duration_hours}h from credit.")
     
+    # Logger l'émargement (traçabilité Qualiopi)
+    await log_student_activity(
+        student_id=current_user.id,
+        student_name=current_user.name,
+        action="signature",
+        details={
+            "session_id": session_id,
+            "subject": session_doc.get("subject", ""),
+            "date": session_doc.get("date", ""),
+            "start_time": session_doc.get("start_time", ""),
+            "end_time": session_doc.get("end_time", ""),
+            "duration_hours": duration_hours
+        }
+    )
+    
     session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
     return Session(**session_doc)
 
