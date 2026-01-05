@@ -3492,18 +3492,57 @@ export default function TeacherDashboard({ user, onLogout }) {
 
 
       {/* Dialog Historique Élève */}
-      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+      <Dialog open={showHistoryDialog} onOpenChange={(open) => { setShowHistoryDialog(open); if (!open) setHistoryCategory('all'); }}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold" style={{color: TERCIFORM_BLUE}}>
               📋 Historique de {historyStudent?.name}
             </DialogTitle>
             <DialogDescription>
-              Traçabilité complète de toutes les actions et événements
+              Traçabilité complète de toutes les actions et événements (Qualiopi)
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-1">
+          {/* Onglets de catégories */}
+          {!loadingHistory && studentHistory.length > 0 && (
+            <div className="border-b border-gray-200 -mx-6 px-6">
+              <div className="flex flex-wrap gap-1">
+                {[
+                  { id: 'all', label: 'Tout', icon: '📋', count: studentHistory.length },
+                  { id: 'connection', label: 'Connexions', icon: '🔐', filter: e => e.category === 'Connexion' || e.type === 'connection' },
+                  { id: 'email', label: 'Emails', icon: '📧', filter: e => e.type === 'email' || e.type === 'notification' || e.category?.toLowerCase().includes('email') },
+                  { id: 'signature', label: 'Émargements', icon: '✍️', filter: e => e.type === 'signature' || e.type === 'signed' || e.category === 'Émargement' || e.category === 'Séance émargée' },
+                  { id: 'session', label: 'Séances', icon: '📚', filter: e => e.type === 'session' || e.type === 'attendance' || e.category === 'Confirmation' || e.category?.includes('Séance') },
+                  { id: 'questionnaire', label: 'Questionnaires', icon: '📝', filter: e => e.category?.includes('Questionnaire') || e.category?.includes('Q1') || e.category?.includes('Q2') || e.category?.includes('Q3') },
+                  { id: 'test', label: 'Tests', icon: '🎯', filter: e => e.category?.includes('Test') || e.category?.includes('T1') || e.category?.includes('T2') || e.category?.includes('T3') },
+                  { id: 'account', label: 'Compte', icon: '👤', filter: e => e.type === 'account' || e.category === 'Compte créé' || e.category === 'Création compte' }
+                ].map(cat => {
+                  const count = cat.id === 'all' ? studentHistory.length : studentHistory.filter(cat.filter || (() => false)).length;
+                  if (cat.id !== 'all' && count === 0) return null;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setHistoryCategory(cat.id)}
+                      className={`px-3 py-2 text-sm font-medium rounded-t-lg transition-colors flex items-center gap-1.5 ${
+                        historyCategory === cat.id
+                          ? 'bg-white border-t-2 border-x border-gray-200 -mb-px'
+                          : 'bg-gray-50 hover:bg-gray-100 text-gray-600'
+                      }`}
+                      style={historyCategory === cat.id ? { borderTopColor: TERCIFORM_BLUE, color: TERCIFORM_BLUE } : {}}
+                    >
+                      <span>{cat.icon}</span>
+                      <span>{cat.label}</span>
+                      <span className={`ml-1 px-1.5 py-0.5 rounded-full text-xs ${historyCategory === cat.id ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-600'}`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="flex-1 overflow-y-auto px-1 mt-4">
             {loadingHistory ? (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
@@ -3518,47 +3557,72 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
             ) : (
               <div className="space-y-1">
-                {/* Timeline */}
+                {/* Timeline filtrée */}
                 <div className="relative">
                   {/* Ligne verticale de la timeline */}
                   <div className="absolute left-[21px] top-0 bottom-0 w-0.5 bg-gray-200"></div>
                   
-                  {studentHistory.map((event, index) => {
+                  {studentHistory
+                    .filter(event => {
+                      if (historyCategory === 'all') return true;
+                      if (historyCategory === 'connection') return event.category === 'Connexion' || event.type === 'connection';
+                      if (historyCategory === 'email') return event.type === 'email' || event.type === 'notification' || event.category?.toLowerCase().includes('email');
+                      if (historyCategory === 'signature') return event.type === 'signature' || event.type === 'signed' || event.category === 'Émargement' || event.category === 'Séance émargée';
+                      if (historyCategory === 'session') return event.type === 'session' || event.type === 'attendance' || event.category === 'Confirmation' || event.category?.includes('Séance');
+                      if (historyCategory === 'questionnaire') return event.category?.includes('Questionnaire') || event.category?.includes('Q1') || event.category?.includes('Q2') || event.category?.includes('Q3');
+                      if (historyCategory === 'test') return event.category?.includes('Test') || event.category?.includes('T1') || event.category?.includes('T2') || event.category?.includes('T3');
+                      if (historyCategory === 'account') return event.type === 'account' || event.category === 'Compte créé' || event.category === 'Création compte';
+                      return true;
+                    })
+                    .map((event, index) => {
                     // Définir les couleurs et icônes selon le type d'événement
                     let bgColor = 'bg-blue-100';
                     let borderColor = 'border-blue-400';
                     let textColor = 'text-blue-800';
                     let icon = '📄';
                     
-                    if (event.type === 'connection' || event.type === 'login') {
+                    const category = event.category?.toLowerCase() || '';
+                    const type = event.type?.toLowerCase() || '';
+                    
+                    if (category.includes('connexion') || type === 'connection' || type === 'login') {
                       bgColor = 'bg-green-100';
                       borderColor = 'border-green-400';
                       textColor = 'text-green-800';
                       icon = '🔐';
-                    } else if (event.type === 'signature' || event.type === 'signed') {
+                    } else if (category.includes('émargement') || category.includes('signé') || type === 'signature' || type === 'signed') {
                       bgColor = 'bg-purple-100';
                       borderColor = 'border-purple-400';
                       textColor = 'text-purple-800';
                       icon = '✍️';
-                    } else if (event.type === 'email' || event.type === 'notification') {
+                    } else if (category.includes('email') || type === 'email' || type === 'notification') {
                       bgColor = 'bg-yellow-100';
                       borderColor = 'border-yellow-400';
                       textColor = 'text-yellow-800';
                       icon = '📧';
-                    } else if (event.type === 'session' || event.type === 'attendance') {
+                    } else if (category.includes('séance') || category.includes('confirmation') || type === 'session' || type === 'attendance') {
                       bgColor = 'bg-indigo-100';
                       borderColor = 'border-indigo-400';
                       textColor = 'text-indigo-800';
                       icon = '📚';
-                    } else if (event.type === 'request' || event.type === 'demand') {
+                    } else if (category.includes('questionnaire') || category.includes('q1') || category.includes('q2') || category.includes('q3')) {
                       bgColor = 'bg-orange-100';
                       borderColor = 'border-orange-400';
                       textColor = 'text-orange-800';
                       icon = '📝';
-                    } else if (event.type === 'document') {
+                    } else if (category.includes('test') || category.includes('t1') || category.includes('t2') || category.includes('t3')) {
                       bgColor = 'bg-pink-100';
                       borderColor = 'border-pink-400';
                       textColor = 'text-pink-800';
+                      icon = '🎯';
+                    } else if (category.includes('compte') || type === 'account') {
+                      bgColor = 'bg-teal-100';
+                      borderColor = 'border-teal-400';
+                      textColor = 'text-teal-800';
+                      icon = '👤';
+                    } else if (type === 'document') {
+                      bgColor = 'bg-cyan-100';
+                      borderColor = 'border-cyan-400';
+                      textColor = 'text-cyan-800';
                       icon = '📎';
                     }
 
@@ -3575,38 +3639,38 @@ export default function TeacherDashboard({ user, onLogout }) {
                     });
 
                     return (
-                      <div key={index} className="relative flex gap-4 pb-6">
+                      <div key={index} className="relative flex gap-4 pb-4">
                         {/* Point sur la timeline */}
-                        <div className={`relative z-10 flex-shrink-0 w-11 h-11 rounded-full ${bgColor} border-4 ${borderColor} flex items-center justify-center text-xl shadow-sm`}>
+                        <div className={`relative z-10 flex-shrink-0 w-10 h-10 rounded-full ${bgColor} border-3 ${borderColor} flex items-center justify-center text-lg shadow-sm`}>
                           {icon}
                         </div>
                         
                         {/* Contenu de l'événement */}
-                        <div className="flex-1 bg-white rounded-lg border-2 border-gray-200 shadow-sm hover:shadow-md transition-shadow p-4">
+                        <div className="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-3">
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${bgColor} ${textColor}`}>
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${bgColor} ${textColor}`}>
                                   {event.category || 'Général'}
                                 </span>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-gray-500 font-medium">
                                   {formattedDate} à {formattedTime}
                                 </span>
                               </div>
-                              <p className="text-sm font-semibold text-gray-900 mb-1">
+                              <p className="text-sm font-semibold text-gray-900">
                                 {event.title}
                               </p>
                               {event.description && (
-                                <p className="text-sm text-gray-600">
+                                <p className="text-xs text-gray-600 mt-0.5">
                                   {event.description}
                                 </p>
                               )}
                               {event.metadata && Object.keys(event.metadata).length > 0 && (
                                 <div className="mt-2 pt-2 border-t border-gray-100">
-                                  <div className="flex flex-wrap gap-2">
+                                  <div className="flex flex-wrap gap-x-3 gap-y-1">
                                     {Object.entries(event.metadata).map(([key, value]) => (
                                       <span key={key} className="text-xs text-gray-500">
-                                        <strong>{key}:</strong> {String(value)}
+                                        <strong className="text-gray-600">{key}:</strong> {String(value)}
                                       </span>
                                     ))}
                                   </div>
