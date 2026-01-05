@@ -8711,10 +8711,8 @@ def main():
             print("Available tests: email, warning, tercilog-stabilization, ghizzo, islem, zazou, zazou-verify, islem-meet, student-debug, formation-needs, jojo-resources, informatique-pathway, informatique-visual, quiz-submission, crash-investigation, informatique-renamed, documents-management, nouveaux-quiz, q3-refactoring, unified-planning-pdf")
             sys.exit(1)
     else:
-        # Run unified planning PDF test by default as requested in review
-        success = tester.test_unified_planning_pdf_functionality()
-        # Always cleanup
-        tester.cleanup_email_test_data()
+        # Run student activity tracking tests by default as requested in review
+        success = tester.test_student_activity_tracking_system()
     
     sys.exit(0 if success else 1)
 
