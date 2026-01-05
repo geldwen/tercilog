@@ -5109,6 +5109,21 @@ async def update_session(session_id: str, data: dict, background_tasks: Backgrou
                     updated_session.get("end_time", "")
                 )
                 logger.info(f"Email de modification de séance programmé pour {student['email']}")
+                
+                # Logger l'envoi de l'email de modification dans l'historique
+                await log_student_activity(
+                    student_id=student["id"],
+                    student_name=student.get("name", ""),
+                    action="email_session_modified",
+                    details={
+                        "session_id": session_id,
+                        "subject": updated_session.get("subject", ""),
+                        "date": updated_session.get("date", ""),
+                        "start_time": updated_session.get("start_time", ""),
+                        "end_time": updated_session.get("end_time", "")
+                    },
+                    actor="teacher"
+                )
     
     return Session(**updated_session)
 
