@@ -3598,6 +3598,11 @@ export default function TeacherDashboard({ user, onLogout }) {
                       borderColor = 'border-purple-400';
                       textColor = 'text-purple-800';
                       icon = '✍️';
+                    } else if (category.includes('visio') || type === 'visio') {
+                      bgColor = 'bg-rose-100';
+                      borderColor = 'border-rose-400';
+                      textColor = 'text-rose-800';
+                      icon = '📹';
                     } else if (category.includes('email') || type === 'email' || type === 'notification') {
                       bgColor = 'bg-yellow-100';
                       borderColor = 'border-yellow-400';
@@ -3618,6 +3623,11 @@ export default function TeacherDashboard({ user, onLogout }) {
                       borderColor = 'border-pink-400';
                       textColor = 'text-pink-800';
                       icon = '🎯';
+                    } else if (category.includes('livret') || type === 'livret') {
+                      bgColor = 'bg-emerald-100';
+                      borderColor = 'border-emerald-400';
+                      textColor = 'text-emerald-800';
+                      icon = '📖';
                     } else if (category.includes('compte') || type === 'account') {
                       bgColor = 'bg-teal-100';
                       borderColor = 'border-teal-400';
