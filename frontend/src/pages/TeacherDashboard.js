@@ -753,6 +753,7 @@ export default function TeacherDashboard({ user, onLogout }) {
     setLoadingHistory(true);
     
     try {
+      const token = localStorage.getItem('token');
       const response = await axios.get(`${API}/students/${studentId}/history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
