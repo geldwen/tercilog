@@ -1474,6 +1474,15 @@ async def login(credentials: UserLogin):
     user_doc.pop('password_hash', None)
     user = User(**user_doc)
     
+    # Logger la connexion pour les élèves (traçabilité Qualiopi)
+    if user.role == "student":
+        await log_student_activity(
+            student_id=user.id,
+            student_name=user.name,
+            action="login",
+            details={"email": user.email}
+        )
+    
     return Token(access_token=access_token, token_type="bearer", user=user)
 
 @api_router.get("/auth/me", response_model=User)
