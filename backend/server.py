@@ -1743,6 +1743,15 @@ async def submit_mid_course_questionnaire(
         await db.mid_course_questionnaires.insert_one(questionnaire)
         logger.info(f"Mid-course questionnaire submitted for student {student_id}")
     
+    # Logger le remplissage du Q2 (traçabilité Qualiopi)
+    student = await db.users.find_one({"id": student_id}, {"_id": 0, "name": 1})
+    await log_student_activity(
+        student_id=student_id,
+        student_name=student.get("name", "Inconnu") if student else "Inconnu",
+        action="questionnaire_q2",
+        details={"parcours": data.get("parcours", "")}
+    )
+    
     return {"message": "Questionnaire à mi-parcours soumis avec succès", "questionnaire": questionnaire}
 
 
