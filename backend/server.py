@@ -9292,6 +9292,29 @@ async def get_student_history(
     }
 
 
+@api_router.post("/students/{student_id}/log-visio")
+async def log_visio_join(
+    student_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Logger quand un élève rejoint une visioconférence (traçabilité Qualiopi)"""
+    if current_user.role != "student" or current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Accès refusé")
+    
+    await log_student_activity(
+        student_id=student_id,
+        student_name=current_user.name,
+        action="visio_join",
+        details={
+            "session_id": data.get("session_id", ""),
+            "meeting_link": data.get("meeting_link", "")
+        }
+    )
+    
+    return {"message": "Visioconférence enregistrée"}
+
+
 @api_router.put("/sessions/{session_id}/times")
 async def update_session_times(
     session_id: str,
