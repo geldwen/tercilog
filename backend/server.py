@@ -4858,6 +4858,20 @@ async def confirm_by_student(session_id: str, current_user: User = Depends(get_c
     
     logger.info(f"Student {current_user.id} confirmed session {session_id}")
     
+    # Logger la confirmation (traçabilité Qualiopi)
+    await log_student_activity(
+        student_id=current_user.id,
+        student_name=current_user.name,
+        action="session_confirm",
+        details={
+            "session_id": session_id,
+            "subject": session_doc.get("subject", ""),
+            "date": session_doc.get("date", ""),
+            "start_time": session_doc.get("start_time", ""),
+            "end_time": session_doc.get("end_time", "")
+        }
+    )
+    
     # Envoyer un email au professeur pour notifier la confirmation
     try:
         send_student_confirmed_email(
