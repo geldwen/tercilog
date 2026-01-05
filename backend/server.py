@@ -9223,7 +9223,7 @@ async def get_student_history(
                 }
             })
     
-    # 3. Récupérer les questionnaires soumis
+    # 3. Récupérer les questionnaires soumis (ancien système)
     questionnaires = await db.questionnaires.find({"student_id": student_id}, {"_id": 0}).to_list(1000)
     
     for questionnaire in questionnaires:
@@ -9237,6 +9237,80 @@ async def get_student_history(
                 "metadata": {
                     "questionnaire_id": questionnaire.get('id'),
                     "parcours": questionnaire.get('parcours', '')
+                }
+            })
+    
+    # 3b. Questionnaire Q1 (formation_needs_questionnaires)
+    q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    if q1 and q1.get('submitted_at'):
+        history.append({
+            "timestamp": q1['submitted_at'],
+            "type": "questionnaire",
+            "category": "Questionnaire Q1",
+            "title": "Questionnaire Q1 - Début de formation",
+            "description": "L'élève a rempli le questionnaire de début de formation (analyse des besoins)",
+            "metadata": {
+                "parcours": q1.get('parcours', '')
+            }
+        })
+    
+    # 3c. Questionnaire Q2 (mid_course_questionnaires)
+    q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    if q2 and q2.get('submitted_at'):
+        history.append({
+            "timestamp": q2['submitted_at'],
+            "type": "questionnaire",
+            "category": "Questionnaire Q2",
+            "title": "Questionnaire Q2 - Mi-parcours",
+            "description": "L'élève a rempli le questionnaire à mi-parcours",
+            "metadata": {
+                "parcours": q2.get('parcours', '')
+            }
+        })
+    
+    # 3d. Questionnaire Q3 (end_course_questionnaires)
+    q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    if q3 and q3.get('submitted_at'):
+        history.append({
+            "timestamp": q3['submitted_at'],
+            "type": "questionnaire",
+            "category": "Questionnaire Q3",
+            "title": "Questionnaire Q3 - Fin de formation",
+            "description": "L'élève a rempli le questionnaire de fin de formation",
+            "metadata": {
+                "parcours": q3.get('parcours', '')
+            }
+        })
+    
+    # 3e. Tests T1, T2, T3 (student_resources avec status SOUMIS)
+    tests = await db.student_resources.find({
+        "student_id": student_id,
+        "resource_type": "TEST",
+        "status": "SOUMIS"
+    }, {"_id": 0}).to_list(100)
+    
+    for test in tests:
+        if test.get('submitted_at'):
+            # Déterminer le type de test
+            test_name = test.get('template_name', test.get('name', 'Test'))
+            test_category = "Test"
+            if "positionnement" in test_name.lower() or "début" in test_name.lower() or "t1" in test_name.lower():
+                test_category = "Test T1"
+            elif "mi" in test_name.lower() or "t2" in test_name.lower():
+                test_category = "Test T2"
+            elif "fin" in test_name.lower() or "t3" in test_name.lower():
+                test_category = "Test T3"
+            
+            history.append({
+                "timestamp": test['submitted_at'].isoformat() if hasattr(test['submitted_at'], 'isoformat') else str(test['submitted_at']),
+                "type": "test",
+                "category": test_category,
+                "title": f"{test_category} - {test_name}",
+                "description": f"L'élève a passé le test - Score: {test.get('score', 'N/A')}%",
+                "metadata": {
+                    "test_name": test_name,
+                    "score": test.get('score', 'N/A'),
+                    "parcours": test.get('parcours', '')
                 }
             })
     
