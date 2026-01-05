@@ -443,6 +443,21 @@ export default function StudentDashboard({ user, onLogout }) {
     return `https://meet.jit.si/${roomName}`;
   };
 
+  // Fonction pour logger la connexion visio
+  const logVisioJoin = async (session) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API}/students/${user.id}/log-visio`, {
+        session_id: session.id,
+        meeting_link: generateJitsiLink(session)
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (error) {
+      console.error('Erreur lors du log visio:', error);
+    }
+  };
+
   // Bouton Visio pour une séance - avec texte "Me connecter à ma séance"
   const getVisioButton = (session) => {
     // Masquer le bouton si la séance est terminée
@@ -459,6 +474,7 @@ export default function StudentDashboard({ user, onLogout }) {
           href={jitsiLink}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => logVisioJoin(session)}
           className="inline-flex items-center justify-center w-10 h-10 rounded-full text-white transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 hover:scale-110"
           style={{ 
             backgroundColor: '#E91E63', // Rose/Magenta
