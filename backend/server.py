@@ -1577,6 +1577,15 @@ async def submit_formation_needs(
         await db.formation_needs_questionnaires.insert_one(questionnaire)
         logger.info(f"Formation needs questionnaire submitted for student {student_id}")
     
+    # Logger le remplissage du Q1 (traçabilité Qualiopi)
+    student = await db.users.find_one({"id": student_id}, {"_id": 0, "name": 1})
+    await log_student_activity(
+        student_id=student_id,
+        student_name=student.get("name", "Inconnu") if student else "Inconnu",
+        action="questionnaire_q1",
+        details={"parcours": data.get("parcours", "")}
+    )
+    
     return {"message": "Questionnaire soumis avec succès", "questionnaire": questionnaire}
 
 
