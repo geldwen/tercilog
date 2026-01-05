@@ -9318,8 +9318,8 @@ async def get_student_history(
     if student.get('livret_accueil', {}).get('signed'):
         history.append({
             "timestamp": student['livret_accueil']['signed_at'],
-            "type": "signature",
-            "category": "Document",
+            "type": "livret",
+            "category": "Livret d'accueil",
             "title": "Livret d'accueil signé",
             "description": "L'élève a signé électroniquement le livret d'accueil TerciForm",
             "metadata": {}
