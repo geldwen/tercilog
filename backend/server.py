@@ -2523,6 +2523,27 @@ async def submit_quiz(
         }
     )
     
+    # Logger la passation du test (traçabilité Qualiopi)
+    test_type = resource.get("resource_type", "TEST")
+    test_name = resource.get("template_name", resource.get("name", "Test"))
+    # Déterminer le type de test (T1, T2, T3)
+    test_action = "test_t1"
+    if "mi" in test_name.lower() or "t2" in test_name.lower():
+        test_action = "test_t2"
+    elif "fin" in test_name.lower() or "t3" in test_name.lower():
+        test_action = "test_t3"
+    
+    await log_student_activity(
+        student_id=current_user.id,
+        student_name=current_user.name,
+        action=test_action,
+        details={
+            "test_name": test_name,
+            "score": round(score_percentage, 2),
+            "points": f"{total_score}/{max_score}"
+        }
+    )
+    
     return {
         "success": True,
         "score": round(score_percentage, 2),
