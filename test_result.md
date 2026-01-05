@@ -117,7 +117,7 @@ frontend:
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the frontend changes on Terciform: verify button changes in student list - 'Planning de formation' button (red) still present, 'Parcours émargé' button (purple) has been REMOVED, historized students indicator shows students with 0h remaining, students with 0 hours are hidden from main list"
+user_problem_statement: "Test the student activity tracking system on Terciform: verify student login is logged, get student history with login activities and other historical events, test session confirmation logging"
 
 backend:
   - task: "Unified Planning PDF Functionality with Signatures"
