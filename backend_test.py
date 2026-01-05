@@ -8706,9 +8706,11 @@ def main():
             success = tester.test_q3_refactoring()
         elif test_name == "unified-planning-pdf":
             success = tester.test_unified_planning_pdf_functionality()
+        elif test_name == "student-activity-tracking":
+            success = tester.test_student_activity_tracking_system()
         else:
             print(f"Unknown test: {test_name}")
-            print("Available tests: email, warning, tercilog-stabilization, ghizzo, islem, zazou, zazou-verify, islem-meet, student-debug, formation-needs, jojo-resources, informatique-pathway, informatique-visual, quiz-submission, crash-investigation, informatique-renamed, documents-management, nouveaux-quiz, q3-refactoring, unified-planning-pdf")
+            print("Available tests: email, warning, tercilog-stabilization, ghizzo, islem, zazou, zazou-verify, islem-meet, student-debug, formation-needs, jojo-resources, informatique-pathway, informatique-visual, quiz-submission, crash-investigation, informatique-renamed, documents-management, nouveaux-quiz, q3-refactoring, unified-planning-pdf, student-activity-tracking")
             sys.exit(1)
     else:
         # Run student activity tracking tests by default as requested in review
