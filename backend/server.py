@@ -9245,6 +9245,40 @@ async def get_student_history(
                 }
             })
     
+    # 6. Récupérer les logs d'activité (traçabilité Qualiopi)
+    activity_logs = await db.student_activity_logs.find({"student_id": student_id}, {"_id": 0}).to_list(1000)
+    
+    # Mapping des actions vers des libellés français
+    action_labels = {
+        "login": ("Connexion", "L'élève s'est connecté à son espace TerciLog"),
+        "logout": ("Déconnexion", "L'élève s'est déconnecté de son espace"),
+        "signature": ("Émargement", "L'élève a signé électroniquement une feuille de présence"),
+        "questionnaire_q1": ("Questionnaire Q1", "L'élève a rempli le questionnaire de début de formation"),
+        "questionnaire_q2": ("Questionnaire Q2", "L'élève a rempli le questionnaire à mi-parcours"),
+        "questionnaire_q3": ("Questionnaire Q3", "L'élève a rempli le questionnaire de fin de formation"),
+        "test_t1": ("Test T1", "L'élève a passé le test de positionnement initial"),
+        "test_t2": ("Test T2", "L'élève a passé le test intermédiaire"),
+        "test_t3": ("Test T3", "L'élève a passé le test final"),
+        "visio_join": ("Visioconférence", "L'élève a rejoint une séance en visioconférence"),
+        "session_confirm": ("Confirmation", "L'élève a confirmé sa présence à une séance"),
+        "contact_formateur": ("Contact formateur", "L'élève a contacté son formateur"),
+        "view_planning": ("Consultation planning", "L'élève a consulté son planning"),
+        "view_resources": ("Consultation ressources", "L'élève a consulté ses ressources")
+    }
+    
+    for log in activity_logs:
+        action = log.get('action', 'unknown')
+        label_info = action_labels.get(action, (action.replace("_", " ").title(), f"Action: {action}"))
+        
+        history.append({
+            "timestamp": log.get('timestamp'),
+            "type": "activity",
+            "category": label_info[0],
+            "title": label_info[0],
+            "description": label_info[1],
+            "metadata": log.get('details', {})
+        })
+    
     # Trier l'historique par date décroissante (plus récent en premier)
     history.sort(key=lambda x: x.get('timestamp', '') if x.get('timestamp') else '', reverse=True)
     
