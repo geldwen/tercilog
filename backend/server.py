@@ -9287,7 +9287,8 @@ async def get_student_history(
         "contact_formateur": ("Contact formateur", "L'élève a contacté son formateur"),
         "view_planning": ("Consultation planning", "L'élève a consulté son planning"),
         "view_resources": ("Consultation ressources", "L'élève a consulté ses ressources"),
-        "email_session_modified": ("Email modification", "Un email de modification de séance a été envoyé")
+        "email_session_modified": ("Email modification", "Un email de modification de séance a été envoyé"),
+        "livret_accueil_signed": ("Livret d'accueil", "L'élève a signé le livret d'accueil")
     }
     
     for log in activity_logs:
