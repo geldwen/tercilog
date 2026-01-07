@@ -437,9 +437,18 @@ export default function StudentDashboard({ user, onLogout }) {
   };
 
   // Générer un lien Jitsi unique pour une séance
+  // Pour les séances de groupe (même date/heure/matière), le lien sera identique
   const generateJitsiLink = (session) => {
-    // Créer un nom de salle unique basé sur l'ID de la séance
-    const roomName = `terciform-${session.id.replace(/-/g, '').substring(0, 12)}`;
+    // Créer un nom de salle basé sur la date, l'heure et la matière
+    // Cela permet à tous les élèves d'une même séance de groupe d'avoir le même lien
+    const dateStr = (session.date || '').replace(/-/g, '');
+    const timeStr = (session.start_time || '').replace(':', '');
+    const subjectClean = (session.subject || 'cours')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+      .substring(0, 15);
+    
+    const roomName = `terciform-${dateStr}-${timeStr}-${subjectClean}`;
     return `https://meet.jit.si/${roomName}`;
   };
 
