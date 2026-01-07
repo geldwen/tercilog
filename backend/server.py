@@ -821,9 +821,9 @@ async def send_session_reminders():
                 continue
         
         if reminders_sent > 0:
-            logger.info(f"🎉 {reminders_sent} rappel(s) 15min envoyé(s) avec succès")
+            logger.info(f"🎉 {reminders_sent} rappel(s) 15min envoyé(s) avec succès (sur {sessions_checked} séances vérifiées)")
         else:
-            logger.info("✓ Aucun rappel 15min à envoyer pour le moment")
+            logger.info(f"✓ Aucun rappel 15min à envoyer pour le moment ({sessions_checked} séances vérifiées)")
     
     except Exception as e:
         logger.error(f"Erreur lors de la vérification des rappels 15min: {e}")
