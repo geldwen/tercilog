@@ -3846,6 +3846,124 @@ export default function TeacherDashboard({ user, onLogout }) {
         onOpenChange={setShowStudentDocumentsDialog}
         student={documentsStudent}
       />
+
+      {/* Modal Sorties de parcours (élèves historisés) */}
+      <Dialog open={showArchivedModal} onOpenChange={setShowArchivedModal}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl" style={{ color: TERCIFORM_BLUE }}>
+              <FolderOpen className="w-6 h-6" />
+              Sorties de parcours
+            </DialogTitle>
+            <DialogDescription>
+              Liste des élèves ayant terminé leur parcours de formation ({archivedStudents.length} élève(s))
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Filtres et actions */}
+          <div className="flex items-center justify-between gap-4 py-3 border-b">
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-gray-600">Filtrer par mois :</label>
+              <select
+                value={archivedMonthFilter}
+                onChange={(e) => setArchivedMonthFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Tous les mois</option>
+                {availableExitMonths.map(month => {
+                  const [year, monthNum] = month.split('-');
+                  const monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+                  return (
+                    <option key={month} value={month}>
+                      {monthNames[parseInt(monthNum)]} {year}
+                    </option>
+                  );
+                })}
+              </select>
+              <span className="text-sm text-gray-500">
+                {filteredArchivedStudents.length} résultat(s)
+              </span>
+            </div>
+            <Button
+              onClick={handleExportArchivedPdf}
+              disabled={exportingArchivedPdf || filteredArchivedStudents.length === 0}
+              style={{ backgroundColor: TERCIFORM_BLUE }}
+              className="text-white"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              {exportingArchivedPdf ? 'Export...' : 'Exporter PDF'}
+            </Button>
+          </div>
+
+          {/* Liste des élèves historisés */}
+          <div className="flex-1 overflow-y-auto py-4">
+            {filteredArchivedStudents.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>Aucun élève historisé{archivedMonthFilter ? ' pour ce mois' : ''}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredArchivedStudents.map(student => {
+                  const exitDateFormatted = student.exit_date 
+                    ? new Date(student.exit_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+                    : 'Non définie';
+                  
+                  return (
+                    <div 
+                      key={student.id} 
+                      className="p-4 bg-gray-50 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: TERCIFORM_BLUE }}>
+                              {(student.name?.[0] || '').toUpperCase()}{(student.last_name?.[0] || '').toUpperCase()}
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-800">
+                                {student.name} {student.last_name}
+                              </h4>
+                              <p className="text-sm text-gray-500">{student.organism || 'Sans organisme'}</p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 mt-3 text-sm">
+                            <div>
+                              <span className="text-gray-500">Email :</span>
+                              <p className="font-medium truncate">{student.email || '-'}</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Heures réalisées :</span>
+                              <p className="font-medium">{student.total_hours || 0}h</p>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Heures restantes :</span>
+                              <p className="font-medium text-orange-600">{student.credit_hours || 0}h</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right ml-4">
+                          <span className="text-xs text-gray-500 block mb-1">Date de sortie</span>
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                            <Calendar className="w-4 h-4 mr-1" />
+                            {exitDateFormatted}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="border-t pt-4">
+            <Button variant="outline" onClick={() => setShowArchivedModal(false)}>
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
