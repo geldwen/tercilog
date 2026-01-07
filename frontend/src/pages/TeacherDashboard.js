@@ -3181,7 +3181,7 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
             )}
 
-            {/* Indicateur élèves historisés (masqués) */}
+            {/* Indicateur élèves historisés (masqués) avec bouton */}
             {filteredStudents === null && students.length > activeStudents.length && (
               <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
                 <p className="text-sm text-gray-600 flex items-center gap-2">
@@ -3189,6 +3189,15 @@ export default function TeacherDashboard({ user, onLogout }) {
                   <span>{students.length - activeStudents.length} élève(s) historisé(s)</span>
                   <span className="text-xs text-gray-400">(0h restantes - utilisez la recherche pour les retrouver)</span>
                 </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowArchivedModal(true)}
+                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                >
+                  <Users className="w-4 h-4 mr-1" />
+                  Voir la liste des sorties de parcours
+                </Button>
               </div>
             )}
 
