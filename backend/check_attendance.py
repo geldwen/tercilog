@@ -38,43 +38,47 @@ async def check_and_send_emails():
         # Import de la fonction d'envoi d'email
         from server import send_attendance_email
         
-        now = datetime.now(timezone.utc)
-        logger.info(f"Checking for sessions to send attendance emails at {now}")
+        # Utiliser l'heure locale (pas UTC) car les séances sont planifiées en heure locale
+        now = datetime.now()
+        logger.info(f"Checking for sessions to send attendance emails at {now.strftime('%Y-%m-%d %H:%M')}")
         
         # Récupérer toutes les séances confirmées qui n'ont pas encore reçu d'email d'émargement
         sessions = await db.sessions.find({
-            "status": "confirmed",
+            "status": {"$in": ["confirmed", "pending"]},  # Inclure aussi pending
             "attendance_email_sent": {"$ne": True}
         }, {"_id": 0}).to_list(1000)
         
         emails_sent = 0
         for session_doc in sessions:
             try:
-                # Construire la date et heure de fin de séance
-                session_datetime_str = f"{session_doc['date']}T{session_doc['end_time']}:00"
+                # Construire la date et heure de fin de séance (en heure locale)
+                session_date = session_doc.get('date', '')
+                session_end_time = session_doc.get('end_time', '')
                 
-                # Parse la date (peut être sans timezone)
+                if not session_date or not session_end_time:
+                    continue
+                
+                session_datetime_str = f"{session_date} {session_end_time}"
+                
                 try:
-                    session_end = datetime.fromisoformat(session_datetime_str)
-                    # Si pas de timezone, on assume UTC
-                    if session_end.tzinfo is None:
-                        session_end = session_end.replace(tzinfo=timezone.utc)
+                    session_end = datetime.strptime(session_datetime_str, "%Y-%m-%d %H:%M")
                 except ValueError:
                     logger.error(f"Invalid date format for session {session_doc.get('id')}: {session_datetime_str}")
                     continue
                 
                 # Si la séance est terminée (heure actuelle > heure de fin)
-                if now > session_end:
-                    logger.info(f"Session {session_doc['id']} ended. Sending attendance email...")
+                # Tolérance de 5 minutes pour éviter les retards d'envoi
+                if now >= session_end:
+                    logger.info(f"Session {session_doc['id']} ended at {session_end_time}. Sending attendance email to {session_doc.get('student_email')}...")
                     
                     # Envoyer l'email d'émargement
                     email_sent = send_attendance_email(
-                        session_doc['student_email'],
-                        session_doc['student_name'],
-                        session_doc['subject'],
-                        session_doc['date'],
-                        session_doc['start_time'],
-                        session_doc['end_time']
+                        session_doc.get('student_email', ''),
+                        session_doc.get('student_name', ''),
+                        session_doc.get('subject', ''),
+                        session_doc.get('date', ''),
+                        session_doc.get('start_time', ''),
+                        session_doc.get('end_time', '')
                     )
                     
                     if email_sent:
