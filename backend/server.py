@@ -8284,12 +8284,14 @@ def generate_planning_grid_pdf(events: list, sessions: list, month: str, month_l
     
     story = []
     
-    # En-tête
+    # En-tête avec logo Terciform
     title_text = f"Planning - {month_label}"
     if center_filter:
         title_text += f" ({center_filter})"
-    story.append(Paragraph(title_text, title_style))
-    story.append(Spacer(0, 8))
+    
+    # Utiliser build_header pour avoir le logo Terciform
+    story.append(build_header(title_text))
+    story.append(Spacer(0, 12))
     
     # Combiner les événements planning et les sessions
     all_events = []
