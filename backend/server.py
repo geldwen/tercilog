@@ -8222,6 +8222,283 @@ async def delete_planning_event(
     return {"message": "Event deleted"}
 
 
+class PlanningExportRequest(BaseModel):
+    """Requête pour l'export PDF du planning"""
+    month: str  # Format: "YYYY-MM"
+    month_label: str  # Ex: "Janvier 2026"
+    center_filter: Optional[str] = None  # Filtre par organisme (optionnel)
+
+
+def generate_planning_grid_pdf(events: list, sessions: list, month: str, month_label: str, center_filter: str = None):
+    """Générer un PDF du planning mensuel global"""
+    buffer = io.BytesIO()
+    
+    # Utiliser le format paysage pour plus de lisibilité
+    from reportlab.lib.pagesizes import A4, landscape
+    page_size = landscape(A4)
+    
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=page_size, 
+        rightMargin=36,
+        leftMargin=36, 
+        topMargin=50,
+        bottomMargin=40
+    )
+    
+    styles = getSampleStyleSheet()
+    
+    # Styles personnalisés
+    title_style = ParagraphStyle(
+        'TitleStyle', 
+        parent=styles['Normal'], 
+        fontSize=16, 
+        fontName='Helvetica-Bold',
+        textColor=colors.HexColor('#1e3a5f'),
+        alignment=TA_CENTER
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'SubtitleStyle', 
+        parent=styles['Normal'], 
+        fontSize=11,
+        textColor=colors.HexColor('#6b7280'),
+        alignment=TA_CENTER
+    )
+    
+    header_style = ParagraphStyle(
+        'HeaderStyle', 
+        parent=styles['Normal'], 
+        fontSize=9, 
+        fontName='Helvetica-Bold', 
+        textColor=colors.white
+    )
+    
+    cell_style = ParagraphStyle(
+        'CellStyle', 
+        parent=styles['Normal'], 
+        fontSize=8, 
+        leading=10, 
+        wordWrap='CJK'
+    )
+    
+    story = []
+    
+    # En-tête
+    title_text = f"Planning - {month_label}"
+    if center_filter:
+        title_text += f" ({center_filter})"
+    story.append(Paragraph(title_text, title_style))
+    story.append(Spacer(0, 8))
+    
+    # Combiner les événements planning et les sessions
+    all_events = []
+    
+    # Ajouter les sessions de la BDD
+    for session in sessions:
+        if session.get('date', '').startswith(month):
+            all_events.append({
+                'date': session.get('date', ''),
+                'start_time': session.get('start_time', ''),
+                'end_time': session.get('end_time', ''),
+                'title': session.get('subject', ''),
+                'organism': session.get('organism', '') or session.get('student_organism', ''),
+                'student_name': session.get('student_name', ''),
+                'status': session.get('status', ''),
+                'type': 'session',
+                'modality': session.get('modality', 'distanciel'),
+                'duration_hours': session.get('duration_hours', 0)
+            })
+    
+    # Ajouter les événements planning locaux
+    for event in events:
+        if event.get('date', '').startswith(month):
+            all_events.append({
+                'date': event.get('date', ''),
+                'start_time': event.get('start_time', ''),
+                'end_time': event.get('end_time', ''),
+                'title': event.get('title', ''),
+                'organism': event.get('organism', ''),
+                'student_name': '',
+                'status': '',
+                'type': 'event',
+                'modality': event.get('modality', 'distanciel'),
+                'duration_hours': 0
+            })
+    
+    # Filtrer par centre si demandé
+    if center_filter:
+        all_events = [e for e in all_events if e.get('organism', '').lower() == center_filter.lower()]
+    
+    # Trier par date puis par heure
+    all_events.sort(key=lambda x: (x.get('date', ''), x.get('start_time', '')))
+    
+    # Statistiques
+    total_events = len(all_events)
+    total_sessions = len([e for e in all_events if e['type'] == 'session'])
+    total_hours = sum(e.get('duration_hours', 0) for e in all_events if e['type'] == 'session')
+    
+    stats_text = f"{total_events} événement(s) • {total_sessions} séance(s) • {total_hours}h de formation"
+    story.append(Paragraph(stats_text, subtitle_style))
+    story.append(Spacer(0, 15))
+    
+    if not all_events:
+        story.append(Paragraph("Aucun événement pour cette période.", cell_style))
+    else:
+        # Tableau des événements
+        # Colonnes: Date (15%) | Horaires (12%) | Intitulé (25%) | Élève (20%) | Organisme (15%) | Type (13%)
+        col_widths = [
+            0.12 * doc.width,  # Date
+            0.10 * doc.width,  # Horaires
+            0.28 * doc.width,  # Intitulé
+            0.22 * doc.width,  # Élève
+            0.15 * doc.width,  # Organisme
+            0.13 * doc.width,  # Type/Modalité
+        ]
+        
+        # En-tête du tableau
+        table_data = [[
+            Paragraph('Date', header_style),
+            Paragraph('Horaires', header_style),
+            Paragraph('Intitulé', header_style),
+            Paragraph('Élève', header_style),
+            Paragraph('Organisme', header_style),
+            Paragraph('Type', header_style)
+        ]]
+        
+        # Jours de la semaine en français
+        days_fr = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+        
+        for event in all_events:
+            # Formater la date
+            try:
+                date_obj = datetime.strptime(event['date'], '%Y-%m-%d')
+                day_name = days_fr[date_obj.weekday()]
+                date_formatted = f"{day_name} {date_obj.strftime('%d/%m')}"
+            except:
+                date_formatted = event.get('date', '')
+            
+            # Horaires
+            horaires = f"{event.get('start_time', '')} - {event.get('end_time', '')}"
+            
+            # Intitulé
+            title = event.get('title', '')
+            
+            # Élève
+            student = event.get('student_name', '') or '-'
+            
+            # Organisme
+            organism = event.get('organism', '') or '-'
+            
+            # Type/Modalité
+            if event['type'] == 'session':
+                modality = '📹 Visio' if event.get('modality') == 'distanciel' else '📍 Présentiel'
+            else:
+                modality = '📋 Bloc planning'
+            
+            table_data.append([
+                Paragraph(date_formatted, cell_style),
+                Paragraph(horaires, cell_style),
+                Paragraph(title, cell_style),
+                Paragraph(student, cell_style),
+                Paragraph(organism, cell_style),
+                Paragraph(modality, cell_style)
+            ])
+        
+        # Créer le tableau
+        table = Table(table_data, colWidths=col_widths, repeatRows=1)
+        table.setStyle(TableStyle([
+            # En-tête
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a5f')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            
+            # Corps
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.HexColor('#1f2937')),
+            
+            # Alternance de couleurs pour les lignes
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+            
+            # Bordures
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+            
+            # Alignement
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            
+            # Padding
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        
+        story.append(table)
+    
+    # Footer avec date de génération
+    story.append(Spacer(0, 20))
+    footer_style = ParagraphStyle(
+        'FooterStyle', 
+        parent=styles['Normal'], 
+        fontSize=8, 
+        textColor=colors.HexColor('#9ca3af'),
+        alignment=TA_CENTER
+    )
+    generation_date = datetime.now().strftime('%d/%m/%Y à %H:%M')
+    story.append(Paragraph(f"Document généré le {generation_date} — Terciform", footer_style))
+    
+    # Construire le PDF
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+
+@api_router.post("/planning/export-pdf")
+async def export_planning_pdf(
+    request: PlanningExportRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Exporter le planning mensuel en PDF"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    try:
+        # Récupérer les événements planning du professeur
+        planning_events = await db.planning_events.find(
+            {"teacher_id": current_user.id},
+            {"_id": 0}
+        ).to_list(1000)
+        
+        # Récupérer les sessions du mois
+        sessions = await db.sessions.find(
+            {"date": {"$regex": f"^{request.month}"}},
+            {"_id": 0}
+        ).to_list(1000)
+        
+        # Générer le PDF
+        pdf_buffer = generate_planning_grid_pdf(
+            events=planning_events,
+            sessions=sessions,
+            month=request.month,
+            month_label=request.month_label,
+            center_filter=request.center_filter
+        )
+        
+        logger.info(f"Planning PDF exported for month {request.month} by teacher {current_user.id}")
+        
+        return Response(
+            content=pdf_buffer.getvalue(),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=Planning_{request.month_label.replace(' ', '_')}.pdf"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error exporting planning PDF: {e}")
+        raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
+
+
 # Fonction supprimée - PyMuPDF utilisé directement dans le code
 
 
