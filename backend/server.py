@@ -8501,6 +8501,194 @@ async def export_planning_pdf(
         raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
 
 
+class ArchivedStudentsExportRequest(BaseModel):
+    """Requête pour l'export PDF des sorties de parcours"""
+    month_filter: Optional[str] = None
+    students: list
+
+
+def generate_archived_students_pdf(students: list, month_filter: str = None):
+    """Générer un PDF des élèves ayant terminé leur parcours"""
+    buffer = io.BytesIO()
+    
+    from reportlab.lib.pagesizes import A4
+    page_size = A4
+    
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=page_size, 
+        rightMargin=40,
+        leftMargin=40, 
+        topMargin=50,
+        bottomMargin=40
+    )
+    
+    styles = getSampleStyleSheet()
+    
+    header_style = ParagraphStyle(
+        'HeaderStyle', 
+        parent=styles['Normal'], 
+        fontSize=9, 
+        fontName='Helvetica-Bold', 
+        textColor=colors.white
+    )
+    
+    cell_style = ParagraphStyle(
+        'CellStyle', 
+        parent=styles['Normal'], 
+        fontSize=8, 
+        leading=10, 
+        wordWrap='CJK'
+    )
+    
+    subtitle_style = ParagraphStyle(
+        'SubtitleStyle', 
+        parent=styles['Normal'], 
+        fontSize=11,
+        textColor=colors.HexColor('#6b7280'),
+        alignment=TA_CENTER
+    )
+    
+    story = []
+    
+    # En-tête avec logo
+    title_text = "Sorties de parcours"
+    if month_filter:
+        month_names = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
+        try:
+            year, month_num = month_filter.split('-')
+            title_text += f" - {month_names[int(month_num)]} {year}"
+        except:
+            pass
+    
+    story.append(build_header(title_text))
+    story.append(Spacer(0, 12))
+    
+    # Statistiques
+    total_students = len(students)
+    total_hours = sum(s.get('total_hours', 0) for s in students)
+    stats_text = f"{total_students} élève(s) • {total_hours}h de formation réalisées au total"
+    story.append(Paragraph(stats_text, subtitle_style))
+    story.append(Spacer(0, 15))
+    
+    if not students:
+        story.append(Paragraph("Aucun élève historisé pour cette période.", cell_style))
+    else:
+        # Tableau
+        col_widths = [
+            0.25 * doc.width,  # Nom
+            0.20 * doc.width,  # Organisme
+            0.20 * doc.width,  # Email
+            0.12 * doc.width,  # Heures réalisées
+            0.10 * doc.width,  # Heures restantes
+            0.13 * doc.width,  # Date sortie
+        ]
+        
+        table_data = [[
+            Paragraph('Élève', header_style),
+            Paragraph('Organisme', header_style),
+            Paragraph('Email', header_style),
+            Paragraph('Heures réalisées', header_style),
+            Paragraph('Restantes', header_style),
+            Paragraph('Date sortie', header_style)
+        ]]
+        
+        for student in students:
+            # Formater la date de sortie
+            exit_date = student.get('exit_date', '')
+            if exit_date:
+                try:
+                    date_obj = datetime.strptime(exit_date, '%Y-%m-%d')
+                    exit_formatted = date_obj.strftime('%d/%m/%Y')
+                except:
+                    exit_formatted = exit_date
+            else:
+                exit_formatted = '-'
+            
+            name = f"{student.get('name', '')} {student.get('last_name', '')}"
+            organism = student.get('organism', '') or '-'
+            email = student.get('email', '') or '-'
+            total_hours = f"{student.get('total_hours', 0)}h"
+            remaining = f"{student.get('credit_hours', 0)}h"
+            
+            table_data.append([
+                Paragraph(name, cell_style),
+                Paragraph(organism, cell_style),
+                Paragraph(email, cell_style),
+                Paragraph(total_hours, cell_style),
+                Paragraph(remaining, cell_style),
+                Paragraph(exit_formatted, cell_style)
+            ])
+        
+        table = Table(table_data, colWidths=col_widths, repeatRows=1)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a5f')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.HexColor('#1f2937')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('ALIGN', (3, 1), (4, -1), 'CENTER'),  # Centrer les heures
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        
+        story.append(table)
+    
+    # Footer
+    story.append(Spacer(0, 20))
+    footer_style = ParagraphStyle(
+        'FooterStyle', 
+        parent=styles['Normal'], 
+        fontSize=8, 
+        textColor=colors.HexColor('#9ca3af'),
+        alignment=TA_CENTER
+    )
+    generation_date = datetime.now().strftime('%d/%m/%Y à %H:%M')
+    story.append(Paragraph(f"Document généré le {generation_date} — Terciform", footer_style))
+    
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+
+@api_router.post("/students/archived/export-pdf")
+async def export_archived_students_pdf(
+    request: ArchivedStudentsExportRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Exporter la liste des élèves historisés (sorties de parcours) en PDF"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    try:
+        pdf_buffer = generate_archived_students_pdf(
+            students=request.students,
+            month_filter=request.month_filter
+        )
+        
+        month_suffix = f"_{request.month_filter}" if request.month_filter else ""
+        filename = f"Sorties_Parcours{month_suffix}.pdf"
+        
+        logger.info(f"Archived students PDF exported by teacher {current_user.id}")
+        
+        return Response(
+            content=pdf_buffer.getvalue(),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error exporting archived students PDF: {e}")
+        raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
+
+
 # Fonction supprimée - PyMuPDF utilisé directement dans le code
 
 
