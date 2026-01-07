@@ -105,6 +105,52 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
     hourly_rate: ''
   });
   const [selectedCenter, setSelectedCenter] = useState('');
+  const [exportingPdf, setExportingPdf] = useState(false);
+
+  // Fonction d'export PDF du planning
+  const handleExportPlanningPdf = async () => {
+    setExportingPdf(true);
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Préparer les données à envoyer au backend
+      const exportData = {
+        month: activeMonth,
+        month_label: currentMonth.name,
+        center_filter: selectedCenter || null
+      };
+      
+      const response = await axios.post(`${API}/planning/export-pdf`, exportData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        responseType: 'blob'
+      });
+      
+      // Créer un lien de téléchargement
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Nom du fichier avec le mois et le filtre éventuel
+      const centerSuffix = selectedCenter ? `_${selectedCenter.replace(/\s+/g, '_')}` : '';
+      link.download = `Planning_${currentMonth.name.replace(/\s+/g, '_')}${centerSuffix}.pdf`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Planning exporté en PDF');
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
+      toast.error('Erreur lors de l\'export du planning');
+    } finally {
+      setExportingPdf(false);
+    }
+  };
 
   useEffect(() => {
     const loadPlanningData = async () => {
