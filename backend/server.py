@@ -579,15 +579,18 @@ async def send_session_reminders():
         
         # Calculer la fenêtre de temps : séances qui commencent dans 13-17 minutes
         # (fenêtre de 4 minutes pour éviter de rater une séance entre deux checks)
-        now = datetime.now(timezone.utc)
+        now = datetime.now()
+        today = now.strftime('%Y-%m-%d')
         
         # Chercher les séances à venir qui n'ont pas encore reçu de rappel
         sessions = await db.sessions.find({
             "reminder_15min_sent": {"$ne": True},  # Pas encore envoyé
-            "status": {"$in": ["pending", "confirmed"]}  # Séance active
+            "status": {"$in": ["pending", "confirmed"]},  # Séance active
+            "date": {"$gte": today}  # Seulement les séances d'aujourd'hui et à venir
         }).to_list(1000)
         
         reminders_sent = 0
+        sessions_checked = 0
         
         for session in sessions:
             try:
@@ -603,8 +606,13 @@ async def send_session_reminders():
                 session_datetime = datetime.strptime(session_datetime_str, "%Y-%m-%d %H:%M")
                 
                 # Vérifier si la séance est dans la fenêtre de 15 minutes (13-17 min)
-                time_until_session = session_datetime - datetime.now()
+                time_until_session = session_datetime - now
                 minutes_until = time_until_session.total_seconds() / 60
+                sessions_checked += 1
+                
+                # Log pour debug (seulement si dans les prochaines 60 minutes)
+                if 0 <= minutes_until <= 60:
+                    logger.info(f"📋 Séance proche: {session.get('student_name')} - {session_date} {session_time} - dans {minutes_until:.0f} min")
                 
                 if 13 <= minutes_until <= 17:
                     # Récupérer les infos de l'étudiant
