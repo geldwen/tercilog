@@ -119,6 +119,18 @@ frontend:
 
 user_problem_statement: "Test the student activity tracking system on Terciform: verify student login is logged, get student history with login activities and other historical events, test session confirmation logging"
 
+  - task: "Planning Grid PDF Export"
+    implemented: true
+    working: true
+    file: "server.py, PlanningView.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "✅ PLANNING PDF EXPORT IMPLEMENTED AND TESTED: Created POST /api/planning/export-pdf endpoint that generates a PDF of the monthly planning view. Features: 1) Combines sessions from DB and local planning events, 2) Filter by center/organism, 3) Landscape A4 format for better readability, 4) Shows Date, Horaires, Intitulé, Élève, Organisme, Type columns, 5) Sorted by date/time, 6) Statistics (total events, sessions, hours), 7) Footer with generation date. Frontend button already existed in PlanningView.js (handleExportPlanningPdf function). Tested via curl and Playwright automation: PDF downloads correctly with proper filename (Planning_Janvier_2026.pdf), toast success message shown. Backend generates valid PDF starting with %PDF-1.4."
+
 backend:
   - task: "Student Activity Tracking System (Qualiopi Compliance)"
     implemented: true
