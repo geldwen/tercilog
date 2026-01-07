@@ -1397,7 +1397,14 @@ export default function TeacherDashboard({ user, onLogout }) {
             {/* Bulle Séance du jour - Compacte avec icônes */}
             {(() => {
               const today = new Date().toISOString().split('T')[0];
-              const todaySessions = sessions.filter(s => s.date === today);
+              const todaySessions = sessions
+                .filter(s => s.date === today)
+                .sort((a, b) => {
+                  // Trier par heure de début (start_time)
+                  const timeA = a.start_time || '00:00';
+                  const timeB = b.start_time || '00:00';
+                  return timeA.localeCompare(timeB);
+                });
               const todayFormatted = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
               
               // Vérifier s'il y a des séances en visio aujourd'hui
