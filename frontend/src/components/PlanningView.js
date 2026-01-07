@@ -557,8 +557,22 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
           <ChevronRight className="w-5 h-5 text-gray-600" />
         </button>
         
-        <div className="ml-auto text-sm text-gray-500">
-          Période : <span className="font-medium text-blue-700">{MONTH_NAMES.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</span>
+        <div className="ml-auto flex items-center gap-3">
+          {/* Bouton Export PDF */}
+          <Button
+            onClick={handleExportPlanningPdf}
+            disabled={exportingPdf}
+            variant="outline"
+            size="sm"
+            className="border-red-300 text-red-600 hover:bg-red-50"
+          >
+            <Download className="w-4 h-4 mr-1" />
+            {exportingPdf ? 'Export...' : 'Export PDF'}
+          </Button>
+          
+          <span className="text-sm text-gray-500">
+            Période : <span className="font-medium text-blue-700">{MONTH_NAMES.find(m => m.num === selectedMonthNum)?.label} {selectedYear}</span>
+          </span>
         </div>
       </div>
 
