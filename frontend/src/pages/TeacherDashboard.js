@@ -1061,12 +1061,103 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   // Liste des élèves actifs (avec heures restantes > 0)
   // Les élèves à 0 heures sont "historisés" : masqués de la liste mais consultables via recherche
+  // Exception: Laura Lenfant est toujours historisée
   const activeStudents = useMemo(() => {
     return students.filter(student => {
       const remainingHours = student.credit_hours || 0;
+      // Exception spécifique pour Laura Lenfant (toujours historisée)
+      const studentName = `${student.name || ''} ${student.last_name || ''}`.toLowerCase();
+      if (studentName.includes('laura') && studentName.includes('lenfant')) {
+        return false; // Toujours historisée
+      }
       return remainingHours > 0;
     });
   }, [students]);
+
+  // Liste des élèves historisés (pour le modal)
+  const archivedStudents = useMemo(() => {
+    return students.filter(student => {
+      const remainingHours = student.credit_hours || 0;
+      const studentName = `${student.name || ''} ${student.last_name || ''}`.toLowerCase();
+      // Historisé si 0h restantes OU si c'est Laura Lenfant
+      if (studentName.includes('laura') && studentName.includes('lenfant')) {
+        return true;
+      }
+      return remainingHours <= 0;
+    }).map(student => {
+      // Trouver la dernière séance signée pour avoir la date de sortie
+      const studentSessions = sessions
+        .filter(s => s.student_id === student.id && s.signature_status === 'signed')
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+      const lastSession = studentSessions[0];
+      return {
+        ...student,
+        exit_date: lastSession?.date || null,
+        exit_month: lastSession?.date?.substring(0, 7) || null
+      };
+    });
+  }, [students, sessions]);
+
+  // State pour le modal des sorties de parcours
+  const [showArchivedModal, setShowArchivedModal] = useState(false);
+  const [archivedMonthFilter, setArchivedMonthFilter] = useState('');
+  const [exportingArchivedPdf, setExportingArchivedPdf] = useState(false);
+
+  // Liste des mois disponibles pour le filtre
+  const availableExitMonths = useMemo(() => {
+    const months = [...new Set(archivedStudents.map(s => s.exit_month).filter(Boolean))];
+    return months.sort().reverse();
+  }, [archivedStudents]);
+
+  // Élèves historisés filtrés par mois
+  const filteredArchivedStudents = useMemo(() => {
+    if (!archivedMonthFilter) return archivedStudents;
+    return archivedStudents.filter(s => s.exit_month === archivedMonthFilter);
+  }, [archivedStudents, archivedMonthFilter]);
+
+  // Export PDF des sorties de parcours
+  const handleExportArchivedPdf = async () => {
+    setExportingArchivedPdf(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API}/students/archived/export-pdf`, {
+        month_filter: archivedMonthFilter || null,
+        students: filteredArchivedStudents.map(s => ({
+          id: s.id,
+          name: s.name,
+          last_name: s.last_name,
+          organism: s.organism,
+          email: s.email,
+          total_hours: s.total_hours,
+          credit_hours: s.credit_hours,
+          exit_date: s.exit_date
+        }))
+      }, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const monthSuffix = archivedMonthFilter ? `_${archivedMonthFilter}` : '';
+      link.download = `Sorties_Parcours${monthSuffix}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('PDF des sorties de parcours exporté');
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
+      toast.error('Erreur lors de l\'export PDF');
+    } finally {
+      setExportingArchivedPdf(false);
+    }
+  };
 
   // Fonction pour normaliser le texte (enlever accents et mettre en minuscules)
   const normalizeSearchText = (text) => {
