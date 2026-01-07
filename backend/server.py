@@ -9650,13 +9650,34 @@ async def get_student_history(
         "livret_accueil_signed": ("Livret d'accueil", "L'élève a signé le livret d'accueil")
     }
     
+    # Mapping des actions vers des types pour le filtrage frontend
+    action_type_mapping = {
+        "login": "login",
+        "logout": "logout",
+        "signature": "signature",
+        "questionnaire_q1": "questionnaire",
+        "questionnaire_q2": "questionnaire",
+        "questionnaire_q3": "questionnaire",
+        "test_t1": "test",
+        "test_t2": "test",
+        "test_t3": "test",
+        "visio_join": "visio",
+        "session_confirm": "session",
+        "contact_formateur": "contact",
+        "view_planning": "planning",
+        "view_resources": "resources",
+        "email_session_modified": "email",
+        "livret_accueil_signed": "livret"
+    }
+    
     for log in activity_logs:
         action = log.get('action', 'unknown')
         label_info = action_labels.get(action, (action.replace("_", " ").title(), f"Action: {action}"))
+        event_type = action_type_mapping.get(action, "activity")
         
         history.append({
             "timestamp": log.get('timestamp'),
-            "type": "activity",
+            "type": event_type,  # Type spécifique pour le filtrage frontend
             "category": label_info[0],
             "title": label_info[0],
             "description": label_info[1],
