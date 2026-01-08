@@ -13,6 +13,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from passlib.context import CryptContext
 from jose import JWTError, jwt
+import pytz  # Fuseau horaire Paris
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
