@@ -124,12 +124,13 @@ async def check_48h_confirmation_reminders():
         # Import des fonctions d'envoi d'email
         from server import send_no_confirmation_reminder_to_teacher, send_no_confirmation_reminder_to_student
         
-        now = datetime.now(timezone.utc)
-        # Calculer la fenêtre de 48h (entre 48h et 47h30 pour éviter les doublons)
+        # TOUJOURS utiliser l'heure de Paris
+        now = datetime.now(PARIS_TZ)
+        # Calculer la fenêtre de 48h (entre 47h30 et 48h30 pour éviter les doublons)
         target_time_start = now + timedelta(hours=47, minutes=30)
         target_time_end = now + timedelta(hours=48, minutes=30)
         
-        logger.info(f"Checking for sessions between {target_time_start} and {target_time_end} without confirmation")
+        logger.info(f"Checking for sessions between {target_time_start.strftime('%Y-%m-%d %H:%M')} and {target_time_end.strftime('%Y-%m-%d %H:%M')} (Paris) without confirmation")
         
         # Récupérer toutes les séances confirmées (par le prof) mais pas confirmées par l'élève
         # dans la fenêtre de 48h
