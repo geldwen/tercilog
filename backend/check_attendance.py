@@ -2,12 +2,14 @@
 """
 Service pour vérifier et envoyer les emails d'émargement automatiquement
 Tourne en boucle et vérifie toutes les 2 minutes
+IMPORTANT: Utilise toujours le fuseau horaire Europe/Paris
 """
 import asyncio
 import sys
 import os
 from pathlib import Path
 import time
+import pytz  # Fuseau horaire Paris
 
 # Ajouter le répertoire parent au path
 ROOT_DIR = Path(__file__).parent
@@ -27,6 +29,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Fuseau horaire de Paris
+PARIS_TZ = pytz.timezone('Europe/Paris')
+
 async def check_and_send_emails():
     """Vérifie les séances terminées et envoie les emails d'émargement"""
     try:
@@ -38,9 +43,9 @@ async def check_and_send_emails():
         # Import de la fonction d'envoi d'email
         from server import send_attendance_email
         
-        # Utiliser l'heure locale (pas UTC) car les séances sont planifiées en heure locale
-        now = datetime.now()
-        logger.info(f"Checking for sessions to send attendance emails at {now.strftime('%Y-%m-%d %H:%M')}")
+        # TOUJOURS utiliser l'heure de Paris
+        now = datetime.now(PARIS_TZ)
+        logger.info(f"Checking for sessions to send attendance emails at {now.strftime('%Y-%m-%d %H:%M')} (Paris)")
         
         # Récupérer toutes les séances confirmées qui n'ont pas encore reçu d'email d'émargement
         sessions = await db.sessions.find({
@@ -51,7 +56,7 @@ async def check_and_send_emails():
         emails_sent = 0
         for session_doc in sessions:
             try:
-                # Construire la date et heure de fin de séance (en heure locale)
+                # Construire la date et heure de fin de séance (en heure Paris)
                 session_date = session_doc.get('date', '')
                 session_end_time = session_doc.get('end_time', '')
                 
