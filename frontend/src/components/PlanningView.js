@@ -684,23 +684,24 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                       return (
                         <div
                           key={event.groupKey || event.id || idx}
-                          className="absolute rounded shadow-md overflow-hidden px-1.5 py-1 group"
+                          className="absolute rounded shadow-md overflow-hidden px-2 py-1.5 group cursor-pointer hover:shadow-lg transition-shadow"
                           style={{
                             top: pos.top,
                             height: pos.height,
-                            left: `calc(${laneIndex * laneWidth}% + 1px)`,
-                            width: `calc(${laneWidth}% - 2px)`,
-                            minHeight: '60px',
+                            left: `calc(${laneIndex * laneWidth}% + 2px)`,
+                            width: `calc(${laneWidth}% - 4px)`,
+                            minHeight: '50px',
                             backgroundColor: event.color || '#3B82F6',
                             color: 'white',
                             position: 'absolute',
                             fontSize: '11px',
-                            lineHeight: '1.2'
+                            lineHeight: '1.3',
+                            borderLeft: '3px solid rgba(0,0,0,0.2)'
                           }}
                           title={`${title}\n${organism}\n${displayStudents}\n${event.start_time}-${event.end_time}`}
                         >
                           {/* Menu contextuel */}
-                          <div className="absolute top-0.5 right-0.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <button
