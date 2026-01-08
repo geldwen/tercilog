@@ -147,9 +147,9 @@ async def check_48h_confirmation_reminders():
                 session_datetime_str = f"{session_doc['date']}T{session_doc['start_time']}:00"
                 
                 try:
-                    session_start = datetime.fromisoformat(session_datetime_str)
-                    if session_start.tzinfo is None:
-                        session_start = session_start.replace(tzinfo=timezone.utc)
+                    session_start_naive = datetime.strptime(f"{session_doc['date']} {session_doc['start_time']}", "%Y-%m-%d %H:%M")
+                    # Localiser en fuseau Paris
+                    session_start = PARIS_TZ.localize(session_start_naive)
                 except ValueError:
                     logger.error(f"Invalid date format for session {session_doc.get('id')}: {session_datetime_str}")
                     continue
