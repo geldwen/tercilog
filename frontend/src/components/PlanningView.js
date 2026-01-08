@@ -242,9 +242,9 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
     return Array.from(groups.values());
   };
 
-  // Grouper par date et fusionner participants
+  // Grouper par date et fusionner participants (utiliser les événements filtrés)
   const eventsByDate = {};
-  allEvents.forEach(event => {
+  filteredEvents.forEach(event => {
     if (!eventsByDate[event.date]) {
       eventsByDate[event.date] = [];
     }
