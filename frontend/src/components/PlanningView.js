@@ -512,10 +512,10 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
     }
   };
 
-  // Obtenir liste unique des centres
+  // Obtenir liste unique des centres (depuis sessions et planningEvents)
   const uniqueCenters = [...new Set([
-    ...sessions.map(s => s.organism).filter(Boolean),
-    ...planningEvents.map(e => e.center).filter(Boolean)
+    ...sessions.map(s => s.organism || s.student_organism).filter(Boolean),
+    ...planningEvents.map(e => e.center || e.organism).filter(Boolean)
   ])];
 
   return (
