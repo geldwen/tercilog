@@ -206,6 +206,14 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
     }))
   ];
 
+  // Filtrer par centre si un centre est sélectionné
+  const filteredEvents = selectedCenter 
+    ? allEvents.filter(event => {
+        const eventCenter = event.organism || event.center || '';
+        return eventCenter.toLowerCase() === selectedCenter.toLowerCase();
+      })
+    : allEvents;
+
   // FUSION DES PARTICIPANTS : Grouper par créneau IDENTIQUE (date + heure + organisme)
   const groupEventsByTimeSlot = (events) => {
     const groups = new Map();
