@@ -574,14 +574,17 @@ async def send_session_reminders():
     """
     Fonction qui vérifie toutes les séances qui commencent dans 15 minutes
     et envoie des rappels par email aux élèves.
+    IMPORTANT: Utilise le fuseau horaire Europe/Paris pour tous les calculs.
     """
     try:
         logger.info("🔔 Vérification des rappels de séances (15 min)...")
         
-        # Calculer la fenêtre de temps : séances qui commencent dans 13-17 minutes
-        # (fenêtre de 4 minutes pour éviter de rater une séance entre deux checks)
-        now = datetime.now()
-        today = now.strftime('%Y-%m-%d')
+        # TOUJOURS utiliser le fuseau horaire de Paris
+        paris_tz = pytz.timezone('Europe/Paris')
+        now_paris = datetime.now(paris_tz)
+        today = now_paris.strftime('%Y-%m-%d')
+        
+        logger.info(f"🕐 Heure actuelle Paris: {now_paris.strftime('%Y-%m-%d %H:%M:%S')}")
         
         # Chercher les séances à venir qui n'ont pas encore reçu de rappel
         sessions = await db.sessions.find({
@@ -602,18 +605,19 @@ async def send_session_reminders():
                 if not session_date or not session_time:
                     continue
                 
-                # Parser la date et l'heure
+                # Parser la date et l'heure EN FUSEAU PARIS
                 session_datetime_str = f"{session_date} {session_time}"
-                session_datetime = datetime.strptime(session_datetime_str, "%Y-%m-%d %H:%M")
+                session_datetime_naive = datetime.strptime(session_datetime_str, "%Y-%m-%d %H:%M")
+                session_datetime = paris_tz.localize(session_datetime_naive)
                 
-                # Vérifier si la séance est dans la fenêtre de 15 minutes (13-17 min)
-                time_until_session = session_datetime - now
+                # Calculer la différence avec l'heure actuelle de Paris
+                time_until_session = session_datetime - now_paris
                 minutes_until = time_until_session.total_seconds() / 60
                 sessions_checked += 1
                 
                 # Log pour debug (seulement si dans les prochaines 60 minutes)
                 if 0 <= minutes_until <= 60:
-                    logger.info(f"📋 Séance proche: {session.get('student_name')} - {session_date} {session_time} - dans {minutes_until:.0f} min")
+                    logger.info(f"📋 Séance proche: {session.get('student_name')} - {session_date} {session_time} - dans {minutes_until:.0f} min (Paris)")
                 
                 if 13 <= minutes_until <= 17:
                     # Récupérer les infos de l'étudiant
