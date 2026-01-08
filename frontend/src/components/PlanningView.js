@@ -753,34 +753,38 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
                             </DropdownMenu>
                           </div>
 
-                          {/* Icônes en haut à gauche */}
-                          <div className="absolute top-0.5 left-0.5 flex gap-0.5">
-                            {event.origin === 'emergent' && (
+                          {/* Icône emergent en haut à gauche */}
+                          {event.origin === 'emergent' && (
+                            <div className="absolute top-0.5 left-0.5">
                               <Lock size={9} className="text-white/70" />
-                            )}
+                            </div>
+                          )}
+
+                          {/* Header avec heure et icône groupe */}
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold text-white" style={{ fontSize: '10px' }}>
+                              {event.start_time}–{event.end_time}
+                            </span>
                             {studentsList.length > 1 && (
-                              <Users size={9} className="text-white/70" />
+                              <Users size={12} className="text-white/80" />
                             )}
                           </div>
 
-                          {/* Contenu compact vertical */}
-                          <div className="flex flex-col h-full pt-3 gap-0.5" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
-                            <div className="font-bold text-white" style={{ fontSize: '11px' }}>
+                          {/* Contenu principal */}
+                          <div className="space-y-0.5">
+                            <div className="font-bold text-white leading-tight" style={{ fontSize: '11px' }}>
                               {title}
                             </div>
-                            {organism && (
-                              <div className="text-white/90" style={{ fontSize: '10px' }}>
-                                {organism}
-                              </div>
-                            )}
                             {displayStudents && (
-                              <div className="text-white font-medium" style={{ fontSize: '10px', wordWrap: 'break-word' }}>
+                              <div className="text-white/90 leading-tight" style={{ fontSize: '10px' }}>
                                 {displayStudents}
                               </div>
                             )}
-                            <div className="text-white/70 mt-auto" style={{ fontSize: '9px' }}>
-                              {event.start_time}–{event.end_time}
-                            </div>
+                            {organism && (
+                              <div className="text-white/70 leading-tight" style={{ fontSize: '9px' }}>
+                                {organism}
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
