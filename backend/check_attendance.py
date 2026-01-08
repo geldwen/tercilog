@@ -66,12 +66,14 @@ async def check_and_send_emails():
                 session_datetime_str = f"{session_date} {session_end_time}"
                 
                 try:
-                    session_end = datetime.strptime(session_datetime_str, "%Y-%m-%d %H:%M")
+                    session_end_naive = datetime.strptime(session_datetime_str, "%Y-%m-%d %H:%M")
+                    # Localiser en fuseau Paris
+                    session_end = PARIS_TZ.localize(session_end_naive)
                 except ValueError:
                     logger.error(f"Invalid date format for session {session_doc.get('id')}: {session_datetime_str}")
                     continue
                 
-                # Si la séance est terminée (heure actuelle > heure de fin)
+                # Si la séance est terminée (heure actuelle Paris > heure de fin Paris)
                 # Tolérance de 5 minutes pour éviter les retards d'envoi
                 if now >= session_end:
                     logger.info(f"Session {session_doc['id']} ended at {session_end_time}. Sending attendance email to {session_doc.get('student_email')}...")
