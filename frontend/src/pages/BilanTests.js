@@ -64,7 +64,7 @@ const TestResultModal = ({ isOpen, onClose, studentName, testType, testData }) =
   
   const score = testData?.score;
   const maxScore = testData?.max_score || 100;
-  const percentage = score !== null && score !== undefined ? Math.round((score / maxScore) * 100) : null;
+  const percentage = score !== null && score !== undefined ? roundScore((score / maxScore) * 100) : null;
   const submittedAt = testData?.submitted_at || testData?.date;
   
   // Déterminer le niveau
