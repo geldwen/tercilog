@@ -4632,7 +4632,6 @@ async def create_bulk_sessions(
             for s in student_sessions:
                 # Formater la date
                 try:
-                    from datetime import datetime
                     date_obj = datetime.strptime(s.date, "%Y-%m-%d")
                     days_fr = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
                     months_fr = ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
