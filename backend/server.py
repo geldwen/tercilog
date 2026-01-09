@@ -961,60 +961,93 @@ def send_welcome_email(to_email: str, student_name: str, student_email: str, tem
 
 
 def send_session_reminder_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str, meeting_link: str = ""):
-    """Envoyer l'email de rappel 5 minutes avant la séance"""
+    """Envoyer l'email de rappel 15 minutes avant la séance avec design Terciform"""
     portal_url = get_student_portal_url()
+    
+    # Formater la date
+    try:
+        from datetime import datetime
+        date_obj = datetime.strptime(date, "%Y-%m-%d")
+        days_fr = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
+        months_fr = ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+        formatted_date = f"{days_fr[date_obj.weekday()]} {date_obj.day} {months_fr[date_obj.month]} {date_obj.year}"
+    except:
+        formatted_date = date
     
     meeting_section = ""
     if meeting_link:
         meeting_section = f"""
-        <div style="background-color: #e8f0f7; padding: 15px; border-radius: 5px; margin: 20px 0;">
-          <p style="margin: 0; font-weight: bold; color: #1e3a5f;">🎥 Visioconférence</p>
-          <p style="margin: 10px 0 0 0;">Vous pouvez rejoindre la séance depuis votre espace élève ou directement via ce lien :</p>
-          <div style="text-align: center; margin-top: 15px;">
-            <a href="{meeting_link}" class="button" style="background-color: #28a745;">Rejoindre la visioconférence</a>
-          </div>
+        <div style="text-align: center; margin: 20px 0;">
+            <a href="{meeting_link}" 
+               style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 14px;">
+                🎥 Rejoindre la visioconférence
+            </a>
         </div>
         """
     
     html_body = f"""
-    <html>
-      <head>
-        <style>
-          body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-          .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-          .header {{ background-color: #1e3a5f; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
-          .content {{ background-color: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }}
-          .button {{ display: inline-block; background-color: #1e3a5f; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 10px; }}
-          .footer {{ text-align: center; margin-top: 20px; font-size: 12px; color: #666; }}
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h2>⏰ TerciForm - Rappel de séance</h2>
-          </div>
-          <div class="content">
-            <p>Bonjour {student_name},</p>
-            <p style="font-size: 18px; color: #1e3a5f; font-weight: bold;">Votre séance commence dans 5 minutes !</p>
-            <ul>
-              <li><strong>Matière :</strong> {subject}</li>
-              <li><strong>Date :</strong> {date}</li>
-              <li><strong>Horaires :</strong> {start_time} - {end_time}</li>
-            </ul>
-            {meeting_section}
-            <div style="text-align: center; margin-top: 20px;">
-              <a href="{portal_url}" class="button">Accéder à mon espace élève</a>
-            </div>
-          </div>
-          <div class="footer">
-            <p>Cet email a été envoyé automatiquement par TerciForm</p>
-          </div>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        
+        <!-- Header avec logo Terciform -->
+        <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; text-align: center;">
+            <img src="https://customer-assets.emergentagent.com/job_edutrackplus/assets/terciform_logo.png" alt="Terciform" style="height: 60px; width: auto; margin-bottom: 15px;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">⏰ Rappel de séance - 15 minutes</h1>
         </div>
-      </body>
-    </html>
+        
+        <!-- Contenu principal -->
+        <div style="padding: 30px;">
+            <p style="color: #333; font-size: 16px; margin-bottom: 15px;">
+                Bonjour <strong>{student_name}</strong>,
+            </p>
+            
+            <div style="background-color: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+                <p style="color: #dc2626; margin: 0; font-size: 18px; font-weight: bold;">
+                    🚨 Votre séance commence dans 15 minutes !
+                </p>
+            </div>
+            
+            <!-- Détails de la séance -->
+            <div style="background-color: #f0f9ff; border-left: 4px solid #1e3a5f; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+                <h3 style="color: #1e3a5f; margin: 0 0 15px 0; font-size: 18px;">{subject}</h3>
+                <p style="color: #666; margin: 5px 0; font-size: 14px;">
+                    📅 <strong>{formatted_date}</strong>
+                </p>
+                <p style="color: #666; margin: 5px 0; font-size: 14px;">
+                    🕐 <strong>{start_time} - {end_time}</strong>
+                </p>
+            </div>
+            
+            {meeting_section}
+            
+            <!-- Bouton espace élève -->
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{portal_url}" 
+                   style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 14px;">
+                    📱 Accéder à mon espace élève
+                </a>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
+            <p style="color: #999; font-size: 12px; margin: 0;">
+                Terciform - Organisme de formation professionnelle
+            </p>
+        </div>
+        
+    </div>
+</body>
+</html>
     """
     
-    return send_email(to_email, "⏰ TerciForm - Votre séance commence dans 5 minutes", html_body)
+    return send_email(to_email, "⏰ TerciForm - Votre séance commence dans 15 minutes", html_body)
 
 
 def send_session_modified_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str):
