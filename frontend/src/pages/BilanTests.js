@@ -50,6 +50,12 @@ const TEST_SHORT_LABELS = {
   "T3": "T3 (Final)"
 };
 
+// Fonction utilitaire pour arrondir les pourcentages (pas de virgule)
+const roundScore = (score) => {
+  if (score === null || score === undefined) return null;
+  return Math.round(score);
+};
+
 // ============================================================================
 // Modal de consultation des résultats
 // ============================================================================
