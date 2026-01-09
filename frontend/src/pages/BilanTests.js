@@ -299,13 +299,13 @@ export default function BilanTests() {
     const rows = lignes.map((e) => {
       const getScoreDisplay = (test) => {
         if (!test || test.score === null || test.score === undefined) return "En attente";
-        return `${test.score}%`;
+        return `${roundScore(test.score)}%`;
       };
       
-      // Calculer progression individuelle
+      // Calculer progression individuelle (arrondie)
       let progression = "-";
       if (e.t1?.score !== null && e.t1?.score !== undefined && e.t3?.score !== null && e.t3?.score !== undefined) {
-        const diff = (e.t3.score || 0) - (e.t1.score || 0);
+        const diff = roundScore((e.t3.score || 0) - (e.t1.score || 0));
         progression = diff > 0 ? `+${diff}%` : `${diff}%`;
       }
       
