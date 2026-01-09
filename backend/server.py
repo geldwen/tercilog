@@ -4592,41 +4592,111 @@ async def create_bulk_sessions(
         
         # Envoyer UN SEUL email par élève avec toutes les séances
         if student_sessions:
-            session_list = "\n".join([
-                f"• {s.subject} - {s.date} de {s.start_time} à {s.end_time} ({s.modality})"
-                for s in student_sessions
-            ])
-            
             portal_url = get_student_portal_url()
+            
+            # Créer les cartes de séances avec un beau design
+            sessions_html = ""
+            for s in student_sessions:
+                # Formater la date
+                try:
+                    from datetime import datetime
+                    date_obj = datetime.strptime(s.date, "%Y-%m-%d")
+                    days_fr = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
+                    months_fr = ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+                    formatted_date = f"{days_fr[date_obj.weekday()]} {date_obj.day} {months_fr[date_obj.month]} {date_obj.year}"
+                except:
+                    formatted_date = s.date
+                
+                modality_badge = '📹 Visioconférence' if s.modality == 'distanciel' else '📍 Présentiel'
+                modality_color = '#1565c0' if s.modality == 'distanciel' else '#2e7d32'
+                modality_bg = '#e3f2fd' if s.modality == 'distanciel' else '#e8f5e9'
+                
+                sessions_html += f"""
+                <div style="background-color: #ffffff; border-radius: 8px; padding: 15px; margin-bottom: 12px; border-left: 4px solid #1e3a5f; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="margin-bottom: 10px;">
+                        <span style="background-color: {modality_bg}; color: {modality_color}; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">
+                            {modality_badge}
+                        </span>
+                    </div>
+                    <h3 style="color: #1e3a5f; margin: 0 0 8px 0; font-size: 16px;">{s.subject}</h3>
+                    <p style="color: #666; margin: 0; font-size: 14px;">
+                        📅 <strong>{formatted_date}</strong><br>
+                        🕐 <strong>{s.start_time} - {s.end_time}</strong>
+                    </p>
+                </div>
+                """
+            
             email_body = f"""
-    <html>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #1e3a5f;">Nouvelles séances de formation TerciForm</h2>
-            <p>Bonjour {student['name']},</p>
-            <p><strong>Votre formateur a programmé {len(student_sessions)} nouvelle(s) séance(s) :</strong></p>
-            <ul>
-                {"".join([f"<li>{s.subject} - {s.date} de {s.start_time} à {s.end_time} ({s.modality})</li>" for s in student_sessions])}
-            </ul>
-            <p>Veuillez confirmer votre présence en vous connectant à la plateforme :</p>
-            <div style="margin: 30px 0;">
-                <a href="{portal_url}" style="background-color: #1e3a5f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Accédez à TerciLog</a>
-            </div>
-            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Identifiant de connexion :</p>
-                <p style="margin: 5px 0;"><strong>Identifiant :</strong> {student['email']}</p>
-            </div>
-            <p style="color: #dc2626; font-weight: bold;">⚠️ Important : En cas d'absence d'une séance validée, les heures de formation seront perdues.</p>
-            <p>Cordialement,<br>Votre formateur</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        
+        <!-- Header avec logo Terciform -->
+        <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; text-align: center;">
+            <img src="https://customer-assets.emergentagent.com/job_edutrackplus/assets/terciform_logo.png" alt="Terciform" style="height: 60px; width: auto; margin-bottom: 15px;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">📅 Nouvelles séances de formation</h1>
         </div>
-    </body>
-    </html>
+        
+        <!-- Contenu principal -->
+        <div style="padding: 30px;">
+            <p style="color: #333; font-size: 16px; margin-bottom: 20px;">
+                Bonjour <strong>{student['name']}</strong>,
+            </p>
+            
+            <p style="color: #666; font-size: 14px; margin-bottom: 25px;">
+                Votre formateur a programmé <strong>{len(student_sessions)} nouvelle(s) séance(s)</strong> :
+            </p>
+            
+            <!-- Liste des séances -->
+            <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                {sessions_html}
+            </div>
+            
+            <!-- Bouton CTA -->
+            <div style="text-align: center; margin: 25px 0;">
+                <a href="{portal_url}" 
+                   style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 14px;">
+                    📱 Accéder à TerciLog
+                </a>
+            </div>
+            
+            <!-- Identifiant -->
+            <div style="background-color: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Identifiant de connexion :</p>
+                <p style="margin: 5px 0; color: #666;"><strong>Identifiant :</strong> {student['email']}</p>
+            </div>
+            
+            <!-- Avertissement -->
+            <div style="background-color: #fff8e1; border-left: 4px solid #f57c00; padding: 15px; margin-top: 20px; border-radius: 0 8px 8px 0;">
+                <p style="color: #e65100; margin: 0; font-size: 13px;">
+                    <strong>⚠️ Important :</strong> En cas d'absence d'une séance validée, les heures de formation seront perdues.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
+            <p style="color: #999; font-size: 12px; margin: 0 0 5px 0;">Cordialement,</p>
+            <p style="color: #1e3a5f; font-size: 14px; font-weight: bold; margin: 0;">Votre formateur</p>
+            <p style="color: #999; font-size: 11px; margin-top: 15px;">
+                Terciform - Organisme de formation professionnelle
+            </p>
+        </div>
+        
+    </div>
+</body>
+</html>
             """
             
             background_tasks.add_task(
                 send_email,
                 student['email'],
-                f"Nouvelles séances TerciForm - {len(student_sessions)} séance(s)",
+                f"📅 Nouvelles séances TerciForm - {len(student_sessions)} séance(s)",
                 email_body
             )
     
