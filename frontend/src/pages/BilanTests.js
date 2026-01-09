@@ -245,7 +245,7 @@ export default function BilanTests() {
     };
   }, [lignes]);
   
-  // Progression moyenne (T3 - T1)
+  // Progression moyenne (T3 - T1) - arrondie
   const progressionGlobale = useMemo(() => {
     const elevesAvecT1etT3 = lignes.filter(e => 
       e.t1?.score !== null && e.t1?.score !== undefined &&
@@ -257,7 +257,7 @@ export default function BilanTests() {
       return acc + ((e.t3.score || 0) - (e.t1.score || 0));
     }, 0);
     
-    return Math.round(totalProgression / elevesAvecT1etT3.length);
+    return roundScore(totalProgression / elevesAvecT1etT3.length);
   }, [lignes]);
   
   // Relancer un apprenant
