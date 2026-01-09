@@ -504,29 +504,30 @@ export default function BilanTests() {
                               {["T1", "T2", "T3"].map((testType) => {
                                 const testData = e[testType.toLowerCase()];
                                 const hasScore = testData?.score !== null && testData?.score !== undefined;
+                                const displayScore = hasScore ? roundScore(testData.score) : null;
                                 
                                 return (
                                   <td key={testType} className="px-4 py-3 text-center">
                                     {hasScore ? (
                                       <button 
                                         onClick={() => handleVoir(e, testType, testData)}
-                                        className="inline-flex flex-col items-center gap-1 text-green-700 hover:opacity-80"
+                                        className="inline-flex flex-col items-center gap-1 hover:opacity-80 transition-opacity"
                                       >
-                                        <span className="w-10 h-10 rounded-full bg-green-500 inline-flex items-center justify-center shadow-sm">
-                                          <span className="text-white font-bold text-sm">{testData.score}%</span>
-                                        </span>
-                                        <span className="text-xs text-gray-500">Voir</span>
+                                        <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center shadow-md hover:shadow-lg transition-shadow">
+                                          <span className="text-white font-bold text-lg">{displayScore}%</span>
+                                        </div>
+                                        <span className="text-xs text-green-700 font-medium">Voir</span>
                                       </button>
                                     ) : (
                                       <button 
                                         onClick={() => handleRelance(e, testType)}
                                         disabled={relanceLoading === `${e.id}-${testType}`}
-                                        className="inline-flex flex-col items-center gap-1 text-red-700 hover:opacity-80 disabled:opacity-50"
+                                        className="inline-flex flex-col items-center gap-1 hover:opacity-80 disabled:opacity-50 transition-opacity"
                                       >
-                                        <span className="w-10 h-10 rounded-full bg-red-500 inline-flex items-center justify-center shadow-sm">
-                                          <Mail className="w-4 h-4 text-white" />
-                                        </span>
-                                        <span className="text-xs">
+                                        <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center shadow-md">
+                                          <Mail className="w-5 h-5 text-white" />
+                                        </div>
+                                        <span className="text-xs text-red-700 font-medium">
                                           {relanceLoading === `${e.id}-${testType}` ? "..." : "Relancer"}
                                         </span>
                                       </button>
