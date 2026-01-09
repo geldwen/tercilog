@@ -966,7 +966,6 @@ def send_session_reminder_email(to_email: str, student_name: str, subject: str, 
     
     # Formater la date
     try:
-        from datetime import datetime
         date_obj = datetime.strptime(date, "%Y-%m-%d")
         days_fr = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
         months_fr = ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
