@@ -229,12 +229,12 @@ export default function BilanTests() {
     const t2Soumis = lignes.filter(e => e.t2?.score !== null && e.t2?.score !== undefined).length;
     const t3Soumis = lignes.filter(e => e.t3?.score !== null && e.t3?.score !== undefined).length;
     
-    // Calculer moyennes
+    // Calculer moyennes (arrondies)
     const calcMoyenne = (testKey) => {
       const tests = lignes.filter(e => e[testKey]?.score !== null && e[testKey]?.score !== undefined);
       if (tests.length === 0) return null;
       const sum = tests.reduce((acc, e) => acc + (e[testKey].score || 0), 0);
-      return Math.round(sum / tests.length);
+      return roundScore(sum / tests.length);
     };
     
     return {
