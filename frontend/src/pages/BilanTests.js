@@ -1,470 +1,578 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { Card } from '../components/ui/card';
-import { Button } from '../components/ui/button';
+import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Card, CardContent } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { ArrowLeft, Download, Eye, Mail, FileText, X, CheckCircle, TrendingUp, TrendingDown, Minus, BarChart3 } from "lucide-react";
+import { toast } from "sonner";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../components/ui/select';
-import { LineChart, FileDown, Loader2, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../components/ui/dialog";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = process.env.REACT_APP_BACKEND_URL || "";
 
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const token = localStorage.getItem("token");
+  return { Authorization: `Bearer ${token}` };
 };
 
+// Configuration des parcours (identique à BilanQualité)
+const PARCOURS_CONFIG = {
+  "Anglais": {
+    bgLight: "#FFE4F0",
+    textColor: "#DB2777",
+    borderColor: "#F472B6"
+  },
+  "Informatique": {
+    bgLight: "#F3E8FF",
+    textColor: "#9333EA",
+    borderColor: "#C084FC"
+  }
+};
+
+const PARCOURS_TABS = Object.keys(PARCOURS_CONFIG);
+
+// Labels des tests
+const TEST_LABELS = {
+  "T1": "Test de positionnement",
+  "T2": "Test intermédiaire",
+  "T3": "Test final"
+};
+
+const TEST_SHORT_LABELS = {
+  "T1": "T1 (Positionnement)",
+  "T2": "T2 (Intermédiaire)",
+  "T3": "T3 (Final)"
+};
+
+// ============================================================================
+// Modal de consultation des résultats
+// ============================================================================
+const TestResultModal = ({ isOpen, onClose, studentName, testType, testData }) => {
+  if (!isOpen) return null;
+  
+  const score = testData?.score;
+  const maxScore = testData?.max_score || 100;
+  const percentage = score !== null && score !== undefined ? Math.round((score / maxScore) * 100) : null;
+  const submittedAt = testData?.submitted_at || testData?.date;
+  
+  // Déterminer le niveau
+  const getLevel = (pct) => {
+    if (pct >= 80) return { label: "Excellent", color: "green", emoji: "🌟" };
+    if (pct >= 60) return { label: "Bon", color: "blue", emoji: "👍" };
+    if (pct >= 40) return { label: "À renforcer", color: "orange", emoji: "📈" };
+    return { label: "À travailler", color: "red", emoji: "📚" };
+  };
+  
+  const level = percentage !== null ? getLevel(percentage) : null;
+  
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-purple-600" />
+            Résultat {testType} — {studentName}
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6 py-4">
+          {/* Score principal */}
+          <div className="text-center">
+            {percentage !== null ? (
+              <>
+                <div className="text-6xl font-bold mb-2" style={{ color: level?.color === 'green' ? '#22c55e' : level?.color === 'blue' ? '#3b82f6' : level?.color === 'orange' ? '#f97316' : '#ef4444' }}>
+                  {percentage}%
+                </div>
+                <div className="flex items-center justify-center gap-2 text-lg">
+                  <span>{level?.emoji}</span>
+                  <span className="font-semibold">{level?.label}</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Score : {score} / {maxScore} points
+                </p>
+              </>
+            ) : (
+              <div className="text-gray-500 py-8">
+                <p className="text-lg">Résultat non disponible</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Détails */}
+          {testData && (
+            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Type de test :</span>
+                <span className="font-medium">{TEST_LABELS[testType]}</span>
+              </div>
+              {submittedAt && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Date de passage :</span>
+                  <span className="font-medium">
+                    {new Date(submittedAt).toLocaleDateString('fr-FR', { 
+                      day: '2-digit', month: 'long', year: 'numeric' 
+                    })}
+                  </span>
+                </div>
+              )}
+              {testData.duration && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Durée :</span>
+                  <span className="font-medium">{testData.duration} min</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
+        <div className="flex justify-end pt-4 border-t">
+          <Button variant="outline" onClick={onClose}>
+            Fermer
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// ============================================================================
+// Composant principal BilanTests
+// ============================================================================
 export default function BilanTests() {
   const navigate = useNavigate();
-
-  const [periode, setPeriode] = useState('mois');
-  const [mois, setMois] = useState('11');
-  const [annee, setAnnee] = useState('2025');
-  const [parcours, setParcours] = useState('tous');
-
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [exportingPdf, setExportingPdf] = useState(false);
-  const [openingId, setOpeningId] = useState(null);
-
-  const fetchData = async () => {
+  
+  // State
+  const [activeParcours, setActiveParcours] = useState("Anglais");
+  const [annee, setAnnee] = useState(new Date().getFullYear());
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [relanceLoading, setRelanceLoading] = useState(null);
+  const [selectedTest, setSelectedTest] = useState(null);
+  
+  // Couleurs du parcours actif
+  const parcoursColors = PARCOURS_CONFIG[activeParcours];
+  
+  // Charger les données
+  const loadData = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
+      // Récupérer tous les élèves
+      const studentsRes = await axios.get(`${API}/api/students`, { headers: getAuthHeaders() });
+      const students = studentsRes.data || [];
       
-      // Récupérer TOUS les tests de tous les élèves
-      const response = await axios.get(`${API}/tests/all`, {
-        headers: getAuthHeaders(),
+      // Récupérer tous les tests
+      const testsRes = await axios.get(`${API}/api/tests/all`, { headers: getAuthHeaders() });
+      const testsData = testsRes.data?.students || [];
+      
+      // Créer une map des tests par nom d'élève
+      const testsByStudent = {};
+      testsData.forEach(item => {
+        testsByStudent[item.student_name] = item.tests || [];
       });
-
-      // Filtrer selon le parcours si nécessaire
-      let filteredStudents = response.data.students || [];
       
-      if (parcours !== 'tous') {
-        // Récupérer les élèves pour filtrer par parcours
-        const studentsResponse = await axios.get(`${API}/students`, {
-          headers: getAuthHeaders(),
-        });
-        const students = studentsResponse.data || [];
-        const studentsByParcours = students.filter(s => s.parcours === parcours);
-        const parcoursIds = studentsByParcours.map(s => s.id);
+      // Construire les données formatées
+      const formattedData = students.map(student => {
+        const studentTests = testsByStudent[student.name] || [];
         
-        filteredStudents = filteredStudents.filter(s => {
-          // Trouver l'étudiant correspondant
-          const student = students.find(st => st.name === s.student_name);
-          return student && parcoursIds.includes(student.id);
-        });
-      }
-
-      // Calculer la progression moyenne si des tests existent
-      let progressionMoyenne = 0;
-      let totalTests = 0;
-      
-      filteredStudents.forEach(student => {
-        if (student.tests && student.tests.length > 0) {
-          student.tests.forEach(test => {
-            if (test.score !== null && test.score !== undefined) {
-              progressionMoyenne += test.score;
-              totalTests++;
-            }
-          });
-        }
+        // Identifier T1, T2, T3 par type ou position
+        const t1 = studentTests.find(t => t.type === 'T1' || t.type === 'positionnement' || t.name?.toLowerCase().includes('positionnement'));
+        const t2 = studentTests.find(t => t.type === 'T2' || t.type === 'intermediaire' || t.name?.toLowerCase().includes('intermédiaire'));
+        const t3 = studentTests.find(t => t.type === 'T3' || t.type === 'final' || t.name?.toLowerCase().includes('final'));
+        
+        // Si pas trouvé par type, utiliser l'ordre chronologique
+        const sortedTests = studentTests.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+        
+        return {
+          id: student.id,
+          nom: student.name + (student.last_name ? ` ${student.last_name}` : ''),
+          email: student.email,
+          parcours: student.parcours || 'Anglais',
+          t1: t1 || sortedTests[0] || null,
+          t2: t2 || sortedTests[1] || null,
+          t3: t3 || sortedTests[2] || null
+        };
       });
       
-      if (totalTests > 0) {
-        progressionMoyenne = progressionMoyenne / totalTests;
-      }
-
-      setData({ 
-        students: filteredStudents,
-        progressionMoyenne: progressionMoyenne,
-        totalTests: totalTests
-      });
+      setData(formattedData);
     } catch (error) {
-      console.error('Erreur:', error);
-      if (error.response?.status === 400) {
-        toast.error('Paramètres de filtre invalides');
-      } else {
-        toast.error('Erreur lors du chargement des données');
-      }
+      console.error("Erreur chargement données:", error);
+      toast.error("Erreur lors du chargement des données");
     } finally {
       setLoading(false);
     }
-  };
-
-  // Charger les données au montage ET quand les filtres changent
+  }, []);
+  
   useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line
-  }, [periode, mois, annee, parcours]);
-
-  const handleExportPdf = async () => {
+    loadData();
+  }, [loadData]);
+  
+  // Filtrer par parcours
+  const lignes = useMemo(() => {
+    return data.filter(e => e.parcours === activeParcours);
+  }, [data, activeParcours]);
+  
+  // Compteurs
+  const compteurs = useMemo(() => {
+    const t1Soumis = lignes.filter(e => e.t1?.score !== null && e.t1?.score !== undefined).length;
+    const t2Soumis = lignes.filter(e => e.t2?.score !== null && e.t2?.score !== undefined).length;
+    const t3Soumis = lignes.filter(e => e.t3?.score !== null && e.t3?.score !== undefined).length;
+    
+    // Calculer moyennes
+    const calcMoyenne = (testKey) => {
+      const tests = lignes.filter(e => e[testKey]?.score !== null && e[testKey]?.score !== undefined);
+      if (tests.length === 0) return null;
+      const sum = tests.reduce((acc, e) => acc + (e[testKey].score || 0), 0);
+      return Math.round(sum / tests.length);
+    };
+    
+    return {
+      t1: { soumis: t1Soumis, enAttente: lignes.length - t1Soumis, moyenne: calcMoyenne('t1') },
+      t2: { soumis: t2Soumis, enAttente: lignes.length - t2Soumis, moyenne: calcMoyenne('t2') },
+      t3: { soumis: t3Soumis, enAttente: lignes.length - t3Soumis, moyenne: calcMoyenne('t3') },
+      nbEleves: lignes.length
+    };
+  }, [lignes]);
+  
+  // Progression moyenne (T3 - T1)
+  const progressionGlobale = useMemo(() => {
+    const elevesAvecT1etT3 = lignes.filter(e => 
+      e.t1?.score !== null && e.t1?.score !== undefined &&
+      e.t3?.score !== null && e.t3?.score !== undefined
+    );
+    if (elevesAvecT1etT3.length === 0) return null;
+    
+    const totalProgression = elevesAvecT1etT3.reduce((acc, e) => {
+      return acc + ((e.t3.score || 0) - (e.t1.score || 0));
+    }, 0);
+    
+    return Math.round(totalProgression / elevesAvecT1etT3.length);
+  }, [lignes]);
+  
+  // Relancer un apprenant
+  const handleRelance = async (eleve, testType) => {
+    setRelanceLoading(`${eleve.id}-${testType}`);
     try {
-      setExportingPdf(true);
-      toast.info('Génération du PDF en cours...');
-
-      const params = new URLSearchParams({
-        periode,
-        mois,
-        annee,
-        parcours,
-      });
-
-      const response = await axios.get(`${API}/bilan-tests-pdf?${params.toString()}`, {
-        headers: getAuthHeaders(),
-        responseType: 'blob',
-      });
-
-      // Télécharger le PDF
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Bilan_Tests_${parcours}_${mois}_${annee}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
-      toast.success('PDF téléchargé avec succès!');
+      await axios.post(`${API}/api/teachers/relance-test`, {
+        student_id: eleve.id,
+        test_type: testType,
+        student_email: eleve.email,
+        student_name: eleve.nom
+      }, { headers: getAuthHeaders() });
+      toast.success(`Relance envoyée à ${eleve.nom}`);
     } catch (error) {
-      console.error('Erreur:', error);
-      toast.error('Erreur lors de la génération du PDF');
+      toast.error("Erreur lors de l'envoi de la relance");
     } finally {
-      setExportingPdf(false);
+      setRelanceLoading(null);
     }
   };
-
-  const formatPourcent = (n) =>
-    n === null || n === undefined || Number.isNaN(n) ? '—' : `${n.toFixed(2)}%`;
-
-  const couleurScore = (n) => {
-    if (n === null) return '';
-    if (n >= 70) return 'text-green-700 font-semibold';
-    if (n >= 40) return 'text-yellow-700 font-semibold';
-    return 'text-red-700 font-semibold';
+  
+  // Voir résultat
+  const handleVoir = (eleve, testType, testData) => {
+    setSelectedTest({ studentName: eleve.nom, testType, testData });
   };
-
+  
+  // Export PDF
+  const exportPDF = () => {
+    const doc = new jsPDF({ unit: "pt" });
+    doc.setFontSize(14);
+    doc.text(`Bilan des Tests — ${activeParcours} — ${annee}`, 40, 40);
+    doc.setFontSize(11);
+    doc.text(`Parcours : ${activeParcours}`, 40, 70);
+    doc.text(`Apprenants : ${compteurs.nbEleves}`, 40, 90);
+    
+    if (progressionGlobale !== null) {
+      doc.text(`Progression moyenne : ${progressionGlobale > 0 ? '+' : ''}${progressionGlobale}%`, 40, 110);
+    }
+    
+    const rows = lignes.map((e) => {
+      const getScoreDisplay = (test) => {
+        if (!test || test.score === null || test.score === undefined) return "En attente";
+        return `${test.score}%`;
+      };
+      
+      // Calculer progression individuelle
+      let progression = "-";
+      if (e.t1?.score !== null && e.t1?.score !== undefined && e.t3?.score !== null && e.t3?.score !== undefined) {
+        const diff = (e.t3.score || 0) - (e.t1.score || 0);
+        progression = diff > 0 ? `+${diff}%` : `${diff}%`;
+      }
+      
+      return [
+        e.nom,
+        getScoreDisplay(e.t1),
+        getScoreDisplay(e.t2),
+        getScoreDisplay(e.t3),
+        progression
+      ];
+    });
+    
+    autoTable(doc, {
+      startY: 130,
+      head: [["Apprenant", "T1 (Position.)", "T2 (Interm.)", "T3 (Final)", "Résultat"]],
+      body: rows,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [147, 51, 234] }, // Violet
+    });
+    
+    doc.save(`Bilan_Tests_${activeParcours}_${annee}.pdf`);
+    toast.success("PDF exporté avec succès");
+  };
+  
+  // Calculer progression individuelle
+  const getProgression = (eleve) => {
+    if (!eleve.t1?.score || !eleve.t3?.score) return null;
+    return (eleve.t3.score || 0) - (eleve.t1.score || 0);
+  };
+  
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header avec bouton retour */}
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Button
-              onClick={() => navigate('/teacher')}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Retour au tableau de bord
+            <Button variant="outline" onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-4 h-4 mr-2" />Retour
             </Button>
+            <h1 className="text-3xl font-bold text-gray-900">📈 Bilan des Tests</h1>
+          </div>
+        </div>
+        
+        {/* Onglets parcours */}
+        <div className="mb-6 flex border-b border-gray-200">
+          {PARCOURS_TABS.map((parcours) => {
+            const colors = PARCOURS_CONFIG[parcours];
+            const isActive = activeParcours === parcours;
+            return (
+              <button
+                key={parcours}
+                onClick={() => setActiveParcours(parcours)}
+                className={`px-6 py-3 text-base font-semibold rounded-t-lg mr-1 transition-colors ${
+                  isActive ? "border-b-4" : "text-gray-500 hover:bg-gray-50"
+                }`}
+                style={isActive ? { 
+                  backgroundColor: colors.bgLight, 
+                  color: colors.textColor, 
+                  borderBottomColor: colors.textColor 
+                } : {}}
+              >
+                {parcours}
+              </button>
+            );
+          })}
+        </div>
+        
+        {/* Filtre année + Export */}
+        <Card className="mb-6">
+          <CardContent className="pt-6 flex justify-between items-end">
+            <div>
+              <label className="block text-sm font-medium mb-2">Année</label>
+              <input 
+                type="number" 
+                className="border rounded-md px-3 py-2 w-32" 
+                min={2020} 
+                max={2100}
+                value={annee} 
+                onChange={(e) => setAnnee(Number(e.target.value))} 
+              />
+            </div>
+            <Button 
+              onClick={exportPDF} 
+              className="bg-purple-600 hover:bg-purple-700 text-white" 
+              disabled={loading || lignes.length === 0}
+            >
+              <Download className="w-4 h-4 mr-2" />PDF
+            </Button>
+          </CardContent>
+        </Card>
+        
+        {loading ? (
+          <div className="text-center py-12">Chargement...</div>
+        ) : (
+          <>
+            {/* Bandeau titre parcours */}
+            <div 
+              className="mb-6 p-4 rounded-lg border-2" 
+              style={{ backgroundColor: parcoursColors.bgLight, borderColor: parcoursColors.borderColor }}
+            >
+              <h2 className="text-2xl font-bold" style={{ color: parcoursColors.textColor }}>
+                Parcours {activeParcours}
+              </h2>
+              <p className="text-gray-600 mt-1">
+                {compteurs.nbEleves} apprenant{compteurs.nbEleves > 1 ? "s" : ""} — {annee}
+                {progressionGlobale !== null && (
+                  <span className={`ml-4 font-semibold ${progressionGlobale >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {progressionGlobale >= 0 ? '📈' : '📉'} Progression moyenne : {progressionGlobale > 0 ? '+' : ''}{progressionGlobale}%
+                  </span>
+                )}
+              </p>
+            </div>
             
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <LineChart className="h-8 w-8 text-purple-700" />
-              Bilan des tests
-            </h1>
-          </div>
-
-          <Button
-            onClick={handleExportPdf}
-            disabled={exportingPdf || loading}
-            className="bg-purple-700 hover:bg-purple-800 text-white flex items-center gap-2"
-          >
-            {exportingPdf ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Génération...
-              </>
-            ) : (
-              <>
-                <FileDown className="h-4 w-4" />
-                Générer le bilan tests (PDF)
-              </>
-            )}
-          </Button>
-        </div>
-
-        {/* Filtres */}
-        <Card className="p-6">
-          <div className="flex flex-wrap gap-4 items-end">
-            {/* Période */}
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">Période</span>
-              <div className="flex gap-2">
-                <Select value={periode} onValueChange={setPeriode}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mois">Mois</SelectItem>
-                    <SelectItem value="annee">Année</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={mois}
-                  onValueChange={setMois}
-                  disabled={periode !== 'mois'}
-                >
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">janvier</SelectItem>
-                    <SelectItem value="2">février</SelectItem>
-                    <SelectItem value="3">mars</SelectItem>
-                    <SelectItem value="4">avril</SelectItem>
-                    <SelectItem value="5">mai</SelectItem>
-                    <SelectItem value="6">juin</SelectItem>
-                    <SelectItem value="7">juillet</SelectItem>
-                    <SelectItem value="8">août</SelectItem>
-                    <SelectItem value="9">septembre</SelectItem>
-                    <SelectItem value="10">octobre</SelectItem>
-                    <SelectItem value="11">novembre</SelectItem>
-                    <SelectItem value="12">décembre</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={annee} onValueChange={setAnnee}>
-                  <SelectTrigger className="w-[100px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2024">2024</SelectItem>
-                    <SelectItem value="2025">2025</SelectItem>
-                    <SelectItem value="2026">2026</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Parcours */}
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">Parcours</span>
-              <Select value={parcours} onValueChange={setParcours}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tous">Tous</SelectItem>
-                  <SelectItem value="bureautique">Bureautique</SelectItem>
-                  <SelectItem value="management">Management</SelectItem>
-                  <SelectItem value="anglais">Anglais</SelectItem>
-                  <SelectItem value="informatique">Informatique</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button onClick={fetchData} disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Chargement...
-                </>
-              ) : (
-                'Rafraîchir'
-              )}
-            </Button>
-          </div>
-        </Card>
-
-        {/* Indicateurs clés */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="p-6 space-y-2">
-            <p className="text-xs uppercase text-gray-500 font-medium">
-              Évaluations réalisées
-            </p>
-            <p className="text-3xl font-bold text-purple-700">
-              {data ? data.nbEvaluations : '--'}
-            </p>
-          </Card>
-
-          <Card className="p-6 space-y-2">
-            <p className="text-xs uppercase text-gray-500 font-medium">
-              Progression moyenne T1 → T3
-            </p>
-            <p
-              className={`text-3xl font-bold ${
-                data && data.progressionMoyenne >= 0
-                  ? 'text-green-700'
-                  : 'text-red-700'
-              }`}
-            >
-              {data ? `${data.progressionMoyenne.toFixed(1)} pts` : '--'}
-            </p>
-          </Card>
-
-          <Card className="p-6 space-y-2">
-            <p className="text-xs uppercase text-gray-500 font-medium">
-              Taux d'acquisition final
-            </p>
-            <p className="text-3xl font-bold text-purple-700">
-              {data ? formatPourcent(data.tauxAcquisition) : '--'}
-            </p>
-          </Card>
-
-          <Card className="p-6 space-y-2">
-            <p className="text-xs uppercase text-gray-500 font-medium">
-              % en difficulté
-            </p>
-            <p className="text-3xl font-bold text-orange-600">
-              {data ? formatPourcent(data.tauxDifficulte) : '--'}
-            </p>
-          </Card>
-        </div>
-
-        {/* Tableau détaillé */}
-        <Card className="p-0 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-purple-100">
-              <tr>
-                <th className="px-4 py-3 text-left font-semibold">Élève</th>
-                <th className="px-4 py-3 text-left font-semibold">Parcours</th>
-                <th className="px-4 py-3 text-left font-semibold">Matière</th>
-                <th className="px-4 py-3 text-right font-semibold">T1</th>
-                <th className="px-4 py-3 text-right font-semibold">T2</th>
-                <th className="px-4 py-3 text-right font-semibold">T3</th>
-                <th className="px-4 py-3 text-right font-semibold">
-                  Progression
-                </th>
-                <th className="px-4 py-3 text-left font-semibold">
-                  Niveau final
-                </th>
-                <th className="px-4 py-3 text-left font-semibold">
-                  Difficultés
-                </th>
-                <th className="px-4 py-3 text-left font-semibold">
-                  Remédiation
-                </th>
-                <th className="px-4 py-3 text-left font-semibold">Rapport</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data?.rows?.length ? (
-                data.rows.map((row) => (
-                  <tr key={row.id} className="border-t hover:bg-gray-50">
-                    <td className="px-4 py-3">{row.eleve}</td>
-                    <td className="px-4 py-3 capitalize">{row.parcours}</td>
-                    <td className="px-4 py-3 capitalize">{row.matiere}</td>
-                    <td
-                      className={`px-4 py-3 text-right ${couleurScore(
-                        row.t1
-                      )}`}
-                    >
-                      {formatPourcent(row.t1)}
-                    </td>
-                    <td
-                      className={`px-4 py-3 text-right ${couleurScore(
-                        row.t2
-                      )}`}
-                    >
-                      {formatPourcent(row.t2)}
-                    </td>
-                    <td
-                      className={`px-4 py-3 text-right ${couleurScore(
-                        row.t3
-                      )}`}
-                    >
-                      {formatPourcent(row.t3)}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {row.progression === null
-                        ? '—'
-                        : `${row.progression > 0 ? '+' : ''}${row.progression.toFixed(
-                            1
-                          )} pts`}
-                    </td>
-                    <td className="px-4 py-3">{row.niveauFinal}</td>
-                    <td className="px-4 py-3">
-                      {row.difficultePrincipale ?? '—'}
-                    </td>
-                    <td className="px-4 py-3">
-                      {row.remediation ? (
-                        <span className="text-orange-600 font-semibold">
-                          Oui
-                        </span>
-                      ) : (
-                        'Non'
+            {/* Cartes T1/T2/T3 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              {["t1", "t2", "t3"].map((t, idx) => {
+                const colors = ["blue", "orange", "purple"][idx];
+                const labels = ["T1 - Positionnement", "T2 - Intermédiaire", "T3 - Final"];
+                const bgColors = ["bg-blue-50", "bg-orange-50", "bg-purple-50"][idx];
+                const borderColors = ["border-blue-200", "border-orange-200", "border-purple-200"][idx];
+                const textColors = ["text-blue-800", "text-orange-800", "text-purple-800"][idx];
+                
+                return (
+                  <Card key={t} className={`border-2 ${borderColors} ${bgColors}`}>
+                    <CardContent className="pt-6 text-center">
+                      <h3 className={`text-sm font-semibold ${textColors} mb-4`}>{labels[idx]}</h3>
+                      <div className="flex justify-center gap-8">
+                        <div>
+                          <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-2 shadow-md">
+                            <span className="text-white font-bold text-xl">{compteurs[t].soumis}</span>
+                          </div>
+                          <span className="text-sm text-green-700 font-medium">Passé</span>
+                        </div>
+                        <div>
+                          <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center mx-auto mb-2 shadow-md">
+                            <span className="text-white font-bold text-xl">{compteurs[t].enAttente}</span>
+                          </div>
+                          <span className="text-sm text-red-700 font-medium">En attente</span>
+                        </div>
+                      </div>
+                      {compteurs[t].moyenne !== null && (
+                        <div className="mt-4 pt-3 border-t border-gray-200">
+                          <span className="text-sm text-gray-600">Moyenne : </span>
+                          <span className={`font-bold ${textColors}`}>{compteurs[t].moyenne}%</span>
+                        </div>
                       )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {row.rapportUrl ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={openingId === row.id}
-                          onClick={async () => {
-                            try {
-                              setOpeningId(row.id);
-                              toast.info('Génération du rapport...');
-                              
-                              const response = await axios.get(
-                                `${API}/students/${row.id}/magic-report`,
-                                {
-                                  headers: getAuthHeaders(),
-                                  responseType: 'blob',
-                                }
-                              );
-                              
-                              // Créer une URL blob et l'ouvrir
-                              const blob = new Blob([response.data], { type: 'application/pdf' });
-                              const url = window.URL.createObjectURL(blob);
-                              window.open(url, '_blank');
-                              
-                              // Nettoyer après un délai
-                              setTimeout(() => {
-                                window.URL.revokeObjectURL(url);
-                              }, 100);
-                              
-                              toast.success('Rapport ouvert dans un nouvel onglet!');
-                            } catch (error) {
-                              console.error('Erreur:', error);
-                              if (error.response?.status === 400) {
-                                toast.error('Les 3 tests doivent être complétés pour générer ce rapport');
-                              } else {
-                                toast.error('Erreur lors de la génération du rapport');
-                              }
-                            } finally {
-                              setOpeningId(null);
-                            }
-                          }}
-                        >
-                          {openingId === row.id ? (
-                            <>
-                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                              Génération...
-                            </>
-                          ) : (
-                            'Ouvrir'
-                          )}
-                        </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+            
+            {/* Tableau */}
+            <Card>
+              <CardContent className="pt-6">
+                <h2 className="text-xl font-bold mb-4" style={{ color: parcoursColors.textColor }}>
+                  Suivi par apprenant — {activeParcours}
+                </h2>
+                
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="text-left font-semibold px-4 py-3">Apprenant</th>
+                        <th className="text-center font-semibold px-4 py-3">
+                          <div className="text-sm">T1</div>
+                          <div className="text-[10px] font-normal text-gray-500">(Positionnement)</div>
+                        </th>
+                        <th className="text-center font-semibold px-4 py-3">
+                          <div className="text-sm">T2</div>
+                          <div className="text-[10px] font-normal text-gray-500">(Intermédiaire)</div>
+                        </th>
+                        <th className="text-center font-semibold px-4 py-3">
+                          <div className="text-sm">T3</div>
+                          <div className="text-[10px] font-normal text-gray-500">(Final)</div>
+                        </th>
+                        <th className="text-center font-semibold px-4 py-3 w-40">Résultat</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lignes.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="text-center py-8 text-gray-500">
+                            Aucun apprenant pour ce parcours.
+                          </td>
+                        </tr>
                       ) : (
-                        '—'
+                        lignes.map((e) => {
+                          const progression = getProgression(e);
+                          
+                          return (
+                            <tr key={e.id} className="border-t hover:bg-gray-50">
+                              <td className="px-4 py-3 font-medium">{e.nom}</td>
+                              
+                              {/* T1, T2, T3 */}
+                              {["T1", "T2", "T3"].map((testType) => {
+                                const testData = e[testType.toLowerCase()];
+                                const hasScore = testData?.score !== null && testData?.score !== undefined;
+                                
+                                return (
+                                  <td key={testType} className="px-4 py-3 text-center">
+                                    {hasScore ? (
+                                      <button 
+                                        onClick={() => handleVoir(e, testType, testData)}
+                                        className="inline-flex flex-col items-center gap-1 text-green-700 hover:opacity-80"
+                                      >
+                                        <span className="w-10 h-10 rounded-full bg-green-500 inline-flex items-center justify-center shadow-sm">
+                                          <span className="text-white font-bold text-sm">{testData.score}%</span>
+                                        </span>
+                                        <span className="text-xs text-gray-500">Voir</span>
+                                      </button>
+                                    ) : (
+                                      <button 
+                                        onClick={() => handleRelance(e, testType)}
+                                        disabled={relanceLoading === `${e.id}-${testType}`}
+                                        className="inline-flex flex-col items-center gap-1 text-red-700 hover:opacity-80 disabled:opacity-50"
+                                      >
+                                        <span className="w-10 h-10 rounded-full bg-red-500 inline-flex items-center justify-center shadow-sm">
+                                          <Mail className="w-4 h-4 text-white" />
+                                        </span>
+                                        <span className="text-xs">
+                                          {relanceLoading === `${e.id}-${testType}` ? "..." : "Relancer"}
+                                        </span>
+                                      </button>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                              
+                              {/* Résultat (progression) */}
+                              <td className="px-4 py-3 text-center">
+                                {progression !== null ? (
+                                  <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold ${
+                                    progression > 0 
+                                      ? 'bg-green-100 text-green-800' 
+                                      : progression < 0 
+                                        ? 'bg-red-100 text-red-800' 
+                                        : 'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {progression > 0 ? (
+                                      <TrendingUp className="w-4 h-4" />
+                                    ) : progression < 0 ? (
+                                      <TrendingDown className="w-4 h-4" />
+                                    ) : (
+                                      <Minus className="w-4 h-4" />
+                                    )}
+                                    {progression > 0 ? '+' : ''}{progression}%
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-400 text-sm">—</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
                       )}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    className="px-4 py-8 text-center text-gray-500"
-                    colSpan={11}
-                  >
-                    {loading
-                      ? 'Chargement...'
-                      : 'Aucun test trouvé pour les filtres sélectionnés.'}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </Card>
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
+      
+      {/* Modal résultat */}
+      <TestResultModal
+        isOpen={!!selectedTest}
+        onClose={() => setSelectedTest(null)}
+        studentName={selectedTest?.studentName}
+        testType={selectedTest?.testType}
+        testData={selectedTest?.testData}
+      />
     </div>
   );
 }
