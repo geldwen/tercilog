@@ -330,10 +330,10 @@ export default function BilanTests() {
     toast.success("PDF exporté avec succès");
   };
   
-  // Calculer progression individuelle
+  // Calculer progression individuelle (arrondie)
   const getProgression = (eleve) => {
     if (!eleve.t1?.score || !eleve.t3?.score) return null;
-    return (eleve.t3.score || 0) - (eleve.t1.score || 0);
+    return roundScore((eleve.t3.score || 0) - (eleve.t1.score || 0));
   };
   
   return (
