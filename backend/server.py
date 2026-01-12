@@ -10073,11 +10073,11 @@ async def update_session_times(
         created_sessions = []
         
         for slot in time_slots:
-            # Calculer la durée
+            # Calculer la durée (arrondi à 2 décimales)
             try:
                 start_h, start_m = map(int, slot['start_time'].split(':'))
                 end_h, end_m = map(int, slot['end_time'].split(':'))
-                duration = (end_h * 60 + end_m - start_h * 60 - start_m) / 60.0
+                duration = round((end_h * 60 + end_m - start_h * 60 - start_m) / 60.0, 2)
             except:
                 duration = 0.0
             
