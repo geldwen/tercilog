@@ -857,6 +857,7 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
   const { eleve, type, data, submittedAt } = questionnaire;
   
   const fieldLabels = {
+    // Labels généraux
     niveau_initial: "Niveau initial",
     objectifs: "Objectifs",
     attentes: "Attentes",
@@ -871,6 +872,32 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     qualite_formation: "Qualité formation",
     recommandation: "Recommandation",
     suggestions: "Suggestions",
+    // Labels Informatique/Bureautique
+    bases_usage: "Bases et usage de l'ordinateur",
+    navigation_internet: "Navigation internet et recherche",
+    messagerie: "Messagerie électronique",
+    traitement_texte: "Traitement de texte (Word)",
+    tableur: "Tableur (Excel)",
+    presentations: "Présentations (PowerPoint)",
+    stockage_cloud: "Stockage cloud et collaboration",
+    securite: "Sécurité informatique",
+    confiance: "Confiance avec l'informatique",
+    autonomie: "Niveau d'autonomie",
+    formation_souhaitee: "Formation souhaitée",
+    disponibilites: "Disponibilités",
+    materiel_disponible: "Matériel disponible",
+    experience_informatique: "Expérience informatique",
+    niveau_word: "Niveau Word",
+    niveau_excel: "Niveau Excel",
+    niveau_powerpoint: "Niveau PowerPoint",
+    niveau_internet: "Niveau Internet",
+    niveau_messagerie: "Niveau Messagerie",
+    satisfaction_globale: "Satisfaction globale",
+    apports_formation: "Apports de la formation",
+    difficultes: "Difficultés rencontrées",
+    remarques: "Remarques",
+    overall_stars: "Note globale",
+    stars: "Étoiles",
   };
 
   const ignoredFields = ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data', 'signed_at'];
