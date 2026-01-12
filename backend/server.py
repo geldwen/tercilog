@@ -5598,6 +5598,60 @@ async def get_stats(current_user: User = Depends(get_current_user), month: Optio
     
 
 
+@api_router.post("/sessions/fix-durations")
+async def fix_session_durations(current_user: User = Depends(get_current_user)):
+    """
+    Recalculer et corriger les durées de toutes les séances.
+    Corrige les erreurs comme 1.25h pour une séance de 10:00-11:00 (devrait être 1h).
+    """
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    try:
+        sessions = await db.sessions.find({}, {"_id": 0}).to_list(10000)
+        fixed_count = 0
+        
+        for session in sessions:
+            start_time = session.get('start_time', '00:00')
+            end_time = session.get('end_time', '00:00')
+            stored_duration = session.get('duration_hours', 0)
+            
+            try:
+                start = start_time.split(':')
+                end = end_time.split(':')
+                start_mins = int(start[0]) * 60 + int(start[1])
+                end_mins = int(end[0]) * 60 + int(end[1])
+                correct_duration = round((end_mins - start_mins) / 60.0, 2)
+                
+                # Si la durée stockée est différente de la durée calculée
+                if abs(correct_duration - stored_duration) > 0.01:
+                    # Recalculer le montant aussi
+                    hourly_rate = session.get('hourly_rate', 0)
+                    new_amount = round(correct_duration * hourly_rate, 2)
+                    
+                    await db.sessions.update_one(
+                        {"id": session['id']},
+                        {"$set": {
+                            "duration_hours": correct_duration,
+                            "amount": new_amount
+                        }}
+                    )
+                    fixed_count += 1
+                    logger.info(f"Fixed duration for session {session['id']}: {stored_duration}h -> {correct_duration}h")
+            except Exception as e:
+                logger.error(f"Error fixing session {session.get('id')}: {e}")
+                continue
+        
+        return {
+            "message": f"{fixed_count} séance(s) corrigée(s)",
+            "total_checked": len(sessions),
+            "fixed_count": fixed_count
+        }
+    except Exception as e:
+        logger.error(f"Error fixing session durations: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/sessions/send-30min-reminders")
 async def send_30min_reminders(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
