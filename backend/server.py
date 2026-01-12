@@ -4745,11 +4745,11 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
     if not student or student['role'] != "student":
         raise HTTPException(status_code=404, detail="Student not found")
     
-    # Calculate duration
+    # Calculate duration (arrondi à 2 décimales)
     try:
         start_h, start_m = map(int, session_data.start_time.split(':'))
         end_h, end_m = map(int, session_data.end_time.split(':'))
-        duration = (end_h * 60 + end_m - start_h * 60 - start_m) / 60.0
+        duration = round((end_h * 60 + end_m - start_h * 60 - start_m) / 60.0, 2)
     except:
         duration = 0.0
     
