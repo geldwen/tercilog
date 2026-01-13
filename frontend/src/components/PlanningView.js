@@ -522,6 +522,15 @@ export default function PlanningView({ sessions, onSessionsUpdate }) {
 
   return (
     <div className="space-y-4 planning-root">
+      {/* Header avec bouton Retour */}
+      <div className="flex items-center gap-4 mb-4">
+        <Button variant="outline" onClick={() => navigate(-1)} className="flex items-center gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Retour
+        </Button>
+        <h1 className="text-2xl font-bold text-gray-900">📅 Planning</h1>
+      </div>
+
       {/* Filtres Année et Mois avec boutons navigation */}
       <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
         {/* Bouton Mois Précédent */}
