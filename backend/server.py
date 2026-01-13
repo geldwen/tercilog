@@ -10241,14 +10241,14 @@ async def get_formateur(formateur_id: str, current_user: User = Depends(get_curr
 
 @api_router.post("/formateurs")
 async def create_formateur(
-    nom: str = FastAPIFile(...),
-    prenom: str = FastAPIFile(...),
-    email: str = FastAPIFile(...),
-    telephone: str = FastAPIFile(default=""),
-    societe: str = FastAPIFile(default=""),
-    siret: str = FastAPIFile(default=""),
-    nda: str = FastAPIFile(default=""),
-    matieres: str = FastAPIFile(default="[]"),
+    nom: str = Form(...),
+    prenom: str = Form(...),
+    email: str = Form(...),
+    telephone: str = Form(default=""),
+    societe: str = Form(default=""),
+    siret: str = Form(default=""),
+    nda: str = Form(default=""),
+    matieres: str = Form(default="[]"),
     photo: Optional[UploadFile] = None,
     cv: Optional[UploadFile] = None,
     diplome1: Optional[UploadFile] = None,
