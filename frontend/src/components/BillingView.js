@@ -498,6 +498,15 @@ export default function BillingView({ sessions, onSessionsUpdate }) {
 
   return (
     <div className="space-y-4">
+      {/* Header avec bouton Retour */}
+      <div className="flex items-center gap-4 mb-4">
+        <Button variant="outline" onClick={() => navigate(-1)} className="flex items-center gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Retour
+        </Button>
+        <h1 className="text-2xl font-bold text-gray-900">💰 Facturation</h1>
+      </div>
+
       {/* Filtres Année et Mois */}
       <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="flex items-center gap-2">
