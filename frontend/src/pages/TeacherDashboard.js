@@ -3896,7 +3896,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={addMatiereField}
+                  onClick={addMatiere}
                   className="text-xs"
                   style={{ color: TERCIFORM_BLUE, borderColor: TERCIFORM_BLUE }}
                 >
@@ -3909,7 +3909,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                   <div key={index} className="flex gap-2">
                     <Input
                       value={matiere}
-                      onChange={(e) => updateMatiereField(index, e.target.value)}
+                      onChange={(e) => updateMatiere(index, e.target.value)}
                       placeholder={`Matière ${index + 1}`}
                       className="flex-1"
                     />
@@ -3918,7 +3918,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         type="button"
                         variant="destructive"
                         size="icon"
-                        onClick={() => removeMatiereField(index)}
+                        onClick={() => removeMatiere(index)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
