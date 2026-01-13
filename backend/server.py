@@ -57,6 +57,17 @@ security = HTTPBearer()
 # Create the main app
 app = FastAPI()
 
+# Health check endpoint (required for deployment)
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Kubernetes deployment"""
+    try:
+        # Check MongoDB connection
+        await db.command("ping")
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        return {"status": "unhealthy", "database": "disconnected", "error": str(e)}
+
 
 app.add_middleware(
     CORSMiddleware,
