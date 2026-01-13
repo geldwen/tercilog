@@ -79,9 +79,16 @@ app.add_middleware(
 
 api_router = APIRouter(prefix="/api")
 
+# Create static directories if they don't exist (for production)
+static_dir = Path("/app/backend/static")
+static_dir.mkdir(parents=True, exist_ok=True)
+(static_dir / "profile_pictures").mkdir(exist_ok=True)
+(static_dir / "documents").mkdir(exist_ok=True)
+(static_dir / "formateurs").mkdir(exist_ok=True)
+
 # Mount static files for profile pictures
 from fastapi.staticfiles import StaticFiles
-app.mount("/static", StaticFiles(directory="/app/backend/static"), name="static")
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
