@@ -3604,26 +3604,157 @@ export default function TeacherDashboard({ user, onLogout }) {
 
           {/* Onglet Formateurs (vide pour le moment) */}
           <TabsContent value="formateurs" className="space-y-6">
-            {/* Bouton créer un formateur */}
-            <div className="flex justify-end">
+            {/* Header avec bouton créer */}
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">Gestion des Formateurs</h2>
               <Button 
                 className="gap-2 text-white"
                 style={{ backgroundColor: TERCIFORM_BLUE }}
+                onClick={() => setShowCreateFormateurDialog(true)}
               >
                 <Plus className="w-4 h-4" />
                 Créer un nouveau formateur
               </Button>
             </div>
 
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mb-6">
-                <PenTool className="w-12 h-12 text-amber-600" />
+            {/* Liste des formateurs */}
+            {loadingFormateurs ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
+                <p className="mt-4 text-gray-500">Chargement des formateurs...</p>
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Espace Formateur</h2>
-              <p className="text-gray-500 text-center max-w-md">
-                Cette section sera bientôt disponible.
-              </p>
-            </div>
+            ) : formateurs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mb-6">
+                  <PenTool className="w-12 h-12 text-amber-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Aucun formateur</h2>
+                <p className="text-gray-500 text-center max-w-md mb-6">
+                  Créez votre premier formateur en cliquant sur le bouton ci-dessus.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {formateurs.map((formateur) => (
+                  <div 
+                    key={formateur.id} 
+                    className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow"
+                  >
+                    {/* En-tête de la fiche */}
+                    <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex-shrink-0">
+                          {formateur.photo_url ? (
+                            <img 
+                              src={formateur.photo_url} 
+                              alt={`${formateur.prenom} ${formateur.nom}`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-amber-100 flex items-center justify-center">
+                              <span className="text-2xl font-bold text-amber-600">
+                                {formateur.prenom?.[0]}{formateur.nom?.[0]}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-white">
+                          <h3 className="text-xl font-bold">{formateur.prenom} {formateur.nom}</h3>
+                          {formateur.societe && (
+                            <p className="text-amber-100 text-sm">{formateur.societe}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Corps de la fiche */}
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Mail className="w-4 h-4" />
+                        <span className="text-sm truncate">{formateur.email}</span>
+                      </div>
+                      
+                      {formateur.telephone && (
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Phone className="w-4 h-4" />
+                          <span className="text-sm">{formateur.telephone}</span>
+                        </div>
+                      )}
+
+                      {formateur.siret && (
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <FileText className="w-4 h-4" />
+                          <span className="text-sm">SIRET: {formateur.siret}</span>
+                        </div>
+                      )}
+
+                      {formateur.nda && (
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Award className="w-4 h-4" />
+                          <span className="text-sm">NDA: {formateur.nda}</span>
+                        </div>
+                      )}
+
+                      {/* Matières enseignées */}
+                      {formateur.matieres && formateur.matieres.length > 0 && (
+                        <div className="pt-2 border-t border-gray-100">
+                          <p className="text-xs font-semibold text-gray-500 mb-2">MATIÈRES ENSEIGNÉES</p>
+                          <div className="flex flex-wrap gap-1">
+                            {formateur.matieres.map((matiere, idx) => (
+                              <span 
+                                key={idx}
+                                className="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium"
+                              >
+                                {matiere}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Documents */}
+                      {(formateur.cv_url || formateur.diplome1_url || formateur.diplome2_url) && (
+                        <div className="pt-2 border-t border-gray-100">
+                          <p className="text-xs font-semibold text-gray-500 mb-2">DOCUMENTS</p>
+                          <div className="flex gap-2">
+                            {formateur.cv_url && (
+                              <a 
+                                href={formateur.cv_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs hover:bg-blue-200"
+                              >
+                                📄 CV
+                              </a>
+                            )}
+                            {formateur.diplome1_url && (
+                              <a 
+                                href={formateur.diplome1_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs hover:bg-green-200"
+                              >
+                                🎓 Diplôme 1
+                              </a>
+                            )}
+                            {formateur.diplome2_url && (
+                              <a 
+                                href={formateur.diplome2_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs hover:bg-green-200"
+                              >
+                                🎓 Diplôme 2
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
           </Tabs>
           </>
