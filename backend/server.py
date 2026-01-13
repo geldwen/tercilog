@@ -10214,6 +10214,254 @@ async def update_session_times(
     }
 
 
+# =============== GESTION DES FORMATEURS ===============
+
+@api_router.get("/formateurs")
+async def get_formateurs(current_user: User = Depends(get_current_user)):
+    """Récupérer la liste de tous les formateurs"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès refusé")
+    
+    formateurs = await db.formateurs.find({}, {"_id": 0}).to_list(length=1000)
+    return formateurs
+
+
+@api_router.get("/formateurs/{formateur_id}")
+async def get_formateur(formateur_id: str, current_user: User = Depends(get_current_user)):
+    """Récupérer un formateur par son ID"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès refusé")
+    
+    formateur = await db.formateurs.find_one({"id": formateur_id}, {"_id": 0})
+    if not formateur:
+        raise HTTPException(status_code=404, detail="Formateur non trouvé")
+    
+    return formateur
+
+
+@api_router.post("/formateurs")
+async def create_formateur(
+    nom: str = FastAPIFile(...),
+    prenom: str = FastAPIFile(...),
+    email: str = FastAPIFile(...),
+    telephone: str = FastAPIFile(default=""),
+    societe: str = FastAPIFile(default=""),
+    siret: str = FastAPIFile(default=""),
+    nda: str = FastAPIFile(default=""),
+    matieres: str = FastAPIFile(default="[]"),
+    photo: Optional[UploadFile] = None,
+    cv: Optional[UploadFile] = None,
+    diplome1: Optional[UploadFile] = None,
+    diplome2: Optional[UploadFile] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Créer un nouveau formateur avec upload de fichiers"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès refusé")
+    
+    import json
+    import shutil
+    
+    # Vérifier si l'email existe déjà
+    existing = await db.formateurs.find_one({"email": email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Un formateur avec cet email existe déjà")
+    
+    # Générer un ID unique
+    formateur_id = str(uuid.uuid4())
+    
+    # Créer le dossier pour les fichiers du formateur
+    formateur_dir = Path(f"/app/backend/static/formateurs/{formateur_id}")
+    formateur_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Parser les matières (JSON string)
+    try:
+        matieres_list = json.loads(matieres) if matieres else []
+    except:
+        matieres_list = []
+    
+    # Sauvegarder les fichiers
+    photo_url = ""
+    cv_url = ""
+    diplome1_url = ""
+    diplome2_url = ""
+    
+    backend_url = os.environ.get('REACT_APP_BACKEND_URL', '')
+    
+    if photo and photo.filename:
+        ext = Path(photo.filename).suffix or '.jpg'
+        photo_path = formateur_dir / f"photo{ext}"
+        with open(photo_path, "wb") as f:
+            shutil.copyfileobj(photo.file, f)
+        photo_url = f"{backend_url}/static/formateurs/{formateur_id}/photo{ext}"
+    
+    if cv and cv.filename:
+        ext = Path(cv.filename).suffix or '.pdf'
+        cv_path = formateur_dir / f"cv{ext}"
+        with open(cv_path, "wb") as f:
+            shutil.copyfileobj(cv.file, f)
+        cv_url = f"{backend_url}/static/formateurs/{formateur_id}/cv{ext}"
+    
+    if diplome1 and diplome1.filename:
+        ext = Path(diplome1.filename).suffix or '.pdf'
+        diplome1_path = formateur_dir / f"diplome1{ext}"
+        with open(diplome1_path, "wb") as f:
+            shutil.copyfileobj(diplome1.file, f)
+        diplome1_url = f"{backend_url}/static/formateurs/{formateur_id}/diplome1{ext}"
+    
+    if diplome2 and diplome2.filename:
+        ext = Path(diplome2.filename).suffix or '.pdf'
+        diplome2_path = formateur_dir / f"diplome2{ext}"
+        with open(diplome2_path, "wb") as f:
+            shutil.copyfileobj(diplome2.file, f)
+        diplome2_url = f"{backend_url}/static/formateurs/{formateur_id}/diplome2{ext}"
+    
+    # Créer le document formateur
+    now = datetime.now(timezone.utc)
+    formateur_doc = {
+        "id": formateur_id,
+        "nom": nom,
+        "prenom": prenom,
+        "email": email,
+        "telephone": telephone,
+        "societe": societe,
+        "siret": siret,
+        "nda": nda,
+        "matieres": matieres_list,
+        "photo_url": photo_url,
+        "cv_url": cv_url,
+        "diplome1_url": diplome1_url,
+        "diplome2_url": diplome2_url,
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat()
+    }
+    
+    await db.formateurs.insert_one(formateur_doc)
+    
+    # Retourner sans _id
+    del formateur_doc["_id"] if "_id" in formateur_doc else None
+    
+    logger.info(f"✅ Nouveau formateur créé: {prenom} {nom} ({email})")
+    return formateur_doc
+
+
+@api_router.put("/formateurs/{formateur_id}")
+async def update_formateur(
+    formateur_id: str,
+    nom: str = FastAPIFile(default=None),
+    prenom: str = FastAPIFile(default=None),
+    email: str = FastAPIFile(default=None),
+    telephone: str = FastAPIFile(default=None),
+    societe: str = FastAPIFile(default=None),
+    siret: str = FastAPIFile(default=None),
+    nda: str = FastAPIFile(default=None),
+    matieres: str = FastAPIFile(default=None),
+    photo: Optional[UploadFile] = None,
+    cv: Optional[UploadFile] = None,
+    diplome1: Optional[UploadFile] = None,
+    diplome2: Optional[UploadFile] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Mettre à jour un formateur"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès refusé")
+    
+    import json
+    import shutil
+    
+    formateur = await db.formateurs.find_one({"id": formateur_id})
+    if not formateur:
+        raise HTTPException(status_code=404, detail="Formateur non trouvé")
+    
+    # Préparer les mises à jour
+    updates = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    
+    if nom is not None:
+        updates["nom"] = nom
+    if prenom is not None:
+        updates["prenom"] = prenom
+    if email is not None:
+        updates["email"] = email
+    if telephone is not None:
+        updates["telephone"] = telephone
+    if societe is not None:
+        updates["societe"] = societe
+    if siret is not None:
+        updates["siret"] = siret
+    if nda is not None:
+        updates["nda"] = nda
+    if matieres is not None:
+        try:
+            updates["matieres"] = json.loads(matieres)
+        except:
+            pass
+    
+    # Gérer les fichiers
+    formateur_dir = Path(f"/app/backend/static/formateurs/{formateur_id}")
+    formateur_dir.mkdir(parents=True, exist_ok=True)
+    backend_url = os.environ.get('REACT_APP_BACKEND_URL', '')
+    
+    if photo and photo.filename:
+        ext = Path(photo.filename).suffix or '.jpg'
+        photo_path = formateur_dir / f"photo{ext}"
+        with open(photo_path, "wb") as f:
+            shutil.copyfileobj(photo.file, f)
+        updates["photo_url"] = f"{backend_url}/static/formateurs/{formateur_id}/photo{ext}"
+    
+    if cv and cv.filename:
+        ext = Path(cv.filename).suffix or '.pdf'
+        cv_path = formateur_dir / f"cv{ext}"
+        with open(cv_path, "wb") as f:
+            shutil.copyfileobj(cv.file, f)
+        updates["cv_url"] = f"{backend_url}/static/formateurs/{formateur_id}/cv{ext}"
+    
+    if diplome1 and diplome1.filename:
+        ext = Path(diplome1.filename).suffix or '.pdf'
+        diplome1_path = formateur_dir / f"diplome1{ext}"
+        with open(diplome1_path, "wb") as f:
+            shutil.copyfileobj(diplome1.file, f)
+        updates["diplome1_url"] = f"{backend_url}/static/formateurs/{formateur_id}/diplome1{ext}"
+    
+    if diplome2 and diplome2.filename:
+        ext = Path(diplome2.filename).suffix or '.pdf'
+        diplome2_path = formateur_dir / f"diplome2{ext}"
+        with open(diplome2_path, "wb") as f:
+            shutil.copyfileobj(diplome2.file, f)
+        updates["diplome2_url"] = f"{backend_url}/static/formateurs/{formateur_id}/diplome2{ext}"
+    
+    await db.formateurs.update_one({"id": formateur_id}, {"$set": updates})
+    
+    # Récupérer le formateur mis à jour
+    updated_formateur = await db.formateurs.find_one({"id": formateur_id}, {"_id": 0})
+    
+    logger.info(f"✅ Formateur mis à jour: {formateur_id}")
+    return updated_formateur
+
+
+@api_router.delete("/formateurs/{formateur_id}")
+async def delete_formateur(formateur_id: str, current_user: User = Depends(get_current_user)):
+    """Supprimer un formateur"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès refusé")
+    
+    import shutil
+    
+    formateur = await db.formateurs.find_one({"id": formateur_id})
+    if not formateur:
+        raise HTTPException(status_code=404, detail="Formateur non trouvé")
+    
+    # Supprimer les fichiers associés
+    formateur_dir = Path(f"/app/backend/static/formateurs/{formateur_id}")
+    if formateur_dir.exists():
+        shutil.rmtree(formateur_dir)
+    
+    # Supprimer de la base de données
+    await db.formateurs.delete_one({"id": formateur_id})
+    
+    logger.info(f"✅ Formateur supprimé: {formateur_id}")
+    return {"message": "Formateur supprimé avec succès"}
+
+
 # Include router
 app.include_router(api_router)
 
