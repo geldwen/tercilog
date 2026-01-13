@@ -72,6 +72,29 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [isDrawing, setIsDrawing] = useState(false);
   const canvasRef = useRef(null);
 
+  // States pour la gestion des formateurs
+  const [showCreateFormateurDialog, setShowCreateFormateurDialog] = useState(false);
+  const [formateurs, setFormateurs] = useState([]);
+  const [formateurForm, setFormateurForm] = useState({
+    photo: null,
+    photoPreview: null,
+    nom: '',
+    prenom: '',
+    societe: '',
+    email: '',
+    telephone: '',
+    siret: '',
+    nda: '',
+    matieres: [''],
+    cv: null,
+    cvName: '',
+    diplome1: null,
+    diplome1Name: '',
+    diplome2: null,
+    diplome2Name: ''
+  });
+  const [loadingFormateurs, setLoadingFormateurs] = useState(false);
+
   // Fonctions de navigation des mois
   const goToPreviousMonth = () => {
     if (selectedMonthNum === 1) {
