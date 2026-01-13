@@ -725,6 +725,47 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   // Gérer les changements de champs
   const handleFormateurChange = (field, value) => {
+    // Gérer les uploads de fichiers
+    if (field === 'photo' && value instanceof File) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFormateurForm(prev => ({
+          ...prev,
+          photo: value,
+          photoPreview: event.target.result
+        }));
+      };
+      reader.readAsDataURL(value);
+      return;
+    }
+    
+    if (field === 'cv' && value instanceof File) {
+      setFormateurForm(prev => ({
+        ...prev,
+        cv: value,
+        cvName: value.name
+      }));
+      return;
+    }
+    
+    if (field === 'diplome1' && value instanceof File) {
+      setFormateurForm(prev => ({
+        ...prev,
+        diplome1: value,
+        diplome1Name: value.name
+      }));
+      return;
+    }
+    
+    if (field === 'diplome2' && value instanceof File) {
+      setFormateurForm(prev => ({
+        ...prev,
+        diplome2: value,
+        diplome2Name: value.name
+      }));
+      return;
+    }
+    
     setFormateurForm(prev => ({ ...prev, [field]: value }));
   };
 
@@ -756,16 +797,16 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
-  // Ajouter une matière
-  const addMatiere = () => {
+  // Ajouter une matière pour formateur
+  const addMatiereFormateur = () => {
     setFormateurForm(prev => ({
       ...prev,
       matieres: [...prev.matieres, '']
     }));
   };
 
-  // Supprimer une matière
-  const removeMatiere = (index) => {
+  // Supprimer une matière pour formateur
+  const removeMatiereFormateur = (index) => {
     if (formateurForm.matieres.length > 1) {
       setFormateurForm(prev => ({
         ...prev,
@@ -774,8 +815,8 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
-  // Modifier une matière
-  const updateMatiere = (index, value) => {
+  // Modifier une matière pour formateur
+  const updateMatiereFormateur = (index, value) => {
     setFormateurForm(prev => ({
       ...prev,
       matieres: prev.matieres.map((m, i) => i === index ? value : m)
