@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import axios from 'axios';
-import { Download, FileText, FileSpreadsheet, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
