@@ -324,6 +324,25 @@ class PlanningEventCreate(BaseModel):
     subject: str = ""  # Matière
     modality: str = "distanciel"  # Type
 
+# Modèle Formateur
+class Formateur(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    nom: str
+    prenom: str
+    email: EmailStr
+    telephone: str = ""
+    societe: str = ""
+    siret: str = ""
+    nda: str = ""  # Numéro de Déclaration d'Activité
+    matieres: List[str] = []  # Matières enseignées
+    photo_url: str = ""
+    cv_url: str = ""
+    diplome1_url: str = ""
+    diplome2_url: str = ""
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 # Helper functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
