@@ -44,6 +44,7 @@ const calculateDuration = (startTime, endTime) => {
 };
 
 export default function BillingView({ sessions, onSessionsUpdate }) {
+  const navigate = useNavigate();
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonthNum, setSelectedMonthNum] = useState(currentDate.getMonth() + 1);
