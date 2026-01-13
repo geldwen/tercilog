@@ -4277,6 +4277,350 @@ export default function TeacherDashboard({ user, onLogout }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Créer un Formateur */}
+      <Dialog open={showCreateFormateurDialog} onOpenChange={(open) => {
+        setShowCreateFormateurDialog(open);
+        if (!open) resetFormateurForm();
+      }}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-3" style={{color: TERCIFORM_BLUE}}>
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                <PenTool className="w-6 h-6 text-amber-600" />
+              </div>
+              Nouveau Formateur
+            </DialogTitle>
+            <DialogDescription>
+              Remplissez les informations du formateur. Les champs marqués * sont obligatoires.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Photo de profil */}
+            <div className="flex items-center gap-6">
+              <div className="flex-shrink-0">
+                <div className="w-24 h-24 rounded-full border-4 border-gray-200 overflow-hidden bg-gray-100 flex items-center justify-center">
+                  {formateurForm.photoPreview ? (
+                    <img 
+                      src={formateurForm.photoPreview} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Users className="w-10 h-10 text-gray-400" />
+                  )}
+                </div>
+              </div>
+              <div className="flex-1">
+                <Label className="text-sm font-semibold text-gray-700">Photo de profil</Label>
+                <div className="mt-2 flex items-center gap-2">
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          handleFormateurChange('photo', file);
+                        }
+                      }}
+                    />
+                    <span className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Choisir une photo
+                    </span>
+                  </label>
+                  {formateurForm.photo && (
+                    <span className="text-sm text-gray-500">{formateurForm.photo.name}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Informations personnelles */}
+            <div className="border-t pt-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Informations personnelles
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="formateur-prenom" className="text-sm font-medium">
+                    Prénom <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="formateur-prenom"
+                    value={formateurForm.prenom}
+                    onChange={(e) => handleFormateurChange('prenom', e.target.value)}
+                    placeholder="Jean"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="formateur-nom" className="text-sm font-medium">
+                    Nom <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="formateur-nom"
+                    value={formateurForm.nom}
+                    onChange={(e) => handleFormateurChange('nom', e.target.value)}
+                    placeholder="Dupont"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="formateur-societe" className="text-sm font-medium">
+                    Société / Entreprise
+                  </Label>
+                  <Input
+                    id="formateur-societe"
+                    value={formateurForm.societe}
+                    onChange={(e) => handleFormateurChange('societe', e.target.value)}
+                    placeholder="Formation Pro SARL"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Contact */}
+            <div className="border-t pt-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                Contact
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="formateur-email" className="text-sm font-medium">
+                    Email <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="formateur-email"
+                    type="email"
+                    value={formateurForm.email}
+                    onChange={(e) => handleFormateurChange('email', e.target.value)}
+                    placeholder="formateur@exemple.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="formateur-telephone" className="text-sm font-medium">
+                    Téléphone
+                  </Label>
+                  <Input
+                    id="formateur-telephone"
+                    value={formateurForm.telephone}
+                    onChange={(e) => handleFormateurChange('telephone', e.target.value)}
+                    placeholder="06 12 34 56 78"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Informations administratives */}
+            <div className="border-t pt-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <Building className="w-5 h-5" />
+                Informations administratives
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="formateur-siret" className="text-sm font-medium">
+                    N° SIRET
+                  </Label>
+                  <Input
+                    id="formateur-siret"
+                    value={formateurForm.siret}
+                    onChange={(e) => handleFormateurChange('siret', e.target.value)}
+                    placeholder="123 456 789 00012"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="formateur-nda" className="text-sm font-medium">
+                    N° de déclaration d'activité (NDA)
+                  </Label>
+                  <Input
+                    id="formateur-nda"
+                    value={formateurForm.nda}
+                    onChange={(e) => handleFormateurChange('nda', e.target.value)}
+                    placeholder="11 75 12345 67"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Matières enseignées */}
+            <div className="border-t pt-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <School className="w-5 h-5" />
+                Matières enseignées
+              </h3>
+              <div className="space-y-3">
+                {formateurForm.matieres.map((matiere, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input
+                      value={matiere}
+                      onChange={(e) => updateMatiereFormateur(index, e.target.value)}
+                      placeholder="Ex: Anglais professionnel, Management..."
+                      className="flex-1"
+                    />
+                    {formateurForm.matieres.length > 1 && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeMatiereFormateur(index)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addMatiereFormateur}
+                  className="mt-2"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Ajouter une matière
+                </Button>
+              </div>
+            </div>
+
+            {/* Documents */}
+            <div className="border-t pt-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Documents
+              </h3>
+              <div className="grid grid-cols-1 gap-4">
+                {/* CV */}
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800">CV</p>
+                        <p className="text-sm text-gray-500">
+                          {formateurForm.cvName || 'Aucun fichier sélectionné'}
+                        </p>
+                      </div>
+                    </div>
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            handleFormateurChange('cv', file);
+                          }
+                        }}
+                      />
+                      <span className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                        <Upload className="w-4 h-4 mr-2" />
+                        Choisir
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Diplôme 1 */}
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <Award className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800">Diplôme 1</p>
+                        <p className="text-sm text-gray-500">
+                          {formateurForm.diplome1Name || 'Aucun fichier sélectionné'}
+                        </p>
+                      </div>
+                    </div>
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            handleFormateurChange('diplome1', file);
+                          }
+                        }}
+                      />
+                      <span className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                        <Upload className="w-4 h-4 mr-2" />
+                        Choisir
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Diplôme 2 */}
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <Award className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800">Diplôme 2</p>
+                        <p className="text-sm text-gray-500">
+                          {formateurForm.diplome2Name || 'Aucun fichier sélectionné'}
+                        </p>
+                      </div>
+                    </div>
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            handleFormateurChange('diplome2', file);
+                          }
+                        }}
+                      />
+                      <span className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                        <Upload className="w-4 h-4 mr-2" />
+                        Choisir
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="border-t pt-4 flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCreateFormateurDialog(false);
+                resetFormateurForm();
+              }}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handleCreateFormateur}
+              className="text-white"
+              style={{ backgroundColor: TERCIFORM_BLUE }}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Créer le formateur
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
