@@ -10339,7 +10339,8 @@ async def create_formateur(
     await db.formateurs.insert_one(formateur_doc)
     
     # Retourner sans _id
-    del formateur_doc["_id"] if "_id" in formateur_doc else None
+    if "_id" in formateur_doc:
+        del formateur_doc["_id"]
     
     logger.info(f"✅ Nouveau formateur créé: {prenom} {nom} ({email})")
     return formateur_doc
