@@ -900,6 +900,83 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  // Ouvrir le dialog d'édition d'un formateur
+  const openEditFormateurDialog = (formateur) => {
+    setEditingFormateur(formateur);
+    setFormateurForm({
+      photo: null,
+      photoPreview: formateur.photo_url ? getFormateurFileUrl(formateur.photo_url) : null,
+      nom: formateur.nom || '',
+      prenom: formateur.prenom || '',
+      societe: formateur.societe || '',
+      email: formateur.email || '',
+      telephone: formateur.telephone || '',
+      siret: formateur.siret || '',
+      nda: formateur.nda || '',
+      matieres: formateur.matieres?.length > 0 ? formateur.matieres : [''],
+      cv: null,
+      cvName: formateur.cv_url ? 'CV existant' : '',
+      diplome1: null,
+      diplome1Name: formateur.diplome1_url ? 'Diplôme 1 existant' : '',
+      diplome2: null,
+      diplome2Name: formateur.diplome2_url ? 'Diplôme 2 existant' : ''
+    });
+    setShowEditFormateurDialog(true);
+  };
+
+  // Mettre à jour un formateur
+  const handleUpdateFormateur = async () => {
+    if (!editingFormateur) return;
+    
+    if (!formateurForm.nom || !formateurForm.prenom || !formateurForm.email) {
+      toast.error('Veuillez remplir au moins le nom, prénom et email');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      
+      const formData = new FormData();
+      formData.append('nom', formateurForm.nom);
+      formData.append('prenom', formateurForm.prenom);
+      formData.append('societe', formateurForm.societe || '');
+      formData.append('email', formateurForm.email);
+      formData.append('telephone', formateurForm.telephone || '');
+      formData.append('siret', formateurForm.siret || '');
+      formData.append('nda', formateurForm.nda || '');
+      formData.append('matieres', JSON.stringify(formateurForm.matieres.filter(m => m.trim())));
+      
+      // Ajouter les fichiers seulement s'ils ont été modifiés
+      if (formateurForm.photo) {
+        formData.append('photo', formateurForm.photo);
+      }
+      if (formateurForm.cv) {
+        formData.append('cv', formateurForm.cv);
+      }
+      if (formateurForm.diplome1) {
+        formData.append('diplome1', formateurForm.diplome1);
+      }
+      if (formateurForm.diplome2) {
+        formData.append('diplome2', formateurForm.diplome2);
+      }
+
+      await axios.patch(`${API}/formateurs/${editingFormateur.id}`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      toast.success('Formateur mis à jour avec succès !');
+      setShowEditFormateurDialog(false);
+      setEditingFormateur(null);
+      resetFormateurForm();
+      loadFormateurs();
+    } catch (error) {
+      console.error('Erreur mise à jour formateur:', error);
+      toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
+    }
+  };
+
   // Fonctions de signature formateur
   const openTeacherSignatureDialog = (session) => {
     setCurrentSessionToSign(session);
