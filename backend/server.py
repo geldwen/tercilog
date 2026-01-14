@@ -10472,11 +10472,24 @@ async def delete_formateur(formateur_id: str, current_user: User = Depends(get_c
 async def download_formateur_file(
     formateur_id: str, 
     file_type: str,
-    current_user: User = Depends(get_current_user)
+    token: str = None
 ):
     """Télécharge un fichier du formateur (cv, diplome1, diplome2, photo)"""
-    if current_user.role != "teacher":
-        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    # Vérifier le token
+    if not token:
+        raise HTTPException(status_code=401, detail="Token manquant")
+    
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        if not email:
+            raise HTTPException(status_code=401, detail="Token invalide")
+        
+        user = await db.users.find_one({"email": email})
+        if not user or user.get("role") != "teacher":
+            raise HTTPException(status_code=403, detail="Accès non autorisé")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Token invalide")
     
     formateur = await db.formateurs.find_one({"id": formateur_id}, {"_id": 0})
     if not formateur:
