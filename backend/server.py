@@ -10468,6 +10468,67 @@ async def delete_formateur(formateur_id: str, current_user: User = Depends(get_c
     return {"message": "Formateur supprimé avec succès"}
 
 
+@api_router.get("/formateurs/{formateur_id}/download/{file_type}")
+async def download_formateur_file(
+    formateur_id: str, 
+    file_type: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Télécharge un fichier du formateur (cv, diplome1, diplome2, photo)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    formateur = await db.formateurs.find_one({"id": formateur_id}, {"_id": 0})
+    if not formateur:
+        raise HTTPException(status_code=404, detail="Formateur non trouvé")
+    
+    # Mapping des types de fichiers
+    url_mapping = {
+        "cv": formateur.get("cv_url", ""),
+        "diplome1": formateur.get("diplome1_url", ""),
+        "diplome2": formateur.get("diplome2_url", ""),
+        "photo": formateur.get("photo_url", "")
+    }
+    
+    if file_type not in url_mapping:
+        raise HTTPException(status_code=400, detail="Type de fichier invalide")
+    
+    file_url = url_mapping[file_type]
+    if not file_url:
+        raise HTTPException(status_code=404, detail="Fichier non trouvé")
+    
+    # Construire le chemin du fichier
+    file_path = Path("/app/backend") / file_url.lstrip("/")
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Fichier non trouvé sur le serveur")
+    
+    # Déterminer le type MIME
+    extension = file_path.suffix.lower()
+    mime_types = {
+        ".pdf": "application/pdf",
+        ".doc": "application/msword",
+        ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp"
+    }
+    media_type = mime_types.get(extension, "application/octet-stream")
+    
+    # Nom du fichier pour le téléchargement
+    formateur_name = f"{formateur.get('prenom', '')}_{formateur.get('nom', '')}".replace(" ", "_")
+    download_filename = f"{formateur_name}_{file_type}{extension}"
+    
+    from fastapi.responses import FileResponse
+    return FileResponse(
+        path=str(file_path),
+        media_type=media_type,
+        filename=download_filename,
+        headers={"Content-Disposition": f"attachment; filename={download_filename}"}
+    )
+
+
 # Include router
 app.include_router(api_router)
 
