@@ -5226,6 +5226,186 @@ export default function TeacherDashboard({ user, onLogout }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Planning Formateur */}
+      <Dialog open={showFormateurPlanningDialog} onOpenChange={setShowFormateurPlanningDialog}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-3" style={{color: '#8B5CF6'}}>
+              <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                <Calendar className="w-6 h-6 text-purple-600" />
+              </div>
+              Planning - {selectedFormateurForPlanning?.prenom} {selectedFormateurForPlanning?.nom}
+            </DialogTitle>
+            <DialogDescription>
+              Visualisez les séances programmées pour ce formateur
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Filtres Mois/Année */}
+            <div className="flex items-center gap-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+              <button
+                onClick={() => {
+                  if (formateurPlanningMonth === 1) {
+                    setFormateurPlanningMonth(12);
+                    setFormateurPlanningYear(formateurPlanningYear - 1);
+                  } else {
+                    setFormateurPlanningMonth(formateurPlanningMonth - 1);
+                  }
+                }}
+                className="p-2 rounded-lg border border-purple-300 hover:bg-purple-100 transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 text-purple-600" />
+              </button>
+
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-purple-700">Mois :</label>
+                <select
+                  value={formateurPlanningMonth}
+                  onChange={(e) => setFormateurPlanningMonth(parseInt(e.target.value))}
+                  className="px-3 py-2 border border-purple-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-purple-700"
+                >
+                  {MOIS_NOMS.map(m => (
+                    <option key={m.num} value={m.num}>{m.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-purple-700">Année :</label>
+                <select
+                  value={formateurPlanningYear}
+                  onChange={(e) => setFormateurPlanningYear(parseInt(e.target.value))}
+                  className="px-3 py-2 border border-purple-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-purple-700"
+                >
+                  {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (formateurPlanningMonth === 12) {
+                    setFormateurPlanningMonth(1);
+                    setFormateurPlanningYear(formateurPlanningYear + 1);
+                  } else {
+                    setFormateurPlanningMonth(formateurPlanningMonth + 1);
+                  }
+                }}
+                className="p-2 rounded-lg border border-purple-300 hover:bg-purple-100 transition-colors"
+              >
+                <ChevronRight className="w-5 h-5 text-purple-600" />
+              </button>
+
+              <div className="ml-auto text-sm text-purple-600 font-medium">
+                {getFormateurSessions.length} séance(s) ce mois
+              </div>
+            </div>
+
+            {/* Calendrier */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              {/* En-têtes des jours */}
+              <div className="grid grid-cols-7 bg-purple-600 text-white text-center text-sm font-medium">
+                <div className="py-2">Lun</div>
+                <div className="py-2">Mar</div>
+                <div className="py-2">Mer</div>
+                <div className="py-2">Jeu</div>
+                <div className="py-2">Ven</div>
+                <div className="py-2 bg-purple-700">Sam</div>
+                <div className="py-2 bg-purple-700">Dim</div>
+              </div>
+
+              {/* Grille des jours */}
+              <div className="grid grid-cols-7">
+                {getFormateurCalendarDays.map((dayInfo, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`min-h-[80px] p-1 border-b border-r border-gray-200 ${
+                      !dayInfo.day ? 'bg-gray-50' : 
+                      dayInfo.sessions.length > 0 ? 'bg-purple-50' : 'bg-white'
+                    }`}
+                  >
+                    {dayInfo.day && (
+                      <>
+                        <div className={`text-sm font-medium mb-1 ${
+                          dayInfo.sessions.length > 0 ? 'text-purple-700' : 'text-gray-600'
+                        }`}>
+                          {dayInfo.day}
+                        </div>
+                        {dayInfo.sessions.map((session, sIdx) => (
+                          <div 
+                            key={sIdx}
+                            className="text-xs p-1 mb-1 bg-purple-500 text-white rounded truncate"
+                            title={`${session.start_time}-${session.end_time} | ${session.student_name} | ${session.subject}`}
+                          >
+                            <div className="font-medium">{session.start_time}-{session.end_time}</div>
+                            <div className="truncate opacity-90">{session.student_name?.split(' ')[0]}</div>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Liste détaillée des séances */}
+            {getFormateurSessions.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Détail des séances</h3>
+                <div className="space-y-2">
+                  {getFormateurSessions.map((session, idx) => (
+                    <div 
+                      key={idx}
+                      className="flex items-center gap-4 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                    >
+                      <div className="w-20 text-center">
+                        <div className="text-sm font-bold text-purple-600">
+                          {new Date(session.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(session.date).toLocaleDateString('fr-FR', { month: 'short' })}
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800">{session.student_name}</div>
+                        <div className="text-sm text-gray-500">{session.subject}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium text-purple-600">{session.start_time} - {session.end_time}</div>
+                        <div className="text-xs text-gray-500">{session.duration_hours}h</div>
+                      </div>
+                      <div className={`px-2 py-1 rounded text-xs font-medium ${
+                        session.status === 'completed' ? 'bg-green-100 text-green-700' :
+                        session.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {session.status === 'completed' ? 'Terminée' :
+                         session.status === 'confirmed' ? 'Confirmée' : 'En attente'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {getFormateurSessions.length === 0 && (
+              <div className="text-center py-8">
+                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">Aucune séance programmée pour ce mois</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="border-t pt-4">
+            <Button variant="outline" onClick={() => setShowFormateurPlanningDialog(false)}>
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
