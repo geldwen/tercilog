@@ -4692,6 +4692,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <FileText className="w-5 h-5" />
                 Documents
               </h3>
+              <p className="text-sm text-gray-500 mb-4">Formats acceptés: PDF uniquement</p>
               <div className="grid grid-cols-1 gap-4">
                 {/* CV */}
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -4710,7 +4711,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                     <label className="cursor-pointer">
                       <input
                         type="file"
-                        accept=".pdf,.doc,.docx"
+                        accept=".pdf"
                         className="hidden"
                         onChange={(e) => {
                           const file = e.target.files[0];
