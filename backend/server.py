@@ -10549,30 +10549,45 @@ async def download_formateur_file(
 
 @api_router.post("/sessions/assign-to-formateur")
 async def assign_sessions_to_formateur(
-    formateur_id: str,
+    formateur_id: str = None,
+    formateur_name: str = None,
     current_user: User = Depends(get_current_user)
 ):
-    """Assigne toutes les sessions existantes à un formateur (opération unique)"""
+    """Assigne toutes les sessions existantes à un formateur (opération unique)
+    Peut utiliser formateur_id OU formateur_name (ex: 'Jonathan GHIZZO')
+    """
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Accès non autorisé")
     
-    # Récupérer le formateur
-    formateur = await db.formateurs.find_one({"id": formateur_id}, {"_id": 0})
+    # Récupérer le formateur par ID ou par nom
+    formateur = None
+    if formateur_id:
+        formateur = await db.formateurs.find_one({"id": formateur_id}, {"_id": 0})
+    elif formateur_name:
+        # Recherche par nom (prénom + nom)
+        parts = formateur_name.strip().split(' ', 1)
+        if len(parts) == 2:
+            formateur = await db.formateurs.find_one({
+                "prenom": {"$regex": f"^{parts[0]}$", "$options": "i"},
+                "nom": {"$regex": f"^{parts[1]}$", "$options": "i"}
+            }, {"_id": 0})
+    
     if not formateur:
         raise HTTPException(status_code=404, detail="Formateur non trouvé")
     
-    formateur_name = f"{formateur.get('prenom', '')} {formateur.get('nom', '')}"
+    full_name = f"{formateur.get('prenom', '')} {formateur.get('nom', '')}"
     
     # Mettre à jour toutes les sessions
     result = await db.sessions.update_many(
         {},  # Toutes les sessions
-        {"$set": {"teacher_name": formateur_name}}
+        {"$set": {"teacher_name": full_name}}
     )
     
     return {
         "message": f"Sessions mises à jour avec succès",
-        "formateur": formateur_name,
-        "sessions_updated": result.modified_count
+        "formateur": full_name,
+        "sessions_updated": result.modified_count,
+        "sessions_matched": result.matched_count
     }
 
 
