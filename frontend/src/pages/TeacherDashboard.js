@@ -1675,9 +1675,9 @@ export default function TeacherDashboard({ user, onLogout }) {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {showPlanning ? (
-          <PlanningView sessions={sessions} onSessionsUpdate={loadSessions} />
+          <PlanningView sessions={sessions} onSessionsUpdate={loadSessions} onBack={() => setShowPlanning(false)} />
         ) : showBilling ? (
-          <BillingView sessions={sessions} onSessionsUpdate={loadSessions} />
+          <BillingView sessions={sessions} onSessionsUpdate={loadSessions} onBack={() => setShowBilling(false)} />
         ) : (
           <>
           {/* Fond coloré selon l'onglet actif - comme un papier peint */}
