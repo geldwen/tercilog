@@ -37,7 +37,7 @@ const HOURS = Array.from({ length: 14 }, (_, i) => i + 8); // 8h à 21h
 const HOUR_HEIGHT_PX = 80; // Hauteur d'une ligne horaire en px (augmentée pour lisibilité)
 const PX_PER_MIN = HOUR_HEIGHT_PX / 60; // pixels par minute
 
-export default function PlanningView({ sessions, onSessionsUpdate }) {
+export default function PlanningView({ sessions, onSessionsUpdate, onBack }) {
   const navigate = useNavigate();
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
