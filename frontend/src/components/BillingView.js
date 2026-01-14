@@ -43,7 +43,7 @@ const calculateDuration = (startTime, endTime) => {
   return (endH + endM/60) - (startH + startM/60);
 };
 
-export default function BillingView({ sessions, onSessionsUpdate }) {
+export default function BillingView({ sessions, onSessionsUpdate, onBack }) {
   const navigate = useNavigate();
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
