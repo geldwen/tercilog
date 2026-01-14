@@ -3994,40 +3994,40 @@ export default function TeacherDashboard({ user, onLogout }) {
                           <p className="text-xs font-semibold text-gray-500 mb-2">DOCUMENTS</p>
                           <div className="flex flex-wrap gap-2">
                             {formateur.cv_url && (
-                              <a 
-                                href={getFormateurFileUrl(formateur.cv_url)} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                download
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs hover:bg-blue-200 transition-colors"
+                              <button 
+                                onClick={() => {
+                                  const token = localStorage.getItem('token');
+                                  window.open(`${API}/formateurs/${formateur.id}/download/cv?token=${token}`, '_blank');
+                                }}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs hover:bg-blue-200 transition-colors cursor-pointer"
                               >
                                 <Download className="w-3 h-3" />
                                 CV
-                              </a>
+                              </button>
                             )}
                             {formateur.diplome1_url && (
-                              <a 
-                                href={getFormateurFileUrl(formateur.diplome1_url)} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                download
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-xs hover:bg-green-200 transition-colors"
+                              <button 
+                                onClick={() => {
+                                  const token = localStorage.getItem('token');
+                                  window.open(`${API}/formateurs/${formateur.id}/download/diplome1?token=${token}`, '_blank');
+                                }}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-xs hover:bg-green-200 transition-colors cursor-pointer"
                               >
                                 <Download className="w-3 h-3" />
                                 Diplôme 1
-                              </a>
+                              </button>
                             )}
                             {formateur.diplome2_url && (
-                              <a 
-                                href={getFormateurFileUrl(formateur.diplome2_url)} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                download
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-xs hover:bg-green-200 transition-colors"
+                              <button 
+                                onClick={() => {
+                                  const token = localStorage.getItem('token');
+                                  window.open(`${API}/formateurs/${formateur.id}/download/diplome2?token=${token}`, '_blank');
+                                }}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-xs hover:bg-green-200 transition-colors cursor-pointer"
                               >
                                 <Download className="w-3 h-3" />
                                 Diplôme 2
-                              </a>
+                              </button>
                             )}
                           </div>
                         </div>
