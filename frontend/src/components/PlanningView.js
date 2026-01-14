@@ -524,7 +524,7 @@ export default function PlanningView({ sessions, onSessionsUpdate, onBack }) {
     <div className="space-y-4 planning-root">
       {/* Header avec bouton Retour */}
       <div className="flex items-center gap-4 mb-4">
-        <Button variant="outline" onClick={() => navigate(-1)} className="flex items-center gap-2">
+        <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
           Retour
         </Button>
