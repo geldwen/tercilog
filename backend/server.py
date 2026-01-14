@@ -10481,11 +10481,15 @@ async def download_formateur_file(
     
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email = payload.get("sub")
-        if not email:
+        user_id = payload.get("sub")
+        if not user_id:
             raise HTTPException(status_code=401, detail="Token invalide")
         
-        user = await db.users.find_one({"email": email})
+        # Le sub peut être un ID ou un email, essayons les deux
+        user = await db.users.find_one({"id": user_id})
+        if not user:
+            user = await db.users.find_one({"email": user_id})
+        
         if not user or user.get("role") != "teacher":
             raise HTTPException(status_code=403, detail="Accès non autorisé")
     except JWTError:
