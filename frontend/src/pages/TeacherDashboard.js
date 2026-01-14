@@ -74,6 +74,8 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   // States pour la gestion des formateurs
   const [showCreateFormateurDialog, setShowCreateFormateurDialog] = useState(false);
+  const [showEditFormateurDialog, setShowEditFormateurDialog] = useState(false);
+  const [editingFormateur, setEditingFormateur] = useState(null);
   const [formateurs, setFormateurs] = useState([]);
   const [formateurSearchQuery, setFormateurSearchQuery] = useState('');
   const [formateurForm, setFormateurForm] = useState({
