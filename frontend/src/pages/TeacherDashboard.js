@@ -3823,18 +3823,19 @@ export default function TeacherDashboard({ user, onLogout }) {
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 {/* Recherche */}
                 <div className="relative flex-1 sm:flex-none sm:w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
                   <Input
                     type="text"
                     placeholder="Rechercher par nom, matière..."
                     value={formateurSearchQuery}
                     onChange={(e) => setFormateurSearchQuery(e.target.value)}
-                    className="pl-10 pr-4"
+                    className="pl-10 pr-4 border-blue-300 focus:border-blue-500 focus:ring-blue-500"
+                    style={{ backgroundColor: '#EFF6FF' }}
                   />
                   {formateurSearchQuery && (
                     <button
                       onClick={() => setFormateurSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-600"
                     >
                       <X className="w-4 h-4" />
                     </button>
