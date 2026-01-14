@@ -201,6 +201,7 @@ class Session(BaseModel):
     attendance_email_sent: bool = False  # Email d'émargement envoyé ou non
     reminder_email_sent: bool = False  # Email de rappel 5 min avant envoyé ou non
     meeting_link: str = ""  # Lien Google Meet ou autre visio
+    teacher_name: str = ""  # Nom du formateur assigné
     teacher_signature: Optional[str] = None  # Base64 image de la signature formateur
     teacher_signed_at: Optional[str] = None  # Horodatage de l'émargement formateur
     teacher_signature_status: str = "scheduled"  # scheduled, pending, signed
