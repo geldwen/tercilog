@@ -989,6 +989,64 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  // Ouvrir le planning d'un formateur
+  const openFormateurPlanningDialog = (formateur) => {
+    setSelectedFormateurForPlanning(formateur);
+    setFormateurPlanningMonth(new Date().getMonth() + 1);
+    setFormateurPlanningYear(new Date().getFullYear());
+    setShowFormateurPlanningDialog(true);
+  };
+
+  // Obtenir les sessions d'un formateur pour un mois donné
+  const getFormateurSessions = useMemo(() => {
+    if (!selectedFormateurForPlanning) return [];
+    
+    const formateurName = `${selectedFormateurForPlanning.prenom} ${selectedFormateurForPlanning.nom}`.toLowerCase();
+    
+    return sessions.filter(session => {
+      // Vérifier si le formateur est assigné à cette session
+      const teacherName = (session.teacher_name || '').toLowerCase();
+      if (!teacherName.includes(formateurName.split(' ')[0]) && !teacherName.includes(formateurName.split(' ')[1])) {
+        return false;
+      }
+      
+      // Filtrer par mois et année
+      const sessionDate = new Date(session.date);
+      return sessionDate.getMonth() + 1 === formateurPlanningMonth && 
+             sessionDate.getFullYear() === formateurPlanningYear;
+    }).sort((a, b) => new Date(a.date) - new Date(b.date));
+  }, [selectedFormateurForPlanning, sessions, formateurPlanningMonth, formateurPlanningYear]);
+
+  // Générer les jours du mois pour le planning formateur
+  const getFormateurCalendarDays = useMemo(() => {
+    const year = formateurPlanningYear;
+    const month = formateurPlanningMonth - 1; // JavaScript months are 0-indexed
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    
+    // Jour de la semaine du premier jour (0 = Dimanche, 1 = Lundi, etc.)
+    let startDay = firstDay.getDay();
+    if (startDay === 0) startDay = 7; // Convertir dimanche de 0 à 7
+    
+    const days = [];
+    
+    // Ajouter les jours vides avant le premier du mois
+    for (let i = 1; i < startDay; i++) {
+      days.push({ day: null, sessions: [] });
+    }
+    
+    // Ajouter les jours du mois
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const daySessions = getFormateurSessions.filter(s => s.date === dateStr);
+      days.push({ day, date: dateStr, sessions: daySessions });
+    }
+    
+    return days;
+  }, [formateurPlanningYear, formateurPlanningMonth, getFormateurSessions]);
+
   // Fonctions de signature formateur
   const openTeacherSignatureDialog = (session) => {
     setCurrentSessionToSign(session);
