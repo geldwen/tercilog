@@ -75,6 +75,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   // States pour la gestion des formateurs
   const [showCreateFormateurDialog, setShowCreateFormateurDialog] = useState(false);
   const [formateurs, setFormateurs] = useState([]);
+  const [formateurSearchQuery, setFormateurSearchQuery] = useState('');
   const [formateurForm, setFormateurForm] = useState({
     photo: null,
     photoPreview: null,
@@ -94,6 +95,28 @@ export default function TeacherDashboard({ user, onLogout }) {
     diplome2Name: ''
   });
   const [loadingFormateurs, setLoadingFormateurs] = useState(false);
+
+  // Filtrer les formateurs par recherche
+  const filteredFormateurs = useMemo(() => {
+    if (!formateurSearchQuery.trim()) return formateurs;
+    const query = formateurSearchQuery.toLowerCase().trim();
+    return formateurs.filter(f => {
+      const nomComplet = `${f.prenom} ${f.nom}`.toLowerCase();
+      const matieresStr = (f.matieres || []).join(' ').toLowerCase();
+      return nomComplet.includes(query) || matieresStr.includes(query) || 
+             f.email?.toLowerCase().includes(query) || 
+             f.societe?.toLowerCase().includes(query);
+    });
+  }, [formateurs, formateurSearchQuery]);
+
+  // Helper pour construire l'URL complète des fichiers formateur
+  const getFormateurFileUrl = (path) => {
+    if (!path) return null;
+    // Si c'est déjà une URL complète, la retourner
+    if (path.startsWith('http')) return path;
+    // Sinon, préfixer avec BACKEND_URL
+    return `${BACKEND_URL}${path}`;
+  };
 
   // Fonctions de navigation des mois
   const goToPreviousMonth = () => {
