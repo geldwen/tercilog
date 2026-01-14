@@ -75,7 +75,11 @@ export default function TeacherDashboard({ user, onLogout }) {
   // States pour la gestion des formateurs
   const [showCreateFormateurDialog, setShowCreateFormateurDialog] = useState(false);
   const [showEditFormateurDialog, setShowEditFormateurDialog] = useState(false);
+  const [showFormateurPlanningDialog, setShowFormateurPlanningDialog] = useState(false);
   const [editingFormateur, setEditingFormateur] = useState(null);
+  const [selectedFormateurForPlanning, setSelectedFormateurForPlanning] = useState(null);
+  const [formateurPlanningMonth, setFormateurPlanningMonth] = useState(new Date().getMonth() + 1);
+  const [formateurPlanningYear, setFormateurPlanningYear] = useState(new Date().getFullYear());
   const [formateurs, setFormateurs] = useState([]);
   const [formateurSearchQuery, setFormateurSearchQuery] = useState('');
   const [formateurForm, setFormateurForm] = useState({
@@ -97,6 +101,14 @@ export default function TeacherDashboard({ user, onLogout }) {
     diplome2Name: ''
   });
   const [loadingFormateurs, setLoadingFormateurs] = useState(false);
+
+  // Liste des mois pour le planning formateur
+  const MOIS_NOMS = [
+    { num: 1, label: 'Janvier' }, { num: 2, label: 'Février' }, { num: 3, label: 'Mars' },
+    { num: 4, label: 'Avril' }, { num: 5, label: 'Mai' }, { num: 6, label: 'Juin' },
+    { num: 7, label: 'Juillet' }, { num: 8, label: 'Août' }, { num: 9, label: 'Septembre' },
+    { num: 10, label: 'Octobre' }, { num: 11, label: 'Novembre' }, { num: 12, label: 'Décembre' }
+  ];
 
   // Filtrer les formateurs par recherche
   const filteredFormateurs = useMemo(() => {
