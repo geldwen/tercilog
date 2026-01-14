@@ -10488,7 +10488,7 @@ async def download_formateur_file(
         user = await db.users.find_one({"email": email})
         if not user or user.get("role") != "teacher":
             raise HTTPException(status_code=403, detail="Accès non autorisé")
-    except jwt.PyJWTError:
+    except JWTError:
         raise HTTPException(status_code=401, detail="Token invalide")
     
     formateur = await db.formateurs.find_one({"id": formateur_id}, {"_id": 0})
