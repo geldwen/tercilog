@@ -883,8 +883,8 @@ export default function TeacherDashboard({ user, onLogout }) {
 
       const response = await axios.post(`${API}/formateurs`, formData, {
         headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
+          Authorization: `Bearer ${token}`
+          // Ne PAS définir Content-Type - axios le fait automatiquement avec le bon boundary
         }
       });
 
