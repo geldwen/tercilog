@@ -10546,6 +10546,35 @@ async def download_formateur_file(
     )
 
 
+@api_router.post("/sessions/assign-to-formateur")
+async def assign_sessions_to_formateur(
+    formateur_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Assigne toutes les sessions existantes à un formateur (opération unique)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    # Récupérer le formateur
+    formateur = await db.formateurs.find_one({"id": formateur_id}, {"_id": 0})
+    if not formateur:
+        raise HTTPException(status_code=404, detail="Formateur non trouvé")
+    
+    formateur_name = f"{formateur.get('prenom', '')} {formateur.get('nom', '')}"
+    
+    # Mettre à jour toutes les sessions
+    result = await db.sessions.update_many(
+        {},  # Toutes les sessions
+        {"$set": {"teacher_name": formateur_name}}
+    )
+    
+    return {
+        "message": f"Sessions mises à jour avec succès",
+        "formateur": formateur_name,
+        "sessions_updated": result.modified_count
+    }
+
+
 # Include router
 app.include_router(api_router)
 
