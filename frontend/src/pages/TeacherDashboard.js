@@ -1001,12 +1001,17 @@ export default function TeacherDashboard({ user, onLogout }) {
   const getFormateurSessions = useMemo(() => {
     if (!selectedFormateurForPlanning) return [];
     
-    const formateurName = `${selectedFormateurForPlanning.prenom} ${selectedFormateurForPlanning.nom}`.toLowerCase();
+    // Construire le nom complet du formateur pour la comparaison
+    const formateurFullName = `${selectedFormateurForPlanning.prenom} ${selectedFormateurForPlanning.nom}`.toLowerCase();
     
     return sessions.filter(session => {
       // Vérifier si le formateur est assigné à cette session
-      const teacherName = (session.teacher_name || '').toLowerCase();
-      if (!teacherName.includes(formateurName.split(' ')[0]) && !teacherName.includes(formateurName.split(' ')[1])) {
+      const teacherName = (session.teacher_name || '').toLowerCase().trim();
+      
+      // Comparaison exacte ou partielle
+      if (teacherName !== formateurFullName && 
+          !teacherName.includes(selectedFormateurForPlanning.prenom?.toLowerCase()) &&
+          !teacherName.includes(selectedFormateurForPlanning.nom?.toLowerCase())) {
         return false;
       }
       
