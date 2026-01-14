@@ -3668,18 +3668,46 @@ export default function TeacherDashboard({ user, onLogout }) {
 
           {/* Onglet Formateurs (vide pour le moment) */}
           <TabsContent value="formateurs" className="space-y-6">
-            {/* Header avec bouton créer */}
-            <div className="flex justify-between items-center">
+            {/* Header avec recherche et bouton créer */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2 className="text-xl font-bold text-gray-800">Gestion des Formateurs</h2>
-              <Button 
-                className="gap-2 text-white"
-                style={{ backgroundColor: TERCIFORM_BLUE }}
-                onClick={() => setShowCreateFormateurDialog(true)}
-              >
-                <Plus className="w-4 h-4" />
-                Créer un nouveau formateur
-              </Button>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                {/* Recherche */}
+                <div className="relative flex-1 sm:flex-none sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Rechercher par nom, matière..."
+                    value={formateurSearchQuery}
+                    onChange={(e) => setFormateurSearchQuery(e.target.value)}
+                    className="pl-10 pr-4"
+                  />
+                  {formateurSearchQuery && (
+                    <button
+                      onClick={() => setFormateurSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                <Button 
+                  className="gap-2 text-white whitespace-nowrap"
+                  style={{ backgroundColor: TERCIFORM_BLUE }}
+                  onClick={() => setShowCreateFormateurDialog(true)}
+                >
+                  <Plus className="w-4 h-4" />
+                  Créer un nouveau formateur
+                </Button>
+              </div>
             </div>
+
+            {/* Indicateur de résultats de recherche */}
+            {formateurSearchQuery && (
+              <div className="text-sm text-gray-500">
+                {filteredFormateurs.length} résultat(s) pour "{formateurSearchQuery}"
+              </div>
+            )}
 
             {/* Liste des formateurs */}
             {loadingFormateurs ? (
@@ -3687,19 +3715,28 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
                 <p className="mt-4 text-gray-500">Chargement des formateurs...</p>
               </div>
-            ) : formateurs.length === 0 ? (
+            ) : filteredFormateurs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16">
                 <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mb-6">
                   <PenTool className="w-12 h-12 text-amber-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Aucun formateur</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                  {formateurSearchQuery ? 'Aucun résultat' : 'Aucun formateur'}
+                </h2>
                 <p className="text-gray-500 text-center max-w-md mb-6">
-                  Créez votre premier formateur en cliquant sur le bouton ci-dessus.
+                  {formateurSearchQuery 
+                    ? `Aucun formateur ne correspond à "${formateurSearchQuery}"`
+                    : 'Créez votre premier formateur en cliquant sur le bouton ci-dessus.'}
                 </p>
+                {formateurSearchQuery && (
+                  <Button variant="outline" onClick={() => setFormateurSearchQuery('')}>
+                    Effacer la recherche
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {formateurs.map((formateur) => (
+                {filteredFormateurs.map((formateur) => (
                   <div 
                     key={formateur.id} 
                     className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow"
@@ -3710,17 +3747,20 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <div className="w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex-shrink-0">
                           {formateur.photo_url ? (
                             <img 
-                              src={formateur.photo_url} 
+                              src={getFormateurFileUrl(formateur.photo_url)} 
                               alt={`${formateur.prenom} ${formateur.nom}`}
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
                             />
-                          ) : (
-                            <div className="w-full h-full bg-amber-100 flex items-center justify-center">
-                              <span className="text-2xl font-bold text-amber-600">
-                                {formateur.prenom?.[0]}{formateur.nom?.[0]}
-                              </span>
-                            </div>
-                          )}
+                          ) : null}
+                          <div className={`w-full h-full bg-amber-100 items-center justify-center ${formateur.photo_url ? 'hidden' : 'flex'}`}>
+                            <span className="text-2xl font-bold text-amber-600">
+                              {formateur.prenom?.[0]}{formateur.nom?.[0]}
+                            </span>
+                          </div>
                         </div>
                         <div className="text-white">
                           <h3 className="text-xl font-bold">{formateur.prenom} {formateur.nom}</h3>
@@ -3760,11 +3800,11 @@ export default function TeacherDashboard({ user, onLogout }) {
                       )}
 
                       {/* Matières enseignées */}
-                      {formateur.matieres && formateur.matieres.length > 0 && (
+                      {formateur.matieres && formateur.matieres.length > 0 && formateur.matieres[0] && (
                         <div className="pt-2 border-t border-gray-100">
                           <p className="text-xs font-semibold text-gray-500 mb-2">MATIÈRES ENSEIGNÉES</p>
                           <div className="flex flex-wrap gap-1">
-                            {formateur.matieres.map((matiere, idx) => (
+                            {formateur.matieres.filter(m => m).map((matiere, idx) => (
                               <span 
                                 key={idx}
                                 className="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium"
@@ -3776,39 +3816,45 @@ export default function TeacherDashboard({ user, onLogout }) {
                         </div>
                       )}
 
-                      {/* Documents */}
+                      {/* Documents - Boutons de téléchargement */}
                       {(formateur.cv_url || formateur.diplome1_url || formateur.diplome2_url) && (
                         <div className="pt-2 border-t border-gray-100">
                           <p className="text-xs font-semibold text-gray-500 mb-2">DOCUMENTS</p>
-                          <div className="flex gap-2">
+                          <div className="flex flex-wrap gap-2">
                             {formateur.cv_url && (
                               <a 
-                                href={formateur.cv_url} 
+                                href={getFormateurFileUrl(formateur.cv_url)} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs hover:bg-blue-200"
+                                download
+                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs hover:bg-blue-200 transition-colors"
                               >
-                                📄 CV
+                                <Download className="w-3 h-3" />
+                                CV
                               </a>
                             )}
                             {formateur.diplome1_url && (
                               <a 
-                                href={formateur.diplome1_url} 
+                                href={getFormateurFileUrl(formateur.diplome1_url)} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs hover:bg-green-200"
+                                download
+                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-xs hover:bg-green-200 transition-colors"
                               >
-                                🎓 Diplôme 1
+                                <Download className="w-3 h-3" />
+                                Diplôme 1
                               </a>
                             )}
                             {formateur.diplome2_url && (
                               <a 
-                                href={formateur.diplome2_url} 
+                                href={getFormateurFileUrl(formateur.diplome2_url)} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs hover:bg-green-200"
+                                download
+                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-xs hover:bg-green-200 transition-colors"
                               >
-                                🎓 Diplôme 2
+                                <Download className="w-3 h-3" />
+                                Diplôme 2
                               </a>
                             )}
                           </div>
