@@ -1762,7 +1762,9 @@ export default function TeacherDashboard({ user, onLogout }) {
                 ? 'bg-emerald-300' 
                 : activeTab === 'students' 
                   ? 'bg-violet-300' 
-                  : 'bg-amber-300'
+                  : activeTab === 'formateurs'
+                    ? 'bg-amber-300'
+                    : 'bg-sky-300'
             }`}
             style={{ top: '72px' }}
           />
@@ -1791,6 +1793,13 @@ export default function TeacherDashboard({ user, onLogout }) {
               >
                 <PenTool className="w-5 h-5 mr-3" />
                 FORMATEURS
+              </TabsTrigger>
+              <TabsTrigger 
+                value="clients" 
+                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-sky-500 data-[state=inactive]:text-white data-[state=active]:bg-sky-600 data-[state=active]:text-white hover:shadow-xl"
+              >
+                <Building className="w-5 h-5 mr-3" />
+                CLIENTS
               </TabsTrigger>
             </TabsList>
           </div>
