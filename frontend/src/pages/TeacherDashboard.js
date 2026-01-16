@@ -928,6 +928,136 @@ export default function TeacherDashboard({ user, onLogout }) {
     setShowEditClientDialog(true);
   };
 
+  // ===== FONCTIONS DEMANDES DE SALLE =====
+  const loadRoomRequests = async (clientId) => {
+    setLoadingRoomRequests(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/clients/${clientId}/room-requests`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRoomRequests(response.data || []);
+    } catch (error) {
+      console.error('Erreur chargement demandes:', error);
+    } finally {
+      setLoadingRoomRequests(false);
+    }
+  };
+
+  const loadLocationsHistory = async (clientId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/clients/${clientId}/locations-history`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setLocationsHistory(response.data || []);
+    } catch (error) {
+      console.error('Erreur chargement historique lieux:', error);
+    }
+  };
+
+  const addRoomRequestLine = () => {
+    setRoomRequestFormData([
+      ...roomRequestFormData,
+      { date: '', start_time: '', end_time: '', location_name: '', location_address: '', num_learners: 1 }
+    ]);
+  };
+
+  const removeRoomRequestLine = (index) => {
+    if (roomRequestFormData.length > 1) {
+      setRoomRequestFormData(roomRequestFormData.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateRoomRequestLine = (index, field, value) => {
+    const updated = [...roomRequestFormData];
+    updated[index][field] = value;
+    
+    // Si on sélectionne un lieu de l'historique, remplir l'adresse automatiquement
+    if (field === 'location_name') {
+      const found = locationsHistory.find(l => l.name === value);
+      if (found) {
+        updated[index]['location_address'] = found.address;
+      }
+    }
+    
+    setRoomRequestFormData(updated);
+  };
+
+  const submitRoomRequests = async () => {
+    if (!selectedClient) return;
+    
+    // Valider les données
+    const validRequests = roomRequestFormData.filter(r => 
+      r.date && r.start_time && r.end_time && r.location_name && r.num_learners > 0
+    );
+    
+    if (validRequests.length === 0) {
+      toast.error('Veuillez remplir au moins une demande complète');
+      return;
+    }
+    
+    // Vérifier que le destinataire a un email
+    const recipientEmail = sendRoomRequestTo === 'responsable' 
+      ? selectedClient.email_responsable 
+      : selectedClient.email_gestionnaire;
+    
+    if (!recipientEmail) {
+      toast.error(`Pas d'email ${sendRoomRequestTo} pour ce client`);
+      return;
+    }
+    
+    setSubmittingRoomRequest(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API}/clients/${selectedClient.id}/room-requests`, {
+        requests: validRequests,
+        send_to: sendRoomRequestTo
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success(`Demande envoyée à ${recipientEmail}`);
+      setShowRoomRequestForm(false);
+      setRoomRequestFormData([{ date: '', start_time: '', end_time: '', location_name: '', location_address: '', num_learners: 1 }]);
+      loadRoomRequests(selectedClient.id);
+      loadLocationsHistory(selectedClient.id); // Rafraîchir l'historique des lieux
+    } catch (error) {
+      console.error('Erreur envoi demande:', error);
+      toast.error(error.response?.data?.detail || 'Erreur lors de l\'envoi de la demande');
+    } finally {
+      setSubmittingRoomRequest(false);
+    }
+  };
+
+  // Helper pour formater une date en français avec horodatage complet
+  const formatDateTimeFr = (dateStr) => {
+    if (!dateStr) return '-';
+    try {
+      const date = new Date(dateStr);
+      const dayNames = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+      const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 
+                         'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+      const dayName = dayNames[date.getDay()];
+      const day = date.getDate();
+      const month = monthNames[date.getMonth()];
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      return `${dayName} ${day} ${month} ${year} à ${hours}h${minutes}`;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Charger les demandes quand on ouvre le dialog Actions
+  useEffect(() => {
+    if (showClientActionsDialog && selectedClient) {
+      loadRoomRequests(selectedClient.id);
+      loadLocationsHistory(selectedClient.id);
+    }
+  }, [showClientActionsDialog, selectedClient]);
+
   // Charger les formateurs au montage
   useEffect(() => {
     loadFormateurs();
