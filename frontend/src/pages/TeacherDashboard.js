@@ -168,6 +168,11 @@ export default function TeacherDashboard({ user, onLogout }) {
     return `${BACKEND_URL}${path}`;
   };
 
+  // Helper pour obtenir l'URL de photo d'un formateur via l'API
+  const getFormateurPhotoUrl = (formateurId) => {
+    return `${API}/formateurs/${formateurId}/photo`;
+  };
+
   // Fonctions de navigation des mois
   const goToPreviousMonth = () => {
     if (selectedMonthNum === 1) {
