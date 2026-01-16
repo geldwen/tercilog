@@ -143,6 +143,19 @@ export default function TeacherDashboard({ user, onLogout }) {
     });
   }, [formateurs, formateurSearchQuery]);
 
+  // Filtrer les clients par recherche
+  const filteredClients = useMemo(() => {
+    if (!clientSearchQuery.trim()) return clients;
+    const query = clientSearchQuery.toLowerCase().trim();
+    return clients.filter(c => {
+      return c.nom_centre?.toLowerCase().includes(query) || 
+             c.nom_responsable?.toLowerCase().includes(query) ||
+             c.nom_gestionnaire?.toLowerCase().includes(query) ||
+             c.email_responsable?.toLowerCase().includes(query) ||
+             c.siret?.toLowerCase().includes(query);
+    });
+  }, [clients, clientSearchQuery]);
+
   // Helper pour construire l'URL complète des fichiers formateur
   const getFormateurFileUrl = (path) => {
     if (!path) return null;
