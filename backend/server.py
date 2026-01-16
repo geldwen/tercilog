@@ -1081,52 +1081,57 @@ def send_session_modified_email(to_email: str, student_name: str, subject: str, 
     formatted_old_date = format_date_fr(old_date) if old_date else None
     
     # Construire le bloc des anciennes informations si disponibles
-    old_session_block = ""
+    old_session_info = ""
     if old_date or old_start_time or old_end_time:
-        old_details = []
-        if old_date:
-            old_details.append(f"<p style='margin: 5px 0;'><strong>Date :</strong> {formatted_old_date}</p>")
-        if old_start_time and old_end_time:
-            old_details.append(f"<p style='margin: 5px 0;'><strong>Horaires :</strong> {old_start_time} - {old_end_time}</p>")
-        elif old_start_time:
-            old_details.append(f"<p style='margin: 5px 0;'><strong>Heure début :</strong> {old_start_time}</p>")
-        
-        old_session_block = f"""
-                <div style="background-color: #fee2e2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #dc2626;">❌ Séance initialement prévue :</p>
-                    <p style="margin: 5px 0;"><strong>Matière :</strong> {subject}</p>
-                    {''.join(old_details)}
-                </div>
+        old_date_display = formatted_old_date if old_date else "Non précisée"
+        old_time_display = f"{old_start_time} - {old_end_time}" if old_start_time and old_end_time else (old_start_time if old_start_time else "Non précisés")
+        old_session_info = f"""
+                        <td style="width: 50%; padding: 20px; vertical-align: top;">
+                            <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; padding: 20px; border: 1px solid #dee2e6;">
+                                <p style="margin: 0 0 15px 0; font-size: 14px; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+                                    Ancienne séance
+                                </p>
+                                <p style="margin: 0 0 8px 0; font-size: 15px; color: #495057;"><strong>Matière :</strong> {subject}</p>
+                                <p style="margin: 0 0 8px 0; font-size: 15px; color: #495057;"><strong>Date :</strong> {old_date_display}</p>
+                                <p style="margin: 0; font-size: 15px; color: #495057;"><strong>Horaires :</strong> {old_time_display}</p>
+                            </div>
+                        </td>
         """
     
     html_body = f"""
     <html>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 20px;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+        <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
             <!-- Header avec logo -->
-            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; text-align: center;">
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 35px; text-align: center;">
                 <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
-                <h1 style="color: white; margin: 0; font-size: 24px;">📅 Modification de séance</h1>
+                <h1 style="color: white; margin: 0; font-size: 26px; font-weight: 600;">Modification de votre séance</h1>
             </div>
             
             <!-- Contenu -->
-            <div style="padding: 30px;">
-                <p style="font-size: 16px;">Bonjour <strong>{student_name}</strong>,</p>
+            <div style="padding: 35px;">
+                <p style="font-size: 17px; color: #2d3748;">Bonjour <strong>{student_name}</strong>,</p>
                 
-                <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                    <p style="margin: 0; color: #856404; font-weight: bold; font-size: 16px;">
-                        ⚠️ Votre séance a été modifiée par votre formateur.
-                    </p>
-                </div>
+                <p style="font-size: 16px; color: #4a5568; margin: 20px 0;">
+                    Votre formateur a modifié le créneau de votre prochaine séance. Voici les détails :
+                </p>
                 
-                {old_session_block}
-                
-                <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #047857;">✅ Remplacée par :</p>
-                    <p style="margin: 5px 0;"><strong>Matière :</strong> {subject}</p>
-                    <p style="margin: 5px 0;"><strong>Date :</strong> {formatted_date}</p>
-                    <p style="margin: 5px 0;"><strong>Horaires :</strong> {start_time} - {end_time}</p>
-                </div>
+                <!-- Tableau comparatif côte à côte -->
+                <table style="width: 100%; border-collapse: separate; border-spacing: 10px; margin: 25px 0;">
+                    <tr>
+                        {old_session_info}
+                        <td style="width: 50%; padding: 20px; vertical-align: top;">
+                            <div style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius: 12px; padding: 20px; border: 1px solid #a5d6a7;">
+                                <p style="margin: 0 0 15px 0; font-size: 14px; color: #2e7d32; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+                                    Nouvelle séance
+                                </p>
+                                <p style="margin: 0 0 8px 0; font-size: 15px; color: #1b5e20;"><strong>Matière :</strong> {subject}</p>
+                                <p style="margin: 0 0 8px 0; font-size: 15px; color: #1b5e20;"><strong>Date :</strong> {formatted_date}</p>
+                                <p style="margin: 0; font-size: 15px; color: #1b5e20;"><strong>Horaires :</strong> {start_time} - {end_time}</p>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
                 
                 <!-- Message d'avertissement important -->
                 <div style="background-color: #fef2f2; border: 2px solid #dc2626; border-radius: 8px; padding: 20px; margin: 25px 0;">
