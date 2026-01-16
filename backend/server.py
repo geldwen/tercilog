@@ -10268,6 +10268,25 @@ class Client(ClientBase):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+# ===== MODÈLE DEMANDE DE SALLE =====
+class RoomRequestBase(BaseModel):
+    client_id: str
+    date: str  # Format YYYY-MM-DD
+    start_time: str  # Format HH:MM
+    end_time: str  # Format HH:MM
+    location_name: str  # Nom du centre/lieu
+    location_address: str  # Adresse complète
+    num_learners: int  # Nombre d'apprenants
+
+class RoomRequest(RoomRequestBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    status: str = "pending"  # pending, validated, rejected
+    sent_to: str = ""  # Email du destinataire
+    sent_to_role: str = ""  # responsable ou gestionnaire
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    validated_at: Optional[datetime] = None
+
 @api_router.get("/formateurs")
 async def get_formateurs(current_user: User = Depends(get_current_user)):
     """Récupère la liste des formateurs"""
