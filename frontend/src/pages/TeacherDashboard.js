@@ -6417,7 +6417,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <h4 className="font-semibold text-slate-700 mb-3">Dernières connexions</h4>
                 <div className="space-y-2 text-sm text-slate-600">
                   <p className="italic text-slate-400">Aucune connexion enregistrée pour le moment</p>
-                  {/* Les connexions seront affichées ici une fois le tracking implémenté */}
                 </div>
               </div>
 
@@ -6427,16 +6426,16 @@ export default function TeacherDashboard({ user, onLogout }) {
                   <div className="flex items-center gap-2 py-2 border-b border-slate-200">
                     <span className="w-2 h-2 rounded-full bg-green-500"></span>
                     <span>Création du client</span>
-                    <span className="ml-auto text-xs text-slate-400">
-                      {selectedClient?.created_at ? new Date(selectedClient.created_at).toLocaleDateString('fr-FR') : '-'}
+                    <span className="ml-auto text-xs text-slate-500 font-medium">
+                      {formatDateTimeFr(selectedClient?.created_at)}
                     </span>
                   </div>
                   {selectedClient?.updated_at && selectedClient.updated_at !== selectedClient.created_at && (
                     <div className="flex items-center gap-2 py-2 border-b border-slate-200">
                       <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                       <span>Dernière modification</span>
-                      <span className="ml-auto text-xs text-slate-400">
-                        {new Date(selectedClient.updated_at).toLocaleDateString('fr-FR')}
+                      <span className="ml-auto text-xs text-slate-500 font-medium">
+                        {formatDateTimeFr(selectedClient?.updated_at)}
                       </span>
                     </div>
                   )}
@@ -6454,8 +6453,14 @@ export default function TeacherDashboard({ user, onLogout }) {
       </Dialog>
 
       {/* ===== DIALOG ACTIONS CLIENT ===== */}
-      <Dialog open={showClientActionsDialog} onOpenChange={setShowClientActionsDialog}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+      <Dialog open={showClientActionsDialog} onOpenChange={(open) => {
+        setShowClientActionsDialog(open);
+        if (!open) {
+          setShowRoomRequestForm(false);
+          setRoomRequestFormData([{ date: '', start_time: '', end_time: '', location_name: '', location_address: '', num_learners: 1 }]);
+        }
+      }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-sky-700 flex items-center gap-2">
               <FolderOpen className="w-6 h-6" />
@@ -6496,18 +6501,242 @@ export default function TeacherDashboard({ user, onLogout }) {
           <div className="flex-1 overflow-y-auto">
             {clientActionsTab === 'salles' && (
               <div className="space-y-4">
+                {/* Bouton faire une demande */}
                 <div className="flex justify-between items-center">
-                  <h4 className="font-semibold text-gray-700">Salles du centre</h4>
-                  <button className="flex items-center gap-2 px-3 py-1.5 bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 text-sm">
+                  <h4 className="font-semibold text-gray-700">Demandes de salle</h4>
+                  <button 
+                    onClick={() => setShowRoomRequestForm(!showRoomRequestForm)}
+                    className="flex items-center gap-2 px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 text-sm font-medium shadow-md"
+                  >
                     <Plus className="w-4 h-4" />
-                    Ajouter une salle
+                    Faire une demande de salle
                   </button>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-8 text-center">
-                  <Building className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                  <p className="text-gray-500">Aucune salle enregistrée</p>
-                  <p className="text-sm text-gray-400 mt-1">Cliquez sur "Ajouter une salle" pour commencer</p>
+
+                {/* Formulaire de demande de salle */}
+                {showRoomRequestForm && (
+                  <div className="bg-sky-50 rounded-xl p-5 border border-sky-200 space-y-4">
+                    <h5 className="font-semibold text-sky-800">Nouvelle demande de salle</h5>
+                    
+                    {/* Lignes de demande */}
+                    {roomRequestFormData.map((req, index) => (
+                      <div key={index} className="bg-white rounded-lg p-4 border border-sky-100 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-sky-700">Demande #{index + 1}</span>
+                          {roomRequestFormData.length > 1 && (
+                            <button 
+                              onClick={() => removeRoomRequestLine(index)}
+                              className="text-red-500 hover:text-red-700 text-sm"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+                            <input
+                              type="date"
+                              value={req.date}
+                              onChange={(e) => updateRoomRequestLine(index, 'date', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Heure début</label>
+                            <input
+                              type="time"
+                              value={req.start_time}
+                              onChange={(e) => updateRoomRequestLine(index, 'start_time', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Heure fin</label>
+                            <input
+                              type="time"
+                              value={req.end_time}
+                              onChange={(e) => updateRoomRequestLine(index, 'end_time', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Centre / Lieu</label>
+                            <input
+                              type="text"
+                              value={req.location_name}
+                              onChange={(e) => updateRoomRequestLine(index, 'location_name', e.target.value)}
+                              list={`locations-${index}`}
+                              placeholder="Ex: Centre Envergure"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500"
+                            />
+                            <datalist id={`locations-${index}`}>
+                              {locationsHistory.map((loc, i) => (
+                                <option key={i} value={loc.name} />
+                              ))}
+                            </datalist>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Adresse</label>
+                            <input
+                              type="text"
+                              value={req.location_address}
+                              onChange={(e) => updateRoomRequestLine(index, 'location_address', e.target.value)}
+                              placeholder="13 rue du Gal de Gaulle 75018 Paris"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="w-1/3">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Nombre d'apprenants</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={req.num_learners}
+                            onChange={(e) => updateRoomRequestLine(index, 'num_learners', parseInt(e.target.value) || 1)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-sky-500"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Bouton ajouter une demande */}
+                    <button 
+                      onClick={addRoomRequestLine}
+                      className="text-sky-600 hover:text-sky-700 text-sm font-medium flex items-center gap-1"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Ajouter une autre demande
+                    </button>
+                    
+                    {/* Choix du destinataire */}
+                    <div className="border-t border-sky-200 pt-4 mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Envoyer la demande à :</label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="sendTo"
+                            value="gestionnaire"
+                            checked={sendRoomRequestTo === 'gestionnaire'}
+                            onChange={(e) => setSendRoomRequestTo(e.target.value)}
+                            className="w-4 h-4 text-sky-600"
+                          />
+                          <span className="text-sm">
+                            Gestionnaire
+                            {selectedClient?.nom_gestionnaire && (
+                              <span className="text-gray-500 ml-1">({selectedClient.nom_gestionnaire})</span>
+                            )}
+                          </span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="sendTo"
+                            value="responsable"
+                            checked={sendRoomRequestTo === 'responsable'}
+                            onChange={(e) => setSendRoomRequestTo(e.target.value)}
+                            className="w-4 h-4 text-sky-600"
+                          />
+                          <span className="text-sm">
+                            Responsable
+                            {selectedClient?.nom_responsable && (
+                              <span className="text-gray-500 ml-1">({selectedClient.nom_responsable})</span>
+                            )}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                    
+                    {/* Bouton soumettre */}
+                    <div className="flex justify-end gap-2 mt-4">
+                      <button 
+                        onClick={() => {
+                          setShowRoomRequestForm(false);
+                          setRoomRequestFormData([{ date: '', start_time: '', end_time: '', location_name: '', location_address: '', num_learners: 1 }]);
+                        }}
+                        className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                      >
+                        Annuler
+                      </button>
+                      <button 
+                        onClick={submitRoomRequests}
+                        disabled={submittingRoomRequest}
+                        className="flex items-center gap-2 px-6 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 font-medium disabled:opacity-50"
+                      >
+                        {submittingRoomRequest ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            Envoi...
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="w-4 h-4" />
+                            Soumettre la demande
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Liste des demandes en attente */}
+                <div className="mt-6">
+                  <h5 className="font-medium text-gray-700 mb-3">Demandes en cours</h5>
+                  {loadingRoomRequests ? (
+                    <div className="flex justify-center py-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
+                    </div>
+                  ) : roomRequests.filter(r => r.status === 'pending').length === 0 ? (
+                    <div className="bg-gray-50 rounded-lg p-6 text-center">
+                      <Clock className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+                      <p className="text-gray-500 text-sm">Aucune demande en attente</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {roomRequests.filter(r => r.status === 'pending').map((req) => (
+                        <div key={req.id} className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-amber-400 animate-pulse"></div>
+                          <div className="flex-1">
+                            <p className="text-sm text-gray-700">
+                              <strong>{req.location_name}</strong> - {new Date(req.date).toLocaleDateString('fr-FR')} de {req.start_time} à {req.end_time}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {req.num_learners} apprenant(s) • Envoyé à {req.sent_to}
+                            </p>
+                          </div>
+                          <span className="px-2 py-1 bg-amber-200 text-amber-800 rounded text-xs font-medium">En attente</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
+                {/* Demandes validées */}
+                {roomRequests.filter(r => r.status === 'validated').length > 0 && (
+                  <div className="mt-4">
+                    <h5 className="font-medium text-gray-700 mb-3">Demandes validées</h5>
+                    <div className="space-y-2">
+                      {roomRequests.filter(r => r.status === 'validated').map((req) => (
+                        <div key={req.id} className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-3">
+                          <CheckCircle className="w-5 h-5 text-green-500" />
+                          <div className="flex-1">
+                            <p className="text-sm text-gray-700">
+                              <strong>{req.location_name}</strong> - {new Date(req.date).toLocaleDateString('fr-FR')} de {req.start_time} à {req.end_time}
+                            </p>
+                            <p className="text-xs text-gray-500">{req.num_learners} apprenant(s)</p>
+                          </div>
+                          <span className="px-2 py-1 bg-green-200 text-green-800 rounded text-xs font-medium">Validée</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
