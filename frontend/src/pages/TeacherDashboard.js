@@ -4341,9 +4341,12 @@ export default function TeacherDashboard({ user, onLogout }) {
                       <div className="w-24 h-24 flex-shrink-0 rounded-xl bg-gradient-to-br from-sky-100 to-sky-200 flex items-center justify-center overflow-hidden">
                         {client.photo_url ? (
                           <img 
-                            src={`${BACKEND_URL}${client.photo_url}`} 
+                            src={`${API}/clients/${client.id}/photo`} 
                             alt={client.nom_centre}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
                           />
                         ) : (
                           <Building className="w-10 h-10 text-sky-400" />
