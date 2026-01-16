@@ -4303,21 +4303,50 @@ export default function TeacherDashboard({ user, onLogout }) {
                     className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-sky-100"
                     data-testid={`client-card-${client.id}`}
                   >
-                    {/* Photo du centre ou placeholder */}
-                    <div className="h-40 bg-gradient-to-br from-sky-100 to-sky-200 flex items-center justify-center relative">
-                      {client.photo_url ? (
-                        <img 
-                          src={`${BACKEND_URL}${client.photo_url}`} 
-                          alt={client.nom_centre}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Building className="w-20 h-20 text-sky-400" />
-                      )}
+                    {/* En-tête avec photo à gauche et boutons à droite */}
+                    <div className="p-4 flex gap-4">
+                      {/* Photo du centre - en haut à gauche */}
+                      <div className="w-24 h-24 flex-shrink-0 rounded-xl bg-gradient-to-br from-sky-100 to-sky-200 flex items-center justify-center overflow-hidden">
+                        {client.photo_url ? (
+                          <img 
+                            src={`${BACKEND_URL}${client.photo_url}`} 
+                            alt={client.nom_centre}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Building className="w-10 h-10 text-sky-400" />
+                        )}
+                      </div>
+                      
+                      {/* Boutons Historique et Actions */}
+                      <div className="flex-1 flex flex-col gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedClient(client);
+                            setShowClientHistoryDialog(true);
+                          }}
+                          className="flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
+                          data-testid={`history-client-btn-${client.id}`}
+                        >
+                          <Clock className="w-4 h-4" />
+                          Historique
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedClient(client);
+                            setShowClientActionsDialog(true);
+                          }}
+                          className="flex items-center justify-center gap-2 px-3 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors text-sm font-medium"
+                          data-testid={`actions-client-btn-${client.id}`}
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                          Actions
+                        </button>
+                      </div>
                     </div>
                     
                     {/* Informations du client */}
-                    <div className="p-5">
+                    <div className="px-4 pb-4">
                       <h3 className="text-lg font-bold text-gray-800 mb-2">{client.nom_centre}</h3>
                       
                       {client.adresse_siege && (
