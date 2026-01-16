@@ -121,6 +121,9 @@ export default function TeacherDashboard({ user, onLogout }) {
     photo: null,
     photoName: ''
   });
+  const [showClientHistoryDialog, setShowClientHistoryDialog] = useState(false);
+  const [showClientActionsDialog, setShowClientActionsDialog] = useState(false);
+  const [clientActionsTab, setClientActionsTab] = useState('salles'); // 'salles' ou 'facturation'
 
   // Liste des mois pour le planning formateur
   const MOIS_NOMS = [
