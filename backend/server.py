@@ -10818,8 +10818,8 @@ async def delete_client(client_id: str, current_user: User = Depends(get_current
         raise HTTPException(status_code=404, detail="Client non trouvé")
     
     # Supprimer le dossier du client
-    client_dir = os.path.join("static", "clients", client_id)
-    if os.path.exists(client_dir):
+    client_dir = Path("/app/backend/static/clients") / client_id
+    if client_dir.exists():
         import shutil
         shutil.rmtree(client_dir)
     
