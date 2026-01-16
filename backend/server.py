@@ -10827,10 +10827,11 @@ async def delete_client(client_id: str, current_user: User = Depends(get_current
     return {"message": "Client supprimé avec succès"}
 
 @api_router.get("/clients/{client_id}/download/photo")
-async def download_client_photo(client_id: str, token: str = None, current_user: User = Depends(get_current_user_optional)):
+async def download_client_photo(client_id: str, token: str = None):
     """Télécharge la photo d'un client"""
-    # Vérifier l'authentification via token query param si pas de header
-    if not current_user and token:
+    # Vérifier l'authentification via token query param
+    current_user = None
+    if token:
         try:
             payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
             email = payload.get("sub")
