@@ -4095,9 +4095,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                     key={formateur.id} 
                     className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow relative"
                   >
-                    {/* Boutons d'action en haut à droite */}
-                    <div className="absolute top-3 right-3 z-10 flex gap-2">
-                      {/* Bouton Planning */}
+                    {/* Bouton Planning violet en haut à droite */}
+                    <div className="absolute top-3 right-3 z-10">
                       <button
                         onClick={() => openFormateurPlanningDialog(formateur)}
                         className="flex flex-col items-center p-2 bg-purple-500 hover:bg-purple-600 rounded-lg shadow-md transition-all hover:scale-105"
@@ -4105,15 +4104,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                       >
                         <Calendar className="w-4 h-4 text-white" />
                         <span className="text-[10px] text-white font-medium mt-0.5">Planning</span>
-                      </button>
-                      {/* Bouton Modifier */}
-                      <button
-                        onClick={() => openEditFormateurDialog(formateur)}
-                        className="flex flex-col items-center p-2 bg-amber-500 hover:bg-amber-600 rounded-lg shadow-md transition-all hover:scale-105"
-                        title="Modifier ce formateur"
-                      >
-                        <Edit className="w-4 h-4 text-white" />
-                        <span className="text-[10px] text-white font-medium mt-0.5">Modifier</span>
                       </button>
                     </div>
 
@@ -4236,6 +4226,26 @@ export default function TeacherDashboard({ user, onLogout }) {
                           </div>
                         </div>
                       )}
+
+                      {/* Boutons Modifier et Supprimer en bas */}
+                      <div className="pt-3 border-t border-gray-100 flex justify-end gap-2">
+                        <button
+                          onClick={() => openEditFormateurDialog(formateur)}
+                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors"
+                          data-testid={`edit-formateur-btn-${formateur.id}`}
+                        >
+                          <Edit className="w-4 h-4" />
+                          Modifier
+                        </button>
+                        <button
+                          onClick={() => handleDeleteFormateur(formateur.id)}
+                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                          data-testid={`delete-formateur-btn-${formateur.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Supprimer
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
