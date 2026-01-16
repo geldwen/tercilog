@@ -10720,13 +10720,13 @@ async def create_client(
     photo_url = ""
     
     # Créer le dossier pour ce client
-    client_dir = os.path.join("static", "clients", client_id)
-    os.makedirs(client_dir, exist_ok=True)
+    client_dir = Path("/app/backend/static/clients") / client_id
+    client_dir.mkdir(parents=True, exist_ok=True)
     
     # Sauvegarder la photo si fournie
     if photo and photo.filename:
         ext = os.path.splitext(photo.filename)[1]
-        photo_path = os.path.join(client_dir, f"photo{ext}")
+        photo_path = client_dir / f"photo{ext}"
         with open(photo_path, "wb") as f:
             content = await photo.read()
             f.write(content)
