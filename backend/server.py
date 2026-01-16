@@ -5245,7 +5245,7 @@ async def update_session(session_id: str, data: dict, background_tasks: Backgrou
         if student_id:
             student = await db.users.find_one({"id": student_id}, {"_id": 0})
             if student and student.get("email"):
-                # Envoyer l'email en arrière-plan
+                # Envoyer l'email en arrière-plan avec les anciennes et nouvelles valeurs
                 background_tasks.add_task(
                     send_session_modified_email,
                     student["email"],
@@ -5253,7 +5253,10 @@ async def update_session(session_id: str, data: dict, background_tasks: Backgrou
                     updated_session.get("subject", ""),
                     updated_session.get("date", ""),
                     updated_session.get("start_time", ""),
-                    updated_session.get("end_time", "")
+                    updated_session.get("end_time", ""),
+                    old_date,
+                    old_start_time,
+                    old_end_time
                 )
                 logger.info(f"Email de modification de séance programmé pour {student['email']}")
                 
