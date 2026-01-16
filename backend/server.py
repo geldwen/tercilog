@@ -10826,6 +10826,24 @@ async def delete_client(client_id: str, current_user: User = Depends(get_current
     await db.clients.delete_one({"id": client_id})
     return {"message": "Client supprimé avec succès"}
 
+@api_router.get("/clients/{client_id}/photo")
+async def get_client_photo(client_id: str):
+    """Retourne la photo d'un client (endpoint public pour affichage)"""
+    client = await db.clients.find_one({"id": client_id})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    
+    photo_url = client.get("photo_url", "")
+    if not photo_url:
+        raise HTTPException(status_code=404, detail="Pas de photo pour ce client")
+    
+    # Construire le chemin absolu
+    file_path = Path("/app/backend") / photo_url.lstrip("/")
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Fichier photo non trouvé")
+    
+    return FileResponse(str(file_path))
+
 @api_router.get("/clients/{client_id}/download/photo")
 async def download_client_photo(client_id: str, token: str = None):
     """Télécharge la photo d'un client"""
@@ -10851,12 +10869,12 @@ async def download_client_photo(client_id: str, token: str = None):
     if not photo_url:
         raise HTTPException(status_code=404, detail="Pas de photo pour ce client")
     
-    # Le chemin est relatif au dossier backend
-    file_path = photo_url.lstrip("/")
-    if not os.path.exists(file_path):
+    # Construire le chemin absolu
+    file_path = Path("/app/backend") / photo_url.lstrip("/")
+    if not file_path.exists():
         raise HTTPException(status_code=404, detail="Fichier photo non trouvé")
     
-    return FileResponse(file_path, filename=os.path.basename(file_path))
+    return FileResponse(str(file_path), filename=os.path.basename(file_path))
 
 # Include router
 app.include_router(api_router)
