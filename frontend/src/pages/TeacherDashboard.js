@@ -1125,7 +1125,7 @@ export default function TeacherDashboard({ user, onLogout }) {
     setEditingFormateur(formateur);
     setFormateurForm({
       photo: null,
-      photoPreview: formateur.photo_url ? getFormateurFileUrl(formateur.photo_url) : null,
+      photoPreview: formateur.photo_url ? getFormateurPhotoUrl(formateur.id) : null,
       nom: formateur.nom || '',
       prenom: formateur.prenom || '',
       societe: formateur.societe || '',
