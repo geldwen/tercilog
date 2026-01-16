@@ -10247,6 +10247,27 @@ class Formateur(FormateurBase):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+# ===== MODÈLES CRM CLIENTS =====
+class ClientBase(BaseModel):
+    nom_centre: str
+    adresse_siege: str = ""
+    telephone_siege: str = ""
+    siret: str = ""
+    nom_responsable: str = ""
+    email_responsable: str = ""
+    nom_gestionnaire: str = ""
+    email_gestionnaire: str = ""
+
+class ClientCreate(ClientBase):
+    pass
+
+class Client(ClientBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    photo_url: str = ""
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 @api_router.get("/formateurs")
 async def get_formateurs(current_user: User = Depends(get_current_user)):
     """Récupère la liste des formateurs"""
