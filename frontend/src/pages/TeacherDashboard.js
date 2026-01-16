@@ -4239,6 +4239,154 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
             )}
           </TabsContent>
+
+          {/* ===== ONGLET CLIENTS (CRM) ===== */}
+          <TabsContent value="clients" className="space-y-6">
+            {/* En-tête avec titre et boutons */}
+            <div className="flex items-center justify-between mb-6 p-4 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg">
+              <h2 className="text-xl font-bold text-gray-800">Gestion des Clients (CRM)</h2>
+              <div className="flex gap-3">
+                {/* Barre de recherche */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher un client..."
+                    value={clientSearchQuery}
+                    onChange={(e) => setClientSearchQuery(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-sky-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 w-64 bg-sky-50 text-gray-800 placeholder-gray-500"
+                    data-testid="client-search-input"
+                  />
+                </div>
+                {/* Bouton créer un client */}
+                <button
+                  onClick={() => {
+                    resetClientForm();
+                    setShowCreateClientDialog(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors shadow-md"
+                  data-testid="create-client-btn"
+                >
+                  <Plus className="w-4 h-4" />
+                  Créer un client
+                </button>
+              </div>
+            </div>
+
+            {/* Indicateur de recherche */}
+            {clientSearchQuery && (
+              <div className="text-sm text-sky-700 bg-sky-100 px-4 py-2 rounded-lg">
+                {filteredClients.length} résultat(s) pour "{clientSearchQuery}"
+              </div>
+            )}
+
+            {/* Liste des clients */}
+            {loadingClients ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600"></div>
+              </div>
+            ) : filteredClients.length === 0 ? (
+              <div className="text-center py-16 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg">
+                <Building className="w-20 h-20 mx-auto text-sky-300 mb-4" />
+                <p className="text-gray-600 text-lg">
+                  {clientSearchQuery ? 'Aucun client trouvé pour cette recherche' : 'Aucun client enregistré'}
+                </p>
+                <p className="text-gray-500 mt-2">
+                  Cliquez sur "Créer un client" pour ajouter votre premier client
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredClients.map((client) => (
+                  <div 
+                    key={client.id} 
+                    className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-sky-100"
+                    data-testid={`client-card-${client.id}`}
+                  >
+                    {/* Photo du centre ou placeholder */}
+                    <div className="h-40 bg-gradient-to-br from-sky-100 to-sky-200 flex items-center justify-center relative">
+                      {client.photo_url ? (
+                        <img 
+                          src={`${BACKEND_URL}${client.photo_url}`} 
+                          alt={client.nom_centre}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Building className="w-20 h-20 text-sky-400" />
+                      )}
+                    </div>
+                    
+                    {/* Informations du client */}
+                    <div className="p-5">
+                      <h3 className="text-lg font-bold text-gray-800 mb-2">{client.nom_centre}</h3>
+                      
+                      {client.adresse_siege && (
+                        <p className="text-sm text-gray-600 mb-1 flex items-start gap-2">
+                          <span className="text-sky-500 mt-0.5">📍</span>
+                          <span>{client.adresse_siege}</span>
+                        </p>
+                      )}
+                      
+                      {client.telephone_siege && (
+                        <p className="text-sm text-gray-600 mb-1 flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-sky-500" />
+                          <span>{client.telephone_siege}</span>
+                        </p>
+                      )}
+                      
+                      {client.siret && (
+                        <p className="text-sm text-gray-500 mb-3">
+                          <span className="font-medium">SIRET:</span> {client.siret}
+                        </p>
+                      )}
+
+                      {/* Responsable */}
+                      {client.nom_responsable && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <p className="text-xs uppercase text-gray-400 font-semibold mb-1">Responsable</p>
+                          <p className="text-sm font-medium text-gray-700">{client.nom_responsable}</p>
+                          {client.email_responsable && (
+                            <p className="text-xs text-sky-600">{client.email_responsable}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Gestionnaire */}
+                      {client.nom_gestionnaire && (
+                        <div className="mt-2">
+                          <p className="text-xs uppercase text-gray-400 font-semibold mb-1">Gestionnaire</p>
+                          <p className="text-sm font-medium text-gray-700">{client.nom_gestionnaire}</p>
+                          {client.email_gestionnaire && (
+                            <p className="text-xs text-sky-600">{client.email_gestionnaire}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Boutons d'action */}
+                      <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end gap-2">
+                        <button
+                          onClick={() => openEditClientDialog(client)}
+                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 transition-colors"
+                          data-testid={`edit-client-btn-${client.id}`}
+                        >
+                          <Edit className="w-4 h-4" />
+                          Modifier
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClient(client.id)}
+                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                          data-testid={`delete-client-btn-${client.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
           </Tabs>
           </>
         )}
