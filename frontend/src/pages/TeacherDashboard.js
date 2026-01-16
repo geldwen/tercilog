@@ -6247,6 +6247,146 @@ export default function TeacherDashboard({ user, onLogout }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ===== DIALOG HISTORIQUE CLIENT ===== */}
+      <Dialog open={showClientHistoryDialog} onOpenChange={setShowClientHistoryDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-slate-700 flex items-center gap-2">
+              <Clock className="w-6 h-6" />
+              Historique - {selectedClient?.nom_centre}
+            </DialogTitle>
+            <DialogDescription>
+              Consultez l'historique des connexions et actions du centre
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            {/* Onglets d'historique */}
+            <div className="space-y-4">
+              <div className="bg-slate-50 rounded-lg p-4">
+                <h4 className="font-semibold text-slate-700 mb-3">Dernières connexions</h4>
+                <div className="space-y-2 text-sm text-slate-600">
+                  <p className="italic text-slate-400">Aucune connexion enregistrée pour le moment</p>
+                  {/* Les connexions seront affichées ici une fois le tracking implémenté */}
+                </div>
+              </div>
+
+              <div className="bg-slate-50 rounded-lg p-4">
+                <h4 className="font-semibold text-slate-700 mb-3">Historique des actions</h4>
+                <div className="space-y-2 text-sm text-slate-600">
+                  <div className="flex items-center gap-2 py-2 border-b border-slate-200">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span>Création du client</span>
+                    <span className="ml-auto text-xs text-slate-400">
+                      {selectedClient?.created_at ? new Date(selectedClient.created_at).toLocaleDateString('fr-FR') : '-'}
+                    </span>
+                  </div>
+                  {selectedClient?.updated_at && selectedClient.updated_at !== selectedClient.created_at && (
+                    <div className="flex items-center gap-2 py-2 border-b border-slate-200">
+                      <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                      <span>Dernière modification</span>
+                      <span className="ml-auto text-xs text-slate-400">
+                        {new Date(selectedClient.updated_at).toLocaleDateString('fr-FR')}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowClientHistoryDialog(false)}>
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ===== DIALOG ACTIONS CLIENT ===== */}
+      <Dialog open={showClientActionsDialog} onOpenChange={setShowClientActionsDialog}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-sky-700 flex items-center gap-2">
+              <FolderOpen className="w-6 h-6" />
+              Actions - {selectedClient?.nom_centre}
+            </DialogTitle>
+            <DialogDescription>
+              Gérez les salles et la facturation du centre
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Onglets */}
+          <div className="flex border-b border-gray-200 mb-4">
+            <button
+              onClick={() => setClientActionsTab('salles')}
+              className={`px-6 py-3 font-medium text-sm transition-colors ${
+                clientActionsTab === 'salles'
+                  ? 'text-sky-600 border-b-2 border-sky-600 bg-sky-50'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Building className="w-4 h-4 inline mr-2" />
+              Gestion des salles
+            </button>
+            <button
+              onClick={() => setClientActionsTab('facturation')}
+              className={`px-6 py-3 font-medium text-sm transition-colors ${
+                clientActionsTab === 'facturation'
+                  ? 'text-sky-600 border-b-2 border-sky-600 bg-sky-50'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Euro className="w-4 h-4 inline mr-2" />
+              Facturation
+            </button>
+          </div>
+
+          {/* Contenu des onglets */}
+          <div className="flex-1 overflow-y-auto">
+            {clientActionsTab === 'salles' && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-semibold text-gray-700">Salles du centre</h4>
+                  <button className="flex items-center gap-2 px-3 py-1.5 bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 text-sm">
+                    <Plus className="w-4 h-4" />
+                    Ajouter une salle
+                  </button>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-8 text-center">
+                  <Building className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                  <p className="text-gray-500">Aucune salle enregistrée</p>
+                  <p className="text-sm text-gray-400 mt-1">Cliquez sur "Ajouter une salle" pour commencer</p>
+                </div>
+              </div>
+            )}
+
+            {clientActionsTab === 'facturation' && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-semibold text-gray-700">Factures</h4>
+                  <button className="flex items-center gap-2 px-3 py-1.5 bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 text-sm">
+                    <Plus className="w-4 h-4" />
+                    Créer une facture
+                  </button>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-8 text-center">
+                  <Euro className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                  <p className="text-gray-500">Aucune facture</p>
+                  <p className="text-sm text-gray-400 mt-1">Cliquez sur "Créer une facture" pour commencer</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="border-t pt-4">
+            <Button variant="outline" onClick={() => setShowClientActionsDialog(false)}>
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
