@@ -10863,6 +10863,58 @@ def generate_bilan_eleve_pdf(student: dict, q_besoins: dict, q_mi_parcours: dict
     return buffer.getvalue()
 
 
+# ===== ENDPOINT DE TEST POUR L'EMAIL DE MODIFICATION DE SÉANCE =====
+@api_router.post("/test-modified-email")
+async def test_modified_email(current_user: User = Depends(get_current_user)):
+    """
+    Endpoint de test pour envoyer un email de modification de séance avec les anciens et nouveaux détails.
+    Envoie un email de démonstration à terciform@gmail.com.
+    """
+    # Données de test simulant une modification de séance
+    test_email = "terciform@gmail.com"
+    student_name = "Élève Test"
+    subject = "Anglais"
+    
+    # Nouvelles informations (après modification)
+    new_date = "2025-01-20"
+    new_start_time = "14:00"
+    new_end_time = "16:00"
+    
+    # Anciennes informations (avant modification)
+    old_date = "2025-01-15"
+    old_start_time = "10:00"
+    old_end_time = "12:00"
+    
+    # Appel de la fonction d'envoi d'email avec les anciens et nouveaux détails
+    email_sent = send_session_modified_email(
+        to_email=test_email,
+        student_name=student_name,
+        subject=subject,
+        date=new_date,
+        start_time=new_start_time,
+        end_time=new_end_time,
+        old_date=old_date,
+        old_start_time=old_start_time,
+        old_end_time=old_end_time
+    )
+    
+    if email_sent:
+        return {
+            "success": True,
+            "message": f"Email de test envoyé avec succès à {test_email}",
+            "details": {
+                "ancienne_seance": {
+                    "date": old_date,
+                    "horaires": f"{old_start_time} - {old_end_time}"
+                },
+                "nouvelle_seance": {
+                    "date": new_date,
+                    "horaires": f"{new_start_time} - {new_end_time}"
+                }
+            }
+        }
+    else:
+        raise HTTPException(status_code=500, detail="Échec de l'envoi de l'email de test")
 
 
 @app.on_event("shutdown")
