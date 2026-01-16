@@ -124,6 +124,17 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [showClientHistoryDialog, setShowClientHistoryDialog] = useState(false);
   const [showClientActionsDialog, setShowClientActionsDialog] = useState(false);
   const [clientActionsTab, setClientActionsTab] = useState('salles'); // 'salles' ou 'facturation'
+  
+  // États pour les demandes de salle
+  const [roomRequests, setRoomRequests] = useState([]);
+  const [loadingRoomRequests, setLoadingRoomRequests] = useState(false);
+  const [showRoomRequestForm, setShowRoomRequestForm] = useState(false);
+  const [roomRequestFormData, setRoomRequestFormData] = useState([
+    { date: '', start_time: '', end_time: '', location_name: '', location_address: '', num_learners: 1 }
+  ]);
+  const [locationsHistory, setLocationsHistory] = useState([]);
+  const [sendRoomRequestTo, setSendRoomRequestTo] = useState('gestionnaire');
+  const [submittingRoomRequest, setSubmittingRoomRequest] = useState(false);
 
   // Liste des mois pour le planning formateur
   const MOIS_NOMS = [
