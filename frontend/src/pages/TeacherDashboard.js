@@ -3671,6 +3671,12 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 {student.organism && <p><span className="font-medium">Organisme:</span> {student.organism}</p>}
                                 {student.support_type && <p><span className="font-medium">Prise en charge:</span> {student.support_type}</p>}
                                 {student.session_type && <p><span className="font-medium">Type de séance:</span> <span className="capitalize">{student.session_type}</span></p>}
+                                {student.teacher_name && (
+                                  <p className="flex items-center gap-1">
+                                    <span className="font-medium">Formateur:</span> 
+                                    <span className="text-purple-700 font-semibold">{student.teacher_name}</span>
+                                  </p>
+                                )}
                                 {(student.start_date || student.end_date) && (
                                   <p>
                                     {student.start_date && <><span className="font-medium">Entrée:</span> {new Date(student.start_date).toLocaleDateString('fr-FR')}</>}
