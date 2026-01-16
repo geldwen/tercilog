@@ -1133,40 +1133,33 @@ def send_session_modified_email(to_email: str, student_name: str, subject: str, 
                     </tr>
                 </table>
                 
-                <!-- Message d'avertissement important -->
-                <div style="background-color: #fef2f2; border: 2px solid #dc2626; border-radius: 8px; padding: 20px; margin: 25px 0;">
-                    <p style="margin: 0 0 12px 0; color: #dc2626; font-weight: bold; font-size: 17px;">
-                        ⚠️ IMPORTANT
+                <!-- Message d'avertissement important - design plus doux -->
+                <div style="background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #ffd54f;">
+                    <p style="margin: 0 0 12px 0; color: #e65100; font-weight: 600; font-size: 16px;">
+                        📋 Rappel important
                     </p>
-                    <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 15px;">
-                        Merci de valider votre présence en cliquant sur le bouton bleu "Confirmer" au moins <strong>48h avant la séance</strong>.
-                    </p>
-                    <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 15px;">
-                        Sans confirmation ou demande de report dans ce délai, la séance est considérée comme acceptée.
-                    </p>
-                    <p style="margin: 0 0 10px 0; color: #991b1b; font-size: 15px;">
-                        <strong>Toute absence entraîne la perte des heures prévues.</strong>
-                    </p>
-                    <p style="margin: 0; color: #991b1b; font-size: 15px;">
-                        En cas d'impossibilité, contactez votre formateur depuis votre espace personnel.
-                    </p>
+                    <ul style="margin: 0; padding-left: 20px; color: #5d4037;">
+                        <li style="margin-bottom: 8px; font-size: 14px;">Merci de <strong>confirmer votre présence</strong> au moins 48h avant la séance.</li>
+                        <li style="margin-bottom: 8px; font-size: 14px;">Sans confirmation, la séance est considérée comme acceptée.</li>
+                        <li style="margin-bottom: 8px; font-size: 14px;">En cas d'impossibilité, contactez votre formateur via votre espace.</li>
+                    </ul>
                 </div>
                 
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="{portal_url}" style="background-color: #1e3a5f; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
-                        🔗 Accéder à mon espace
+                    <a href="{portal_url}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 16px 35px; text-decoration: none; border-radius: 30px; display: inline-block; font-weight: 600; font-size: 15px; box-shadow: 0 4px 15px rgba(30,58,95,0.3);">
+                        Accéder à mon espace
                     </a>
                 </div>
                 
-                <p style="margin-top: 30px; color: #666;">
+                <p style="margin-top: 30px; color: #718096; font-size: 15px;">
                     Cordialement,<br>
-                    <strong>L'équipe TerciForm</strong>
+                    <strong style="color: #2d3748;">L'équipe TerciForm</strong>
                 </p>
             </div>
             
             <!-- Footer -->
-            <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
-                <p style="margin: 0; color: #666; font-size: 12px;">
+            <div style="background-color: #f7fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #a0aec0; font-size: 12px;">
                     Cet email a été envoyé automatiquement par TerciForm.
                 </p>
             </div>
@@ -1175,7 +1168,7 @@ def send_session_modified_email(to_email: str, student_name: str, subject: str, 
     </html>
     """
     
-    email_sent = send_email(to_email, "📅 TerciForm - Modification de votre séance", html_body)
+    email_sent = send_email(to_email, "TerciForm - Modification de votre séance", html_body)
     if email_sent:
         logger.info(f"Email de modification de séance envoyé à {to_email}")
     else:
