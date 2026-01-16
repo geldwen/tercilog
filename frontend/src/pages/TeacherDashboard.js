@@ -4607,15 +4607,20 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
               <div className="flex-1">
                 <Label className="text-sm font-semibold text-gray-700">Photo de profil</Label>
+                <p className="text-xs text-gray-500 mb-2">Formats acceptés : JPG, PNG, WebP (max 5 Mo)</p>
                 <div className="mt-2 flex items-center gap-2">
                   <label className="cursor-pointer">
                     <input
                       type="file"
-                      accept="image/*"
+                      accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                       className="hidden"
                       onChange={(e) => {
                         const file = e.target.files[0];
                         if (file) {
+                          if (file.size > 5 * 1024 * 1024) {
+                            toast.error('La photo ne doit pas dépasser 5 Mo');
+                            return;
+                          }
                           handleFormateurChange('photo', file);
                         }
                       }}
@@ -4626,8 +4631,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                     </span>
                   </label>
                   {formateurForm.photo && (
-                    <span className="text-sm text-gray-500">{formateurForm.photo.name}</span>
-                  )}
+                    <span className="text-sm text-green-600 font-medium">{formateurForm.photo.name}</span>
+                  )}}
                 </div>
               </div>
             </div>
