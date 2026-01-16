@@ -5797,6 +5797,395 @@ export default function TeacherDashboard({ user, onLogout }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ===== DIALOG CRÉER UN CLIENT ===== */}
+      <Dialog open={showCreateClientDialog} onOpenChange={(open) => {
+        setShowCreateClientDialog(open);
+        if (!open) resetClientForm();
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-sky-700 flex items-center gap-2">
+              <Building className="w-6 h-6" />
+              Créer un nouveau client
+            </DialogTitle>
+            <DialogDescription>
+              Renseignez les informations du centre de formation client
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Photo du centre */}
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-32 h-32 rounded-xl bg-sky-100 border-2 border-dashed border-sky-300 flex items-center justify-center overflow-hidden">
+                {newClientData.photo ? (
+                  <img 
+                    src={URL.createObjectURL(newClientData.photo)} 
+                    alt="Aperçu" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Building className="w-12 h-12 text-sky-400" />
+                )}
+              </div>
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setNewClientData(prev => ({
+                        ...prev,
+                        photo: file,
+                        photoName: file.name
+                      }));
+                    }
+                  }}
+                />
+                <span className="px-4 py-2 bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 transition-colors text-sm font-medium">
+                  {newClientData.photoName || 'Ajouter une photo du centre'}
+                </span>
+              </label>
+            </div>
+
+            {/* Informations du centre */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nom du centre <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newClientData.nom_centre}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, nom_centre: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                  placeholder="Ex: Centre de Formation ABC"
+                  data-testid="client-nom-centre-input"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adresse postale du siège
+                </label>
+                <textarea
+                  value={newClientData.adresse_siege}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, adresse_siege: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                  placeholder="Adresse complète..."
+                  rows={2}
+                  data-testid="client-adresse-input"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Téléphone du siège
+                </label>
+                <input
+                  type="tel"
+                  value={newClientData.telephone_siege}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, telephone_siege: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                  placeholder="01 23 45 67 89"
+                  data-testid="client-telephone-input"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  SIRET
+                </label>
+                <input
+                  type="text"
+                  value={newClientData.siret}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, siret: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                  placeholder="123 456 789 00012"
+                  data-testid="client-siret-input"
+                />
+              </div>
+            </div>
+
+            {/* Responsable */}
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">Responsable</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom du responsable
+                  </label>
+                  <input
+                    type="text"
+                    value={newClientData.nom_responsable}
+                    onChange={(e) => setNewClientData(prev => ({ ...prev, nom_responsable: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    placeholder="Prénom Nom"
+                    data-testid="client-nom-responsable-input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email du responsable
+                  </label>
+                  <input
+                    type="email"
+                    value={newClientData.email_responsable}
+                    onChange={(e) => setNewClientData(prev => ({ ...prev, email_responsable: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    placeholder="responsable@exemple.com"
+                    data-testid="client-email-responsable-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Gestionnaire */}
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">Gestionnaire</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom du gestionnaire
+                  </label>
+                  <input
+                    type="text"
+                    value={newClientData.nom_gestionnaire}
+                    onChange={(e) => setNewClientData(prev => ({ ...prev, nom_gestionnaire: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    placeholder="Prénom Nom"
+                    data-testid="client-nom-gestionnaire-input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email du gestionnaire
+                  </label>
+                  <input
+                    type="email"
+                    value={newClientData.email_gestionnaire}
+                    onChange={(e) => setNewClientData(prev => ({ ...prev, email_gestionnaire: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    placeholder="gestionnaire@exemple.com"
+                    data-testid="client-email-gestionnaire-input"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="border-t pt-4">
+            <Button variant="outline" onClick={() => setShowCreateClientDialog(false)}>
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleCreateClient}
+              className="bg-sky-600 hover:bg-sky-700"
+              data-testid="submit-create-client-btn"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Créer le client
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ===== DIALOG MODIFIER UN CLIENT ===== */}
+      <Dialog open={showEditClientDialog} onOpenChange={(open) => {
+        setShowEditClientDialog(open);
+        if (!open) {
+          setSelectedClient(null);
+          resetClientForm();
+        }
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-sky-700 flex items-center gap-2">
+              <Edit className="w-6 h-6" />
+              Modifier le client
+            </DialogTitle>
+            <DialogDescription>
+              Modifiez les informations du centre de formation
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Photo du centre */}
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-32 h-32 rounded-xl bg-sky-100 border-2 border-dashed border-sky-300 flex items-center justify-center overflow-hidden">
+                {newClientData.photo ? (
+                  <img 
+                    src={URL.createObjectURL(newClientData.photo)} 
+                    alt="Aperçu" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : selectedClient?.photo_url ? (
+                  <img 
+                    src={`${BACKEND_URL}${selectedClient.photo_url}`} 
+                    alt={selectedClient.nom_centre}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Building className="w-12 h-12 text-sky-400" />
+                )}
+              </div>
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setNewClientData(prev => ({
+                        ...prev,
+                        photo: file,
+                        photoName: file.name
+                      }));
+                    }
+                  }}
+                />
+                <span className="px-4 py-2 bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 transition-colors text-sm font-medium">
+                  {newClientData.photoName || 'Changer la photo'}
+                </span>
+              </label>
+            </div>
+
+            {/* Informations du centre */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nom du centre <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newClientData.nom_centre}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, nom_centre: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                  placeholder="Ex: Centre de Formation ABC"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adresse postale du siège
+                </label>
+                <textarea
+                  value={newClientData.adresse_siege}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, adresse_siege: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                  placeholder="Adresse complète..."
+                  rows={2}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Téléphone du siège
+                </label>
+                <input
+                  type="tel"
+                  value={newClientData.telephone_siege}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, telephone_siege: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                  placeholder="01 23 45 67 89"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  SIRET
+                </label>
+                <input
+                  type="text"
+                  value={newClientData.siret}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, siret: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                  placeholder="123 456 789 00012"
+                />
+              </div>
+            </div>
+
+            {/* Responsable */}
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">Responsable</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom du responsable
+                  </label>
+                  <input
+                    type="text"
+                    value={newClientData.nom_responsable}
+                    onChange={(e) => setNewClientData(prev => ({ ...prev, nom_responsable: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    placeholder="Prénom Nom"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email du responsable
+                  </label>
+                  <input
+                    type="email"
+                    value={newClientData.email_responsable}
+                    onChange={(e) => setNewClientData(prev => ({ ...prev, email_responsable: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    placeholder="responsable@exemple.com"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Gestionnaire */}
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">Gestionnaire</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom du gestionnaire
+                  </label>
+                  <input
+                    type="text"
+                    value={newClientData.nom_gestionnaire}
+                    onChange={(e) => setNewClientData(prev => ({ ...prev, nom_gestionnaire: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    placeholder="Prénom Nom"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email du gestionnaire
+                  </label>
+                  <input
+                    type="email"
+                    value={newClientData.email_gestionnaire}
+                    onChange={(e) => setNewClientData(prev => ({ ...prev, email_gestionnaire: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    placeholder="gestionnaire@exemple.com"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="border-t pt-4">
+            <Button variant="outline" onClick={() => setShowEditClientDialog(false)}>
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleEditClient}
+              className="bg-sky-600 hover:bg-sky-700"
+              data-testid="submit-edit-client-btn"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Enregistrer les modifications
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
