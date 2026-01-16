@@ -1096,6 +1096,25 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  // Supprimer un formateur
+  const handleDeleteFormateur = async (formateurId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce formateur ?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API}/formateurs/${formateurId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Formateur supprimé avec succès');
+      loadFormateurs();
+    } catch (error) {
+      console.error('Erreur suppression formateur:', error);
+      toast.error('Erreur lors de la suppression du formateur');
+    }
+  };
+
   // Ouvrir le dialog d'édition d'un formateur
   const openEditFormateurDialog = (formateur) => {
     setEditingFormateur(formateur);
