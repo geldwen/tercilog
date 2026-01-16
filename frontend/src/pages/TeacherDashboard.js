@@ -914,6 +914,11 @@ export default function TeacherDashboard({ user, onLogout }) {
     loadFormateurs();
   }, []);
 
+  // Charger les clients au montage
+  useEffect(() => {
+    loadClients();
+  }, []);
+
   // Réinitialiser le formulaire formateur
   const resetFormateurForm = () => {
     setFormateurForm({
