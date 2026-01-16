@@ -10514,6 +10514,25 @@ async def delete_formateur(formateur_id: str, current_user: User = Depends(get_c
     return {"message": "Formateur supprimé avec succès"}
 
 
+@api_router.get("/formateurs/{formateur_id}/photo")
+async def get_formateur_photo(formateur_id: str):
+    """Retourne la photo d'un formateur (endpoint pour affichage direct)"""
+    formateur = await db.formateurs.find_one({"id": formateur_id}, {"_id": 0})
+    if not formateur:
+        raise HTTPException(status_code=404, detail="Formateur non trouvé")
+    
+    photo_url = formateur.get("photo_url", "")
+    if not photo_url:
+        raise HTTPException(status_code=404, detail="Pas de photo pour ce formateur")
+    
+    # Construire le chemin absolu
+    file_path = Path("/app/backend") / photo_url.lstrip("/")
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Fichier photo non trouvé")
+    
+    return FileResponse(str(file_path))
+
+
 @api_router.get("/formateurs/{formateur_id}/download/{file_type}")
 async def download_formateur_file(
     formateur_id: str, 
