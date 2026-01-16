@@ -10678,6 +10678,185 @@ async def send_test_modified_session_email(current_user: User = Depends(get_curr
     }
 
 
+# ===== ENDPOINTS CRM CLIENTS =====
+@api_router.get("/clients")
+async def get_clients(current_user: User = Depends(get_current_user)):
+    """Récupère la liste des clients"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    clients = await db.clients.find({}, {"_id": 0}).to_list(1000)
+    return clients
+
+@api_router.get("/clients/{client_id}")
+async def get_client(client_id: str, current_user: User = Depends(get_current_user)):
+    """Récupère un client par son ID"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    return client
+
+@api_router.post("/clients")
+async def create_client(
+    nom_centre: str = Form(...),
+    adresse_siege: str = Form(""),
+    telephone_siege: str = Form(""),
+    siret: str = Form(""),
+    nom_responsable: str = Form(""),
+    email_responsable: str = Form(""),
+    nom_gestionnaire: str = Form(""),
+    email_gestionnaire: str = Form(""),
+    photo: UploadFile = FastAPIFile(None),
+    current_user: User = Depends(get_current_user)
+):
+    """Crée un nouveau client avec upload de photo optionnel"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    client_id = str(uuid.uuid4())
+    photo_url = ""
+    
+    # Créer le dossier pour ce client
+    client_dir = os.path.join("static", "clients", client_id)
+    os.makedirs(client_dir, exist_ok=True)
+    
+    # Sauvegarder la photo si fournie
+    if photo and photo.filename:
+        ext = os.path.splitext(photo.filename)[1]
+        photo_path = os.path.join(client_dir, f"photo{ext}")
+        with open(photo_path, "wb") as f:
+            content = await photo.read()
+            f.write(content)
+        photo_url = f"/static/clients/{client_id}/photo{ext}"
+    
+    client_data = {
+        "id": client_id,
+        "nom_centre": nom_centre,
+        "adresse_siege": adresse_siege,
+        "telephone_siege": telephone_siege,
+        "siret": siret,
+        "nom_responsable": nom_responsable,
+        "email_responsable": email_responsable,
+        "nom_gestionnaire": nom_gestionnaire,
+        "email_gestionnaire": email_gestionnaire,
+        "photo_url": photo_url,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    await db.clients.insert_one(client_data)
+    
+    # Retourner sans _id
+    client_data.pop("_id", None)
+    return client_data
+
+@api_router.put("/clients/{client_id}")
+async def update_client(
+    client_id: str,
+    nom_centre: str = Form(...),
+    adresse_siege: str = Form(""),
+    telephone_siege: str = Form(""),
+    siret: str = Form(""),
+    nom_responsable: str = Form(""),
+    email_responsable: str = Form(""),
+    nom_gestionnaire: str = Form(""),
+    email_gestionnaire: str = Form(""),
+    photo: UploadFile = FastAPIFile(None),
+    current_user: User = Depends(get_current_user)
+):
+    """Met à jour un client existant"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    existing_client = await db.clients.find_one({"id": client_id})
+    if not existing_client:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    
+    photo_url = existing_client.get("photo_url", "")
+    
+    # Traiter la nouvelle photo si fournie
+    if photo and photo.filename:
+        client_dir = os.path.join("static", "clients", client_id)
+        os.makedirs(client_dir, exist_ok=True)
+        
+        ext = os.path.splitext(photo.filename)[1]
+        photo_path = os.path.join(client_dir, f"photo{ext}")
+        with open(photo_path, "wb") as f:
+            content = await photo.read()
+            f.write(content)
+        photo_url = f"/static/clients/{client_id}/photo{ext}"
+    
+    update_data = {
+        "nom_centre": nom_centre,
+        "adresse_siege": adresse_siege,
+        "telephone_siege": telephone_siege,
+        "siret": siret,
+        "nom_responsable": nom_responsable,
+        "email_responsable": email_responsable,
+        "nom_gestionnaire": nom_gestionnaire,
+        "email_gestionnaire": email_gestionnaire,
+        "photo_url": photo_url,
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    await db.clients.update_one({"id": client_id}, {"$set": update_data})
+    
+    updated_client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    return updated_client
+
+@api_router.delete("/clients/{client_id}")
+async def delete_client(client_id: str, current_user: User = Depends(get_current_user)):
+    """Supprime un client"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    existing_client = await db.clients.find_one({"id": client_id})
+    if not existing_client:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    
+    # Supprimer le dossier du client
+    client_dir = os.path.join("static", "clients", client_id)
+    if os.path.exists(client_dir):
+        import shutil
+        shutil.rmtree(client_dir)
+    
+    await db.clients.delete_one({"id": client_id})
+    return {"message": "Client supprimé avec succès"}
+
+@api_router.get("/clients/{client_id}/download/photo")
+async def download_client_photo(client_id: str, token: str = None, current_user: User = Depends(get_current_user_optional)):
+    """Télécharge la photo d'un client"""
+    # Vérifier l'authentification via token query param si pas de header
+    if not current_user and token:
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            email = payload.get("sub")
+            if email:
+                current_user = await db.users.find_one({"email": email})
+        except:
+            pass
+    
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Non authentifié")
+    
+    client = await db.clients.find_one({"id": client_id})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    
+    photo_url = client.get("photo_url", "")
+    if not photo_url:
+        raise HTTPException(status_code=404, detail="Pas de photo pour ce client")
+    
+    # Le chemin est relatif au dossier backend
+    file_path = photo_url.lstrip("/")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Fichier photo non trouvé")
+    
+    return FileResponse(file_path, filename=os.path.basename(file_path))
+
 # Include router
 app.include_router(api_router)
 
