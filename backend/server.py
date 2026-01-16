@@ -1050,31 +1050,54 @@ def send_session_reminder_email(to_email: str, student_name: str, subject: str, 
     return send_email(to_email, "⏰ TerciForm - Votre séance commence dans 15 minutes", html_body)
 
 
-def send_session_modified_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str):
+def send_session_modified_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str, old_date: str = None, old_start_time: str = None, old_end_time: str = None):
     """Envoyer un email de notification de modification de séance à l'élève"""
     portal_url = get_student_portal_url()
     
-    # Formater la date si possible
-    try:
-        from datetime import datetime
-        date_obj = datetime.strptime(date, "%Y-%m-%d")
-        formatted_date = date_obj.strftime("%A %d %B %Y").capitalize()
-        # Traduction française des jours
-        day_translations = {
-            "Monday": "Lundi", "Tuesday": "Mardi", "Wednesday": "Mercredi",
-            "Thursday": "Jeudi", "Friday": "Vendredi", "Saturday": "Samedi", "Sunday": "Dimanche"
-        }
-        month_translations = {
-            "January": "janvier", "February": "février", "March": "mars", "April": "avril",
-            "May": "mai", "June": "juin", "July": "juillet", "August": "août",
-            "September": "septembre", "October": "octobre", "November": "novembre", "December": "décembre"
-        }
-        for en, fr in day_translations.items():
-            formatted_date = formatted_date.replace(en, fr)
-        for en, fr in month_translations.items():
-            formatted_date = formatted_date.replace(en, fr)
-    except:
-        formatted_date = date
+    # Fonction pour formater une date en français
+    def format_date_fr(date_str):
+        try:
+            from datetime import datetime
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            formatted = date_obj.strftime("%A %d %B %Y").capitalize()
+            day_translations = {
+                "Monday": "Lundi", "Tuesday": "Mardi", "Wednesday": "Mercredi",
+                "Thursday": "Jeudi", "Friday": "Vendredi", "Saturday": "Samedi", "Sunday": "Dimanche"
+            }
+            month_translations = {
+                "January": "janvier", "February": "février", "March": "mars", "April": "avril",
+                "May": "mai", "June": "juin", "July": "juillet", "August": "août",
+                "September": "septembre", "October": "octobre", "November": "novembre", "December": "décembre"
+            }
+            for en, fr in day_translations.items():
+                formatted = formatted.replace(en, fr)
+            for en, fr in month_translations.items():
+                formatted = formatted.replace(en, fr)
+            return formatted
+        except:
+            return date_str
+    
+    formatted_date = format_date_fr(date)
+    formatted_old_date = format_date_fr(old_date) if old_date else None
+    
+    # Construire le bloc des anciennes informations si disponibles
+    old_session_block = ""
+    if old_date or old_start_time or old_end_time:
+        old_details = []
+        if old_date:
+            old_details.append(f"<p style='margin: 5px 0;'><strong>Date :</strong> {formatted_old_date}</p>")
+        if old_start_time and old_end_time:
+            old_details.append(f"<p style='margin: 5px 0;'><strong>Horaires :</strong> {old_start_time} - {old_end_time}</p>")
+        elif old_start_time:
+            old_details.append(f"<p style='margin: 5px 0;'><strong>Heure début :</strong> {old_start_time}</p>")
+        
+        old_session_block = f"""
+                <div style="background-color: #fee2e2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #dc2626;">❌ Séance initialement prévue :</p>
+                    <p style="margin: 5px 0;"><strong>Matière :</strong> {subject}</p>
+                    {''.join(old_details)}
+                </div>
+        """
     
     html_body = f"""
     <html>
@@ -1092,14 +1115,14 @@ def send_session_modified_email(to_email: str, student_name: str, subject: str, 
                 
                 <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin: 20px 0;">
                     <p style="margin: 0; color: #856404; font-weight: bold; font-size: 16px;">
-                        ⚠️ Une séance a été modifiée par votre formateur.
+                        ⚠️ Votre séance a été modifiée par votre formateur.
                     </p>
                 </div>
                 
-                <p style="font-size: 15px;">Veuillez trouver votre nouveau planning dans votre espace personnel.</p>
+                {old_session_block}
                 
-                <div style="background-color: #e8f4fd; border-left: 4px solid #1e3a5f; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">📝 Détails de la nouvelle séance :</p>
+                <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #047857;">✅ Remplacée par :</p>
                     <p style="margin: 5px 0;"><strong>Matière :</strong> {subject}</p>
                     <p style="margin: 5px 0;"><strong>Date :</strong> {formatted_date}</p>
                     <p style="margin: 5px 0;"><strong>Horaires :</strong> {start_time} - {end_time}</p>
