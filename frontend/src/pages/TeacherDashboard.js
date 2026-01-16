@@ -4137,7 +4137,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <div className="w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex-shrink-0">
                           {formateur.photo_url ? (
                             <img 
-                              src={getFormateurFileUrl(formateur.photo_url)} 
+                              src={getFormateurPhotoUrl(formateur.id)} 
                               alt={`${formateur.prenom} ${formateur.nom}`}
                               className="w-full h-full object-cover"
                               onError={(e) => {
