@@ -766,6 +766,149 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  // ===== FONCTIONS CLIENTS (CRM) =====
+  const loadClients = async () => {
+    setLoadingClients(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/clients`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setClients(response.data || []);
+    } catch (error) {
+      console.error('Erreur chargement clients:', error);
+    } finally {
+      setLoadingClients(false);
+    }
+  };
+
+  const resetClientForm = () => {
+    setNewClientData({
+      nom_centre: '',
+      adresse_siege: '',
+      telephone_siege: '',
+      siret: '',
+      nom_responsable: '',
+      email_responsable: '',
+      nom_gestionnaire: '',
+      email_gestionnaire: '',
+      photo: null,
+      photoName: ''
+    });
+  };
+
+  const handleCreateClient = async () => {
+    if (!newClientData.nom_centre.trim()) {
+      toast.error('Le nom du centre est obligatoire');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('nom_centre', newClientData.nom_centre);
+      formData.append('adresse_siege', newClientData.adresse_siege);
+      formData.append('telephone_siege', newClientData.telephone_siege);
+      formData.append('siret', newClientData.siret);
+      formData.append('nom_responsable', newClientData.nom_responsable);
+      formData.append('email_responsable', newClientData.email_responsable);
+      formData.append('nom_gestionnaire', newClientData.nom_gestionnaire);
+      formData.append('email_gestionnaire', newClientData.email_gestionnaire);
+      
+      if (newClientData.photo) {
+        formData.append('photo', newClientData.photo);
+      }
+
+      await axios.post(`${API}/clients`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      toast.success('Client créé avec succès');
+      setShowCreateClientDialog(false);
+      resetClientForm();
+      loadClients();
+    } catch (error) {
+      console.error('Erreur création client:', error);
+      toast.error('Erreur lors de la création du client');
+    }
+  };
+
+  const handleEditClient = async () => {
+    if (!selectedClient || !newClientData.nom_centre.trim()) {
+      toast.error('Le nom du centre est obligatoire');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('nom_centre', newClientData.nom_centre);
+      formData.append('adresse_siege', newClientData.adresse_siege);
+      formData.append('telephone_siege', newClientData.telephone_siege);
+      formData.append('siret', newClientData.siret);
+      formData.append('nom_responsable', newClientData.nom_responsable);
+      formData.append('email_responsable', newClientData.email_responsable);
+      formData.append('nom_gestionnaire', newClientData.nom_gestionnaire);
+      formData.append('email_gestionnaire', newClientData.email_gestionnaire);
+      
+      if (newClientData.photo) {
+        formData.append('photo', newClientData.photo);
+      }
+
+      await axios.put(`${API}/clients/${selectedClient.id}`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      toast.success('Client modifié avec succès');
+      setShowEditClientDialog(false);
+      setSelectedClient(null);
+      resetClientForm();
+      loadClients();
+    } catch (error) {
+      console.error('Erreur modification client:', error);
+      toast.error('Erreur lors de la modification du client');
+    }
+  };
+
+  const handleDeleteClient = async (clientId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API}/clients/${clientId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Client supprimé avec succès');
+      loadClients();
+    } catch (error) {
+      console.error('Erreur suppression client:', error);
+      toast.error('Erreur lors de la suppression du client');
+    }
+  };
+
+  const openEditClientDialog = (client) => {
+    setSelectedClient(client);
+    setNewClientData({
+      nom_centre: client.nom_centre || '',
+      adresse_siege: client.adresse_siege || '',
+      telephone_siege: client.telephone_siege || '',
+      siret: client.siret || '',
+      nom_responsable: client.nom_responsable || '',
+      email_responsable: client.email_responsable || '',
+      nom_gestionnaire: client.nom_gestionnaire || '',
+      email_gestionnaire: client.email_gestionnaire || '',
+      photo: null,
+      photoName: ''
+    });
+    setShowEditClientDialog(true);
+  };
+
   // Charger les formateurs au montage
   useEffect(() => {
     loadFormateurs();
