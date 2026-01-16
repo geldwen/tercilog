@@ -102,6 +102,26 @@ export default function TeacherDashboard({ user, onLogout }) {
   });
   const [loadingFormateurs, setLoadingFormateurs] = useState(false);
 
+  // ===== STATES POUR LES CLIENTS (CRM) =====
+  const [clients, setClients] = useState([]);
+  const [loadingClients, setLoadingClients] = useState(false);
+  const [clientSearchQuery, setClientSearchQuery] = useState('');
+  const [showCreateClientDialog, setShowCreateClientDialog] = useState(false);
+  const [showEditClientDialog, setShowEditClientDialog] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [newClientData, setNewClientData] = useState({
+    nom_centre: '',
+    adresse_siege: '',
+    telephone_siege: '',
+    siret: '',
+    nom_responsable: '',
+    email_responsable: '',
+    nom_gestionnaire: '',
+    email_gestionnaire: '',
+    photo: null,
+    photoName: ''
+  });
+
   // Liste des mois pour le planning formateur
   const MOIS_NOMS = [
     { num: 1, label: 'Janvier' }, { num: 2, label: 'Février' }, { num: 3, label: 'Mars' },
