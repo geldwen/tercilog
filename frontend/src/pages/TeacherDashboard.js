@@ -6087,7 +6087,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                   />
                 ) : selectedClient?.photo_url ? (
                   <img 
-                    src={`${BACKEND_URL}${selectedClient.photo_url}`} 
+                    src={`${API}/clients/${selectedClient.id}/photo`} 
                     alt={selectedClient.nom_centre}
                     className="w-full h-full object-cover"
                   />
