@@ -10617,6 +10617,48 @@ async def assign_sessions_to_formateur(
     }
 
 
+@api_router.post("/test/send-modified-session-email")
+async def send_test_modified_session_email(current_user: User = Depends(get_current_user)):
+    """Envoyer un email de test de modification de séance à terciform@gmail.com"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    # Données factices pour le test
+    test_email = "terciform@gmail.com"
+    student_name = "Jean TEST"
+    subject = "Anglais"
+    
+    # Ancienne séance (fictive)
+    old_date = "2026-01-20"
+    old_start_time = "10:00"
+    old_end_time = "12:00"
+    
+    # Nouvelle séance (fictive)
+    new_date = "2026-01-22"
+    new_start_time = "14:00"
+    new_end_time = "16:00"
+    
+    # Envoyer l'email
+    send_session_modified_email(
+        to_email=test_email,
+        student_name=student_name,
+        subject=subject,
+        date=new_date,
+        start_time=new_start_time,
+        end_time=new_end_time,
+        old_date=old_date,
+        old_start_time=old_start_time,
+        old_end_time=old_end_time
+    )
+    
+    return {
+        "message": "Email de test envoyé avec succès",
+        "destinataire": test_email,
+        "ancien_creneau": f"{old_date} de {old_start_time} à {old_end_time}",
+        "nouveau_creneau": f"{new_date} de {new_start_time} à {new_end_time}"
+    }
+
+
 # Include router
 app.include_router(api_router)
 
