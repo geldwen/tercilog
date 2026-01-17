@@ -3138,7 +3138,10 @@ export default function TeacherDashboard({ user, onLogout }) {
               {/* Bouton Ajouter un élève */}
               <Dialog open={showCreateStudent} onOpenChange={setShowCreateStudent}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2 text-white" style={{ backgroundColor: TERCIFORM_BLUE }}><Plus className="w-4 h-4" />Ajouter un élève</Button>
+                  <button className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors shadow-md">
+                    <Plus className="w-4 h-4" />
+                    Créer un élève
+                  </button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                   <DialogHeader><DialogTitle>Nouvel Élève</DialogTitle><DialogDescription>Créer un compte élève</DialogDescription></DialogHeader>
