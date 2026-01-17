@@ -11511,8 +11511,10 @@ async def assign_student_to_formateur(data: dict, current_user: User = Depends(g
         raise HTTPException(status_code=400, detail=str(e))
     
     # A1) Envoyer email au formateur
+    email_sent_to_formateur = False
     if formateur_email:
-        send_new_student_notification_email(
+        logger.info(f"Envoi email notification au formateur: {formateur_email}")
+        email_sent_to_formateur = send_new_student_notification_email(
             formateur_email=formateur_email,
             formateur_name=teacher_name,
             centre_name=centre_name,
@@ -11520,6 +11522,9 @@ async def assign_student_to_formateur(data: dict, current_user: User = Depends(g
             hours=data.get('total_hours', 0),
             subject=subject
         )
+        logger.info(f"Email formateur envoyé: {email_sent_to_formateur}")
+    else:
+        logger.warning(f"Pas d'email formateur disponible pour {teacher_name}")
     
     # A2) Créer une notification pour l'admin
     notification = {
