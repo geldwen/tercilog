@@ -1383,6 +1383,255 @@ export default function GestionnaireDashboard({ user, onLogout }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ===== MODALS ACTIONS FORMATEUR ===== */}
+
+      {/* Modal menu actions formateur */}
+      <Dialog open={showFormateurActions} onOpenChange={setShowFormateurActions}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
+                <span className="text-xl font-bold text-amber-600">
+                  {selectedFormateurForAction?.prenom?.[0]}{selectedFormateurForAction?.nom?.[0]}
+                </span>
+              </div>
+              <div>
+                <p className="text-lg">Actions pour</p>
+                <p className="text-amber-600">{selectedFormateurForAction?.prenom} {selectedFormateurForAction?.nom}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            {/* A) Assigner un nouvel élève */}
+            <button
+              onClick={openAssignStudent}
+              className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl shadow-lg transition-all hover:scale-[1.02]"
+            >
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                <UserPlus className="w-6 h-6" />
+              </div>
+              <div className="text-left">
+                <p className="font-bold text-lg">Assigner un nouvel élève</p>
+                <p className="text-green-100 text-sm">Créer et assigner un élève à ce formateur</p>
+              </div>
+            </button>
+
+            {/* B) Demandes du formateur */}
+            <button
+              onClick={openFormateurRequests}
+              className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl shadow-lg transition-all hover:scale-[1.02]"
+            >
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                <ArrowUp className="w-6 h-6" />
+              </div>
+              <div className="text-left">
+                <p className="font-bold text-lg">Demandes du formateur</p>
+                <p className="text-blue-100 text-sm">Voir les demandes reçues</p>
+              </div>
+            </button>
+
+            {/* C) Faire une demande */}
+            <button
+              onClick={openMakeRequest}
+              className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl shadow-lg transition-all hover:scale-[1.02]"
+            >
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                <ArrowDown className="w-6 h-6" />
+              </div>
+              <div className="text-left">
+                <p className="font-bold text-lg">Faire une demande</p>
+                <p className="text-purple-100 text-sm">Envoyer une demande au formateur</p>
+              </div>
+            </button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowFormateurActions(false)}>Annuler</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal assigner un élève au formateur */}
+      <Dialog open={showAssignStudent} onOpenChange={setShowAssignStudent}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="w-6 h-6 text-green-600" />
+              Assigner un nouvel élève à {selectedFormateurForAction?.prenom} {selectedFormateurForAction?.nom}
+            </DialogTitle>
+            <DialogDescription>
+              L'élève sera créé et assigné automatiquement à ce formateur. Un email de notification sera envoyé.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="space-y-2">
+              <Label>Nom complet *</Label>
+              <Input 
+                value={assignStudentForm.name} 
+                onChange={(e) => setAssignStudentForm({...assignStudentForm, name: e.target.value})} 
+                placeholder="Jean Dupont"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email *</Label>
+              <Input 
+                type="email" 
+                value={assignStudentForm.email} 
+                onChange={(e) => setAssignStudentForm({...assignStudentForm, email: e.target.value})} 
+                placeholder="jean.dupont@email.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Mot de passe *</Label>
+              <Input 
+                type="password" 
+                value={assignStudentForm.password} 
+                onChange={(e) => setAssignStudentForm({...assignStudentForm, password: e.target.value})} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Téléphone</Label>
+              <Input 
+                value={assignStudentForm.phone} 
+                onChange={(e) => setAssignStudentForm({...assignStudentForm, phone: e.target.value})} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Matière / Parcours *</Label>
+              <select 
+                className="w-full px-3 py-2 border rounded-md"
+                value={assignStudentForm.subject}
+                onChange={(e) => setAssignStudentForm({...assignStudentForm, subject: e.target.value, parcours: e.target.value})}
+              >
+                <option value="">Sélectionner...</option>
+                {selectedFormateurForAction?.matieres?.filter(m => m).map((m, i) => (
+                  <option key={i} value={m}>{m}</option>
+                ))}
+                <option value="Anglais">Anglais</option>
+                <option value="Bureautique">Bureautique</option>
+                <option value="Informatique">Informatique</option>
+                <option value="Français">Français</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Nombre d'heures *</Label>
+              <Input 
+                type="number" 
+                value={assignStudentForm.total_hours} 
+                onChange={(e) => setAssignStudentForm({...assignStudentForm, total_hours: parseFloat(e.target.value) || 0})} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Organisme</Label>
+              <Input 
+                value={assignStudentForm.organism} 
+                onChange={(e) => setAssignStudentForm({...assignStudentForm, organism: e.target.value})} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Prise en charge</Label>
+              <Input 
+                value={assignStudentForm.support_type} 
+                onChange={(e) => setAssignStudentForm({...assignStudentForm, support_type: e.target.value})} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Date d'entrée</Label>
+              <Input 
+                type="date" 
+                value={assignStudentForm.start_date} 
+                onChange={(e) => setAssignStudentForm({...assignStudentForm, start_date: e.target.value})} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Date de sortie</Label>
+              <Input 
+                type="date" 
+                value={assignStudentForm.end_date} 
+                onChange={(e) => setAssignStudentForm({...assignStudentForm, end_date: e.target.value})} 
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAssignStudent(false)}>Annuler</Button>
+            <Button onClick={handleAssignStudent} className="bg-green-600 hover:bg-green-700 text-white">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Créer et assigner l'élève
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal demandes du formateur */}
+      <Dialog open={showFormateurRequests} onOpenChange={setShowFormateurRequests}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowUp className="w-6 h-6 text-blue-600" />
+              Demandes de {selectedFormateurForAction?.prenom} {selectedFormateurForAction?.nom}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[400px] overflow-y-auto">
+            {formateurRequests.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <p>Aucune demande reçue de ce formateur</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {formateurRequests.map((req, idx) => (
+                  <div key={idx} className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="font-semibold text-blue-800">{req.subject}</p>
+                    <p className="text-sm text-gray-600 mt-1">{req.message}</p>
+                    <p className="text-xs text-gray-400 mt-2">{new Date(req.created_at).toLocaleString('fr-FR')}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowFormateurRequests(false)}>Fermer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal faire une demande au formateur */}
+      <Dialog open={showMakeRequest} onOpenChange={setShowMakeRequest}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowDown className="w-6 h-6 text-purple-600" />
+              Faire une demande à {selectedFormateurForAction?.prenom} {selectedFormateurForAction?.nom}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Objet de la demande *</Label>
+              <Input 
+                value={newRequest.subject}
+                onChange={(e) => setNewRequest({...newRequest, subject: e.target.value})}
+                placeholder="Ex: Demande de disponibilités"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Message *</Label>
+              <textarea 
+                className="w-full px-3 py-2 border rounded-md min-h-[120px]"
+                value={newRequest.message}
+                onChange={(e) => setNewRequest({...newRequest, message: e.target.value})}
+                placeholder="Détaillez votre demande..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMakeRequest(false)}>Annuler</Button>
+            <Button onClick={handleSendRequest} className="bg-purple-600 hover:bg-purple-700 text-white">
+              <Send className="w-4 h-4 mr-2" />
+              Envoyer la demande
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
