@@ -72,6 +72,20 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   const [showSessionDetails, setShowSessionDetails] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
 
+  // Actions Formateur
+  const [showFormateurActions, setShowFormateurActions] = useState(false);
+  const [selectedFormateurForAction, setSelectedFormateurForAction] = useState(null);
+  const [showAssignStudent, setShowAssignStudent] = useState(false);
+  const [showFormateurRequests, setShowFormateurRequests] = useState(false);
+  const [showMakeRequest, setShowMakeRequest] = useState(false);
+  const [formateurRequests, setFormateurRequests] = useState([]);
+  const [newRequest, setNewRequest] = useState({ subject: '', message: '' });
+  const [assignStudentForm, setAssignStudentForm] = useState({
+    name: '', email: '', phone: '', parcours: '', total_hours: 0,
+    organism: '', support_type: '', start_date: '', end_date: '',
+    password: '', subject: ''
+  });
+
   const months = [
     { num: 1, label: 'Janvier' }, { num: 2, label: 'Février' }, { num: 3, label: 'Mars' },
     { num: 4, label: 'Avril' }, { num: 5, label: 'Mai' }, { num: 6, label: 'Juin' },
