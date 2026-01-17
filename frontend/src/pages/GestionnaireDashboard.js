@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -19,6 +19,7 @@ export default function GestionnaireDashboard() {
   const [user, setUser] = useState(null);
   const [client, setClient] = useState(null);
   const [activeTab, setActiveTab] = useState('sessions');
+  const hasInitialized = useRef(false);
   
   // Données
   const [students, setStudents] = useState([]);
@@ -40,6 +41,10 @@ export default function GestionnaireDashboard() {
   ];
 
   useEffect(() => {
+    // Prevent re-initialization
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+    
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     
@@ -48,7 +53,14 @@ export default function GestionnaireDashboard() {
       return;
     }
     
-    const parsedUser = JSON.parse(userData);
+    let parsedUser;
+    try {
+      parsedUser = JSON.parse(userData);
+    } catch {
+      navigate('/');
+      return;
+    }
+    
     if (parsedUser.role !== 'gestionnaire') {
       navigate('/');
       return;
@@ -56,7 +68,7 @@ export default function GestionnaireDashboard() {
     
     setUser(parsedUser);
     loadData();
-  }, [navigate]);
+  }, []);
 
   const loadData = async () => {
     setLoading(true);
