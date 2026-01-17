@@ -808,26 +808,6 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               </div>
             )}
           </TabsContent>
-                          onClick={() => handleDeleteStudent(student.id)}
-                          className="flex items-center gap-1 px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          Supprimer
-                        </button>
-                        <button
-                          onClick={() => openStudentHistory(student)}
-                          className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                        >
-                          <History className="w-3 h-3" />
-                          Historique
-                        </button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
 
           {/* ===== ONGLET FORMATEURS ===== */}
           <TabsContent value="formateurs" className="space-y-6">
