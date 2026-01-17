@@ -10778,7 +10778,7 @@ async def create_client(
     # Hash du mot de passe si fourni
     password_hash = ""
     if password:
-        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        password_hash = pwd_context.hash(password)
     
     client_data = {
         "id": client_id,
