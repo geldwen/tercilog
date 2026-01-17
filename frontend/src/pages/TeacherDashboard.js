@@ -812,6 +812,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       email_responsable: '',
       nom_gestionnaire: '',
       email_gestionnaire: '',
+      password: '',
       photo: null,
       photoName: ''
     });
