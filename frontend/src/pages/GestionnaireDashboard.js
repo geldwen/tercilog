@@ -878,6 +878,43 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               </div>
             )}
           </TabsContent>
+
+          {/* ===== ONGLET FIDÉLITÉ ===== */}
+          <TabsContent value="fidelite" className="space-y-6">
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-10 max-w-lg text-center border-2 border-pink-300">
+                {/* Icône cadeau animée */}
+                <div className="relative mb-6">
+                  <div className="w-24 h-24 mx-auto bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                    <Gift className="w-12 h-12 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-md animate-bounce">
+                    <Star className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+                
+                {/* Titre */}
+                <h2 className="text-2xl font-bold text-pink-600 mb-4">
+                  Programme Fidélité
+                </h2>
+                
+                {/* Message */}
+                <div className="bg-pink-50 rounded-2xl p-6 mb-6 border border-pink-200">
+                  <p className="text-lg text-gray-700 leading-relaxed">
+                    <span className="font-semibold text-pink-600">Votre programme fidélité bientôt disponible.</span>
+                    <br /><br />
+                    Cumulez des points et commandez des tonnes de cadeaux ! 🎁
+                  </p>
+                </div>
+                
+                {/* Badge "Bientôt" */}
+                <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-full font-bold shadow-lg">
+                  <Clock className="w-5 h-5" />
+                  Bientôt disponible
+                </div>
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
       </main>
 
