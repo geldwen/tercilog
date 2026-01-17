@@ -10826,7 +10826,7 @@ async def create_client(
                     "id": str(uuid.uuid4()),
                     "email": contact["email"],
                     "name": contact["name"],
-                    "password": password_hash,
+                    "password_hash": password_hash,
                     "role": "gestionnaire",
                     "client_id": client_id,  # Lien vers le client
                     "client_name": nom_centre,
