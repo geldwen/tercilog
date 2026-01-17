@@ -4222,14 +4222,15 @@ export default function TeacherDashboard({ user, onLogout }) {
                   onClick={() => setShowCreateFormateurDialog(true)}
                 >
                   <Plus className="w-4 h-4" />
-                  Créer un nouveau formateur
-                </Button>
+                  <Plus className="w-4 h-4" />
+                  Créer un formateur
+                </button>
               </div>
             </div>
 
             {/* Indicateur de résultats de recherche */}
             {formateurSearchQuery && (
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-amber-700 bg-amber-100 px-4 py-2 rounded-lg">
                 {filteredFormateurs.length} résultat(s) pour "{formateurSearchQuery}"
               </div>
             )}
@@ -4241,22 +4242,23 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <p className="mt-4 text-gray-500">Chargement des formateurs...</p>
               </div>
             ) : filteredFormateurs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16">
-                <div className="w-24 h-24 rounded-full bg-amber-100 flex items-center justify-center mb-6">
-                  <PenTool className="w-12 h-12 text-amber-600" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                  {formateurSearchQuery ? 'Aucun résultat' : 'Aucun formateur'}
-                </h2>
-                <p className="text-gray-500 text-center max-w-md mb-6">
+              <div className="text-center py-16 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg">
+                <PenTool className="w-20 h-20 mx-auto text-amber-300 mb-4" />
+                <p className="text-gray-600 text-lg">
+                  {formateurSearchQuery ? `Aucun résultat pour "${formateurSearchQuery}"` : 'Aucun formateur enregistré'}
+                </p>
+                <p className="text-gray-500 mt-2">
                   {formateurSearchQuery 
-                    ? `Aucun formateur ne correspond à "${formateurSearchQuery}"`
-                    : 'Créez votre premier formateur en cliquant sur le bouton ci-dessus.'}
+                    ? 'Essayez avec un autre terme de recherche'
+                    : 'Cliquez sur "Créer un formateur" pour commencer'}
                 </p>
                 {formateurSearchQuery && (
-                  <Button variant="outline" onClick={() => setFormateurSearchQuery('')}>
+                  <button 
+                    onClick={() => setFormateurSearchQuery('')}
+                    className="mt-4 text-amber-600 hover:text-amber-700 text-sm"
+                  >
                     Effacer la recherche
-                  </Button>
+                  </button>
                 )}
               </div>
             ) : (
