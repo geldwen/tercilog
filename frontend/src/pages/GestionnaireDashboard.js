@@ -379,7 +379,9 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               ? 'bg-emerald-200' 
               : activeTab === 'students' 
                 ? 'bg-violet-200' 
-                : 'bg-amber-200'
+                : activeTab === 'formateurs'
+                  ? 'bg-amber-200'
+                  : 'bg-pink-200'
           }`}
           style={{ top: '72px' }}
         />
