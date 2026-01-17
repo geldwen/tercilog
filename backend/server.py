@@ -11491,6 +11491,13 @@ async def assign_student_to_formateur(data: dict, current_user: User = Depends(g
     try:
         user_create = UserCreate(**student_data)
         student = await register(user_create)
+        # Convertir en dict si c'est un objet Pydantic
+        if hasattr(student, 'model_dump'):
+            student_dict = student.model_dump()
+        elif hasattr(student, 'dict'):
+            student_dict = student.dict()
+        else:
+            student_dict = dict(student)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
@@ -11511,7 +11518,7 @@ async def assign_student_to_formateur(data: dict, current_user: User = Depends(g
         "type": "new_student_assigned",
         "formateur_id": teacher_id,
         "formateur_name": teacher_name,
-        "student_id": student.get('id'),
+        "student_id": student_dict.get('id'),
         "student_name": data.get('name'),
         "centre_name": centre_name,
         "hours": data.get('total_hours', 0),
@@ -11522,7 +11529,7 @@ async def assign_student_to_formateur(data: dict, current_user: User = Depends(g
     }
     await db.admin_notifications.insert_one(notification)
     
-    return {"success": True, "student": student, "notification_created": True}
+    return {"success": True, "student": student_dict, "notification_created": True}
 
 @api_router.get("/gestionnaire/formateur-requests/{formateur_id}")
 async def get_formateur_requests(formateur_id: str, current_user: User = Depends(get_current_user)):
