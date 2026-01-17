@@ -338,6 +338,92 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     }
   };
 
+  // ===== ACTIONS FORMATEUR =====
+  
+  // Ouvrir le menu actions formateur
+  const openFormateurActions = (formateur) => {
+    setSelectedFormateurForAction(formateur);
+    setShowFormateurActions(true);
+  };
+
+  // A) Assigner un nouvel élève au formateur
+  const openAssignStudent = () => {
+    setShowFormateurActions(false);
+    setAssignStudentForm({
+      name: '', email: '', phone: '', parcours: selectedFormateurForAction?.matieres?.[0] || '', 
+      total_hours: 0, organism: client?.nom_centre || '', support_type: '', 
+      start_date: '', end_date: '', password: '', subject: selectedFormateurForAction?.matieres?.[0] || ''
+    });
+    setShowAssignStudent(true);
+  };
+
+  const handleAssignStudent = async () => {
+    if (!assignStudentForm.name || !assignStudentForm.email || !assignStudentForm.password) {
+      toast.error('Veuillez remplir les champs obligatoires (nom, email, mot de passe)');
+      return;
+    }
+    try {
+      const payload = {
+        ...assignStudentForm,
+        client_id: user.client_id,
+        client_name: client?.nom_centre,
+        teacher_id: selectedFormateurForAction.id,
+        teacher_name: `${selectedFormateurForAction.prenom} ${selectedFormateurForAction.nom}`,
+        formateur_email: selectedFormateurForAction.email,
+        centre_name: client?.nom_centre,
+        subject: assignStudentForm.subject || assignStudentForm.parcours
+      };
+      
+      await axios.post(`${API}/gestionnaire/assign-student-to-formateur`, payload);
+      toast.success(`Élève assigné à ${selectedFormateurForAction.prenom} ${selectedFormateurForAction.nom}`);
+      setShowAssignStudent(false);
+      setSelectedFormateurForAction(null);
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de l\'assignation');
+    }
+  };
+
+  // B) Voir les demandes du formateur
+  const openFormateurRequests = async () => {
+    setShowFormateurActions(false);
+    try {
+      const res = await axios.get(`${API}/gestionnaire/formateur-requests/${selectedFormateurForAction.id}`);
+      setFormateurRequests(res.data || []);
+    } catch {
+      setFormateurRequests([]);
+    }
+    setShowFormateurRequests(true);
+  };
+
+  // C) Faire une demande au formateur
+  const openMakeRequest = () => {
+    setShowFormateurActions(false);
+    setNewRequest({ subject: '', message: '' });
+    setShowMakeRequest(true);
+  };
+
+  const handleSendRequest = async () => {
+    if (!newRequest.subject || !newRequest.message) {
+      toast.error('Veuillez remplir tous les champs');
+      return;
+    }
+    try {
+      await axios.post(`${API}/gestionnaire/send-request-to-formateur`, {
+        formateur_id: selectedFormateurForAction.id,
+        formateur_name: `${selectedFormateurForAction.prenom} ${selectedFormateurForAction.nom}`,
+        formateur_email: selectedFormateurForAction.email,
+        centre_name: client?.nom_centre,
+        subject: newRequest.subject,
+        message: newRequest.message
+      });
+      toast.success('Demande envoyée au formateur');
+      setShowMakeRequest(false);
+    } catch (error) {
+      toast.error('Erreur lors de l\'envoi de la demande');
+    }
+  };
+
   // Afficher les élèves (filtrés ou tous)
   const displayedStudents = filteredStudents || students;
 
