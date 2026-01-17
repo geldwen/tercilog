@@ -11375,7 +11375,7 @@ async def create_test_gestionnaire(current_user: User = Depends(get_current_user
             "id": str(uuid.uuid4()),
             "email": "terciform@gmail.com",
             "name": "Test Gestionnaire",
-            "password": pwd_context.hash(test_password),
+            "password_hash": pwd_context.hash(test_password),
             "role": "gestionnaire",
             "client_id": test_client_id,
             "client_name": "Centre Test TerciForm",
