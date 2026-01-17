@@ -10259,12 +10259,13 @@ class ClientBase(BaseModel):
     email_gestionnaire: str = ""
 
 class ClientCreate(ClientBase):
-    pass
+    password: str = ""  # Mot de passe commun pour les accès gestionnaire/responsable
 
 class Client(ClientBase):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     photo_url: str = ""
+    password_hash: str = ""  # Hash du mot de passe
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
