@@ -11341,6 +11341,7 @@ async def create_test_gestionnaire(current_user: User = Depends(get_current_user
     
     test_password = "TestGestionnaire2026!"
     test_client_id = str(uuid.uuid4())
+    test_email = "gestionnaire-test@terciform.com"  # Email différent pour le test
     
     # Créer le client test
     test_client = {
@@ -11352,7 +11353,7 @@ async def create_test_gestionnaire(current_user: User = Depends(get_current_user
         "nom_responsable": "Test Responsable",
         "email_responsable": "terciform@gmail.com",
         "nom_gestionnaire": "Test Gestionnaire",
-        "email_gestionnaire": "terciform@gmail.com",
+        "email_gestionnaire": test_email,
         "photo_url": "",
         "password_hash": pwd_context.hash(test_password),
         "created_at": datetime.now(timezone.utc),
@@ -11362,18 +11363,18 @@ async def create_test_gestionnaire(current_user: User = Depends(get_current_user
     await db.clients.insert_one(test_client)
     
     # Créer le compte utilisateur gestionnaire
-    existing_gestionnaire = await db.users.find_one({"email": "terciform@gmail.com", "role": "gestionnaire"})
+    existing_gestionnaire = await db.users.find_one({"email": test_email, "role": "gestionnaire"})
     if existing_gestionnaire:
         # Mettre à jour le client_id existant
         await db.users.update_one(
-            {"email": "terciform@gmail.com", "role": "gestionnaire"},
-            {"$set": {"client_id": test_client_id, "client_name": "Centre Test TerciForm"}}
+            {"email": test_email, "role": "gestionnaire"},
+            {"$set": {"client_id": test_client_id, "client_name": "Centre Test TerciForm", "password_hash": pwd_context.hash(test_password)}}
         )
     else:
         # Créer le compte
         user_data = {
             "id": str(uuid.uuid4()),
-            "email": "terciform@gmail.com",
+            "email": test_email,
             "name": "Test Gestionnaire",
             "password_hash": pwd_context.hash(test_password),
             "role": "gestionnaire",
@@ -11383,9 +11384,9 @@ async def create_test_gestionnaire(current_user: User = Depends(get_current_user
         }
         await db.users.insert_one(user_data)
     
-    # Envoyer l'email de bienvenue
+    # Envoyer l'email de bienvenue à terciform@gmail.com pour voir le format
     email_sent = send_gestionnaire_welcome_email(
-        to_email="terciform@gmail.com",
+        to_email="terciform@gmail.com",  # Envoyer à terciform pour voir le mail
         name="Test Gestionnaire",
         centre_name="Centre Test TerciForm",
         password=test_password
@@ -11393,10 +11394,10 @@ async def create_test_gestionnaire(current_user: User = Depends(get_current_user
     
     return {
         "success": True,
-        "message": "Centre test créé et email envoyé à terciform@gmail.com",
+        "message": f"Centre test créé. Email de démo envoyé à terciform@gmail.com. Identifiants de connexion: {test_email}",
         "client_id": test_client_id,
         "credentials": {
-            "email": "terciform@gmail.com",
+            "email": test_email,
             "password": test_password
         },
         "email_sent": email_sent
