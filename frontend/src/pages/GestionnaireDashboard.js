@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,12 +13,9 @@ import {
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
-export default function GestionnaireDashboard() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+export default function GestionnaireDashboard({ user, onLogout }) {
   const [client, setClient] = useState(null);
   const [activeTab, setActiveTab] = useState('sessions');
-  const hasInitialized = useRef(false);
   
   // Données
   const [students, setStudents] = useState([]);
@@ -41,46 +37,17 @@ export default function GestionnaireDashboard() {
   ];
 
   useEffect(() => {
-    // Prevent re-initialization
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
-    
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (!token || !userData) {
-      navigate('/');
-      return;
-    }
-    
-    let parsedUser;
-    try {
-      parsedUser = JSON.parse(userData);
-    } catch {
-      navigate('/');
-      return;
-    }
-    
-    if (parsedUser.role !== 'gestionnaire') {
-      navigate('/');
-      return;
-    }
-    
-    setUser(parsedUser);
     loadData();
   }, []);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      
       const [clientRes, studentsRes, sessionsRes, formateursRes] = await Promise.all([
-        axios.get(`${API}/gestionnaire/client`, { headers }),
-        axios.get(`${API}/gestionnaire/students`, { headers }),
-        axios.get(`${API}/gestionnaire/sessions`, { headers }),
-        axios.get(`${API}/gestionnaire/formateurs`, { headers })
+        axios.get(`${API}/gestionnaire/client`),
+        axios.get(`${API}/gestionnaire/students`),
+        axios.get(`${API}/gestionnaire/sessions`),
+        axios.get(`${API}/gestionnaire/formateurs`)
       ]);
       
       setClient(clientRes.data);
@@ -91,17 +58,11 @@ export default function GestionnaireDashboard() {
       console.error('Erreur chargement données:', error);
       if (error.response?.status === 403) {
         toast.error('Accès non autorisé');
-        handleLogout();
+        onLogout();
       }
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/');
   };
 
   // Filtrer les sessions du mois sélectionné
