@@ -11267,14 +11267,125 @@ async def get_gestionnaire_students(current_user: User = Depends(get_current_use
     if not client:
         return []
     
-    # Récupérer les élèves dont l'organisme correspond au nom du centre
+    # Récupérer les élèves dont l'organisme correspond au nom du centre OU client_id
     centre_name = client.get("nom_centre", "")
     students = await db.users.find(
-        {"role": "student", "organism": {"$regex": centre_name, "$options": "i"}},
+        {
+            "role": "student",
+            "archived": {"$ne": True},
+            "$or": [
+                {"organism": {"$regex": centre_name, "$options": "i"}},
+                {"client_id": current_user.client_id}
+            ]
+        },
         {"_id": 0, "password_hash": 0}
     ).to_list(1000)
     
     return students
+
+@api_router.get("/gestionnaire/archived-students")
+async def get_gestionnaire_archived_students(current_user: User = Depends(get_current_user)):
+    """Récupère les élèves archivés du centre"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    if not current_user.client_id:
+        return []
+    
+    client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+    if not client:
+        return []
+    
+    centre_name = client.get("nom_centre", "")
+    students = await db.users.find(
+        {
+            "role": "student",
+            "archived": True,
+            "$or": [
+                {"organism": {"$regex": centre_name, "$options": "i"}},
+                {"client_id": current_user.client_id}
+            ]
+        },
+        {"_id": 0, "password_hash": 0}
+    ).to_list(1000)
+    
+    return students
+
+@api_router.post("/gestionnaire/students")
+async def create_gestionnaire_student(data: dict, current_user: User = Depends(get_current_user)):
+    """Crée un élève pour le centre du gestionnaire"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    # Ajouter les infos du centre
+    data['role'] = 'student'
+    data['client_id'] = current_user.client_id
+    data['client_name'] = current_user.client_name
+    
+    # Récupérer le nom du centre comme organisme par défaut
+    client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+    if client and not data.get('organism'):
+        data['organism'] = client.get('nom_centre', '')
+    
+    # Créer l'élève via register
+    user_data = UserCreate(**data)
+    student = await register(user_data)
+    return student
+
+@api_router.patch("/gestionnaire/students/{student_id}")
+async def update_gestionnaire_student(student_id: str, data: dict, current_user: User = Depends(get_current_user)):
+    """Met à jour un élève du centre"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    # Vérifier que l'élève appartient au centre
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+    
+    # Supprimer les champs protégés
+    data.pop('id', None)
+    data.pop('role', None)
+    data.pop('password_hash', None)
+    data.pop('password', None)
+    
+    await db.users.update_one({"id": student_id}, {"$set": data})
+    return {"success": True}
+
+@api_router.delete("/gestionnaire/students/{student_id}")
+async def delete_gestionnaire_student(student_id: str, current_user: User = Depends(get_current_user)):
+    """Supprime un élève du centre"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    result = await db.users.delete_one({"id": student_id, "role": "student"})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+    return {"success": True}
+
+@api_router.post("/gestionnaire/students/{student_id}/archive")
+async def archive_gestionnaire_student(student_id: str, current_user: User = Depends(get_current_user)):
+    """Archive un élève (sortie de parcours)"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    await db.users.update_one(
+        {"id": student_id, "role": "student"},
+        {"$set": {"archived": True, "archived_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"success": True}
+
+@api_router.post("/gestionnaire/students/{student_id}/restore")
+async def restore_gestionnaire_student(student_id: str, current_user: User = Depends(get_current_user)):
+    """Restaure un élève archivé"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    await db.users.update_one(
+        {"id": student_id, "role": "student"},
+        {"$set": {"archived": False}, "$unset": {"archived_at": ""}}
+    )
+    return {"success": True}
 
 @api_router.get("/gestionnaire/sessions")
 async def get_gestionnaire_sessions(current_user: User = Depends(get_current_user)):
