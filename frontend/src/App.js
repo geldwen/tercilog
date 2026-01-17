@@ -80,6 +80,8 @@ function App() {
               user ? (
                 user.role === "teacher" ? (
                   <Navigate to="/teacher" replace />
+                ) : user.role === "gestionnaire" ? (
+                  <Navigate to="/gestionnaire" replace />
                 ) : (
                   <Navigate to="/student" replace />
                 )
@@ -103,6 +105,16 @@ function App() {
             element={
               user && user.role === "teacher" ? (
                 <TeacherDashboard user={user} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
+            path="/gestionnaire"
+            element={
+              user && user.role === "gestionnaire" ? (
+                <GestionnaireDashboard user={user} onLogout={handleLogout} />
               ) : (
                 <Navigate to="/login" replace />
               )
