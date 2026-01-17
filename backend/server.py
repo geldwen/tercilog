@@ -11471,6 +11471,7 @@ async def assign_student_to_formateur(data: dict, current_user: User = Depends(g
         'email': data.get('email'),
         'phone': data.get('phone', ''),
         'password': data.get('password'),
+        'role': 'student',  # Important: définir le rôle
         'parcours': data.get('parcours', subject),
         'total_hours': data.get('total_hours', 0),
         'credit_hours': data.get('total_hours', 0),
