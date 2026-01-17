@@ -412,6 +412,14 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                 <PenTool className="w-5 h-5 mr-2" />
                 FORMATEURS
               </TabsTrigger>
+              <TabsTrigger 
+                value="fidelite" 
+                data-testid="fidelite-tab"
+                className="px-8 py-3 text-base font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-pink-500 data-[state=inactive]:text-white data-[state=active]:bg-pink-600 data-[state=active]:text-white"
+              >
+                <Gift className="w-5 h-5 mr-2" />
+                FIDÉLITÉ
+              </TabsTrigger>
             </TabsList>
           </div>
 
