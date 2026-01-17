@@ -11403,6 +11403,27 @@ async def create_test_gestionnaire(current_user: User = Depends(get_current_user
         "email_sent": email_sent
     }
 
+class SendCredentialsRequest(BaseModel):
+    email: str
+    name: str
+    centre_name: str
+    password: str
+
+@api_router.post("/send-gestionnaire-credentials")
+async def send_gestionnaire_credentials(request: SendCredentialsRequest, current_user: User = Depends(get_current_user)):
+    """Envoie un email avec les identifiants gestionnaire"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    email_sent = send_gestionnaire_welcome_email(
+        to_email=request.email,
+        name=request.name,
+        centre_name=request.centre_name,
+        password=request.password
+    )
+    
+    return {"success": email_sent, "email": request.email}
+
 # Include router
 app.include_router(api_router)
 
