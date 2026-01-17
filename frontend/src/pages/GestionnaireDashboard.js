@@ -713,9 +713,9 @@ export default function GestionnaireDashboard({ user, onLogout }) {
 
           {/* ===== ONGLET ÉLÈVES ===== */}
           <TabsContent value="students" className="space-y-6">
-            {/* En-tête avec recherche et création */}
+            {/* En-tête avec recherche uniquement (pas de création) */}
             <div className="flex items-center justify-between p-4 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg">
-              <h2 className="text-xl font-bold text-gray-800">Gestion des Élèves</h2>
+              <h2 className="text-xl font-bold text-gray-800">Élèves ({displayedStudents.length})</h2>
               <div className="flex gap-3">
                 {filteredStudents && (
                   <Button onClick={resetStudentSearch} variant="outline" className="gap-2">
@@ -723,16 +723,6 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                     Tous ({students.length})
                   </Button>
                 )}
-                
-                {/* Bouton historisés */}
-                <Button 
-                  onClick={() => setShowArchivedStudents(true)} 
-                  variant="outline" 
-                  className="gap-2 border-gray-400"
-                >
-                  <Archive className="w-4 h-4" />
-                  Historisés ({archivedStudents.length})
-                </Button>
 
                 {/* Recherche */}
                 <Dialog open={showSearchStudent} onOpenChange={setShowSearchStudent}>
@@ -764,23 +754,14 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
-
-                {/* Création */}
-                <button 
-                  onClick={() => setShowCreateStudent(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 shadow-md"
-                >
-                  <Plus className="w-4 h-4" />
-                  Ajouter un élève
-                </button>
               </div>
             </div>
 
-            {/* Liste des élèves */}
+            {/* Liste des élèves (LECTURE SEULE - pas de boutons d'action) */}
             {displayedStudents.length === 0 ? (
               <div className="text-center py-16 bg-white/80 rounded-2xl shadow-lg">
                 <Users className="w-20 h-20 mx-auto text-violet-300 mb-4" />
-                <p className="text-gray-600 text-lg">Aucun élève</p>
+                <p className="text-gray-600 text-lg">Aucun élève dans la base</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -799,6 +780,11 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                               <Mail className="w-3 h-3" />{student.email}
                             </p>
                           )}
+                          {student.phone && (
+                            <p className="text-xs text-gray-400 flex items-center gap-1">
+                              <Phone className="w-3 h-3" />{student.phone}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="mt-3 flex items-center gap-2 flex-wrap">
@@ -810,24 +796,18 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                             {student.teacher_name}
                           </span>
                         )}
+                        {student.organism && (
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                            {student.organism}
+                          </span>
+                        )}
                       </div>
-                      {/* Boutons d'action */}
-                      <div className="mt-4 flex flex-wrap gap-2 border-t pt-3">
-                        <button
-                          onClick={() => openStudentPlanning(student)}
-                          className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                        >
-                          <Calendar className="w-3 h-3" />
-                          Planning
-                        </button>
-                        <button
-                          onClick={() => openEditStudent(student)}
-                          className="flex items-center gap-1 px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200"
-                        >
-                          <Edit className="w-3 h-3" />
-                          Modifier
-                        </button>
-                        <button
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
                           onClick={() => handleDeleteStudent(student.id)}
                           className="flex items-center gap-1 px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200"
                         >
