@@ -11465,6 +11465,15 @@ async def assign_student_to_formateur(data: dict, current_user: User = Depends(g
     centre_name = data.get('centre_name', current_user.client_name)
     subject = data.get('subject', data.get('parcours', ''))
     
+    # Si l'email du formateur n'est pas fourni, le récupérer depuis la base
+    if not formateur_email and teacher_id:
+        formateur = await db.formateurs.find_one({"id": teacher_id}, {"_id": 0, "email": 1})
+        if formateur:
+            formateur_email = formateur.get('email')
+        logger.info(f"Email formateur récupéré depuis DB: {formateur_email}")
+    
+    logger.info(f"Assignation élève - Formateur: {teacher_name}, Email: {formateur_email}, Centre: {centre_name}")
+    
     # Préparer les données de l'élève
     student_data = {
         'name': data.get('name'),
