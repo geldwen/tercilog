@@ -6135,6 +6135,27 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
             </div>
 
+            {/* Mot de passe pour l'accès gestionnaire */}
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-semibold text-sky-600 uppercase tracking-wide mb-3">🔐 Accès Espace Gestionnaire</h4>
+              <p className="text-xs text-gray-500 mb-3">
+                Ce mot de passe permettra au gestionnaire et au responsable de se connecter à leur espace dédié. Un email de bienvenue leur sera envoyé avec leurs identifiants.
+              </p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mot de passe <span className="text-gray-400">(commun aux deux contacts)</span>
+                </label>
+                <input
+                  type="text"
+                  value={newClientData.password}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, password: e.target.value }))}
+                  className="w-full px-3 py-2 border border-sky-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-sky-50"
+                  placeholder="Ex: Bienvenue2026!"
+                  data-testid="client-password-input"
+                />
+              </div>
+            </div>
+
             {/* Responsable */}
             <div className="border-t pt-4">
               <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">Responsable</h4>
