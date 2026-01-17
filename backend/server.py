@@ -11387,6 +11387,232 @@ async def restore_gestionnaire_student(student_id: str, current_user: User = Dep
     )
     return {"success": True}
 
+# ===== ACTIONS FORMATEUR (depuis espace gestionnaire) =====
+
+def send_new_student_notification_email(formateur_email: str, formateur_name: str, centre_name: str, student_name: str, hours: float, subject: str):
+    """Envoie un email au formateur pour l'informer d'un nouvel élève assigné"""
+    try:
+        html_body = f"""
+        <html>
+        <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+            <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 35px; text-align: center;">
+                    <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">Nouvel élève assigné</h1>
+                </div>
+                
+                <div style="padding: 35px;">
+                    <p style="font-size: 17px; color: #2d3748;">Bonjour <strong>{formateur_name}</strong>,</p>
+                    
+                    <div style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); border-radius: 12px; padding: 25px; margin: 25px 0; border: 1px solid #7dd3fc;">
+                        <p style="margin: 0; font-size: 16px; color: #0369a1;">
+                            Le centre <strong>{centre_name}</strong> vous a assigné un nouvel élève :
+                        </p>
+                    </div>
+                    
+                    <div style="background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                        <table style="width: 100%;">
+                            <tr>
+                                <td style="padding: 10px 0; color: #64748b; font-weight: 500;">Élève :</td>
+                                <td style="padding: 10px 0; color: #1e293b; font-weight: 600;">{student_name}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px 0; color: #64748b; font-weight: 500;">Nombre d'heures :</td>
+                                <td style="padding: 10px 0; color: #1e293b; font-weight: 600;">{hours}h</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px 0; color: #64748b; font-weight: 500;">Matière :</td>
+                                <td style="padding: 10px 0; color: #1e293b; font-weight: 600;">{subject}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <p style="margin-top: 30px; color: #718096; font-size: 15px;">
+                        Cordialement,<br>
+                        <strong style="color: #2d3748;">L'équipe TerciForm</strong>
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        params = {
+            "from": "TerciForm <onboarding@resend.dev>",
+            "to": [formateur_email],
+            "subject": f"TerciForm - Nouvel élève assigné : {student_name}",
+            "html": html_body
+        }
+        resend.Emails.send(params)
+        return True
+    except Exception as e:
+        logger.error(f"Erreur envoi email notification formateur: {e}")
+        return False
+
+@api_router.post("/gestionnaire/assign-student-to-formateur")
+async def assign_student_to_formateur(data: dict, current_user: User = Depends(get_current_user)):
+    """
+    Crée un élève et l'assigne à un formateur.
+    Envoie un email au formateur et crée une notification pour l'admin.
+    """
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    # Extraire les données
+    formateur_email = data.get('formateur_email')
+    teacher_id = data.get('teacher_id')
+    teacher_name = data.get('teacher_name')
+    centre_name = data.get('centre_name', current_user.client_name)
+    subject = data.get('subject', data.get('parcours', ''))
+    
+    # Préparer les données de l'élève
+    student_data = {
+        'name': data.get('name'),
+        'email': data.get('email'),
+        'phone': data.get('phone', ''),
+        'password': data.get('password'),
+        'parcours': data.get('parcours', subject),
+        'total_hours': data.get('total_hours', 0),
+        'credit_hours': data.get('total_hours', 0),
+        'organism': data.get('organism', centre_name),
+        'support_type': data.get('support_type', ''),
+        'start_date': data.get('start_date', ''),
+        'end_date': data.get('end_date', ''),
+        'teacher_id': teacher_id,
+        'teacher_name': teacher_name,
+        'client_id': current_user.client_id,
+        'client_name': current_user.client_name,
+        'assigned_by_gestionnaire': True,
+        'assigned_at': datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Créer l'élève via register
+    try:
+        user_create = UserCreate(**student_data)
+        student = await register(user_create)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    # A1) Envoyer email au formateur
+    if formateur_email:
+        send_new_student_notification_email(
+            formateur_email=formateur_email,
+            formateur_name=teacher_name,
+            centre_name=centre_name,
+            student_name=data.get('name'),
+            hours=data.get('total_hours', 0),
+            subject=subject
+        )
+    
+    # A2) Créer une notification pour l'admin
+    notification = {
+        "id": str(uuid.uuid4()),
+        "type": "new_student_assigned",
+        "formateur_id": teacher_id,
+        "formateur_name": teacher_name,
+        "student_id": student.get('id'),
+        "student_name": data.get('name'),
+        "centre_name": centre_name,
+        "hours": data.get('total_hours', 0),
+        "subject": subject,
+        "message": f"Le centre {centre_name} vous a attribué un nouvel élève {data.get('name')}, pour {data.get('total_hours', 0)}h pour {subject}",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "read": False
+    }
+    await db.admin_notifications.insert_one(notification)
+    
+    return {"success": True, "student": student, "notification_created": True}
+
+@api_router.get("/gestionnaire/formateur-requests/{formateur_id}")
+async def get_formateur_requests(formateur_id: str, current_user: User = Depends(get_current_user)):
+    """Récupère les demandes envoyées par un formateur"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    requests = await db.formateur_requests.find(
+        {"formateur_id": formateur_id, "direction": "from_formateur"},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    return requests
+
+@api_router.post("/gestionnaire/send-request-to-formateur")
+async def send_request_to_formateur(data: dict, current_user: User = Depends(get_current_user)):
+    """Envoie une demande du gestionnaire au formateur"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    request_doc = {
+        "id": str(uuid.uuid4()),
+        "formateur_id": data.get('formateur_id'),
+        "formateur_name": data.get('formateur_name'),
+        "centre_id": current_user.client_id,
+        "centre_name": data.get('centre_name', current_user.client_name),
+        "subject": data.get('subject'),
+        "message": data.get('message'),
+        "direction": "to_formateur",
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.formateur_requests.insert_one(request_doc)
+    
+    # Envoyer un email au formateur
+    formateur_email = data.get('formateur_email')
+    if formateur_email:
+        try:
+            html_body = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; padding: 20px;">
+                <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <h2 style="color: #1e3a5f;">Nouvelle demande de {data.get('centre_name')}</h2>
+                    <p><strong>Objet :</strong> {data.get('subject')}</p>
+                    <div style="background: #f7f7f7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <p style="margin: 0;">{data.get('message')}</p>
+                    </div>
+                    <p style="color: #666; font-size: 14px;">Cordialement,<br>L'équipe TerciForm</p>
+                </div>
+            </body>
+            </html>
+            """
+            params = {
+                "from": "TerciForm <onboarding@resend.dev>",
+                "to": [formateur_email],
+                "subject": f"Demande de {data.get('centre_name')} - {data.get('subject')}",
+                "html": html_body
+            }
+            resend.Emails.send(params)
+        except Exception as e:
+            logger.error(f"Erreur envoi email demande formateur: {e}")
+    
+    return {"success": True}
+
+# Endpoint pour récupérer les notifications admin
+@api_router.get("/admin/notifications")
+async def get_admin_notifications(current_user: User = Depends(get_current_user)):
+    """Récupère les notifications pour l'admin"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès réservé aux administrateurs")
+    
+    notifications = await db.admin_notifications.find(
+        {},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    return notifications
+
+@api_router.patch("/admin/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, current_user: User = Depends(get_current_user)):
+    """Marque une notification comme lue"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès réservé aux administrateurs")
+    
+    await db.admin_notifications.update_one(
+        {"id": notification_id},
+        {"$set": {"read": True}}
+    )
+    return {"success": True}
+
 @api_router.get("/gestionnaire/sessions")
 async def get_gestionnaire_sessions(current_user: User = Depends(get_current_user)):
     """Récupère les séances liées au centre du gestionnaire"""
