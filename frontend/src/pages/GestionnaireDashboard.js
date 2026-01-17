@@ -374,8 +374,17 @@ export default function GestionnaireDashboard({ user, onLogout }) {
         subject: assignStudentForm.subject || assignStudentForm.parcours
       };
       
-      await axios.post(`${API}/gestionnaire/assign-student-to-formateur`, payload);
-      toast.success(`Élève assigné à ${selectedFormateurForAction.prenom} ${selectedFormateurForAction.nom}`);
+      console.log('Payload assignation élève:', payload);
+      const response = await axios.post(`${API}/gestionnaire/assign-student-to-formateur`, payload);
+      
+      if (response.data.formateur_email_sent) {
+        toast.success(`Élève assigné à ${selectedFormateurForAction.prenom} ${selectedFormateurForAction.nom}. Email envoyé au formateur.`);
+      } else {
+        toast.success(`Élève assigné à ${selectedFormateurForAction.prenom} ${selectedFormateurForAction.nom}`);
+        if (!selectedFormateurForAction.email) {
+          toast.warning('Email formateur non disponible - notification non envoyée');
+        }
+      }
       setShowAssignStudent(false);
       setSelectedFormateurForAction(null);
       loadData();
