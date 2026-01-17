@@ -11406,7 +11406,7 @@ def send_new_student_notification_email(formateur_email: str, formateur_name: st
                     
                     <div style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); border-radius: 12px; padding: 25px; margin: 25px 0; border: 1px solid #7dd3fc;">
                         <p style="margin: 0; font-size: 16px; color: #0369a1;">
-                            Le centre <strong>{centre_name}</strong> vous a assigné un nouvel élève :
+                            Le centre <strong>{centre_name}</strong> vous a attribué un nouvel élève :
                         </p>
                     </div>
                     
@@ -11437,14 +11437,8 @@ def send_new_student_notification_email(formateur_email: str, formateur_name: st
         </html>
         """
         
-        params = {
-            "from": "TerciForm <onboarding@resend.dev>",
-            "to": [formateur_email],
-            "subject": f"TerciForm - Nouvel élève assigné : {student_name}",
-            "html": html_body
-        }
-        resend.Emails.send(params)
-        return True
+        email_subject = f"TerciForm - Le centre {centre_name} vous a attribué un nouvel élève : {student_name}"
+        return send_email(formateur_email, email_subject, html_body)
     except Exception as e:
         logger.error(f"Erreur envoi email notification formateur: {e}")
         return False
