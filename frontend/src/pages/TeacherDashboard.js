@@ -4260,20 +4260,20 @@ export default function TeacherDashboard({ user, onLogout }) {
                     key={formateur.id} 
                     className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow relative"
                   >
-                    {/* Bouton Planning violet en haut à droite */}
+                    {/* Bouton Planning noir rond en haut à droite */}
                     <div className="absolute top-3 right-3 z-10">
                       <button
                         onClick={() => openFormateurPlanningDialog(formateur)}
-                        className="flex flex-col items-center p-2 bg-purple-500 hover:bg-purple-600 rounded-lg shadow-md transition-all hover:scale-105"
-                        title="Voir le planning du formateur"
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-black text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 border-2 border-gray-700"
+                        title="Visualiser le planning du formateur"
                       >
-                        <Calendar className="w-4 h-4 text-white" />
-                        <span className="text-[10px] text-white font-medium mt-0.5">Planning</span>
+                        <Calendar className="w-4 h-4" />
+                        <span className="text-xs font-medium">Visualiser son planning</span>
                       </button>
                     </div>
 
                     {/* En-tête de la fiche */}
-                    <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-4 pt-14">
+                    <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-4 pt-16">
                       <div className="flex items-center gap-4">
                         <div className="w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex-shrink-0">
                           {formateur.photo_url ? (
