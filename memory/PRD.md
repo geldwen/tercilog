@@ -33,7 +33,14 @@ Plateforme de gestion de formation pour TerciForm avec suivi des élèves, gesti
 
 ## Changelog
 
-### 17 Janvier 2026
+### 17 Janvier 2026 (mise à jour)
+- **AMÉLIORATION MAJEURE** : Dashboard Gestionnaire complet
+  - SÉANCES : Affichage des séances de production en lecture seule (stats, émargements, détails)
+  - ÉLÈVES : CRUD complet (création, modification, suppression, recherche, historique, planning)
+  - ÉLÈVES ARCHIVÉS : Accès aux élèves historisés avec restauration
+  - FORMATEURS : Vue identique à production sans modification (planning accessible)
+  - Endpoints API gestionnaire étendus : archived-students, CRUD students, archive/restore
+
 - **AJOUT** : Système CRM Clients complet
   - API CRUD `/api/clients` (GET, POST, PUT, DELETE)
   - Upload photo logo client
