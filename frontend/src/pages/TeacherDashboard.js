@@ -4192,35 +4192,33 @@ export default function TeacherDashboard({ user, onLogout }) {
             </div>
           </TabsContent>
 
-          {/* Onglet Formateurs (vide pour le moment) */}
+          {/* Onglet Formateurs */}
           <TabsContent value="formateurs" className="space-y-6">
-            {/* Header avec recherche et bouton créer */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            {/* En-tête avec titre et boutons - même style que Clients */}
+            <div className="flex items-center justify-between mb-6 p-4 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg">
               <h2 className="text-xl font-bold text-gray-800">Gestion des Formateurs</h2>
-              <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="flex gap-3">
                 {/* Recherche */}
-                <div className="relative flex-1 sm:flex-none sm:w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
-                  <Input
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
                     type="text"
                     placeholder="Rechercher par nom, matière..."
                     value={formateurSearchQuery}
                     onChange={(e) => setFormateurSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 border-blue-300 focus:border-blue-500 focus:ring-blue-500"
-                    style={{ backgroundColor: '#EFF6FF' }}
+                    className="pl-10 pr-4 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 w-64 bg-amber-50 text-gray-800 placeholder-gray-500"
                   />
                   {formateurSearchQuery && (
                     <button
                       onClick={() => setFormateurSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 hover:text-amber-600"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   )}
                 </div>
-                <Button 
-                  className="gap-2 text-white whitespace-nowrap"
-                  style={{ backgroundColor: TERCIFORM_BLUE }}
+                <button 
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors shadow-md"
                   onClick={() => setShowCreateFormateurDialog(true)}
                 >
                   <Plus className="w-4 h-4" />
