@@ -12,7 +12,8 @@ import {
   Mail, Phone, Building, ChevronLeft, ChevronRight, PenTool,
   Search, Plus, Edit, Trash2, History, CalendarDays, Eye,
   Monitor, School, Video, FileText, Award, Download, X,
-  Archive, RotateCcw, Gift, Star
+  Archive, RotateCcw, Gift, Star, ArrowUp, ArrowDown, UserPlus,
+  Settings, Send, MessageSquare
 } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
