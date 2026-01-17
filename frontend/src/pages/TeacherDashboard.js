@@ -3935,8 +3935,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                 </DialogContent>
               </Dialog>
 
-            </div>
-
             {/* Indicateur de recherche active */}
             {filteredStudents !== null && (
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
