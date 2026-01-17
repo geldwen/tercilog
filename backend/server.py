@@ -11354,7 +11354,7 @@ async def create_test_gestionnaire(current_user: User = Depends(get_current_user
         "nom_gestionnaire": "Test Gestionnaire",
         "email_gestionnaire": "terciform@gmail.com",
         "photo_url": "",
-        "password_hash": bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+        "password_hash": pwd_context.hash(test_password),
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc)
     }
@@ -11375,7 +11375,7 @@ async def create_test_gestionnaire(current_user: User = Depends(get_current_user
             "id": str(uuid.uuid4()),
             "email": "terciform@gmail.com",
             "name": "Test Gestionnaire",
-            "password": bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+            "password": pwd_context.hash(test_password),
             "role": "gestionnaire",
             "client_id": test_client_id,
             "client_name": "Centre Test TerciForm",
