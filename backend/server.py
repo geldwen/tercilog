@@ -11252,6 +11252,156 @@ def send_room_request_email(to_email: str, recipient_name: str, client_name: str
         logger.error(f"Échec envoi email de demande de salle à {to_email}")
     return email_sent
 
+# ===== ENDPOINTS GESTIONNAIRE =====
+@api_router.get("/gestionnaire/students")
+async def get_gestionnaire_students(current_user: User = Depends(get_current_user)):
+    """Récupère les élèves liés au centre du gestionnaire"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    if not current_user.client_id:
+        return []
+    
+    # Récupérer le client pour avoir le nom du centre
+    client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+    if not client:
+        return []
+    
+    # Récupérer les élèves dont l'organisme correspond au nom du centre
+    centre_name = client.get("nom_centre", "")
+    students = await db.users.find(
+        {"role": "student", "organism": {"$regex": centre_name, "$options": "i"}},
+        {"_id": 0, "password_hash": 0}
+    ).to_list(1000)
+    
+    return students
+
+@api_router.get("/gestionnaire/sessions")
+async def get_gestionnaire_sessions(current_user: User = Depends(get_current_user)):
+    """Récupère les séances liées au centre du gestionnaire"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    if not current_user.client_id:
+        return []
+    
+    # Récupérer le client pour avoir le nom du centre
+    client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+    if not client:
+        return []
+    
+    centre_name = client.get("nom_centre", "")
+    
+    # Récupérer les élèves du centre
+    students = await db.users.find(
+        {"role": "student", "organism": {"$regex": centre_name, "$options": "i"}},
+        {"_id": 0, "id": 1}
+    ).to_list(1000)
+    
+    student_ids = [s["id"] for s in students]
+    
+    # Récupérer les séances de ces élèves
+    sessions = await db.sessions.find(
+        {"student_id": {"$in": student_ids}},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    return sessions
+
+@api_router.get("/gestionnaire/formateurs")
+async def get_gestionnaire_formateurs(current_user: User = Depends(get_current_user)):
+    """Récupère les formateurs (même liste que pour teacher)"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    formateurs = await db.formateurs.find({}, {"_id": 0}).to_list(1000)
+    return formateurs
+
+@api_router.get("/gestionnaire/client")
+async def get_gestionnaire_client(current_user: User = Depends(get_current_user)):
+    """Récupère les infos du client associé au gestionnaire"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    if not current_user.client_id:
+        raise HTTPException(status_code=404, detail="Pas de client associé")
+    
+    client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0, "password_hash": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    
+    return client
+
+# Endpoint de test pour créer un centre fictif
+@api_router.post("/test/create-test-gestionnaire")
+async def create_test_gestionnaire(current_user: User = Depends(get_current_user)):
+    """Crée un centre fictif et envoie un email de test à terciform@gmail.com"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    test_password = "TestGestionnaire2026!"
+    test_client_id = str(uuid.uuid4())
+    
+    # Créer le client test
+    test_client = {
+        "id": test_client_id,
+        "nom_centre": "Centre Test TerciForm",
+        "adresse_siege": "123 Avenue de la Formation, 75001 Paris",
+        "telephone_siege": "01 23 45 67 89",
+        "siret": "123 456 789 00001",
+        "nom_responsable": "Test Responsable",
+        "email_responsable": "terciform@gmail.com",
+        "nom_gestionnaire": "Test Gestionnaire",
+        "email_gestionnaire": "terciform@gmail.com",
+        "photo_url": "",
+        "password_hash": bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    await db.clients.insert_one(test_client)
+    
+    # Créer le compte utilisateur gestionnaire
+    existing_gestionnaire = await db.users.find_one({"email": "terciform@gmail.com", "role": "gestionnaire"})
+    if existing_gestionnaire:
+        # Mettre à jour le client_id existant
+        await db.users.update_one(
+            {"email": "terciform@gmail.com", "role": "gestionnaire"},
+            {"$set": {"client_id": test_client_id, "client_name": "Centre Test TerciForm"}}
+        )
+    else:
+        # Créer le compte
+        user_data = {
+            "id": str(uuid.uuid4()),
+            "email": "terciform@gmail.com",
+            "name": "Test Gestionnaire",
+            "password": bcrypt.hashpw(test_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+            "role": "gestionnaire",
+            "client_id": test_client_id,
+            "client_name": "Centre Test TerciForm",
+            "created_at": datetime.now(timezone.utc)
+        }
+        await db.users.insert_one(user_data)
+    
+    # Envoyer l'email de bienvenue
+    email_sent = send_gestionnaire_welcome_email(
+        to_email="terciform@gmail.com",
+        name="Test Gestionnaire",
+        centre_name="Centre Test TerciForm",
+        password=test_password
+    )
+    
+    return {
+        "success": True,
+        "message": "Centre test créé et email envoyé à terciform@gmail.com",
+        "client_id": test_client_id,
+        "credentials": {
+            "email": "terciform@gmail.com",
+            "password": test_password
+        },
+        "email_sent": email_sent
+    }
+
 # Include router
 app.include_router(api_router)
 
