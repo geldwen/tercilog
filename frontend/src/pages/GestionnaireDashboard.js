@@ -953,18 +953,6 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               </div>
             )}
           </TabsContent>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
 
           {/* ===== ONGLET FIDÉLITÉ ===== */}
           <TabsContent value="fidelite" className="space-y-6">
