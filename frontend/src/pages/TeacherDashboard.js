@@ -3539,6 +3539,7 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
             </div>
 
+            {/* Dialog Modifier Élève - séparé de l'en-tête */}
             <Dialog open={showEditStudent} onOpenChange={setShowEditStudent}>
                 <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                   <DialogHeader><DialogTitle>Modifier Élève</DialogTitle><DialogDescription>Modifier les informations de l'élève</DialogDescription></DialogHeader>
