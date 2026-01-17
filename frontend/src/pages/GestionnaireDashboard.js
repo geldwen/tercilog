@@ -164,7 +164,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               <span className="text-slate-300">{user?.name}</span>
               <Button 
                 variant="ghost" 
-                onClick={handleLogout}
+                onClick={onLogout}
                 className="text-white hover:bg-slate-600"
               >
                 <LogOut className="w-5 h-5" />
