@@ -11424,6 +11424,76 @@ async def send_gestionnaire_credentials(request: SendCredentialsRequest, current
     
     return {"success": email_sent, "email": request.email}
 
+class CreateGestionnaireRequest(BaseModel):
+    email: str
+    password: str
+    name: str
+    centre_name: str
+
+@api_router.post("/admin/create-gestionnaire")
+async def admin_create_gestionnaire(request: CreateGestionnaireRequest, current_user: User = Depends(get_current_user)):
+    """Crée un compte gestionnaire (admin only)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    email_lower = request.email.lower()
+    
+    # Supprimer l'ancien compte s'il existe
+    await db.users.delete_many({"email": {"$regex": f"^{request.email}$", "$options": "i"}})
+    
+    # Créer le client
+    client_id = str(uuid.uuid4())
+    client_data = {
+        "id": client_id,
+        "nom_centre": request.centre_name,
+        "adresse_siege": "",
+        "telephone_siege": "",
+        "siret": "",
+        "nom_responsable": request.name,
+        "email_responsable": email_lower,
+        "nom_gestionnaire": request.name,
+        "email_gestionnaire": email_lower,
+        "photo_url": "",
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    # Vérifier si le client existe
+    existing_client = await db.clients.find_one({"email_gestionnaire": {"$regex": f"^{request.email}$", "$options": "i"}})
+    if existing_client:
+        client_id = existing_client.get('id', client_id)
+    else:
+        await db.clients.insert_one(client_data)
+    
+    # Créer le compte utilisateur avec le hash correct
+    hashed_password = pwd_context.hash(request.password)
+    user_data = {
+        "id": str(uuid.uuid4()),
+        "email": email_lower,
+        "name": request.name,
+        "password_hash": hashed_password,
+        "role": "gestionnaire",
+        "client_id": client_id,
+        "client_name": request.centre_name,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.users.insert_one(user_data)
+    
+    # Envoyer l'email
+    email_sent = send_gestionnaire_welcome_email(
+        to_email=email_lower,
+        name=request.name,
+        centre_name=request.centre_name,
+        password=request.password
+    )
+    
+    return {
+        "success": True,
+        "email": email_lower,
+        "password": request.password,
+        "email_sent": email_sent
+    }
+
 # Include router
 app.include_router(api_router)
 
