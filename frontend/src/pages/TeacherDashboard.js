@@ -835,18 +835,25 @@ export default function TeacherDashboard({ user, onLogout }) {
       formData.append('email_responsable', newClientData.email_responsable);
       formData.append('nom_gestionnaire', newClientData.nom_gestionnaire);
       formData.append('email_gestionnaire', newClientData.email_gestionnaire);
+      formData.append('password', newClientData.password);
       
       if (newClientData.photo) {
         formData.append('photo', newClientData.photo);
       }
 
-      await axios.post(`${API}/clients`, formData, {
+      const response = await axios.post(`${API}/clients`, formData, {
         headers: { 
           Authorization: `Bearer ${token}`
         }
       });
 
-      toast.success('Client créé avec succès');
+      // Afficher un message adapté si des emails ont été envoyés
+      const emailsSent = response.data?.emails_sent || [];
+      if (emailsSent.length > 0) {
+        toast.success(`Client créé ! Emails de bienvenue envoyés à: ${emailsSent.join(', ')}`);
+      } else {
+        toast.success('Client créé avec succès');
+      }
       setShowCreateClientDialog(false);
       resetClientForm();
       loadClients();
