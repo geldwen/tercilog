@@ -11543,7 +11543,13 @@ async def assign_student_to_formateur(data: dict, current_user: User = Depends(g
     }
     await db.admin_notifications.insert_one(notification)
     
-    return {"success": True, "student": student_dict, "notification_created": True}
+    return {
+        "success": True, 
+        "student": student_dict, 
+        "notification_created": True,
+        "formateur_email_sent": email_sent_to_formateur,
+        "formateur_email": formateur_email
+    }
 
 @api_router.get("/gestionnaire/formateur-requests/{formateur_id}")
 async def get_formateur_requests(formateur_id: str, current_user: User = Depends(get_current_user)):
