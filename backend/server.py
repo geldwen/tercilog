@@ -10748,10 +10748,11 @@ async def create_client(
     email_responsable: str = Form(""),
     nom_gestionnaire: str = Form(""),
     email_gestionnaire: str = Form(""),
+    password: str = Form(""),
     photo: UploadFile = FastAPIFile(None),
     current_user: User = Depends(get_current_user)
 ):
-    """Crée un nouveau client avec upload de photo optionnel"""
+    """Crée un nouveau client avec upload de photo optionnel et création des comptes gestionnaire"""
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Accès non autorisé")
     
@@ -10771,6 +10772,11 @@ async def create_client(
             f.write(content)
         photo_url = f"/static/clients/{client_id}/photo{ext}"
     
+    # Hash du mot de passe si fourni
+    password_hash = ""
+    if password:
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
     client_data = {
         "id": client_id,
         "nom_centre": nom_centre,
@@ -10782,11 +10788,146 @@ async def create_client(
         "nom_gestionnaire": nom_gestionnaire,
         "email_gestionnaire": email_gestionnaire,
         "photo_url": photo_url,
+        "password_hash": password_hash,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc)
     }
     
     await db.clients.insert_one(client_data)
+    
+    # Créer les comptes utilisateurs pour gestionnaire et responsable si mot de passe fourni
+    emails_sent = []
+    if password:
+        contacts_to_create = []
+        
+        if email_gestionnaire and nom_gestionnaire:
+            contacts_to_create.append({
+                "email": email_gestionnaire,
+                "name": nom_gestionnaire,
+                "role": "gestionnaire"
+            })
+        
+        if email_responsable and nom_responsable and email_responsable != email_gestionnaire:
+            contacts_to_create.append({
+                "email": email_responsable,
+                "name": nom_responsable,
+                "role": "gestionnaire"  # Même rôle, même accès
+            })
+        
+        for contact in contacts_to_create:
+            # Vérifier si l'utilisateur existe déjà
+            existing_user = await db.users.find_one({"email": contact["email"]})
+            if not existing_user:
+                # Créer le compte utilisateur
+                user_data = {
+                    "id": str(uuid.uuid4()),
+                    "email": contact["email"],
+                    "name": contact["name"],
+                    "password": password_hash,
+                    "role": "gestionnaire",
+                    "client_id": client_id,  # Lien vers le client
+                    "client_name": nom_centre,
+                    "created_at": datetime.now(timezone.utc)
+                }
+                await db.users.insert_one(user_data)
+                
+            # Envoyer l'email de bienvenue
+            email_sent = send_gestionnaire_welcome_email(
+                to_email=contact["email"],
+                name=contact["name"],
+                centre_name=nom_centre,
+                password=password
+            )
+            if email_sent:
+                emails_sent.append(contact["email"])
+    
+    # Retourner sans _id et sans password_hash
+    client_data.pop("_id", None)
+    client_data.pop("password_hash", None)
+    
+    return {
+        **client_data,
+        "emails_sent": emails_sent
+    }
+
+def send_gestionnaire_welcome_email(to_email: str, name: str, centre_name: str, password: str):
+    """Envoie un email de bienvenue à un gestionnaire/responsable"""
+    
+    portal_url = os.environ.get('FRONTEND_URL', 'https://learning-hub-214.preview.emergentagent.com')
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+        <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <!-- Header avec logo -->
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 35px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 26px; font-weight: 600;">Bienvenue sur TerciForm</h1>
+            </div>
+            
+            <!-- Contenu -->
+            <div style="padding: 35px;">
+                <p style="font-size: 17px; color: #2d3748;">Bonjour <strong>{name}</strong>,</p>
+                
+                <div style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); border-radius: 12px; padding: 25px; margin: 25px 0; border: 1px solid #7dd3fc;">
+                    <p style="margin: 0 0 15px 0; font-size: 16px; color: #0369a1; font-weight: 500;">
+                        🎉 Bienvenue dans votre espace de gestion TerciForm !
+                    </p>
+                    <p style="margin: 0; font-size: 15px; color: #0c4a6e;">
+                        Vous pourrez effectuer toutes vos demandes partenaires dans cet espace dédié au centre <strong>{centre_name}</strong>.
+                    </p>
+                </div>
+                
+                <h3 style="color: #1e3a5f; margin: 25px 0 15px 0; font-size: 18px;">🔐 Vos identifiants de connexion</h3>
+                
+                <div style="background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500;">Identifiant :</td>
+                            <td style="padding: 10px 0; color: #1e293b; font-weight: 600;">{to_email}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500;">Mot de passe :</td>
+                            <td style="padding: 10px 0; color: #1e293b; font-weight: 600; font-family: monospace; background-color: #fef3c7; padding: 5px 10px; border-radius: 4px;">{password}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="text-align: center; margin: 35px 0;">
+                    <a href="{portal_url}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 16px 35px; text-decoration: none; border-radius: 30px; display: inline-block; font-weight: 600; font-size: 15px; box-shadow: 0 4px 15px rgba(30,58,95,0.3);">
+                        Accéder à mon espace
+                    </a>
+                </div>
+                
+                <div style="background-color: #fef2f2; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                    <p style="margin: 0; font-size: 13px; color: #991b1b;">
+                        <strong>⚠️ Important :</strong> Nous vous recommandons de conserver ces identifiants en lieu sûr. Pour des raisons de sécurité, ne partagez jamais votre mot de passe.
+                    </p>
+                </div>
+                
+                <p style="margin-top: 30px; color: #718096; font-size: 15px;">
+                    Cordialement,<br>
+                    <strong style="color: #2d3748;">L'équipe TerciForm</strong>
+                </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f7fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #a0aec0; font-size: 12px;">
+                    Cet email a été envoyé automatiquement par TerciForm.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    email_sent = send_email(to_email, "TerciForm - Bienvenue dans votre espace de gestion", html_body)
+    if email_sent:
+        logger.info(f"Email de bienvenue gestionnaire envoyé à {to_email}")
+    else:
+        logger.error(f"Échec envoi email de bienvenue gestionnaire à {to_email}")
+    return email_sent
     
     # Retourner sans _id
     client_data.pop("_id", None)
