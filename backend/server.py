@@ -112,7 +112,7 @@ class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: EmailStr
     name: str
-    role: str  # "teacher" or "student"
+    role: str  # "teacher", "student", or "gestionnaire"
     credit_hours: float = 0.0
     total_hours: float = 0.0
     phone: str = ""
@@ -138,6 +138,9 @@ class User(BaseModel):
     formation_city: str = ""
     formation_country: str = ""
     formation_transports: str = ""  # Infos transports pour s'y rendre
+    # Champs pour le rôle gestionnaire
+    client_id: str = ""  # ID du client associé (pour les gestionnaires)
+    client_name: str = ""  # Nom du centre associé (pour les gestionnaires)
 
 class UserCreate(BaseModel):
     email: EmailStr
