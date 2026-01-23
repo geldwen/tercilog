@@ -838,6 +838,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       formData.append('nom_gestionnaire', newClientData.nom_gestionnaire);
       formData.append('email_gestionnaire', newClientData.email_gestionnaire);
       formData.append('password', newClientData.password);
+      formData.append('formateur_id', newClientData.formateur_id);
       
       if (newClientData.photo) {
         formData.append('photo', newClientData.photo);
