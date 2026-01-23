@@ -4395,18 +4395,6 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
             </div>
 
-            {/* Bouton Mes demandes centre - flottant à droite */}
-            <div className="fixed right-6 top-1/2 -translate-y-1/2 z-50">
-              <button
-                onClick={() => setShowTicketingModal(true)}
-                className="flex flex-col items-center gap-2 px-4 py-6 bg-gradient-to-b from-blue-600 to-blue-700 text-white rounded-2xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all border-2 border-blue-500"
-                title="Mes demandes centre"
-              >
-                <MessageSquare className="w-8 h-8" />
-                <span className="text-xs font-bold text-center leading-tight">Mes<br/>demandes<br/>centre</span>
-              </button>
-            </div>
-
             {/* Indicateur de résultats de recherche */}
             {formateurSearchQuery && (
               <div className="text-sm text-amber-700 bg-amber-100 px-4 py-2 rounded-lg">
