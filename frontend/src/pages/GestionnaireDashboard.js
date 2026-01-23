@@ -42,6 +42,11 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   const [showSessionDetail, setShowSessionDetail] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
 
+  // Sorties de parcours
+  const [showExitBanner, setShowExitBanner] = useState(false);
+  const [exitYearFilter, setExitYearFilter] = useState('');
+  const [exitSearchQuery, setExitSearchQuery] = useState('');
+
   useEffect(() => {
     loadData();
   }, []);
