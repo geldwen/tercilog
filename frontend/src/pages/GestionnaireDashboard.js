@@ -167,7 +167,8 @@ export default function GestionnaireDashboard({ user, onLogout }) {
       return {
         ...student,
         exit_date: exitDate,
-        exit_year: exitDate ? exitDate.substring(0, 4) : null
+        exit_year: exitDate ? exitDate.substring(0, 4) : null,
+        exit_month: exitDate ? exitDate.substring(5, 7) : null
       };
     });
   }, [students, sessions]);
@@ -178,11 +179,26 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     return years.sort().reverse();
   }, [exitedStudents]);
 
+  // Mois disponibles pour le filtre (selon l'année sélectionnée)
+  const availableExitMonths = useMemo(() => {
+    let filtered = exitedStudents;
+    if (exitYearFilter) {
+      filtered = filtered.filter(s => s.exit_year === exitYearFilter);
+    }
+    const months = [...new Set(filtered.map(s => s.exit_month).filter(Boolean))];
+    return months.sort();
+  }, [exitedStudents, exitYearFilter]);
+
+  const monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
   // Filtre des sorties de parcours
   const filteredExitedStudents = useMemo(() => {
     let result = exitedStudents;
     if (exitYearFilter) {
       result = result.filter(s => s.exit_year === exitYearFilter);
+    }
+    if (exitMonthFilter) {
+      result = result.filter(s => s.exit_month === exitMonthFilter);
     }
     if (exitSearchQuery.trim()) {
       const query = exitSearchQuery.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -192,7 +208,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
       });
     }
     return result;
-  }, [exitedStudents, exitYearFilter, exitSearchQuery]);
+  }, [exitedStudents, exitYearFilter, exitMonthFilter, exitSearchQuery]);
 
   if (loading) {
     return (
