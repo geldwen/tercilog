@@ -78,6 +78,8 @@ Build a comprehensive educational platform called "TerciForm" with:
 - Gmail SMTP (transactional emails)
 
 ## Changelog
+- **Dec 2025**: Added "Sorties de parcours" collapsible banner in Students tab (Admin + Gestionnaire)
+- **Dec 2025**: Added year filter and name search for course completions
 - **Dec 2025**: Added formateur assignment when creating a client
 - **Dec 2025**: Updated welcome email text for gestionnaires
 - **Dec 2025**: Enhanced formateur display in Gestionnaire Dashboard (photo, subjects, contact)
