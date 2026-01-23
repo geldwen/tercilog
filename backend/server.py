@@ -11358,6 +11358,44 @@ async def get_gestionnaire_sessions(current_user: User = Depends(get_current_use
     
     return sessions
 
+@api_router.get("/gestionnaire/formateurs")
+async def get_gestionnaire_formateurs(current_user: User = Depends(get_current_user)):
+    """Récupère les formateurs associés au centre du gestionnaire"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    if not current_user.client_id:
+        return []
+    
+    # Récupérer les élèves du centre d'abord
+    client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+    centre_name = client.get("nom_centre", "") if client else ""
+    
+    students = await db.users.find(
+        {
+            "role": "student",
+            "$or": [
+                {"client_id": current_user.client_id},
+                {"organism": {"$regex": centre_name, "$options": "i"}} if centre_name else {"client_id": current_user.client_id}
+            ]
+        },
+        {"_id": 0, "teacher_email": 1, "teacher_name": 1}
+    ).to_list(1000)
+    
+    # Récupérer les emails uniques des formateurs
+    teacher_emails = list(set([s.get('teacher_email') for s in students if s.get('teacher_email')]))
+    
+    if not teacher_emails:
+        return []
+    
+    # Récupérer les infos des formateurs
+    formateurs = await db.formateurs.find(
+        {"email": {"$in": teacher_emails}},
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "phone": 1, "speciality": 1, "photo_url": 1}
+    ).to_list(100)
+    
+    return formateurs
+
 # Include router
 app.include_router(api_router)
 
