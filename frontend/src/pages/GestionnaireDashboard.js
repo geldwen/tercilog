@@ -147,6 +147,52 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     return styles[parcours] || { bg: '#F3F4F6', color: '#6B7280' };
   };
 
+  // Calcul des élèves actifs vs sorties de parcours
+  const activeStudents = useMemo(() => {
+    return students.filter(s => (s.credit_hours || s.total_hours || 0) > 0);
+  }, [students]);
+
+  const exitedStudents = useMemo(() => {
+    return students.filter(s => {
+      const remainingHours = s.credit_hours || 0;
+      return remainingHours <= 0 && s.end_date;
+    }).map(student => {
+      // Trouver la dernière séance signée pour avoir la date de sortie
+      const studentSessions = sessions
+        .filter(s => s.student_id === student.id && s.signature)
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+      const lastSession = studentSessions[0];
+      const exitDate = student.end_date || lastSession?.date || null;
+      return {
+        ...student,
+        exit_date: exitDate,
+        exit_year: exitDate ? exitDate.substring(0, 4) : null
+      };
+    });
+  }, [students, sessions]);
+
+  // Années disponibles pour le filtre
+  const availableExitYears = useMemo(() => {
+    const years = [...new Set(exitedStudents.map(s => s.exit_year).filter(Boolean))];
+    return years.sort().reverse();
+  }, [exitedStudents]);
+
+  // Filtre des sorties de parcours
+  const filteredExitedStudents = useMemo(() => {
+    let result = exitedStudents;
+    if (exitYearFilter) {
+      result = result.filter(s => s.exit_year === exitYearFilter);
+    }
+    if (exitSearchQuery.trim()) {
+      const query = exitSearchQuery.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      result = result.filter(s => {
+        const name = (s.name || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return name.includes(query);
+      });
+    }
+    return result;
+  }, [exitedStudents, exitYearFilter, exitSearchQuery]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
