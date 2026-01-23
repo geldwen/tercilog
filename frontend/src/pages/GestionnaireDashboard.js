@@ -851,8 +851,62 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                     </div>
                   </div>
                 ))}
+                  </div>
                 </div>
-              </>
+
+                {/* Bandeau "Mes demandes centre" - côté droit */}
+                <div className="w-72 flex-shrink-0">
+                  <div 
+                    onClick={() => setShowTicketingModal(true)}
+                    className="bg-gradient-to-b from-blue-600 to-blue-800 rounded-2xl shadow-xl p-6 text-white cursor-pointer hover:shadow-2xl hover:scale-[1.02] transition-all h-full min-h-[400px] flex flex-col"
+                  >
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-3 bg-white/20 rounded-xl">
+                        <MessageSquare className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-xl font-bold">Mes demandes centre</h3>
+                    </div>
+                    
+                    <p className="text-blue-100 text-sm mb-6">
+                      Communiquez avec votre formateur : demandes de documents, planning, organisation...
+                    </p>
+                    
+                    <div className="space-y-3 flex-1">
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="w-2 h-2 rounded-full bg-blue-300"></div>
+                        <span>Salles</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="w-2 h-2 rounded-full bg-orange-300"></div>
+                        <span>Matériel</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="w-2 h-2 rounded-full bg-purple-300"></div>
+                        <span>Supports / Documents</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="w-2 h-2 rounded-full bg-green-300"></div>
+                        <span>Organisation / Planning</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="w-2 h-2 rounded-full bg-pink-300"></div>
+                        <span>Accueil / Logistique</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                        <span>Autre demande</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6 pt-4 border-t border-blue-400">
+                      <button className="w-full py-3 bg-white text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
+                        <MessageSquare className="w-5 h-5" />
+                        Ouvrir mes demandes
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </TabsContent>
 
