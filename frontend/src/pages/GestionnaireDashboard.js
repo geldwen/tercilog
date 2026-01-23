@@ -519,7 +519,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
             )}
 
             {/* Liste des élèves actifs - style admin */}
-            {displayedStudents.length === 0 ? (
+            {(filteredStudents || activeStudents).length === 0 ? (
               <div className="text-center py-16 bg-white rounded-2xl shadow-lg">
                 <Users className="w-20 h-20 mx-auto text-violet-200 mb-4" />
                 <p className="text-gray-500 text-lg">Aucun élève pour le moment</p>
