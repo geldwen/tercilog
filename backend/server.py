@@ -10892,7 +10892,10 @@ def send_gestionnaire_welcome_email(to_email: str, name: str, centre_name: str, 
                         🎉 Bienvenue dans votre espace de gestion TerciForm !
                     </p>
                     <p style="margin: 0; font-size: 15px; color: #0c4a6e;">
-                        Vous pourrez effectuer toutes vos demandes partenaires dans cet espace dédié au centre <strong>{centre_name}</strong>.
+                        Cet espace vous permet d'accéder au suivi, à l'organisation et à l'avancement de vos parcours, ainsi qu'à l'ensemble des outils nécessaires à votre formation et aux échanges avec les équipes pédagogiques.
+                    </p>
+                    <p style="margin: 15px 0 0 0; font-size: 15px; color: #0c4a6e;">
+                        <strong>Centre associé :</strong> {centre_name}
                     </p>
                 </div>
                 
@@ -10916,6 +10919,10 @@ def send_gestionnaire_welcome_email(to_email: str, name: str, centre_name: str, 
                         Accéder à mon espace
                     </a>
                 </div>
+                
+                <p style="margin: 25px 0; font-size: 15px; color: #475569; text-align: center; font-style: italic;">
+                    Bonne navigation sur votre espace TerciForm.
+                </p>
                 
                 <div style="background-color: #fef2f2; border-radius: 8px; padding: 15px; margin: 20px 0;">
                     <p style="margin: 0; font-size: 13px; color: #991b1b;">
