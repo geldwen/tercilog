@@ -1,131 +1,83 @@
-# TerciForm - Plateforme Éducative
+# TerciForm - Educational Platform PRD
 
-## Énoncé du problème original
-Plateforme de gestion de formation pour TerciForm avec suivi des élèves, gestion des séances, facturation, questionnaires qualité (Qualiopi), et administration des formateurs.
-
-## Personas utilisateurs
-- **Administrateur/Professeur** : Gestion complète des élèves, séances, formateurs, clients, rapports qualité
-- **Élève** : Accès au portail, émargement, questionnaires, ressources pédagogiques
-- **Gestionnaire** : Accès filtré aux données de son centre (séances, élèves, formateurs)
-
-## Exigences principales
-
-### Fonctionnalités implémentées
-- [x] Authentification JWT (admin/élève/gestionnaire)
-- [x] Gestion des élèves (CRUD, archivage)
-- [x] Gestion des séances avec émargement
-- [x] Planning interactif avec filtres par centre
-- [x] Facturation et export PDF
-- [x] Questionnaires qualité Q1/Q2/Q3
-- [x] Bilan des Tests (T1/T2/T3)
-- [x] Bilan Qualité avec rapports
-- [x] **Gestion des Formateurs** (13/01/2026)
-- [x] **CRM Clients** (17/01/2026) - CRUD complet avec photos
-- [x] **Portail Gestionnaire** (17/01/2026) - Dashboard multi-tenant
-- [x] Notifications par email (Resend)
-- [x] Visioconférence Jitsi Meet
-
-### Stack technique
-- **Backend** : FastAPI + Python 3.11
-- **Frontend** : React + TailwindCSS + shadcn/ui
-- **Base de données** : MongoDB
-- **Emails** : Gmail SMTP / Resend
-
-## Changelog
-
-### 17 Janvier 2026 (mise à jour)
-- **AMÉLIORATION MAJEURE** : Dashboard Gestionnaire complet
-  - SÉANCES : Affichage des séances de production en lecture seule (stats, émargements, détails)
-  - ÉLÈVES : CRUD complet (création, modification, suppression, recherche, historique, planning)
-  - ÉLÈVES ARCHIVÉS : Accès aux élèves historisés avec restauration
-  - FORMATEURS : Vue identique à production sans modification (planning accessible)
-  - Endpoints API gestionnaire étendus : archived-students, CRUD students, archive/restore
-
-- **AJOUT** : Système CRM Clients complet
-  - API CRUD `/api/clients` (GET, POST, PUT, DELETE)
-  - Upload photo logo client
-  - Création automatique comptes gestionnaire/responsable
-  - Email de bienvenue avec mot de passe
-  - UI unifiée avec les autres onglets
-
-- **AJOUT** : Portail Gestionnaire Multi-tenant
-  - Nouveau rôle `gestionnaire` dans le système d'authentification
-  - Dashboard dédié `/gestionnaire` avec 3 onglets :
-    - SÉANCES : Planning mensuel filtré par client
-    - ÉLÈVES : Liste des élèves du centre
-    - FORMATEURS : Cartes des formateurs
-  - Endpoints filtrés : `/api/gestionnaire/sessions`, `/students`, `/formateurs`, `/client`
-  - Background couleur dynamique selon l'onglet actif
-
-- **FIX** : Bug "Maximum update depth exceeded" dans GestionnaireDashboard.js
-  - Cause : useEffect avec mauvaises dépendances causant une boucle infinie
-  - Solution : Utilisation des props (user, onLogout) depuis App.js
-
-- **FIX** : Photos clients/formateurs non affichées
-  - Cause : Proxy bloquant les fichiers statiques
-  - Solution : Endpoints API dédiés `/api/clients/{id}/photo` et `/api/formateurs/{id}/photo`
-
-### 13 Janvier 2026
-- **AJOUT** : Système complet de gestion des Formateurs
-  - API CRUD `/api/formateurs` (GET, POST, PATCH, DELETE)
-  - Upload de fichiers (photo, CV, diplômes)
-  - Modal de création avec tous les champs
-  - Fiches formateurs avec affichage détaillé
-  - Tests automatisés (9/9 passés)
-
-### Sessions précédentes
-- Archivage des élèves ("Sorties de parcours")
-- Refonte du "Bilan des Tests"
-- Filtres planning par centre
-- Corrections timezone Europe/Paris
-- Standardisation templates email Terciform
-
-## Backlog priorisé
-
-### P0 - Critique
-- Aucun item critique en attente
-
-### P1 - Important
-- [ ] Historique client complet avec logs d'activité
-- [ ] Onglet "Facturation" dans le dialog Actions client
-- [ ] Notifications SMS (nécessite choix du provider)
-- [ ] Refactoring TeacherDashboard.js (>6000 lignes)
-- [ ] Refactoring server.py (fichier monolithique)
-- [ ] Test email demande de salle
-
-### P2 - Normal
-- [ ] Upload/téléchargement ressources fichiers
-- [ ] Mémoire des derniers templates utilisés
-- [ ] Analyse pédagogique ParcoursEleveModal
-
-### P3 - Amélioration
-- [ ] Interface CRUD templates quiz
-- [ ] Optimisation performances
-
-## Credentials de test
-- Admin : `terciform@gmail.com` / `Geldwen1982*+`
-- Gestionnaire : `gestionnaire-test@terciform.com` / `TestGestionnaire2026!`
-- Élève : `espoirfinition@gmail.com` / `ghis456`
-
-## Intégrations 3rd party
-- **Jitsi Meet** : Visioconférence
-- **Gmail SMTP** : Envoi emails
-- **Resend** : Emails transactionnels
+## Original Problem Statement
+Build a comprehensive educational platform called "TerciForm" with:
+- CRM system for managing clients
+- Multi-tenant "Gestionnaire" (Client Manager) portal
+- Admin dashboard for teachers/trainers
 
 ## Architecture
+- **Frontend**: React with Shadcn/UI components
+- **Backend**: FastAPI (Python)
+- **Database**: MongoDB
 
-### Backend API Endpoints (Gestionnaire)
-```
-GET  /api/gestionnaire/client    - Infos du client associé
-GET  /api/gestionnaire/students  - Élèves filtrés par client_id
-GET  /api/gestionnaire/sessions  - Séances filtrées par client_id
-GET  /api/gestionnaire/formateurs - Liste des formateurs
-```
+## What's Been Implemented
 
-### Frontend Routes
-```
-/login          - Page de connexion
-/teacher        - Dashboard Admin/Professeur
-/gestionnaire   - Dashboard Gestionnaire (nouveau)
-/student        - Dashboard Élève
-```
+### Core Features (Complete)
+- ✅ User authentication (JWT-based)
+- ✅ Admin/Teacher dashboard (`TeacherDashboard.js`)
+- ✅ Student management (CRUD)
+- ✅ Session scheduling and management
+- ✅ Client (organization) management
+- ✅ Formateur (trainer) management
+- ✅ Email notifications via Gmail SMTP
+- ✅ Video conferencing integration (Jitsi Meet)
+- ✅ Automatic session reminders (15 min before)
+- ✅ Quality reports with AI analysis
+- ✅ PDF generation for student records
+- ✅ Quiz/questionnaire system
+
+### Gestionnaire Dashboard (Simplified - Complete)
+- ✅ Manager-specific view filtered by center/client_id
+- ✅ Read-only view of students for their center
+- ✅ Read-only view of sessions for their center
+- ✅ Ability to create new students for their center
+- ✅ UI harmonized with admin dashboard style
+
+### Deployment (Fixed - Dec 2025)
+- ✅ Added `/health` endpoint for Kubernetes readiness probes
+
+## Pending Issues
+| Issue | Priority | Status |
+|-------|----------|--------|
+| Test GestionnaireDashboard UI | P0 | Not Started |
+| Communication tab implementation | P1 | Blocked (awaiting specs) |
+| Refactor TeacherDashboard.js | P1 | Not Started |
+| Refactor server.py | P1 | Not Started |
+| Welcome email password verification | P2 | User verification pending |
+| Q2 data mismatch in quality report | P2 | User verification pending |
+
+## Upcoming Tasks
+1. Implement "Communication" tab in manager dashboard
+2. "Fidélité" (Loyalty) program implementation
+3. Refactor monolithic files
+
+## Future/Backlog
+- SMS notifications
+- FILE type resource uploads/downloads
+- Full CRUD interface for quiz templates
+- Database query optimization (pagination)
+
+## Technical Debt
+- `TeacherDashboard.js`: >6000 lines, needs component extraction
+- `server.py`: Monolith, needs router separation
+- MongoDB queries with high limits (`.to_list(10000)`)
+
+## Key Files
+- `/app/backend/server.py` - Main backend
+- `/app/frontend/src/pages/TeacherDashboard.js` - Admin dashboard
+- `/app/frontend/src/pages/GestionnaireDashboard.js` - Manager dashboard
+- `/app/frontend/src/App.js` - Router configuration
+
+## Test Credentials
+- **Admin**: `terciform@gmail.com` / `Geldwen1982*+`
+- **Manager**: `ghizzo.formations@gmail.com` / `Ghizzo2026`
+
+## 3rd Party Integrations
+- Jitsi Meet (video conferencing)
+- Gmail SMTP (transactional emails)
+
+## Changelog
+- **Dec 2025**: Fixed deployment issue - added `/health` endpoint
+- **Dec 2025**: Rebuilt simplified GestionnaireDashboard from scratch
+- **Dec 2025**: Fixed formateur email notification bug
