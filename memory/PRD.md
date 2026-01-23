@@ -78,6 +78,13 @@ Build a comprehensive educational platform called "TerciForm" with:
 - Gmail SMTP (transactional emails)
 
 ## Changelog
+- **Dec 2025**: Added "Fidélité" (Loyalty) tab placeholder to GestionnaireDashboard
+- **Dec 2025**: Created test gestionnaire account (gestionnaire.test@terciform.com / Test2024!)
 - **Dec 2025**: Fixed deployment issue - added `/health` endpoint
 - **Dec 2025**: Rebuilt simplified GestionnaireDashboard from scratch
 - **Dec 2025**: Fixed formateur email notification bug
+
+## Test Credentials
+- **Admin**: `terciform@gmail.com` / `Geldwen1982*+`
+- **Manager (existing)**: `ghizzo.formations@gmail.com` / `Ghizzo2026`
+- **Manager (test)**: `gestionnaire.test@terciform.com` / `Test2024!` (Centre: Iscod)
