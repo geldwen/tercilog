@@ -10856,7 +10856,7 @@ async def create_client(
 def send_gestionnaire_welcome_email(to_email: str, name: str, centre_name: str, password: str):
     """Envoie un email de bienvenue à un gestionnaire/responsable"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://educ-manager-hub.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://learn-terciform.preview.emergentagent.com')
     
     html_body = f"""
     <html>
@@ -11193,7 +11193,7 @@ def send_room_request_email(to_email: str, recipient_name: str, client_name: str
         """
     
     # URL du portail de gestion (à personnaliser)
-    portal_url = os.environ.get('FRONTEND_URL', 'https://educ-manager-hub.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://learn-terciform.preview.emergentagent.com')
     
     html_body = f"""
     <html>
