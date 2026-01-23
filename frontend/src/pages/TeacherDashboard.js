@@ -1862,6 +1862,9 @@ export default function TeacherDashboard({ user, onLogout }) {
   // State pour le modal des sorties de parcours
   const [showArchivedModal, setShowArchivedModal] = useState(false);
   const [archivedMonthFilter, setArchivedMonthFilter] = useState('');
+  const [showExitBanner, setShowExitBanner] = useState(false);
+  const [exitYearFilter, setExitYearFilter] = useState('');
+  const [exitSearchQuery, setExitSearchQuery] = useState('');
   const [exportingArchivedPdf, setExportingArchivedPdf] = useState(false);
 
   // Liste des mois disponibles pour le filtre
