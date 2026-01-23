@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
-  LogOut, Users, Calendar, MessageCircle, Search, Plus,
+  LogOut, Users, Calendar, Search, Plus, PenTool,
   Mail, Phone, Clock, CheckCircle, Eye, Building, XCircle, Gift
 } from "lucide-react";
 
@@ -23,6 +23,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   // Données
   const [students, setStudents] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const [formateurs, setFormateurs] = useState([]);
   const [client, setClient] = useState(null);
   
   // Recherche
