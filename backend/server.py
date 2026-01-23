@@ -11252,6 +11252,106 @@ def send_room_request_email(to_email: str, recipient_name: str, client_name: str
         logger.error(f"Échec envoi email de demande de salle à {to_email}")
     return email_sent
 
+# ===== ENDPOINTS GESTIONNAIRE (SIMPLIFIÉ) =====
+
+@api_router.get("/gestionnaire/client")
+async def get_gestionnaire_client(current_user: User = Depends(get_current_user)):
+    """Récupère les infos du centre du gestionnaire"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    if not current_user.client_id:
+        return {"nom_centre": "Centre non défini"}
+    
+    client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+    return client or {"nom_centre": current_user.client_name or "Centre"}
+
+@api_router.get("/gestionnaire/students")
+async def get_gestionnaire_students(current_user: User = Depends(get_current_user)):
+    """Récupère les élèves du centre du gestionnaire"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    if not current_user.client_id:
+        return []
+    
+    # Récupérer les élèves liés au client_id OU à l'organism du centre
+    client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+    centre_name = client.get("nom_centre", "") if client else ""
+    
+    students = await db.users.find(
+        {
+            "role": "student",
+            "$or": [
+                {"client_id": current_user.client_id},
+                {"organism": {"$regex": centre_name, "$options": "i"}} if centre_name else {"client_id": current_user.client_id}
+            ]
+        },
+        {"_id": 0, "password_hash": 0}
+    ).to_list(1000)
+    
+    return students
+
+@api_router.post("/gestionnaire/students")
+async def create_gestionnaire_student(data: dict, current_user: User = Depends(get_current_user)):
+    """Crée un élève pour le centre du gestionnaire"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    # Ajouter les infos du centre
+    data['role'] = 'student'
+    data['client_id'] = current_user.client_id
+    
+    # Utiliser le nom du centre comme organisme
+    if not data.get('organism'):
+        client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+        data['organism'] = client.get('nom_centre', '') if client else ''
+    
+    # Créer via la fonction register existante
+    try:
+        user_create = UserCreate(**data)
+        student = await register(user_create)
+        return {"success": True, "student_id": student.id}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.get("/gestionnaire/sessions")
+async def get_gestionnaire_sessions(current_user: User = Depends(get_current_user)):
+    """Récupère les séances du centre du gestionnaire (lecture seule)"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    if not current_user.client_id:
+        return []
+    
+    # Récupérer les élèves du centre d'abord
+    client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+    centre_name = client.get("nom_centre", "") if client else ""
+    
+    students = await db.users.find(
+        {
+            "role": "student",
+            "$or": [
+                {"client_id": current_user.client_id},
+                {"organism": {"$regex": centre_name, "$options": "i"}} if centre_name else {"client_id": current_user.client_id}
+            ]
+        },
+        {"_id": 0, "id": 1}
+    ).to_list(1000)
+    
+    student_ids = [s['id'] for s in students]
+    
+    if not student_ids:
+        return []
+    
+    # Récupérer les séances de ces élèves
+    sessions = await db.sessions.find(
+        {"student_id": {"$in": student_ids}},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    return sessions
+
 # Include router
 app.include_router(api_router)
 
