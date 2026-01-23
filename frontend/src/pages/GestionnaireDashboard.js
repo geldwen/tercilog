@@ -290,7 +290,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
           <TabsContent value="eleves" className="space-y-6">
             {/* Barre d'actions style admin */}
             <div className="flex items-center justify-between p-4 bg-white rounded-2xl shadow-lg">
-              <h2 className="text-xl font-bold text-gray-800">Élèves ({displayedStudents.length})</h2>
+              <h2 className="text-xl font-bold text-gray-800">Élèves actifs ({activeStudents.length})</h2>
               <div className="flex gap-3">
                 {filteredStudents && (
                   <Button onClick={resetSearch} variant="outline" className="gap-2">
