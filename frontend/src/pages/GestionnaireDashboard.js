@@ -49,15 +49,17 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [clientRes, studentsRes, sessionsRes] = await Promise.all([
+      const [clientRes, studentsRes, sessionsRes, formateursRes] = await Promise.all([
         axios.get(`${API}/gestionnaire/client`),
         axios.get(`${API}/gestionnaire/students`),
-        axios.get(`${API}/gestionnaire/sessions`)
+        axios.get(`${API}/gestionnaire/sessions`),
+        axios.get(`${API}/gestionnaire/formateurs`)
       ]);
       
       setClient(clientRes.data);
       setStudents(studentsRes.data || []);
       setSessions(sessionsRes.data || []);
+      setFormateurs(formateursRes.data || []);
     } catch (error) {
       console.error('Erreur chargement:', error);
       if (error.response?.status === 403 || error.response?.status === 401) {
