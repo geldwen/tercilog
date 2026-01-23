@@ -502,6 +502,20 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               </p>
             </div>
           </TabsContent>
+
+          {/* ===== ONGLET FIDÉLITÉ ===== */}
+          <TabsContent value="fidelite" className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+              <Gift className="w-20 h-20 mx-auto text-amber-200 mb-6" />
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Programme de Fidélité</h2>
+              <p className="text-gray-500 mb-4 text-lg">
+                Votre programme de fidélité bientôt disponible !
+              </p>
+              <p className="text-sm text-gray-400">
+                Gagnez des points et profitez d'avantages exclusifs.
+              </p>
+            </div>
+          </TabsContent>
         </Tabs>
       </main>
 
