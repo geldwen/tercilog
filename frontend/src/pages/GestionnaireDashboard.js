@@ -185,8 +185,22 @@ export default function GestionnaireDashboard({ user, onLogout }) {
       </header>
 
       {/* Contenu principal */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+        {/* Fond coloré selon l'onglet actif - comme l'admin */}
+        <div 
+          className={`fixed inset-0 pointer-events-none z-0 transition-colors duration-500 ${
+            activeTab === 'eleves' 
+              ? 'bg-violet-300' 
+              : activeTab === 'seances' 
+                ? 'bg-emerald-300' 
+                : activeTab === 'formateurs'
+                  ? 'bg-amber-300'
+                  : 'bg-pink-300'
+          }`}
+          style={{ top: '72px' }}
+        />
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="relative z-10">
           {/* Onglets style admin */}
           <div className="flex justify-center mb-8">
             <TabsList className="bg-transparent border-0 shadow-none p-0 h-auto gap-6">
@@ -205,15 +219,15 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                 SÉANCES
               </TabsTrigger>
               <TabsTrigger 
-                value="communication" 
-                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-purple-500 data-[state=inactive]:text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white hover:shadow-xl"
+                value="formateurs" 
+                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-amber-500 data-[state=inactive]:text-white data-[state=active]:bg-amber-600 data-[state=active]:text-white hover:shadow-xl"
               >
-                <MessageCircle className="w-5 h-5 mr-3" />
-                COMMUNICATION
+                <PenTool className="w-5 h-5 mr-3" />
+                FORMATEURS
               </TabsTrigger>
               <TabsTrigger 
                 value="fidelite" 
-                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-amber-500 data-[state=inactive]:text-white data-[state=active]:bg-amber-600 data-[state=active]:text-white hover:shadow-xl"
+                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-pink-500 data-[state=inactive]:text-white data-[state=active]:bg-pink-600 data-[state=active]:text-white hover:shadow-xl"
               >
                 <Gift className="w-5 h-5 mr-3" />
                 FIDÉLITÉ
