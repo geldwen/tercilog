@@ -11383,10 +11383,22 @@ async def get_gestionnaire_formateurs(current_user: User = Depends(get_current_u
     if not current_user.client_id:
         return []
     
-    # Récupérer les élèves du centre d'abord
+    # Récupérer le client pour voir s'il a un formateur assigné
     client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
-    centre_name = client.get("nom_centre", "") if client else ""
+    if not client:
+        return []
     
+    centre_name = client.get("nom_centre", "")
+    formateur_ids = []
+    formateur_emails = []
+    
+    # Ajouter le formateur assigné au client
+    if client.get("formateur_id"):
+        formateur_ids.append(client.get("formateur_id"))
+    if client.get("formateur_email"):
+        formateur_emails.append(client.get("formateur_email"))
+    
+    # Récupérer aussi les formateurs des élèves du centre
     students = await db.users.find(
         {
             "role": "student",
@@ -11395,19 +11407,28 @@ async def get_gestionnaire_formateurs(current_user: User = Depends(get_current_u
                 {"organism": {"$regex": centre_name, "$options": "i"}} if centre_name else {"client_id": current_user.client_id}
             ]
         },
-        {"_id": 0, "teacher_email": 1, "teacher_name": 1}
+        {"_id": 0, "teacher_email": 1}
     ).to_list(1000)
     
-    # Récupérer les emails uniques des formateurs
-    teacher_emails = list(set([s.get('teacher_email') for s in students if s.get('teacher_email')]))
+    # Ajouter les emails des formateurs des élèves
+    for s in students:
+        if s.get('teacher_email') and s.get('teacher_email') not in formateur_emails:
+            formateur_emails.append(s.get('teacher_email'))
     
-    if not teacher_emails:
+    # Construire la requête pour récupérer tous les formateurs
+    query_conditions = []
+    if formateur_ids:
+        query_conditions.append({"id": {"$in": formateur_ids}})
+    if formateur_emails:
+        query_conditions.append({"email": {"$in": formateur_emails}})
+    
+    if not query_conditions:
         return []
     
-    # Récupérer les infos des formateurs
+    # Récupérer les infos des formateurs (avec toutes les données comme dans l'admin)
     formateurs = await db.formateurs.find(
-        {"email": {"$in": teacher_emails}},
-        {"_id": 0, "id": 1, "name": 1, "email": 1, "phone": 1, "speciality": 1, "photo_url": 1}
+        {"$or": query_conditions},
+        {"_id": 0}
     ).to_list(100)
     
     return formateurs
