@@ -529,7 +529,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {displayedStudents.map(student => {
+                {(filteredStudents || activeStudents).map(student => {
                   const parcoursStyle = getParcoursStyle(student.parcours);
                   return (
                     <Card key={student.id} className="shadow-md hover:shadow-lg transition-shadow border-2" style={{ borderColor: TERCIFORM_BLUE }}>
