@@ -78,6 +78,9 @@ Build a comprehensive educational platform called "TerciForm" with:
 - Gmail SMTP (transactional emails)
 
 ## Changelog
+- **Dec 2025**: Redesigned GestionnaireDashboard with colored backgrounds (violet/green/orange/pink)
+- **Dec 2025**: Replaced "Communication" tab with "Formateurs" tab showing trainers for the center
+- **Dec 2025**: Added `/api/gestionnaire/formateurs` endpoint
 - **Dec 2025**: Added "Fidélité" (Loyalty) tab placeholder to GestionnaireDashboard
 - **Dec 2025**: Created test gestionnaire account (gestionnaire.test@terciform.com / Test2024!)
 - **Dec 2025**: Fixed deployment issue - added `/health` endpoint
