@@ -68,6 +68,12 @@ app.add_middleware(
 
 api_router = APIRouter(prefix="/api")
 
+# Health check endpoint for Kubernetes/deployment health checks
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for deployment readiness probes"""
+    return {"status": "healthy"}
+
 # Mount static files for profile pictures
 from fastapi.staticfiles import StaticFiles
 app.mount("/static", StaticFiles(directory="/app/backend/static"), name="static")
