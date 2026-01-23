@@ -519,36 +519,55 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                 <p className="text-gray-500 text-lg">Aucun formateur pour le moment</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {formateurs.map(formateur => (
-                  <Card key={formateur.id} className="shadow-md hover:shadow-lg transition-shadow border-2 border-amber-200">
-                    <CardContent className="pt-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <Card key={formateur.id} className="shadow-md hover:shadow-lg transition-shadow border-2 border-amber-200 overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="flex">
+                        {/* Photo du formateur */}
+                        <div className="w-32 h-40 bg-amber-100 flex-shrink-0 flex items-center justify-center overflow-hidden">
                           {formateur.photo_url ? (
-                            <img src={formateur.photo_url} alt={formateur.name} className="w-full h-full object-cover" />
+                            <img 
+                              src={`${process.env.REACT_APP_BACKEND_URL}${formateur.photo_url}`}
+                              alt={`${formateur.prenom} ${formateur.nom}`} 
+                              className="w-full h-full object-cover" 
+                            />
                           ) : (
-                            <PenTool className="w-8 h-8 text-amber-600" />
+                            <PenTool className="w-12 h-12 text-amber-400" />
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-semibold text-gray-900 truncate">{formateur.name}</h3>
-                          {formateur.speciality && (
-                            <span className="inline-block px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium mt-1">
-                              {formateur.speciality}
-                            </span>
+                        
+                        {/* Infos du formateur */}
+                        <div className="p-4 flex-1">
+                          <h3 className="text-lg font-bold text-gray-900">
+                            {formateur.prenom} {formateur.nom}
+                          </h3>
+                          {formateur.societe && (
+                            <p className="text-sm text-gray-500">{formateur.societe}</p>
                           )}
-                          <div className="mt-2 space-y-1 text-sm text-gray-600">
+                          
+                          {/* Matières */}
+                          {formateur.matieres && formateur.matieres.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {formateur.matieres.map((matiere, idx) => (
+                                <span key={idx} className="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
+                                  {matiere}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          
+                          <div className="mt-3 space-y-1 text-sm text-gray-600">
                             {formateur.email && (
-                              <p className="flex items-center gap-2 truncate">
+                              <p className="flex items-center gap-2">
                                 <Mail className="w-4 h-4 text-gray-400" />
-                                {formateur.email}
+                                <a href={`mailto:${formateur.email}`} className="text-blue-600 hover:underline">{formateur.email}</a>
                               </p>
                             )}
-                            {formateur.phone && (
+                            {formateur.telephone && (
                               <p className="flex items-center gap-2">
                                 <Phone className="w-4 h-4 text-gray-400" />
-                                {formateur.phone}
+                                <a href={`tel:${formateur.telephone}`} className="text-blue-600 hover:underline">{formateur.telephone}</a>
                               </p>
                             )}
                           </div>
