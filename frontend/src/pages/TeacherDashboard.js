@@ -6224,6 +6224,63 @@ export default function TeacherDashboard({ user, onLogout }) {
                 </div>
               </div>
             </div>
+
+            {/* Formateur assigné */}
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-semibold text-amber-600 uppercase tracking-wide mb-3 flex items-center gap-2">
+                <PenTool className="w-4 h-4" />
+                Formateur référent
+              </h4>
+              <p className="text-xs text-gray-500 mb-3">
+                Sélectionnez un formateur qui sera associé à ce centre de formation.
+              </p>
+              <div className="space-y-3">
+                <select
+                  value={newClientData.formateur_id}
+                  onChange={(e) => setNewClientData(prev => ({ ...prev, formateur_id: e.target.value }))}
+                  className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-amber-50"
+                  data-testid="client-formateur-select"
+                >
+                  <option value="">-- Sélectionner un formateur --</option>
+                  {formateurs.map(f => (
+                    <option key={f.id} value={f.id}>
+                      {f.name} {f.speciality ? `(${f.speciality})` : ''} - {f.email}
+                    </option>
+                  ))}
+                </select>
+                
+                {/* Aperçu du formateur sélectionné */}
+                {newClientData.formateur_id && (() => {
+                  const selectedFormateur = formateurs.find(f => f.id === newClientData.formateur_id);
+                  if (!selectedFormateur) return null;
+                  return (
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {selectedFormateur.photo_url ? (
+                            <img src={selectedFormateur.photo_url} alt={selectedFormateur.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <PenTool className="w-8 h-8 text-amber-600" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="font-semibold text-gray-900">{selectedFormateur.name}</h5>
+                          {selectedFormateur.speciality && (
+                            <span className="inline-block px-2 py-1 bg-amber-200 text-amber-800 rounded-full text-xs font-medium">
+                              {selectedFormateur.speciality}
+                            </span>
+                          )}
+                          <p className="text-sm text-gray-600 mt-1">{selectedFormateur.email}</p>
+                          {selectedFormateur.phone && (
+                            <p className="text-sm text-gray-500">{selectedFormateur.phone}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
           </div>
 
           <DialogFooter className="border-t pt-4">
