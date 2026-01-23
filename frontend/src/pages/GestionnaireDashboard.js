@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   LogOut, Users, Calendar, MessageCircle, Search, Plus,
-  Mail, Phone, Clock, CheckCircle, Eye, Building, XCircle
+  Mail, Phone, Clock, CheckCircle, Eye, Building, XCircle, Gift
 } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
