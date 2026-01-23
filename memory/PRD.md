@@ -78,6 +78,9 @@ Build a comprehensive educational platform called "TerciForm" with:
 - Gmail SMTP (transactional emails)
 
 ## Changelog
+- **Dec 2025**: Added formateur assignment when creating a client
+- **Dec 2025**: Updated welcome email text for gestionnaires
+- **Dec 2025**: Enhanced formateur display in Gestionnaire Dashboard (photo, subjects, contact)
 - **Dec 2025**: Redesigned GestionnaireDashboard with colored backgrounds (violet/green/orange/pink)
 - **Dec 2025**: Replaced "Communication" tab with "Formateurs" tab showing trainers for the center
 - **Dec 2025**: Added `/api/gestionnaire/formateurs` endpoint
