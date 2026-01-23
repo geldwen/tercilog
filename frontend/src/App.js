@@ -5,7 +5,6 @@ import axios from "axios";
 import LoginPage from "./pages/LoginPage";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
-import GestionnaireDashboard from "./pages/GestionnaireDashboard";
 import BilanQualitePage from "./pages/BilanQualitePage";
 import BilanTests from "./pages/BilanTests";
 import QuizRunner from "./components/QuizRunner";
