@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   LogOut, Users, Calendar, Search, Plus, PenTool,
-  Mail, Phone, Clock, CheckCircle, Eye, Building, XCircle, Gift, FolderOpen, ChevronDown, ChevronUp, Download, FileText, Award
+  Mail, Phone, Clock, CheckCircle, Eye, Building, XCircle, Gift, FolderOpen, ChevronDown, ChevronUp, Download, FileText, Award, MessageSquare
 } from "lucide-react";
+import TicketingModal from "@/components/TicketingModal";
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
 const TERCIFORM_BLUE = '#0D2040';
