@@ -10758,6 +10758,7 @@ async def create_client(
     nom_gestionnaire: str = Form(""),
     email_gestionnaire: str = Form(""),
     password: str = Form(""),
+    formateur_id: str = Form(""),
     photo: UploadFile = FastAPIFile(None),
     current_user: User = Depends(get_current_user)
 ):
@@ -10781,6 +10782,11 @@ async def create_client(
             f.write(content)
         photo_url = f"/static/clients/{client_id}/photo{ext}"
     
+    # Récupérer les infos du formateur si fourni
+    formateur_data = None
+    if formateur_id:
+        formateur_data = await db.formateurs.find_one({"id": formateur_id}, {"_id": 0})
+    
     # Hash du mot de passe si fourni
     password_hash = ""
     if password:
@@ -10798,6 +10804,9 @@ async def create_client(
         "email_gestionnaire": email_gestionnaire,
         "photo_url": photo_url,
         "password_hash": password_hash,
+        "formateur_id": formateur_id,
+        "formateur_name": formateur_data.get("name", "") if formateur_data else "",
+        "formateur_email": formateur_data.get("email", "") if formateur_data else "",
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc)
     }
