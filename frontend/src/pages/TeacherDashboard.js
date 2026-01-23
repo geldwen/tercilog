@@ -1879,6 +1879,28 @@ export default function TeacherDashboard({ user, onLogout }) {
     return archivedStudents.filter(s => s.exit_month === archivedMonthFilter);
   }, [archivedStudents, archivedMonthFilter]);
 
+  // Années disponibles pour le filtre sorties de parcours
+  const availableExitYears = useMemo(() => {
+    const years = [...new Set(archivedStudents.map(s => s.exit_date ? s.exit_date.substring(0, 4) : null).filter(Boolean))];
+    return years.sort().reverse();
+  }, [archivedStudents]);
+
+  // Filtre des sorties de parcours par année et recherche
+  const filteredExitStudents = useMemo(() => {
+    let result = archivedStudents;
+    if (exitYearFilter) {
+      result = result.filter(s => s.exit_date && s.exit_date.startsWith(exitYearFilter));
+    }
+    if (exitSearchQuery.trim()) {
+      const query = exitSearchQuery.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      result = result.filter(s => {
+        const fullName = `${s.name || ''} ${s.last_name || ''}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return fullName.includes(query);
+      });
+    }
+    return result;
+  }, [archivedStudents, exitYearFilter, exitSearchQuery]);
+
   // Export PDF des sorties de parcours
   const handleExportArchivedPdf = async () => {
     setExportingArchivedPdf(true);
