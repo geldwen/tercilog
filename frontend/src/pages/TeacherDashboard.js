@@ -815,7 +815,8 @@ export default function TeacherDashboard({ user, onLogout }) {
       email_gestionnaire: '',
       password: '',
       photo: null,
-      photoName: ''
+      photoName: '',
+      formateur_id: ''
     });
   };
 
