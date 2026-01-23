@@ -506,24 +506,65 @@ export default function GestionnaireDashboard({ user, onLogout }) {
             )}
           </TabsContent>
 
-          {/* ===== ONGLET COMMUNICATION ===== */}
-          <TabsContent value="communication" className="space-y-6">
-            <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-              <MessageCircle className="w-20 h-20 mx-auto text-purple-200 mb-6" />
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Communication</h2>
-              <p className="text-gray-500 mb-4 text-lg">
-                Cette fonctionnalité sera bientôt disponible.
-              </p>
-              <p className="text-sm text-gray-400">
-                Vous pourrez communiquer avec votre formateur référent.
-              </p>
+          {/* ===== ONGLET FORMATEURS ===== */}
+          <TabsContent value="formateurs" className="space-y-6">
+            <div className="flex items-center justify-between p-4 bg-white rounded-2xl shadow-lg">
+              <h2 className="text-xl font-bold text-gray-800">Formateurs ({formateurs.length})</h2>
+              <p className="text-sm text-gray-500">Les formateurs associés à votre centre</p>
             </div>
+
+            {formateurs.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-2xl shadow-lg">
+                <PenTool className="w-20 h-20 mx-auto text-amber-200 mb-4" />
+                <p className="text-gray-500 text-lg">Aucun formateur pour le moment</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {formateurs.map(formateur => (
+                  <Card key={formateur.id} className="shadow-md hover:shadow-lg transition-shadow border-2 border-amber-200">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {formateur.photo_url ? (
+                            <img src={formateur.photo_url} alt={formateur.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <PenTool className="w-8 h-8 text-amber-600" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-semibold text-gray-900 truncate">{formateur.name}</h3>
+                          {formateur.speciality && (
+                            <span className="inline-block px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium mt-1">
+                              {formateur.speciality}
+                            </span>
+                          )}
+                          <div className="mt-2 space-y-1 text-sm text-gray-600">
+                            {formateur.email && (
+                              <p className="flex items-center gap-2 truncate">
+                                <Mail className="w-4 h-4 text-gray-400" />
+                                {formateur.email}
+                              </p>
+                            )}
+                            {formateur.phone && (
+                              <p className="flex items-center gap-2">
+                                <Phone className="w-4 h-4 text-gray-400" />
+                                {formateur.phone}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* ===== ONGLET FIDÉLITÉ ===== */}
           <TabsContent value="fidelite" className="space-y-6">
             <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-              <Gift className="w-20 h-20 mx-auto text-amber-200 mb-6" />
+              <Gift className="w-20 h-20 mx-auto text-pink-200 mb-6" />
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Programme de Fidélité</h2>
               <p className="text-gray-500 mb-4 text-lg">
                 Votre programme de fidélité bientôt disponible !
