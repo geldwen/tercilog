@@ -120,7 +120,8 @@ export default function TeacherDashboard({ user, onLogout }) {
     email_gestionnaire: '',
     password: '',
     photo: null,
-    photoName: ''
+    photoName: '',
+    formateur_id: ''
   });
   const [showClientHistoryDialog, setShowClientHistoryDialog] = useState(false);
   const [showClientActionsDialog, setShowClientActionsDialog] = useState(false);
