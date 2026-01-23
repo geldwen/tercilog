@@ -4059,7 +4059,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         >
                           <option value="">Tous</option>
                           {availableExitMonthsForBanner.map(month => (
-                            <option key={month} value={month}>{monthNames[parseInt(month)]}</option>
+                            <option key={month} value={month}>{monthNames[parseInt(month) - 1]?.label || month}</option>
                           ))}
                         </select>
                       </div>
