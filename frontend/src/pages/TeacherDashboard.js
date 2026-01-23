@@ -4043,12 +4043,25 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <label className="text-sm font-medium text-gray-700">Année :</label>
                         <select
                           value={exitYearFilter}
-                          onChange={(e) => setExitYearFilter(e.target.value)}
+                          onChange={(e) => { setExitYearFilter(e.target.value); setExitMonthFilter(''); }}
                           className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 bg-white"
                         >
                           <option value="">Toutes</option>
                           {availableExitYears.map(year => (
                             <option key={year} value={year}>{year}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm font-medium text-gray-700">Mois :</label>
+                        <select
+                          value={exitMonthFilter}
+                          onChange={(e) => setExitMonthFilter(e.target.value)}
+                          className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 bg-white"
+                        >
+                          <option value="">Tous</option>
+                          {availableExitMonthsForBanner.map(month => (
+                            <option key={month} value={month}>{monthNames[parseInt(month)]}</option>
                           ))}
                         </select>
                       </div>
