@@ -861,7 +861,8 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                     </div>
                   </div>
                 ))}
-              </div>
+                </div>
+              </>
             )}
           </TabsContent>
 
