@@ -3983,23 +3983,125 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
             )}
 
-            {/* Indicateur élèves historisés (masqués) avec bouton */}
-            {filteredStudents === null && students.length > activeStudents.length && (
-              <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
-                <p className="text-sm text-gray-600 flex items-center gap-2">
-                  <FolderOpen className="w-4 h-4" />
-                  <span>{students.length - activeStudents.length} élève(s) historisé(s)</span>
-                  <span className="text-xs text-gray-400">(0h restantes - utilisez la recherche pour les retrouver)</span>
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowArchivedModal(true)}
-                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
+            {/* ===== BANDEAU SORTIES DE PARCOURS ===== */}
+            {filteredStudents === null && archivedStudents.length > 0 && (
+              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-blue-200">
+                {/* Header du bandeau - cliquable */}
+                <button 
+                  onClick={() => setShowExitBanner(!showExitBanner)}
+                  className="w-full flex items-center justify-between p-4 hover:bg-blue-50 transition-colors"
                 >
-                  <Users className="w-4 h-4 mr-1" />
-                  Voir la liste des sorties de parcours
-                </Button>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <FolderOpen className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="font-bold text-blue-900">Sorties de parcours</h3>
+                      <p className="text-sm text-blue-600">{archivedStudents.length} élève(s) ayant terminé leur formation</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => { e.stopPropagation(); setShowArchivedModal(true); }}
+                      className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                    >
+                      <Download className="w-4 h-4 mr-1" />
+                      Export PDF
+                    </Button>
+                    {showExitBanner ? (
+                      <ChevronUp className="w-6 h-6 text-blue-600" />
+                    ) : (
+                      <ChevronDown className="w-6 h-6 text-blue-600" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Contenu dépliable */}
+                {showExitBanner && (
+                  <div className="border-t border-blue-200">
+                    {/* Filtres */}
+                    <div className="flex flex-wrap items-center gap-4 p-4 bg-blue-50">
+                      <div className="flex items-center gap-2">
+                        <label className="text-sm font-medium text-gray-700">Année :</label>
+                        <select
+                          value={exitYearFilter}
+                          onChange={(e) => setExitYearFilter(e.target.value)}
+                          className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 bg-white"
+                        >
+                          <option value="">Toutes</option>
+                          {availableExitYears.map(year => (
+                            <option key={year} value={year}>{year}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-2 flex-1 max-w-xs">
+                        <Search className="w-4 h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          placeholder="Rechercher par nom..."
+                          value={exitSearchQuery}
+                          onChange={(e) => setExitSearchQuery(e.target.value)}
+                          className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {filteredExitStudents.length} résultat(s)
+                      </span>
+                    </div>
+
+                    {/* Liste des sorties */}
+                    <div className="max-h-96 overflow-y-auto">
+                      {filteredExitStudents.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                          <FolderOpen className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                          <p>Aucun élève trouvé</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-gray-100">
+                          {filteredExitStudents.map(student => {
+                            const exitDateFormatted = student.exit_date 
+                              ? new Date(student.exit_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+                              : 'Non définie';
+                            
+                            return (
+                              <div key={student.id} className="p-4 hover:bg-gray-50 transition-colors">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-4">
+                                    <div 
+                                      className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                                      style={{ backgroundColor: TERCIFORM_BLUE }}
+                                    >
+                                      {(student.name?.[0] || '').toUpperCase()}{(student.last_name?.[0] || '').toUpperCase()}
+                                    </div>
+                                    <div>
+                                      <h4 className="font-semibold text-gray-900">{student.name} {student.last_name}</h4>
+                                      <p className="text-sm text-gray-500">{student.organism || 'Sans organisme'}</p>
+                                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                                        <span><span className="font-medium">{student.total_hours || 0}h</span> réalisées</span>
+                                        {student.credit_hours > 0 && (
+                                          <span className="text-orange-600"><span className="font-medium">{student.credit_hours}h</span> restantes</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="text-xs text-gray-500 block mb-1">Date de sortie</span>
+                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                      <Calendar className="w-4 h-4 mr-1" />
+                                      {exitDateFormatted}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
