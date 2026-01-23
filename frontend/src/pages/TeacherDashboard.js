@@ -1864,6 +1864,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [archivedMonthFilter, setArchivedMonthFilter] = useState('');
   const [showExitBanner, setShowExitBanner] = useState(false);
   const [exitYearFilter, setExitYearFilter] = useState('');
+  const [exitMonthFilter, setExitMonthFilter] = useState('');
   const [exitSearchQuery, setExitSearchQuery] = useState('');
   const [exportingArchivedPdf, setExportingArchivedPdf] = useState(false);
 

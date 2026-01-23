@@ -45,6 +45,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   // Sorties de parcours
   const [showExitBanner, setShowExitBanner] = useState(false);
   const [exitYearFilter, setExitYearFilter] = useState('');
+  const [exitMonthFilter, setExitMonthFilter] = useState('');
   const [exitSearchQuery, setExitSearchQuery] = useState('');
 
   useEffect(() => {
