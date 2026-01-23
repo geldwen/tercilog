@@ -4429,20 +4429,23 @@ export default function TeacherDashboard({ user, onLogout }) {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredFormateurs.map((formateur) => (
-                  <div 
-                    key={formateur.id} 
-                    className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow relative"
-                  >
-                    {/* En-tête de la fiche */}
-                    <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex-shrink-0">
-                          {formateur.photo_url ? (
-                            <img 
-                              src={getFormateurPhotoUrl(formateur.id)} 
-                              alt={`${formateur.prenom} ${formateur.nom}`}
+              <div className="flex gap-6">
+                {/* Grille des formateurs - côté gauche */}
+                <div className="flex-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {filteredFormateurs.map((formateur) => (
+                      <div 
+                        key={formateur.id} 
+                        className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow relative"
+                      >
+                        {/* En-tête de la fiche */}
+                        <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex-shrink-0">
+                              {formateur.photo_url ? (
+                                <img 
+                                  src={getFormateurPhotoUrl(formateur.id)} 
+                                  alt={`${formateur.prenom} ${formateur.nom}`}
                               className="w-full h-full object-cover"
                               onError={(e) => {
                                 e.target.style.display = 'none';
