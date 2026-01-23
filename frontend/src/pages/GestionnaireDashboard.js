@@ -48,6 +48,9 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   const [exitYearFilter, setExitYearFilter] = useState('');
   const [exitMonthFilter, setExitMonthFilter] = useState('');
   const [exitSearchQuery, setExitSearchQuery] = useState('');
+  
+  // Ticketing
+  const [showTicketingModal, setShowTicketingModal] = useState(false);
 
   useEffect(() => {
     loadData();
