@@ -952,6 +952,15 @@ export default function GestionnaireDashboard({ user, onLogout }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Ticketing - Mes demandes centre */}
+      <TicketingModal
+        open={showTicketingModal}
+        onClose={() => setShowTicketingModal(false)}
+        userRole="gestionnaire"
+        userId={user?.id}
+        clientId={user?.client_id}
+      />
     </div>
   );
 }
