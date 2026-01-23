@@ -11433,6 +11433,412 @@ async def get_gestionnaire_formateurs(current_user: User = Depends(get_current_u
     
     return formateurs
 
+# ============================================
+# SYSTÈME DE TICKETING - MES DEMANDES CENTRE
+# ============================================
+
+class TicketCategory(str, Enum):
+    SALLES = "SALLES"
+    MATERIEL = "MATERIEL"
+    SUPPORTS = "SUPPORTS"
+    PLANNING = "PLANNING"
+    ACCUEIL = "ACCUEIL"
+    AUTRE = "AUTRE"
+
+class TicketStatus(str, Enum):
+    EN_ATTENTE = "EN_ATTENTE"
+    REPONSE_ATTENDUE = "REPONSE_ATTENDUE"
+    ACCEPTEE = "ACCEPTEE"
+    REFUSEE = "REFUSEE"
+    MODIFICATION_DEMANDEE = "MODIFICATION_DEMANDEE"
+    CLOTUREE = "CLOTUREE"
+
+class TicketRole(str, Enum):
+    TRAINER = "TRAINER"
+    CENTER = "CENTER"
+
+class TicketCreate(BaseModel):
+    category: TicketCategory
+    subject: str
+    description: str
+    desired_date: Optional[str] = None
+    location: Optional[str] = None
+    recipient_center_id: Optional[str] = None
+    recipient_trainer_id: Optional[str] = None
+
+class TicketMessageCreate(BaseModel):
+    body: str
+
+class TicketStatusUpdate(BaseModel):
+    status: TicketStatus
+
+# Créer un ticket
+@api_router.post("/tickets")
+async def create_ticket(
+    ticket_data: TicketCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Créer un nouveau ticket/demande"""
+    ticket_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
+    
+    # Déterminer le rôle de l'émetteur
+    sender_role = TicketRole.TRAINER if current_user.role == "teacher" else TicketRole.CENTER
+    
+    ticket = {
+        "id": ticket_id,
+        "category": ticket_data.category,
+        "subject": ticket_data.subject,
+        "description": ticket_data.description,
+        "desired_date": ticket_data.desired_date,
+        "location": ticket_data.location,
+        "created_by_role": sender_role,
+        "created_by_user_id": current_user.id,
+        "created_by_name": current_user.name,
+        "assigned_center_id": ticket_data.recipient_center_id if sender_role == TicketRole.TRAINER else current_user.client_id,
+        "assigned_trainer_id": ticket_data.recipient_trainer_id if sender_role == TicketRole.CENTER else current_user.id,
+        "status": TicketStatus.EN_ATTENTE,
+        "created_at": now,
+        "updated_at": now,
+        "last_message_at": now,
+        "is_archived": False,
+        "message_count": 1
+    }
+    
+    await db.tickets.insert_one(ticket)
+    
+    # Créer le premier message (la description)
+    message_id = str(uuid.uuid4())
+    message = {
+        "id": message_id,
+        "ticket_id": ticket_id,
+        "sender_role": sender_role,
+        "sender_user_id": current_user.id,
+        "sender_name": current_user.name,
+        "body": ticket_data.description,
+        "created_at": now,
+        "attachments": []
+    }
+    await db.ticket_messages.insert_one(message)
+    
+    # Envoyer notification email
+    try:
+        await send_ticket_notification_email(ticket, message, "creation")
+    except Exception as e:
+        logging.error(f"Erreur envoi email ticket: {e}")
+    
+    return {"id": ticket_id, "message": "Demande créée avec succès"}
+
+# Récupérer les tickets
+@api_router.get("/tickets")
+async def get_tickets(
+    status: Optional[str] = None,
+    category: Optional[str] = None,
+    direction: Optional[str] = None,  # sent, received, all
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer les tickets de l'utilisateur"""
+    user_role = TicketRole.TRAINER if current_user.role == "teacher" else TicketRole.CENTER
+    
+    # Construire le filtre de base
+    query = {"is_archived": False}
+    
+    # Filtre par direction (envoyés/reçus)
+    if direction == "sent":
+        query["created_by_user_id"] = current_user.id
+    elif direction == "received":
+        if user_role == TicketRole.TRAINER:
+            query["assigned_trainer_id"] = current_user.id
+            query["created_by_user_id"] = {"$ne": current_user.id}
+        else:
+            query["assigned_center_id"] = current_user.client_id
+            query["created_by_user_id"] = {"$ne": current_user.id}
+    else:
+        # Tous les tickets liés à l'utilisateur
+        if user_role == TicketRole.TRAINER:
+            query["$or"] = [
+                {"created_by_user_id": current_user.id},
+                {"assigned_trainer_id": current_user.id}
+            ]
+        else:
+            query["$or"] = [
+                {"created_by_user_id": current_user.id},
+                {"assigned_center_id": current_user.client_id}
+            ]
+    
+    # Filtre par statut
+    if status and status != "all":
+        query["status"] = status
+    
+    # Filtre par catégorie
+    if category and category != "all":
+        query["category"] = category
+    
+    tickets = await db.tickets.find(query, {"_id": 0}).sort("last_message_at", -1).to_list(500)
+    
+    # Enrichir avec les noms
+    for ticket in tickets:
+        # Récupérer le nom du centre si assigné
+        if ticket.get("assigned_center_id"):
+            client = await db.clients.find_one({"id": ticket["assigned_center_id"]}, {"_id": 0, "nom_centre": 1})
+            ticket["center_name"] = client.get("nom_centre", "Centre") if client else "Centre"
+        
+        # Récupérer le nom du formateur si assigné
+        if ticket.get("assigned_trainer_id"):
+            formateur = await db.formateurs.find_one({"id": ticket["assigned_trainer_id"]}, {"_id": 0, "prenom": 1, "nom": 1})
+            if formateur:
+                ticket["trainer_name"] = f"{formateur.get('prenom', '')} {formateur.get('nom', '')}"
+            else:
+                user = await db.users.find_one({"id": ticket["assigned_trainer_id"]}, {"_id": 0, "name": 1})
+                ticket["trainer_name"] = user.get("name", "Formateur") if user else "Formateur"
+    
+    return tickets
+
+# Récupérer un ticket spécifique avec ses messages
+@api_router.get("/tickets/{ticket_id}")
+async def get_ticket(ticket_id: str, current_user: User = Depends(get_current_user)):
+    """Récupérer un ticket avec tous ses messages"""
+    ticket = await db.tickets.find_one({"id": ticket_id}, {"_id": 0})
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket non trouvé")
+    
+    # Vérifier l'accès
+    user_role = TicketRole.TRAINER if current_user.role == "teacher" else TicketRole.CENTER
+    has_access = (
+        ticket["created_by_user_id"] == current_user.id or
+        (user_role == TicketRole.TRAINER and ticket.get("assigned_trainer_id") == current_user.id) or
+        (user_role == TicketRole.CENTER and ticket.get("assigned_center_id") == current_user.client_id)
+    )
+    
+    if not has_access:
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    # Récupérer les messages
+    messages = await db.ticket_messages.find(
+        {"ticket_id": ticket_id}, 
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(500)
+    
+    ticket["messages"] = messages
+    
+    return ticket
+
+# Ajouter un message à un ticket
+@api_router.post("/tickets/{ticket_id}/messages")
+async def add_ticket_message(
+    ticket_id: str,
+    message_data: TicketMessageCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Ajouter un message à un ticket"""
+    ticket = await db.tickets.find_one({"id": ticket_id}, {"_id": 0})
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket non trouvé")
+    
+    user_role = TicketRole.TRAINER if current_user.role == "teacher" else TicketRole.CENTER
+    now = datetime.now(timezone.utc)
+    
+    message_id = str(uuid.uuid4())
+    message = {
+        "id": message_id,
+        "ticket_id": ticket_id,
+        "sender_role": user_role,
+        "sender_user_id": current_user.id,
+        "sender_name": current_user.name,
+        "body": message_data.body,
+        "created_at": now,
+        "attachments": []
+    }
+    
+    await db.ticket_messages.insert_one(message)
+    
+    # Mettre à jour le ticket
+    new_status = TicketStatus.REPONSE_ATTENDUE
+    await db.tickets.update_one(
+        {"id": ticket_id},
+        {
+            "$set": {
+                "updated_at": now,
+                "last_message_at": now,
+                "status": new_status
+            },
+            "$inc": {"message_count": 1}
+        }
+    )
+    
+    # Envoyer notification email
+    try:
+        ticket["status"] = new_status
+        await send_ticket_notification_email(ticket, message, "reply")
+    except Exception as e:
+        logging.error(f"Erreur envoi email ticket: {e}")
+    
+    return {"id": message_id, "message": "Réponse envoyée"}
+
+# Mettre à jour le statut d'un ticket
+@api_router.patch("/tickets/{ticket_id}/status")
+async def update_ticket_status(
+    ticket_id: str,
+    status_update: TicketStatusUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """Mettre à jour le statut d'un ticket"""
+    ticket = await db.tickets.find_one({"id": ticket_id}, {"_id": 0})
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket non trouvé")
+    
+    now = datetime.now(timezone.utc)
+    old_status = ticket["status"]
+    new_status = status_update.status
+    
+    await db.tickets.update_one(
+        {"id": ticket_id},
+        {"$set": {"status": new_status, "updated_at": now}}
+    )
+    
+    # Envoyer notification email si le statut change
+    if old_status != new_status:
+        try:
+            ticket["status"] = new_status
+            await send_ticket_notification_email(ticket, None, "status_change", old_status=old_status)
+        except Exception as e:
+            logging.error(f"Erreur envoi email statut: {e}")
+    
+    return {"message": f"Statut mis à jour: {new_status}"}
+
+# Récupérer les centres (pour sélection dans le formulaire)
+@api_router.get("/tickets/recipients/centers")
+async def get_ticket_recipient_centers(current_user: User = Depends(get_current_user)):
+    """Liste des centres pour destinataires de tickets"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Réservé aux formateurs")
+    
+    clients = await db.clients.find({}, {"_id": 0, "id": 1, "nom_centre": 1}).to_list(500)
+    return clients
+
+# Récupérer les formateurs (pour sélection dans le formulaire)
+@api_router.get("/tickets/recipients/trainers")
+async def get_ticket_recipient_trainers(current_user: User = Depends(get_current_user)):
+    """Liste des formateurs pour destinataires de tickets"""
+    if current_user.role == "gestionnaire":
+        # Le gestionnaire voit uniquement les formateurs de son centre
+        client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0, "formateur_id": 1})
+        if client and client.get("formateur_id"):
+            formateur = await db.formateurs.find_one(
+                {"id": client["formateur_id"]}, 
+                {"_id": 0, "id": 1, "prenom": 1, "nom": 1, "email": 1}
+            )
+            if formateur:
+                formateur["name"] = f"{formateur.get('prenom', '')} {formateur.get('nom', '')}"
+                return [formateur]
+    
+    # Admin voit tous les formateurs
+    formateurs = await db.formateurs.find({}, {"_id": 0, "id": 1, "prenom": 1, "nom": 1, "email": 1}).to_list(500)
+    for f in formateurs:
+        f["name"] = f"{f.get('prenom', '')} {f.get('nom', '')}"
+    return formateurs
+
+async def send_ticket_notification_email(ticket: dict, message: dict, notification_type: str, old_status: str = None):
+    """Envoyer notification email pour les tickets"""
+    
+    portal_url = os.environ.get('FRONTEND_URL', 'https://learn-terciform.preview.emergentagent.com')
+    ticket_link = f"{portal_url}?ticket={ticket['id']}"
+    
+    # Déterminer le destinataire
+    recipient_email = None
+    recipient_name = "Destinataire"
+    
+    if notification_type == "creation" or notification_type == "reply":
+        # Envoyer au destinataire opposé
+        if ticket["created_by_role"] == TicketRole.TRAINER or (message and message.get("sender_role") == TicketRole.TRAINER):
+            # Envoyer au centre
+            if ticket.get("assigned_center_id"):
+                client = await db.clients.find_one({"id": ticket["assigned_center_id"]})
+                if client:
+                    recipient_email = client.get("email_gestionnaire") or client.get("email_responsable")
+                    recipient_name = client.get("nom_centre", "Centre")
+        else:
+            # Envoyer au formateur
+            if ticket.get("assigned_trainer_id"):
+                formateur = await db.formateurs.find_one({"id": ticket["assigned_trainer_id"]})
+                if formateur:
+                    recipient_email = formateur.get("email")
+                    recipient_name = f"{formateur.get('prenom', '')} {formateur.get('nom', '')}"
+    
+    if not recipient_email:
+        logging.warning(f"Pas d'email destinataire pour ticket {ticket['id']}")
+        return
+    
+    # Construire le sujet et le corps
+    category_labels = {
+        "SALLES": "Salles",
+        "MATERIEL": "Matériel", 
+        "SUPPORTS": "Supports / Documents",
+        "PLANNING": "Organisation / Planning",
+        "ACCUEIL": "Accueil / Logistique",
+        "AUTRE": "Autre demande"
+    }
+    
+    status_labels = {
+        "EN_ATTENTE": "En attente",
+        "REPONSE_ATTENDUE": "Réponse attendue",
+        "ACCEPTEE": "Acceptée",
+        "REFUSEE": "Refusée",
+        "MODIFICATION_DEMANDEE": "Modification demandée",
+        "CLOTUREE": "Clôturée"
+    }
+    
+    category_label = category_labels.get(ticket["category"], ticket["category"])
+    status_label = status_labels.get(ticket["status"], ticket["status"])
+    
+    if notification_type == "creation":
+        subject = f"[TerciForm] Nouvelle demande — {category_label} — {ticket['subject']}"
+        action_text = "Une nouvelle demande a été créée"
+    elif notification_type == "reply":
+        subject = f"[TerciForm] Nouvelle réponse — {ticket['subject']}"
+        action_text = "Une nouvelle réponse a été ajoutée"
+    else:
+        subject = f"[TerciForm] Statut mis à jour — {status_label} — {ticket['subject']}"
+        action_text = f"Le statut a été mis à jour : {status_label}"
+    
+    message_body = message["body"] if message else ""
+    sender_name = message["sender_name"] if message else ticket["created_by_name"]
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+        <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 25px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 22px;">{action_text}</h1>
+            </div>
+            
+            <div style="padding: 30px;">
+                <div style="background-color: #f8fafc; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <p style="margin: 0 0 10px 0;"><strong>Catégorie:</strong> {category_label}</p>
+                    <p style="margin: 0 0 10px 0;"><strong>Sujet:</strong> {ticket['subject']}</p>
+                    <p style="margin: 0 0 10px 0;"><strong>Statut:</strong> <span style="background-color: #dbeafe; color: #1e40af; padding: 3px 10px; border-radius: 20px; font-size: 14px;">{status_label}</span></p>
+                    <p style="margin: 0;"><strong>De:</strong> {sender_name}</p>
+                </div>
+                
+                {f'<div style="background-color: #fff7ed; border-left: 4px solid #f97316; padding: 15px; margin-bottom: 20px;"><p style="margin: 0; white-space: pre-wrap;">{message_body}</p></div>' if message_body else ''}
+                
+                <div style="text-align: center; margin: 25px 0;">
+                    <a href="{ticket_link}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: 600;">
+                        Voir la demande
+                    </a>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        send_email(recipient_email, subject, html_body)
+        logging.info(f"Email ticket envoyé à {recipient_email}")
+    except Exception as e:
+        logging.error(f"Erreur envoi email ticket: {e}")
+
 # Include router
 app.include_router(api_router)
 
