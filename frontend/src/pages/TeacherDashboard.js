@@ -1896,8 +1896,6 @@ export default function TeacherDashboard({ user, onLogout }) {
     return months.sort();
   }, [archivedStudents, exitYearFilter]);
 
-  const monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-
   // Filtre des sorties de parcours par année, mois et recherche
   const filteredExitStudents = useMemo(() => {
     let result = archivedStudents;
