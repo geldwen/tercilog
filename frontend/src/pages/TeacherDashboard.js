@@ -1886,11 +1886,26 @@ export default function TeacherDashboard({ user, onLogout }) {
     return years.sort().reverse();
   }, [archivedStudents]);
 
-  // Filtre des sorties de parcours par année et recherche
+  // Mois disponibles pour le filtre (selon l'année sélectionnée)
+  const availableExitMonthsForBanner = useMemo(() => {
+    let filtered = archivedStudents;
+    if (exitYearFilter) {
+      filtered = filtered.filter(s => s.exit_date && s.exit_date.startsWith(exitYearFilter));
+    }
+    const months = [...new Set(filtered.map(s => s.exit_date ? s.exit_date.substring(5, 7) : null).filter(Boolean))];
+    return months.sort();
+  }, [archivedStudents, exitYearFilter]);
+
+  const monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+  // Filtre des sorties de parcours par année, mois et recherche
   const filteredExitStudents = useMemo(() => {
     let result = archivedStudents;
     if (exitYearFilter) {
       result = result.filter(s => s.exit_date && s.exit_date.startsWith(exitYearFilter));
+    }
+    if (exitMonthFilter) {
+      result = result.filter(s => s.exit_date && s.exit_date.substring(5, 7) === exitMonthFilter);
     }
     if (exitSearchQuery.trim()) {
       const query = exitSearchQuery.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -1900,7 +1915,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       });
     }
     return result;
-  }, [archivedStudents, exitYearFilter, exitSearchQuery]);
+  }, [archivedStudents, exitYearFilter, exitMonthFilter, exitSearchQuery]);
 
   // Export PDF des sorties de parcours
   const handleExportArchivedPdf = async () => {
