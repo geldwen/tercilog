@@ -111,6 +111,16 @@ function App() {
             }
           />
           <Route
+            path="/gestionnaire"
+            element={
+              user && user.role === "gestionnaire" ? (
+                <GestionnaireDashboard user={user} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
             path="/student"
             element={
               user && user.role === "student" ? (
