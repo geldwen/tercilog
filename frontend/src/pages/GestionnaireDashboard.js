@@ -854,57 +854,53 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                   </div>
                 </div>
 
-                {/* Bandeau "Mes demandes centre" - côté droit */}
-                <div className="w-72 flex-shrink-0">
-                  <div 
-                    onClick={() => setShowTicketingModal(true)}
-                    className="bg-gradient-to-b from-blue-600 to-blue-800 rounded-2xl shadow-xl p-6 text-white cursor-pointer hover:shadow-2xl hover:scale-[1.02] transition-all h-full min-h-[400px] flex flex-col"
-                  >
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="p-3 bg-white/20 rounded-xl">
-                        <MessageSquare className="w-8 h-8" />
-                      </div>
-                      <h3 className="text-xl font-bold">Mes demandes centre</h3>
+                {/* Bandeau "Mes échanges formateur" - horizontal en bas */}
+                <div 
+                  onClick={() => setShowTicketingModal(true)}
+                  className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl shadow-xl p-6 text-white cursor-pointer hover:shadow-2xl hover:scale-[1.01] transition-all flex items-center gap-8"
+                >
+                  <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="p-4 bg-white/20 rounded-xl">
+                      <MessageSquare className="w-10 h-10" />
                     </div>
-                    
-                    <p className="text-blue-100 text-sm mb-6">
-                      Communiquez avec votre formateur : demandes de documents, planning, organisation...
-                    </p>
-                    
-                    <div className="space-y-3 flex-1">
-                      <div className="flex items-center gap-2 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-blue-300"></div>
-                        <span>Salles</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-orange-300"></div>
-                        <span>Matériel</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-purple-300"></div>
-                        <span>Supports / Documents</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-green-300"></div>
-                        <span>Organisation / Planning</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-pink-300"></div>
-                        <span>Accueil / Logistique</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                        <span>Autre demande</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6 pt-4 border-t border-blue-400">
-                      <button className="w-full py-3 bg-white text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
-                        <MessageSquare className="w-5 h-5" />
-                        Ouvrir mes demandes
-                      </button>
+                    <div>
+                      <h3 className="text-2xl font-bold">Mes échanges formateur</h3>
+                      <p className="text-blue-200 text-sm mt-1">Communiquez avec votre formateur</p>
                     </div>
                   </div>
+                  
+                  <div className="flex-1 flex items-center gap-6 justify-center">
+                    <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
+                      <div className="w-2 h-2 rounded-full bg-blue-300"></div>
+                      <span>Salles</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
+                      <div className="w-2 h-2 rounded-full bg-orange-300"></div>
+                      <span>Matériel</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
+                      <div className="w-2 h-2 rounded-full bg-purple-300"></div>
+                      <span>Supports</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
+                      <div className="w-2 h-2 rounded-full bg-green-300"></div>
+                      <span>Planning</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
+                      <div className="w-2 h-2 rounded-full bg-pink-300"></div>
+                      <span>Logistique</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
+                      <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                      <span>Autre</span>
+                    </div>
+                  </div>
+                  
+                  <button className="px-6 py-3 bg-white text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-colors flex items-center gap-2 flex-shrink-0">
+                    <MessageSquare className="w-5 h-5" />
+                    Accéder à mes demandes
+                  </button>
+                </div>
                 </div>
               </div>
             )}
