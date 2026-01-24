@@ -723,34 +723,33 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                 <p className="text-gray-500 text-lg">Aucun formateur pour le moment</p>
               </div>
             ) : (
-              <div className="flex gap-6">
-                {/* Grille des formateurs - côté gauche */}
-                <div className="flex-1">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {formateurs.map(formateur => (
-                      <div 
-                        key={formateur.id} 
-                        className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow"
-                      >
-                        {/* En-tête de la fiche - identique à l'admin */}
-                        <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex-shrink-0">
-                              {formateur.photo_url ? (
-                                <img 
-                                  src={`${process.env.REACT_APP_BACKEND_URL}${formateur.photo_url}`}
-                                  alt={`${formateur.prenom} ${formateur.nom}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-amber-100 flex items-center justify-center">
-                                  <span className="text-2xl font-bold text-amber-600">
-                                    {formateur.prenom?.[0]}{formateur.nom?.[0]}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                            <div className="text-white">
+              <div className="space-y-6">
+                {/* Grille des formateurs */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {formateurs.map(formateur => (
+                    <div 
+                      key={formateur.id} 
+                      className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow"
+                    >
+                      {/* En-tête de la fiche - identique à l'admin */}
+                      <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex-shrink-0">
+                            {formateur.photo_url ? (
+                              <img 
+                                src={`${process.env.REACT_APP_BACKEND_URL}${formateur.photo_url}`}
+                                alt={`${formateur.prenom} ${formateur.nom}`}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-amber-100 flex items-center justify-center">
+                                <span className="text-2xl font-bold text-amber-600">
+                                  {formateur.prenom?.[0]}{formateur.nom?.[0]}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-white">
                             <h3 className="text-xl font-bold">{formateur.prenom} {formateur.nom}</h3>
                             {formateur.societe && (
                             <p className="text-amber-100 text-sm">{formateur.societe}</p>
