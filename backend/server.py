@@ -11840,6 +11840,408 @@ async def send_ticket_notification_email(ticket: dict, message: dict, notificati
     except Exception as e:
         logging.error(f"Erreur envoi email ticket: {e}")
 
+# ========== NOUVEAU SYSTÈME DE TICKETING AVEC HORODATAGE ==========
+
+# Modèles Pydantic pour le ticketing
+class SalleRequest(BaseModel):
+    lieu: str
+    centre: Optional[str] = None
+    nombre_personnes: int
+    type_reservation: str  # journee, demi_journee_matin, demi_journee_apres_midi
+    date_souhaitee: str
+    email_destinataire: Optional[str] = None
+    commentaire: Optional[str] = None
+
+class MaterielItem(BaseModel):
+    nom: str
+    quantite: int = 1
+
+class MaterielRequest(BaseModel):
+    items: List[MaterielItem]
+    commentaire: Optional[str] = None
+
+class MailRequest(BaseModel):
+    sujet: str
+    message: str
+
+# Fonction pour envoyer les notifications email de ticketing
+async def send_ticketing_notification(
+    request_type: str,
+    request_data: dict,
+    sender_user: dict,
+    recipient_email: str = None
+):
+    """Envoyer une notification email pour les demandes de ticketing"""
+    
+    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-edu-1.preview.emergentagent.com')
+    timestamp = datetime.now(timezone.utc).strftime("%d/%m/%Y à %H:%M:%S")
+    
+    sender_name = sender_user.get('name', 'Utilisateur')
+    sender_role = sender_user.get('role', 'teacher')
+    
+    # Déterminer le type de demande et construire le contenu
+    type_labels = {
+        'SALLES': 'réservation de salle',
+        'MATERIEL': 'matériel',
+        'SUPPORTS': 'documents/supports',
+        'MAIL': 'message'
+    }
+    
+    type_label = type_labels.get(request_type, 'demande')
+    
+    if sender_role == 'teacher':
+        intro_text = f"Le formateur <strong>{sender_name}</strong> vous fait une demande de {type_label}."
+        role_label = "Formateur"
+    else:
+        intro_text = f"Le centre <strong>{sender_name}</strong> vous a envoyé une demande de {type_label}."
+        role_label = "Centre"
+    
+    # Construire le détail selon le type
+    details_html = ""
+    
+    if request_type == 'SALLES':
+        type_res = {
+            'journee': 'Journée complète',
+            'demi_journee_matin': 'Demi-journée (Matin)',
+            'demi_journee_apres_midi': 'Demi-journée (Après-midi)'
+        }.get(request_data.get('type_reservation', ''), request_data.get('type_reservation', ''))
+        
+        details_html = f"""
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Lieu:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">{request_data.get('lieu', '-')}</td></tr>
+            <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Centre:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">{request_data.get('centre', '-')}</td></tr>
+            <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Nombre de personnes:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">{request_data.get('nombre_personnes', '-')}</td></tr>
+            <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Type:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">{type_res}</td></tr>
+            <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Date souhaitée:</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">{request_data.get('date_souhaitee', '-')}</td></tr>
+            {f'<tr><td style="padding: 8px 0;"><strong>Commentaire:</strong></td><td style="padding: 8px 0;">{request_data.get("commentaire", "")}</td></tr>' if request_data.get('commentaire') else ''}
+        </table>
+        """
+    elif request_type == 'MATERIEL':
+        items_html = ""
+        for item in request_data.get('items', []):
+            items_html += f"<li>{item.get('nom', '-')} — Quantité: <strong>{item.get('quantite', 1)}</strong></li>"
+        
+        details_html = f"""
+        <p><strong>Matériels demandés:</strong></p>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+            {items_html}
+        </ul>
+        {f'<p><strong>Commentaire:</strong> {request_data.get("commentaire", "")}</p>' if request_data.get('commentaire') else ''}
+        """
+    elif request_type == 'MAIL':
+        details_html = f"""
+        <p><strong>Sujet:</strong> {request_data.get('sujet', '-')}</p>
+        <div style="background-color: #f8fafc; border-radius: 8px; padding: 15px; margin-top: 10px;">
+            <p style="margin: 0; white-space: pre-wrap;">{request_data.get('message', '')}</p>
+        </div>
+        """
+    
+    subject = f"[TerciForm] Nouvelle demande de {type_label} — {timestamp}"
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+        <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 25px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 22px;">Nouvelle demande de {type_label}</h1>
+            </div>
+            
+            <div style="padding: 30px;">
+                <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 20px; border-radius: 0 8px 8px 0;">
+                    <p style="margin: 0;">{intro_text}</p>
+                    <p style="margin: 5px 0 0 0; font-size: 14px; color: #666;"><strong>Horodatage:</strong> {timestamp}</p>
+                </div>
+                
+                <div style="background-color: #f8fafc; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="margin: 0 0 15px 0; color: #1e3a5f;">Détails de la demande</h3>
+                    {details_html}
+                </div>
+                
+                <div style="text-align: center; margin: 25px 0;">
+                    <a href="{portal_url}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: 600;">
+                        Accéder à mon espace
+                    </a>
+                </div>
+                
+                <p style="text-align: center; color: #666; font-size: 14px; margin: 20px 0 0 0;">
+                    Pour traiter cette demande, connectez-vous à votre espace TerciForm.
+                </p>
+            </div>
+            
+            <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #64748b; font-size: 12px;">
+                    Ce message a été envoyé automatiquement par TerciForm le {timestamp}
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    if recipient_email:
+        try:
+            send_email(recipient_email, subject, html_body)
+            logging.info(f"Email ticketing envoyé à {recipient_email} pour {request_type}")
+        except Exception as e:
+            logging.error(f"Erreur envoi email ticketing: {e}")
+
+# ========== ENDPOINT: DEMANDE DE SALLE ==========
+@api_router.post("/ticketing/salles")
+async def create_salle_request(request: SalleRequest, current_user: dict = Depends(get_current_user)):
+    """Créer une demande de réservation de salle"""
+    
+    request_id = str(uuid.uuid4())
+    timestamp = datetime.now(timezone.utc)
+    
+    salle_request = {
+        "id": request_id,
+        "category": "SALLES",
+        "lieu": request.lieu,
+        "centre": request.centre,
+        "nombre_personnes": request.nombre_personnes,
+        "type_reservation": request.type_reservation,
+        "date_souhaitee": request.date_souhaitee,
+        "email_destinataire": request.email_destinataire,
+        "commentaire": request.commentaire,
+        "status": "EN_ATTENTE",
+        "created_by_user_id": current_user["id"],
+        "created_by_name": current_user.get("name", "Utilisateur"),
+        "created_by_role": current_user.get("role", "teacher"),
+        "client_id": current_user.get("client_id"),
+        "created_at": timestamp.isoformat(),
+        "updated_at": timestamp.isoformat()
+    }
+    
+    await db.ticketing_requests.insert_one(salle_request)
+    
+    # Envoyer notification email
+    recipient_email = request.email_destinataire
+    if not recipient_email:
+        # Chercher l'email du gestionnaire si c'est un formateur qui demande
+        if current_user.get("role") == "teacher" and current_user.get("client_id"):
+            client = await db.clients.find_one({"id": current_user["client_id"]})
+            if client:
+                recipient_email = client.get("email_gestionnaire") or client.get("email_responsable")
+    
+    if recipient_email:
+        await send_ticketing_notification("SALLES", salle_request, current_user, recipient_email)
+    
+    return {"success": True, "id": request_id, "message": "Demande de salle créée avec succès", "created_at": timestamp.isoformat()}
+
+# ========== ENDPOINT: DEMANDE DE MATERIEL ==========
+@api_router.post("/ticketing/materiel")
+async def create_materiel_request(request: MaterielRequest, current_user: dict = Depends(get_current_user)):
+    """Créer une demande de matériel"""
+    
+    request_id = str(uuid.uuid4())
+    timestamp = datetime.now(timezone.utc)
+    
+    items_list = [{"nom": item.nom, "quantite": item.quantite} for item in request.items]
+    
+    materiel_request = {
+        "id": request_id,
+        "category": "MATERIEL",
+        "items": items_list,
+        "commentaire": request.commentaire,
+        "status": "EN_ATTENTE",
+        "created_by_user_id": current_user["id"],
+        "created_by_name": current_user.get("name", "Utilisateur"),
+        "created_by_role": current_user.get("role", "teacher"),
+        "client_id": current_user.get("client_id"),
+        "created_at": timestamp.isoformat(),
+        "updated_at": timestamp.isoformat()
+    }
+    
+    await db.ticketing_requests.insert_one(materiel_request)
+    
+    # Envoyer notification email au gestionnaire
+    recipient_email = None
+    if current_user.get("role") == "teacher" and current_user.get("client_id"):
+        client = await db.clients.find_one({"id": current_user["client_id"]})
+        if client:
+            recipient_email = client.get("email_gestionnaire") or client.get("email_responsable")
+    
+    if recipient_email:
+        await send_ticketing_notification("MATERIEL", materiel_request, current_user, recipient_email)
+    
+    return {"success": True, "id": request_id, "message": "Demande de matériel créée avec succès", "created_at": timestamp.isoformat()}
+
+# ========== ENDPOINT: DOCUMENTS/SUPPORTS ==========
+@api_router.post("/ticketing/documents")
+async def upload_ticketing_document(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Téléverser un document pour le ticketing"""
+    
+    doc_id = str(uuid.uuid4())
+    timestamp = datetime.now(timezone.utc)
+    
+    # Créer le dossier de stockage
+    upload_dir = Path("/app/backend/uploads/ticketing_documents")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Sauvegarder le fichier
+    file_extension = Path(file.filename).suffix
+    safe_filename = f"{doc_id}{file_extension}"
+    file_path = upload_dir / safe_filename
+    
+    content = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(content)
+    
+    doc_record = {
+        "id": doc_id,
+        "filename": file.filename,
+        "stored_filename": safe_filename,
+        "file_path": str(file_path),
+        "content_type": file.content_type,
+        "size": len(content),
+        "uploaded_by_user_id": current_user["id"],
+        "uploaded_by_name": current_user.get("name", "Utilisateur"),
+        "uploaded_by_role": current_user.get("role", "teacher"),
+        "client_id": current_user.get("client_id"),
+        "created_at": timestamp.isoformat()
+    }
+    
+    await db.ticketing_documents.insert_one(doc_record)
+    
+    return {"success": True, "id": doc_id, "filename": file.filename, "created_at": timestamp.isoformat()}
+
+@api_router.get("/ticketing/documents")
+async def get_ticketing_documents(current_user: dict = Depends(get_current_user)):
+    """Récupérer les documents de ticketing"""
+    
+    # Récupérer les documents accessibles par l'utilisateur
+    query = {}
+    
+    if current_user.get("role") == "gestionnaire" and current_user.get("client_id"):
+        # Les gestionnaires voient les docs de leur centre + ceux des formateurs
+        query["$or"] = [
+            {"client_id": current_user["client_id"]},
+            {"uploaded_by_role": "teacher"}
+        ]
+    elif current_user.get("role") == "teacher":
+        # Les formateurs voient tous les docs
+        pass
+    
+    documents = await db.ticketing_documents.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return documents
+
+@api_router.get("/ticketing/documents/{doc_id}/download")
+async def download_ticketing_document(doc_id: str, token: str = None):
+    """Télécharger un document de ticketing"""
+    
+    doc = await db.ticketing_documents.find_one({"id": doc_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document non trouvé")
+    
+    file_path = Path(doc["file_path"])
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Fichier non trouvé sur le serveur")
+    
+    return FileResponse(
+        path=str(file_path),
+        filename=doc["filename"],
+        media_type=doc.get("content_type", "application/octet-stream")
+    )
+
+# ========== ENDPOINT: MAIL (AUTRE DEMANDE) ==========
+@api_router.post("/ticketing/mail")
+async def send_ticketing_mail(request: MailRequest, current_user: dict = Depends(get_current_user)):
+    """Envoyer un mail via le ticketing"""
+    
+    request_id = str(uuid.uuid4())
+    timestamp = datetime.now(timezone.utc)
+    
+    mail_record = {
+        "id": request_id,
+        "category": "AUTRE",
+        "sujet": request.sujet,
+        "message": request.message,
+        "status": "ENVOYE",
+        "created_by_user_id": current_user["id"],
+        "created_by_name": current_user.get("name", "Utilisateur"),
+        "created_by_role": current_user.get("role", "teacher"),
+        "client_id": current_user.get("client_id"),
+        "created_at": timestamp.isoformat()
+    }
+    
+    await db.ticketing_requests.insert_one(mail_record)
+    
+    # Déterminer le destinataire
+    recipient_email = None
+    if current_user.get("role") == "teacher":
+        # Formateur envoie au centre/gestionnaire
+        if current_user.get("client_id"):
+            client = await db.clients.find_one({"id": current_user["client_id"]})
+            if client:
+                recipient_email = client.get("email_gestionnaire") or client.get("email_responsable")
+    else:
+        # Gestionnaire envoie au formateur référent
+        if current_user.get("client_id"):
+            client = await db.clients.find_one({"id": current_user["client_id"]})
+            if client and client.get("formateur_id"):
+                formateur = await db.formateurs.find_one({"id": client["formateur_id"]})
+                if formateur:
+                    recipient_email = formateur.get("email")
+    
+    if recipient_email:
+        await send_ticketing_notification("MAIL", mail_record, current_user, recipient_email)
+    
+    return {"success": True, "id": request_id, "message": "Mail envoyé avec succès", "created_at": timestamp.isoformat()}
+
+# ========== ENDPOINT: RÉCUPÉRER LES DEMANDES ==========
+@api_router.get("/ticketing/requests")
+async def get_ticketing_requests(
+    category: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Récupérer les demandes de ticketing"""
+    
+    query = {}
+    
+    # Filtrer par catégorie si spécifié
+    if category:
+        query["category"] = category
+    
+    # Filtrer selon le rôle
+    if current_user.get("role") == "gestionnaire" and current_user.get("client_id"):
+        query["$or"] = [
+            {"client_id": current_user["client_id"]},
+            {"created_by_role": "teacher"}
+        ]
+    elif current_user.get("role") == "teacher":
+        query["created_by_user_id"] = current_user["id"]
+    
+    requests = await db.ticketing_requests.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return requests
+
+# ========== ENDPOINT: METTRE À JOUR LE STATUT D'UNE DEMANDE ==========
+@api_router.patch("/ticketing/requests/{request_id}/status")
+async def update_ticketing_request_status(
+    request_id: str,
+    status_update: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Mettre à jour le statut d'une demande"""
+    
+    new_status = status_update.get("status")
+    if not new_status:
+        raise HTTPException(status_code=400, detail="Statut requis")
+    
+    timestamp = datetime.now(timezone.utc)
+    
+    result = await db.ticketing_requests.update_one(
+        {"id": request_id},
+        {"$set": {"status": new_status, "updated_at": timestamp.isoformat()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Demande non trouvée")
+    
+    return {"success": True, "message": "Statut mis à jour", "updated_at": timestamp.isoformat()}
+
 # Include router
 app.include_router(api_router)
 
