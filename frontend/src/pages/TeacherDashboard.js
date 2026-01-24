@@ -4583,43 +4583,43 @@ export default function TeacherDashboard({ user, onLogout }) {
                       className="flex-1 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-6 text-white cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all flex flex-col justify-between"
                       data-testid={`ticketing-banner-${formateur.id}`}
                     >
-                      <div>
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="p-3 bg-white/20 rounded-lg">
-                            <MessageSquare className="w-8 h-8" />
-                          </div>
-                          <div>
-                            <h3 className="text-xl font-bold">Échanger avec {formateur.prenom}</h3>
-                            <p className="text-blue-200 text-sm">Communiquez avec ce centre de formation</p>
-                          </div>
+                      <div className="flex flex-col items-center text-center">
+                        <div className="p-4 bg-white/20 rounded-xl mb-4">
+                          <MessageSquare className="w-10 h-10" />
                         </div>
+                        <h3 className="text-2xl font-bold mb-2">Échanger avec ce centre</h3>
+                        <p className="text-blue-200 text-sm mb-6">Communiquez avec le centre de formation</p>
                         
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          <span className="flex items-center gap-1 text-xs bg-white/10 px-2 py-1 rounded-full">
-                            <div className="w-2 h-2 rounded-full bg-blue-300"></div>
+                        <div className="flex flex-wrap gap-3 justify-center mb-6">
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-blue-300"></div>
                             Salles
                           </span>
-                          <span className="flex items-center gap-1 text-xs bg-white/10 px-2 py-1 rounded-full">
-                            <div className="w-2 h-2 rounded-full bg-orange-300"></div>
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-orange-300"></div>
                             Matériel
                           </span>
-                          <span className="flex items-center gap-1 text-xs bg-white/10 px-2 py-1 rounded-full">
-                            <div className="w-2 h-2 rounded-full bg-purple-300"></div>
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-purple-300"></div>
                             Supports
                           </span>
-                          <span className="flex items-center gap-1 text-xs bg-white/10 px-2 py-1 rounded-full">
-                            <div className="w-2 h-2 rounded-full bg-green-300"></div>
-                            Planning
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-green-300"></div>
+                            Organisation
                           </span>
-                          <span className="flex items-center gap-1 text-xs bg-white/10 px-2 py-1 rounded-full">
-                            <div className="w-2 h-2 rounded-full bg-pink-300"></div>
-                            Logistique
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-pink-300"></div>
+                            Accueil
+                          </span>
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                            Autre
                           </span>
                         </div>
                       </div>
                       
-                      <button className="w-full px-4 py-2.5 bg-white text-blue-700 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
-                        <MessageSquare className="w-4 h-4" />
+                      <button className="w-full px-4 py-3 bg-white text-blue-700 rounded-lg font-bold text-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
+                        <MessageSquare className="w-5 h-5" />
                         Accéder aux échanges
                       </button>
                     </div>
