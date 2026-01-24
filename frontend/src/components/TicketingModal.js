@@ -8,20 +8,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  MessageSquare, Send, Building, Wrench, FileText, Calendar, Coffee, HelpCircle,
-  Clock, Plus, Trash2, Upload, Download, Mail, Users, MapPin, X
+  MessageSquare, Send, Building, Wrench, FileText, Calendar, Coffee, Mail,
+  Clock, Plus, Trash2, Upload, Download, Users, CheckCircle, XCircle, AlertCircle
 } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
 
 const CATEGORIES = [
-  { id: 'SALLES', label: 'Salles', icon: Building, color: 'bg-blue-500' },
-  { id: 'MATERIEL', label: 'Matériel', icon: Wrench, color: 'bg-orange-500' },
-  { id: 'SUPPORTS', label: 'Supports', icon: FileText, color: 'bg-purple-500' },
-  { id: 'ORGANISATION', label: 'Organisation', icon: Calendar, color: 'bg-green-500' },
-  { id: 'ACCUEIL', label: 'Accueil', icon: Coffee, color: 'bg-pink-500' },
-  { id: 'AUTRE', label: 'Autre', icon: HelpCircle, color: 'bg-gray-500' }
+  { id: 'SALLES', label: 'Salles', icon: Building, color: 'bg-blue-500', textColor: 'text-blue-600', bgLight: 'bg-blue-50', borderColor: 'border-blue-500' },
+  { id: 'MATERIEL', label: 'Matériel', icon: Wrench, color: 'bg-orange-500', textColor: 'text-orange-600', bgLight: 'bg-orange-50', borderColor: 'border-orange-500' },
+  { id: 'SUPPORTS', label: 'Supports', icon: FileText, color: 'bg-purple-500', textColor: 'text-purple-600', bgLight: 'bg-purple-50', borderColor: 'border-purple-500' },
+  { id: 'ORGANISATION', label: 'Organisation', icon: Calendar, color: 'bg-green-500', textColor: 'text-green-600', bgLight: 'bg-green-50', borderColor: 'border-green-500' },
+  { id: 'ACCUEIL', label: 'Accueil', icon: Coffee, color: 'bg-pink-500', textColor: 'text-pink-600', bgLight: 'bg-pink-50', borderColor: 'border-pink-500' },
+  { id: 'EMAIL', label: 'Email', icon: Mail, color: 'bg-gray-500', textColor: 'text-gray-600', bgLight: 'bg-gray-50', borderColor: 'border-gray-500' }
 ];
+
+const STATUS_CONFIG = {
+  EN_ATTENTE: { label: 'En cours', color: 'bg-orange-100 text-orange-800 border-orange-300', icon: AlertCircle, iconColor: 'text-orange-500' },
+  ACCEPTEE: { label: 'Validée', color: 'bg-green-100 text-green-800 border-green-300', icon: CheckCircle, iconColor: 'text-green-500' },
+  REFUSEE: { label: 'Refusée', color: 'bg-red-100 text-red-800 border-red-300', icon: XCircle, iconColor: 'text-red-500' },
+  ENVOYE: { label: 'Envoyé', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: Send, iconColor: 'text-blue-500' }
+};
 
 export default function TicketingModal({ open, onClose, userRole, userId, clientId }) {
   const [activeCategory, setActiveCategory] = useState('SALLES');
@@ -33,7 +40,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     lieu: '',
     centre: '',
     nombre_personnes: '',
-    type_reservation: 'journee', // journee ou demi_journee
+    type_reservation: 'journee',
     date_souhaitee: '',
     email_destinataire: '',
     commentaire: ''
@@ -47,7 +54,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
   const [documents, setDocuments] = useState([]);
   const [uploadingDoc, setUploadingDoc] = useState(false);
   
-  // Formulaire Autre - mail
+  // Formulaire Email
   const [mailForm, setMailForm] = useState({
     sujet: '',
     message: ''
@@ -62,7 +69,9 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
 
   const loadRequests = async () => {
     try {
-      const response = await axios.get(`${API}/ticketing/requests?category=${activeCategory}`);
+      // Adapter la catégorie pour le backend (EMAIL -> AUTRE)
+      const backendCategory = activeCategory === 'EMAIL' ? 'AUTRE' : activeCategory;
+      const response = await axios.get(`${API}/ticketing/requests?category=${backendCategory}`);
       setRequests(response.data || []);
     } catch (error) {
       console.error('Erreur chargement demandes:', error);
@@ -87,6 +96,37 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // ========== VALIDATION / REFUS ==========
+  const handleValidateRequest = async (requestId) => {
+    setLoading(true);
+    try {
+      await axios.patch(`${API}/ticketing/requests/${requestId}/status`, {
+        status: 'ACCEPTEE'
+      });
+      toast.success('Demande validée avec succès !');
+      loadRequests();
+    } catch (error) {
+      toast.error('Erreur lors de la validation');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefuseRequest = async (requestId) => {
+    setLoading(true);
+    try {
+      await axios.patch(`${API}/ticketing/requests/${requestId}/status`, {
+        status: 'REFUSEE'
+      });
+      toast.success('Demande refusée');
+      loadRequests();
+    } catch (error) {
+      toast.error('Erreur lors du refus');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ========== SALLES ==========
@@ -192,7 +232,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     }
   };
 
-  // ========== AUTRE (MAIL) ==========
+  // ========== EMAIL ==========
   const handleSendMail = async (e) => {
     e.preventDefault();
     if (!mailForm.sujet || !mailForm.message) {
@@ -203,7 +243,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     setLoading(true);
     try {
       await axios.post(`${API}/ticketing/mail`, mailForm);
-      toast.success('Mail envoyé avec succès !');
+      toast.success('Email envoyé avec succès !');
       setMailForm({ sujet: '', message: '' });
       loadRequests();
     } catch (error) {
@@ -213,8 +253,108 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     }
   };
 
-  // Historique des demandes pour la catégorie active
-  const categoryRequests = requests.filter(r => r.category === activeCategory);
+  // Composant pour afficher le statut
+  const StatusBadge = ({ status }) => {
+    const config = STATUS_CONFIG[status] || STATUS_CONFIG.EN_ATTENTE;
+    const Icon = config.icon;
+    return (
+      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${config.color}`}>
+        <Icon className={`w-3 h-3 ${config.iconColor}`} />
+        {config.label}
+      </span>
+    );
+  };
+
+  // Composant pour les boutons de validation (visible uniquement pour les gestionnaires)
+  const ValidationButtons = ({ request }) => {
+    if (userRole !== 'gestionnaire' || request.status !== 'EN_ATTENTE') return null;
+    
+    return (
+      <div className="flex gap-2 mt-3">
+        <Button
+          size="sm"
+          onClick={() => handleValidateRequest(request.id)}
+          className="bg-green-600 hover:bg-green-700 text-white"
+          disabled={loading}
+        >
+          <CheckCircle className="w-4 h-4 mr-1" />
+          Valider
+        </Button>
+        <Button
+          size="sm"
+          variant="destructive"
+          onClick={() => handleRefuseRequest(request.id)}
+          disabled={loading}
+        >
+          <XCircle className="w-4 h-4 mr-1" />
+          Refuser
+        </Button>
+      </div>
+    );
+  };
+
+  // Historique des demandes
+  const RequestHistory = ({ categoryFilter }) => {
+    const backendCategory = categoryFilter === 'EMAIL' ? 'AUTRE' : categoryFilter;
+    const categoryRequests = requests.filter(r => r.category === backendCategory);
+    
+    if (categoryRequests.length === 0) return null;
+    
+    const catConfig = CATEGORIES.find(c => c.id === categoryFilter);
+    
+    return (
+      <div className={`bg-white rounded-2xl border-2 ${catConfig?.borderColor || 'border-gray-200'} p-6 mt-6`}>
+        <h4 className={`font-bold ${catConfig?.textColor || 'text-gray-800'} mb-4 flex items-center gap-2`}>
+          <Clock className="w-5 h-5" />
+          Historique des demandes
+        </h4>
+        <div className="space-y-4">
+          {categoryRequests.map((req, idx) => (
+            <div key={req.id || idx} className="p-4 bg-gray-50 rounded-xl border hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  {/* Contenu selon le type */}
+                  {req.category === 'SALLES' && (
+                    <>
+                      <p className="font-semibold text-gray-900">{req.lieu} {req.centre && `- ${req.centre}`}</p>
+                      <p className="text-sm text-gray-600">{req.nombre_personnes} personnes • {req.type_reservation === 'journee' ? 'Journée' : 'Demi-journée'}</p>
+                      <p className="text-sm text-gray-500">Date souhaitée: {req.date_souhaitee}</p>
+                    </>
+                  )}
+                  {req.category === 'MATERIEL' && (
+                    <>
+                      <p className="font-semibold text-gray-900">
+                        {req.items?.map(i => `${i.nom} (x${i.quantite})`).join(', ')}
+                      </p>
+                      {req.commentaire && <p className="text-sm text-gray-600">{req.commentaire}</p>}
+                    </>
+                  )}
+                  {req.category === 'AUTRE' && (
+                    <>
+                      <p className="font-semibold text-gray-900">{req.sujet}</p>
+                      <p className="text-sm text-gray-600 line-clamp-2">{req.message}</p>
+                    </>
+                  )}
+                  
+                  <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    Créé le {formatDateTime(req.created_at)}
+                    {req.updated_at !== req.created_at && (
+                      <span className="ml-2">• Mis à jour le {formatDateTime(req.updated_at)}</span>
+                    )}
+                  </p>
+                  <p className="text-xs text-gray-400">Par: {req.created_by_name}</p>
+                </div>
+                <StatusBadge status={req.status} />
+              </div>
+              
+              <ValidationButtons request={req} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -230,23 +370,26 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
 
         <div className="flex-1 overflow-hidden flex flex-col min-h-0">
           <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex-1 flex flex-col min-h-0">
-            {/* Onglets des catégories */}
+            {/* Onglets des catégories avec icônes colorées */}
             <div className="border-b px-4 bg-gray-50 flex-shrink-0">
               <TabsList className="bg-transparent h-auto gap-2 flex-wrap justify-start py-4">
                 {CATEGORIES.map(cat => {
                   const Icon = cat.icon;
+                  const isActive = activeCategory === cat.id;
                   return (
                     <TabsTrigger
                       key={cat.id}
                       value={cat.id}
-                      className={`px-5 py-3 text-base font-semibold data-[state=active]:text-white rounded-xl border-2 border-transparent transition-all ${
-                        activeCategory === cat.id 
-                          ? `${cat.color} text-white shadow-lg` 
-                          : 'bg-white text-gray-700 hover:bg-gray-100 border-gray-200'
+                      className={`px-5 py-3 text-base font-semibold rounded-xl border-2 transition-all flex items-center gap-2 ${
+                        isActive 
+                          ? `${cat.color} text-white shadow-lg border-transparent` 
+                          : `bg-white ${cat.textColor} hover:${cat.bgLight} ${cat.borderColor}`
                       }`}
                       data-testid={`tab-${cat.id.toLowerCase()}`}
                     >
-                      <Icon className="w-5 h-5 mr-2" />
+                      <div className={`p-1 rounded-md ${isActive ? 'bg-white/20' : cat.bgLight}`}>
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-white' : cat.textColor}`} />
+                      </div>
                       {cat.label}
                     </TabsTrigger>
                   );
@@ -257,9 +400,11 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
             {/* ========== ONGLET SALLES ========== */}
             <TabsContent value="SALLES" className="flex-1 overflow-y-auto p-6 mt-0">
               <div className="max-w-3xl mx-auto">
-                <div className="bg-blue-50 rounded-2xl p-6 mb-6">
+                <div className="bg-blue-50 rounded-2xl p-6 border-2 border-blue-200">
                   <h3 className="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
-                    <Building className="w-6 h-6" />
+                    <div className="p-2 bg-blue-500 rounded-lg">
+                      <Building className="w-6 h-6 text-white" />
+                    </div>
                     Demande de réservation de salle
                   </h3>
                   
@@ -271,7 +416,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                           value={salleForm.lieu}
                           onChange={(e) => setSalleForm({...salleForm, lieu: e.target.value})}
                           placeholder="Ex: Paris, Lyon..."
-                          className="mt-1"
+                          className="mt-1 border-blue-200 focus:border-blue-500"
                           required
                         />
                       </div>
@@ -281,7 +426,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                           value={salleForm.centre}
                           onChange={(e) => setSalleForm({...salleForm, centre: e.target.value})}
                           placeholder="Nom du centre"
-                          className="mt-1"
+                          className="mt-1 border-blue-200 focus:border-blue-500"
                         />
                       </div>
                     </div>
@@ -295,7 +440,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                           value={salleForm.nombre_personnes}
                           onChange={(e) => setSalleForm({...salleForm, nombre_personnes: e.target.value})}
                           placeholder="Ex: 10"
-                          className="mt-1"
+                          className="mt-1 border-blue-200 focus:border-blue-500"
                           required
                         />
                       </div>
@@ -304,7 +449,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                         <select
                           value={salleForm.type_reservation}
                           onChange={(e) => setSalleForm({...salleForm, type_reservation: e.target.value})}
-                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md text-base"
+                          className="w-full mt-1 px-3 py-2 border border-blue-200 rounded-md text-base focus:border-blue-500 focus:ring-blue-500"
                         >
                           <option value="journee">Journée complète</option>
                           <option value="demi_journee_matin">Demi-journée (Matin)</option>
@@ -320,7 +465,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                           type="date"
                           value={salleForm.date_souhaitee}
                           onChange={(e) => setSalleForm({...salleForm, date_souhaitee: e.target.value})}
-                          className="mt-1"
+                          className="mt-1 border-blue-200 focus:border-blue-500"
                           required
                         />
                       </div>
@@ -331,7 +476,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                           value={salleForm.email_destinataire}
                           onChange={(e) => setSalleForm({...salleForm, email_destinataire: e.target.value})}
                           placeholder="email@exemple.com"
-                          className="mt-1"
+                          className="mt-1 border-blue-200 focus:border-blue-500"
                         />
                       </div>
                     </div>
@@ -342,7 +487,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                         value={salleForm.commentaire}
                         onChange={(e) => setSalleForm({...salleForm, commentaire: e.target.value})}
                         placeholder="Précisions supplémentaires..."
-                        className="mt-1 min-h-[80px]"
+                        className="mt-1 min-h-[80px] border-blue-200 focus:border-blue-500"
                       />
                     </div>
                     
@@ -358,60 +503,31 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                   </form>
                 </div>
 
-                {/* Historique des demandes de salles */}
-                {categoryRequests.length > 0 && (
-                  <div className="bg-white rounded-2xl border p-6">
-                    <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                      <Clock className="w-5 h-5" />
-                      Historique des demandes
-                    </h4>
-                    <div className="space-y-3">
-                      {categoryRequests.map((req, idx) => (
-                        <div key={req.id || idx} className="p-4 bg-gray-50 rounded-xl border">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-semibold text-gray-900">{req.lieu} - {req.centre || 'Non spécifié'}</p>
-                              <p className="text-sm text-gray-600">{req.nombre_personnes} personnes • {req.type_reservation === 'journee' ? 'Journée' : 'Demi-journée'}</p>
-                            </div>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              req.status === 'ACCEPTEE' ? 'bg-green-100 text-green-800' :
-                              req.status === 'REFUSEE' ? 'bg-red-100 text-red-800' :
-                              'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {req.status || 'En attente'}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formatDateTime(req.created_at)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <RequestHistory categoryFilter="SALLES" />
               </div>
             </TabsContent>
 
             {/* ========== ONGLET MATERIEL ========== */}
             <TabsContent value="MATERIEL" className="flex-1 overflow-y-auto p-6 mt-0">
               <div className="max-w-3xl mx-auto">
-                <div className="bg-orange-50 rounded-2xl p-6 mb-6">
+                <div className="bg-orange-50 rounded-2xl p-6 border-2 border-orange-200">
                   <h3 className="text-xl font-bold text-orange-900 mb-4 flex items-center gap-2">
-                    <Wrench className="w-6 h-6" />
+                    <div className="p-2 bg-orange-500 rounded-lg">
+                      <Wrench className="w-6 h-6 text-white" />
+                    </div>
                     Demande de matériel
                   </h3>
                   
                   <form onSubmit={handleSubmitMateriel} className="space-y-4">
                     <div className="space-y-3">
                       {materiels.map((mat, index) => (
-                        <div key={index} className="flex items-center gap-3 p-3 bg-white rounded-xl border">
+                        <div key={index} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-orange-200">
                           <div className="flex-1">
                             <Input
                               value={mat.nom}
                               onChange={(e) => updateMateriel(index, 'nom', e.target.value)}
                               placeholder="Nom du matériel"
-                              className="border-orange-200 focus:border-orange-400"
+                              className="border-orange-200 focus:border-orange-500"
                             />
                           </div>
                           <div className="w-24">
@@ -420,7 +536,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                               min="1"
                               value={mat.quantite}
                               onChange={(e) => updateMateriel(index, 'quantite', parseInt(e.target.value) || 1)}
-                              className="border-orange-200 focus:border-orange-400 text-center"
+                              className="border-orange-200 focus:border-orange-500 text-center"
                             />
                           </div>
                           <span className="text-sm text-gray-500 w-12">unité(s)</span>
@@ -456,7 +572,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                         value={materielCommentaire}
                         onChange={(e) => setMaterielCommentaire(e.target.value)}
                         placeholder="Précisions sur votre demande..."
-                        className="mt-1 min-h-[80px]"
+                        className="mt-1 min-h-[80px] border-orange-200 focus:border-orange-500"
                       />
                     </div>
                     
@@ -472,49 +588,18 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                   </form>
                 </div>
 
-                {/* Historique des demandes de matériel */}
-                {categoryRequests.length > 0 && (
-                  <div className="bg-white rounded-2xl border p-6">
-                    <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                      <Clock className="w-5 h-5" />
-                      Historique des demandes
-                    </h4>
-                    <div className="space-y-3">
-                      {categoryRequests.map((req, idx) => (
-                        <div key={req.id || idx} className="p-4 bg-gray-50 rounded-xl border">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-semibold text-gray-900">
-                                {req.items?.map(i => `${i.nom} (x${i.quantite})`).join(', ')}
-                              </p>
-                              {req.commentaire && <p className="text-sm text-gray-600">{req.commentaire}</p>}
-                            </div>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              req.status === 'ACCEPTEE' ? 'bg-green-100 text-green-800' :
-                              req.status === 'REFUSEE' ? 'bg-red-100 text-red-800' :
-                              'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {req.status || 'En attente'}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formatDateTime(req.created_at)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <RequestHistory categoryFilter="MATERIEL" />
               </div>
             </TabsContent>
 
             {/* ========== ONGLET SUPPORTS ========== */}
             <TabsContent value="SUPPORTS" className="flex-1 overflow-y-auto p-6 mt-0">
               <div className="max-w-3xl mx-auto">
-                <div className="bg-purple-50 rounded-2xl p-6 mb-6">
+                <div className="bg-purple-50 rounded-2xl p-6 border-2 border-purple-200">
                   <h3 className="text-xl font-bold text-purple-900 mb-4 flex items-center gap-2">
-                    <FileText className="w-6 h-6" />
+                    <div className="p-2 bg-purple-500 rounded-lg">
+                      <FileText className="w-6 h-6 text-white" />
+                    </div>
                     Documents & Supports
                   </h3>
                   
@@ -548,7 +633,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                       <p className="text-gray-500 text-center py-4">Aucun document pour le moment</p>
                     ) : (
                       documents.map((doc, idx) => (
-                        <div key={doc.id || idx} className="flex items-center justify-between p-4 bg-white rounded-xl border hover:shadow-md transition-shadow">
+                        <div key={doc.id || idx} className="flex items-center justify-between p-4 bg-white rounded-xl border border-purple-200 hover:shadow-md transition-shadow">
                           <div className="flex items-center gap-3">
                             <div className="p-2 bg-purple-100 rounded-lg">
                               <FileText className="w-5 h-5 text-purple-600" />
@@ -580,8 +665,10 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
             {/* ========== ONGLET ORGANISATION ========== */}
             <TabsContent value="ORGANISATION" className="flex-1 overflow-y-auto p-6 mt-0">
               <div className="max-w-3xl mx-auto">
-                <div className="bg-green-50 rounded-2xl p-12 text-center">
-                  <Calendar className="w-20 h-20 mx-auto text-green-300 mb-6" />
+                <div className="bg-green-50 rounded-2xl p-12 text-center border-2 border-green-200">
+                  <div className="p-4 bg-green-500 rounded-2xl w-fit mx-auto mb-6">
+                    <Calendar className="w-16 h-16 text-white" />
+                  </div>
                   <h3 className="text-2xl font-bold text-green-900 mb-4">Organisation / Planning</h3>
                   <p className="text-green-700 text-lg mb-2">Section bientôt disponible</p>
                   <p className="text-green-600 text-sm">
@@ -594,8 +681,10 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
             {/* ========== ONGLET ACCUEIL ========== */}
             <TabsContent value="ACCUEIL" className="flex-1 overflow-y-auto p-6 mt-0">
               <div className="max-w-3xl mx-auto">
-                <div className="bg-pink-50 rounded-2xl p-12 text-center">
-                  <Coffee className="w-20 h-20 mx-auto text-pink-300 mb-6" />
+                <div className="bg-pink-50 rounded-2xl p-12 text-center border-2 border-pink-200">
+                  <div className="p-4 bg-pink-500 rounded-2xl w-fit mx-auto mb-6">
+                    <Coffee className="w-16 h-16 text-white" />
+                  </div>
                   <h3 className="text-2xl font-bold text-pink-900 mb-4">Accueil / Logistique</h3>
                   <p className="text-pink-700 text-lg mb-2">Section bientôt disponible</p>
                   <p className="text-pink-600 text-sm">
@@ -605,13 +694,15 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
               </div>
             </TabsContent>
 
-            {/* ========== ONGLET AUTRE ========== */}
-            <TabsContent value="AUTRE" className="flex-1 overflow-y-auto p-6 mt-0">
+            {/* ========== ONGLET EMAIL ========== */}
+            <TabsContent value="EMAIL" className="flex-1 overflow-y-auto p-6 mt-0">
               <div className="max-w-3xl mx-auto">
-                <div className="bg-gray-50 rounded-2xl p-6 mb-6">
+                <div className="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200">
                   <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Mail className="w-6 h-6" />
-                    {userRole === 'teacher' ? 'Envoyer un mail au centre' : 'Envoyer un mail au formateur'}
+                    <div className="p-2 bg-gray-500 rounded-lg">
+                      <Mail className="w-6 h-6 text-white" />
+                    </div>
+                    {userRole === 'teacher' ? 'Envoyer un email au centre' : 'Envoyer un email au formateur'}
                   </h3>
                   
                   <form onSubmit={handleSendMail} className="space-y-4">
@@ -621,7 +712,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                         value={mailForm.sujet}
                         onChange={(e) => setMailForm({...mailForm, sujet: e.target.value})}
                         placeholder="Objet de votre message"
-                        className="mt-1"
+                        className="mt-1 border-gray-300 focus:border-gray-500"
                         required
                       />
                     </div>
@@ -632,7 +723,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                         value={mailForm.message}
                         onChange={(e) => setMailForm({...mailForm, message: e.target.value})}
                         placeholder="Écrivez votre message ici..."
-                        className="mt-1 min-h-[200px]"
+                        className="mt-1 min-h-[200px] border-gray-300 focus:border-gray-500"
                         required
                       />
                     </div>
@@ -644,32 +735,12 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                       data-testid="submit-mail-btn"
                     >
                       <Send className="w-5 h-5 mr-2" />
-                      Envoyer le mail
+                      Envoyer l'email
                     </Button>
                   </form>
                 </div>
 
-                {/* Historique des mails */}
-                {categoryRequests.length > 0 && (
-                  <div className="bg-white rounded-2xl border p-6">
-                    <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                      <Clock className="w-5 h-5" />
-                      Historique des messages
-                    </h4>
-                    <div className="space-y-3">
-                      {categoryRequests.map((req, idx) => (
-                        <div key={req.id || idx} className="p-4 bg-gray-50 rounded-xl border">
-                          <p className="font-semibold text-gray-900">{req.sujet}</p>
-                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{req.message}</p>
-                          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formatDateTime(req.created_at)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <RequestHistory categoryFilter="EMAIL" />
               </div>
             </TabsContent>
           </Tabs>
