@@ -412,7 +412,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                       </div>
                       <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setShowCreateStudent(false)}>Annuler</Button>
-                        <Button type="submit" style={{ backgroundColor: TERCIFORM_BLUE }} className="text-white">Créer l'élève</Button>
+                        <Button type="submit" style={{ backgroundColor: TERCIFORM_BLUE }} className="text-white">Créer un élève</Button>
                       </DialogFooter>
                     </form>
                   </DialogContent>
@@ -924,7 +924,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                 Votre programme de fidélité bientôt disponible !
               </p>
               <p className="text-sm text-gray-400">
-                Gagnez des points et profitez d'avantages exclusifs.
+                Gagnez des points et profitez d&apos;avantages exclusifs.
               </p>
             </div>
           </TabsContent>
@@ -988,7 +988,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                   <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                     <p className="text-orange-700 font-medium flex items-center gap-2">
                       <Clock className="w-5 h-5" />
-                      En attente d'émargement
+                      En attente d&apos;émargement
                     </p>
                   </div>
                 )}
