@@ -717,51 +717,11 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               <p className="text-sm text-gray-500">Les formateurs associés à votre centre</p>
             </div>
 
-            {/* Bandeau d'accès au ticketing - toujours visible */}
-            <div 
-              onClick={() => setShowTicketingModal(true)}
-              className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl shadow-xl p-6 text-white cursor-pointer hover:shadow-2xl hover:scale-[1.01] transition-all"
-              data-testid="ticketing-global-banner"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-4 bg-white/20 rounded-xl">
-                    <MessageSquare className="w-10 h-10" />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold">Mes échanges formateur</h3>
-                    <p className="text-blue-200 text-sm mt-1">Gérez les demandes des formateurs (salles, matériel, supports...)</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <div className="flex gap-2">
-                    <span className="flex items-center gap-1 text-sm bg-white/10 px-3 py-1.5 rounded-full">
-                      <div className="w-2 h-2 rounded-full bg-blue-300"></div>
-                      Salles
-                    </span>
-                    <span className="flex items-center gap-1 text-sm bg-white/10 px-3 py-1.5 rounded-full">
-                      <div className="w-2 h-2 rounded-full bg-orange-300"></div>
-                      Matériel
-                    </span>
-                    <span className="flex items-center gap-1 text-sm bg-white/10 px-3 py-1.5 rounded-full">
-                      <div className="w-2 h-2 rounded-full bg-purple-300"></div>
-                      Supports
-                    </span>
-                  </div>
-                  
-                  <button className="px-6 py-3 bg-white text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-colors flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5" />
-                    Accéder aux demandes
-                  </button>
-                </div>
-              </div>
-            </div>
-
             {formateurs.length === 0 ? (
               <div className="text-center py-16 bg-white rounded-2xl shadow-lg">
                 <PenTool className="w-20 h-20 mx-auto text-amber-200 mb-4" />
                 <p className="text-gray-500 text-lg">Aucun formateur assigné pour le moment</p>
+                <p className="text-gray-400 text-sm mt-2">Les demandes de vos formateurs apparaîtront ici</p>
               </div>
             ) : (
               <div className="space-y-6">
