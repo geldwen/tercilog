@@ -4763,7 +4763,10 @@ export default function TeacherDashboard({ user, onLogout }) {
 
                     {/* Bandeau d'échange à côté de la carte client */}
                     <div 
-                      onClick={() => setShowTicketingModal(true)}
+                      onClick={() => {
+                        setTicketingClient(client);
+                        setShowTicketingModal(true);
+                      }}
                       className="flex-1 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-6 text-white cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all flex flex-col justify-between"
                       data-testid={`ticketing-banner-${client.id}`}
                     >
