@@ -312,13 +312,13 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                 </div>
 
                 {CATEGORIES.map(cat => (
-                  <TabsContent key={cat.id} value={cat.id} className="flex-1 flex flex-col mt-0 overflow-hidden">
+                  <TabsContent key={cat.id} value={cat.id} className="flex-1 flex flex-col mt-0 overflow-hidden min-h-0">
                     {/* Formulaire création ou bouton */}
-                    <div className="p-4 border-b bg-blue-50">
+                    <div className="p-4 border-b bg-blue-50 flex-shrink-0">
                       {showCreateForm ? (
                         <form onSubmit={handleCreateTicket} className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-semibold text-gray-800">Créer une demande</h4>
+                            <h4 className="font-semibold text-gray-800 text-lg">Créer une demande</h4>
                             <Button type="button" variant="ghost" size="sm" onClick={() => setShowCreateForm(false)}>
                               Annuler
                             </Button>
