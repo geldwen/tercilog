@@ -699,7 +699,7 @@ async def send_session_reminders():
     </p>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://teachportal-12.emergent.host" style="display: inline-block; background-color: #1E3A5F; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+      <a href="{portal_url}" style="display: inline-block; background-color: #1E3A5F; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
         Accéder à mon espace élève
       </a>
     </div>
