@@ -5882,7 +5882,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <FileText className="w-5 h-5" />
                 Documents
               </h3>
-              <p className="text-sm text-gray-500 mb-4">Uploadez de nouveaux fichiers pour les remplacer. Formats acceptés: PDF uniquement.</p>
+              <p className="text-sm text-gray-500 mb-4">Uploadez de nouveaux fichiers pour les remplacer. Les documents existants seront conservés si vous n'uploadez pas de nouveau fichier.</p>
               <div className="grid grid-cols-1 gap-4">
                 {/* CV */}
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -5894,8 +5894,20 @@ export default function TeacherDashboard({ user, onLogout }) {
                       <div>
                         <p className="font-medium text-gray-800">CV</p>
                         <p className="text-sm text-gray-500">
-                          {formateurForm.cvName || 'Aucun fichier'}
+                          {formateurForm.cv ? formateurForm.cv.name : formateurForm.cvName || 'Aucun fichier'}
                         </p>
+                        {/* Lien pour voir le CV existant */}
+                        {editingFormateur?.cv_url && !formateurForm.cv && (
+                          <a 
+                            href={`${BACKEND_URL}${editingFormateur.cv_url}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-1"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Voir le CV actuel
+                          </a>
+                        )}
                       </div>
                     </div>
                     <label className="cursor-pointer">
@@ -5910,7 +5922,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                       />
                       <span className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                         <Upload className="w-4 h-4 mr-2" />
-                        {formateurForm.cv ? 'Remplacer' : 'Choisir'}
+                        {formateurForm.cv ? 'Remplacer' : editingFormateur?.cv_url ? 'Remplacer' : 'Choisir'}
                       </span>
                     </label>
                   </div>
@@ -5926,8 +5938,20 @@ export default function TeacherDashboard({ user, onLogout }) {
                       <div>
                         <p className="font-medium text-gray-800">Diplôme 1</p>
                         <p className="text-sm text-gray-500">
-                          {formateurForm.diplome1Name || 'Aucun fichier'}
+                          {formateurForm.diplome1 ? formateurForm.diplome1.name : formateurForm.diplome1Name || 'Aucun fichier'}
                         </p>
+                        {/* Lien pour voir le diplôme 1 existant */}
+                        {editingFormateur?.diplome1_url && !formateurForm.diplome1 && (
+                          <a 
+                            href={`${BACKEND_URL}${editingFormateur.diplome1_url}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-green-600 hover:underline flex items-center gap-1 mt-1"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Voir le diplôme actuel
+                          </a>
+                        )}
                       </div>
                     </div>
                     <label className="cursor-pointer">
@@ -5942,7 +5966,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                       />
                       <span className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                         <Upload className="w-4 h-4 mr-2" />
-                        {formateurForm.diplome1 ? 'Remplacer' : 'Choisir'}
+                        {formateurForm.diplome1 ? 'Remplacer' : editingFormateur?.diplome1_url ? 'Remplacer' : 'Choisir'}
                       </span>
                     </label>
                   </div>
@@ -5958,8 +5982,20 @@ export default function TeacherDashboard({ user, onLogout }) {
                       <div>
                         <p className="font-medium text-gray-800">Diplôme 2</p>
                         <p className="text-sm text-gray-500">
-                          {formateurForm.diplome2Name || 'Aucun fichier'}
+                          {formateurForm.diplome2 ? formateurForm.diplome2.name : formateurForm.diplome2Name || 'Aucun fichier'}
                         </p>
+                        {/* Lien pour voir le diplôme 2 existant */}
+                        {editingFormateur?.diplome2_url && !formateurForm.diplome2 && (
+                          <a 
+                            href={`${BACKEND_URL}${editingFormateur.diplome2_url}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-green-600 hover:underline flex items-center gap-1 mt-1"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Voir le diplôme actuel
+                          </a>
+                        )}
                       </div>
                     </div>
                     <label className="cursor-pointer">
@@ -5974,7 +6010,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                       />
                       <span className="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                         <Upload className="w-4 h-4 mr-2" />
-                        {formateurForm.diplome2 ? 'Remplacer' : 'Choisir'}
+                        {formateurForm.diplome2 ? 'Remplacer' : editingFormateur?.diplome2_url ? 'Remplacer' : 'Choisir'}
                       </span>
                     </label>
                   </div>
