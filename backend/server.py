@@ -11987,7 +11987,7 @@ async def send_ticketing_notification(
 
 # ========== ENDPOINT: DEMANDE DE SALLE ==========
 @api_router.post("/ticketing/salles")
-async def create_salle_request(request: SalleRequest, current_user: dict = Depends(get_current_user)):
+async def create_salle_request(request: SalleRequest, current_user: User = Depends(get_current_user)):
     """Créer une demande de réservation de salle"""
     
     request_id = str(uuid.uuid4())
@@ -12004,10 +12004,10 @@ async def create_salle_request(request: SalleRequest, current_user: dict = Depen
         "email_destinataire": request.email_destinataire,
         "commentaire": request.commentaire,
         "status": "EN_ATTENTE",
-        "created_by_user_id": current_user["id"],
-        "created_by_name": current_user.get("name", "Utilisateur"),
-        "created_by_role": current_user.get("role", "teacher"),
-        "client_id": current_user.get("client_id"),
+        "created_by_user_id": current_user.id,
+        "created_by_name": current_user.name or "Utilisateur",
+        "created_by_role": current_user.role or "teacher",
+        "client_id": current_user.client_id,
         "created_at": timestamp.isoformat(),
         "updated_at": timestamp.isoformat()
     }
@@ -12018,13 +12018,14 @@ async def create_salle_request(request: SalleRequest, current_user: dict = Depen
     recipient_email = request.email_destinataire
     if not recipient_email:
         # Chercher l'email du gestionnaire si c'est un formateur qui demande
-        if current_user.get("role") == "teacher" and current_user.get("client_id"):
-            client = await db.clients.find_one({"id": current_user["client_id"]})
+        if current_user.role == "teacher" and current_user.client_id:
+            client = await db.clients.find_one({"id": current_user.client_id})
             if client:
                 recipient_email = client.get("email_gestionnaire") or client.get("email_responsable")
     
     if recipient_email:
-        await send_ticketing_notification("SALLES", salle_request, current_user, recipient_email)
+        user_dict = {"id": current_user.id, "name": current_user.name, "role": current_user.role, "client_id": current_user.client_id}
+        await send_ticketing_notification("SALLES", salle_request, user_dict, recipient_email)
     
     return {"success": True, "id": request_id, "message": "Demande de salle créée avec succès", "created_at": timestamp.isoformat()}
 
