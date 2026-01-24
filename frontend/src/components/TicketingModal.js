@@ -322,7 +322,10 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
             <div className="p-2 bg-white/20 rounded-lg">
               <MessageSquare className="w-6 h-6" />
             </div>
-            {isAdmin ? 'Mes échanges centre' : 'Demandes des formateurs'}
+            {isAdmin 
+              ? (clientName ? `Échanger avec ${clientName}` : 'Mes échanges centre')
+              : 'Demandes des formateurs'
+            }
           </DialogTitle>
         </DialogHeader>
 
