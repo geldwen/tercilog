@@ -81,19 +81,15 @@ android-sdk/ -e
 # Environment files - COMMENTED FOR DEPLOYMENT
 # *.env
 # *.env.*
--e 
 # Environment files - COMMENTED FOR DEPLOYMENT
 # *.env
 # *.env.*
--e 
 # Environment files - COMMENTED FOR DEPLOYMENT
 # *.env
 # *.env.*
--e 
 # Environment files - COMMENTED FOR DEPLOYMENT
 # *.env
 # *.env.*
--e 
 # Environment files - COMMENTED FOR DEPLOYMENT
 # *.env
 # *.env.*
@@ -117,14 +113,11 @@ frontend/node_modules/.cache/default-development/16.pack
 frontend/node_modules/.cache/default-development/18.pack
 frontend/node_modules/.cache/default-development/17.pack
 frontend/node_modules/.cache/default-development/19.pack
--e
 frontend/node_modules/.cache/default-development/20.pack
 frontend/node_modules/.cache/default-development/21.pack
--e 
 # Environment files - DO NOT block .env files (required for Emergent deployment)
 # *.env
 # *.env.*
--e 
 # Environment files - DO NOT block .env files (required for Emergent deployment)
 # *.env
 # *.env.*
