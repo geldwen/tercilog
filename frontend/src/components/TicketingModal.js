@@ -30,7 +30,7 @@ const STATUS_CONFIG = {
   ENVOYE: { label: 'Envoyé', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: Send, iconColor: 'text-blue-500' }
 };
 
-export default function TicketingModal({ open, onClose, userRole, userId, clientId }) {
+export default function TicketingModal({ open, onClose, userRole, userId, clientId, clientName }) {
   const [activeCategory, setActiveCategory] = useState('SALLES');
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState([]);
