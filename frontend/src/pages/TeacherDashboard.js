@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Trash2, Mail, Edit, PenTool, FileText, FileCheck, CalendarDays, Euro, FolderOpen, Download, MoreVertical, Video, Search, Monitor, School, Smile, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Phone, Award, Upload, X, Building, MessageSquare } from "lucide-react";
+import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Trash2, Mail, Edit, PenTool, FileText, FileCheck, CalendarDays, Euro, FolderOpen, Download, MoreVertical, Video, Search, Monitor, School, Smile, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Phone, Award, Upload, X, Building, MessageSquare, ExternalLink } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import PlanningView from "@/components/PlanningView";
 import BillingView from "@/components/BillingView";
