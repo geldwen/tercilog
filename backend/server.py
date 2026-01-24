@@ -12072,7 +12072,7 @@ async def create_materiel_request(request: MaterielRequest, current_user: User =
 @api_router.post("/ticketing/documents")
 async def upload_ticketing_document(
     file: UploadFile = FastAPIFile(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Téléverser un document pour le ticketing"""
     
@@ -12099,10 +12099,10 @@ async def upload_ticketing_document(
         "file_path": str(file_path),
         "content_type": file.content_type,
         "size": len(content),
-        "uploaded_by_user_id": current_user["id"],
-        "uploaded_by_name": current_user.get("name", "Utilisateur"),
-        "uploaded_by_role": current_user.get("role", "teacher"),
-        "client_id": current_user.get("client_id"),
+        "uploaded_by_user_id": current_user.id,
+        "uploaded_by_name": current_user.name or "Utilisateur",
+        "uploaded_by_role": current_user.role or "teacher",
+        "client_id": current_user.client_id,
         "created_at": timestamp.isoformat()
     }
     
@@ -12111,19 +12111,19 @@ async def upload_ticketing_document(
     return {"success": True, "id": doc_id, "filename": file.filename, "created_at": timestamp.isoformat()}
 
 @api_router.get("/ticketing/documents")
-async def get_ticketing_documents(current_user: dict = Depends(get_current_user)):
+async def get_ticketing_documents(current_user: User = Depends(get_current_user)):
     """Récupérer les documents de ticketing"""
     
     # Récupérer les documents accessibles par l'utilisateur
     query = {}
     
-    if current_user.get("role") == "gestionnaire" and current_user.get("client_id"):
+    if current_user.role == "gestionnaire" and current_user.client_id:
         # Les gestionnaires voient les docs de leur centre + ceux des formateurs
         query["$or"] = [
-            {"client_id": current_user["client_id"]},
+            {"client_id": current_user.client_id},
             {"uploaded_by_role": "teacher"}
         ]
-    elif current_user.get("role") == "teacher":
+    elif current_user.role == "teacher":
         # Les formateurs voient tous les docs
         pass
     
