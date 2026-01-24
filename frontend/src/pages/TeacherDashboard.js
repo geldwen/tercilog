@@ -7101,10 +7101,14 @@ export default function TeacherDashboard({ user, onLogout }) {
       {/* Modal Ticketing - Mes demandes centre */}
       <TicketingModal
         open={showTicketingModal}
-        onClose={() => setShowTicketingModal(false)}
+        onClose={() => {
+          setShowTicketingModal(false);
+          setTicketingClient(null);
+        }}
         userRole="teacher"
         userId={user?.id}
-        clientId={null}
+        clientId={ticketingClient?.id}
+        clientName={ticketingClient?.nom_centre}
       />
     </div>
   );
