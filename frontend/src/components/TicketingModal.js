@@ -195,8 +195,8 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="p-6 pb-0">
+      <DialogContent className="max-w-6xl w-[95vw] h-[85vh] overflow-hidden flex flex-col p-0">
+        <DialogHeader className="p-6 pb-4 border-b flex-shrink-0">
           <DialogTitle className="flex items-center gap-3 text-xl">
             <div className="p-2 bg-blue-100 rounded-lg">
               <MessageSquare className="w-6 h-6 text-blue-600" />
@@ -205,7 +205,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex">
+        <div className="flex-1 overflow-hidden flex min-h-0">
           {/* Vue détail d'un ticket */}
           {selectedTicket ? (
             <div className="flex-1 flex flex-col">
