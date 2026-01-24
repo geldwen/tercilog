@@ -4430,13 +4430,11 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Grille des formateurs */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredFormateurs.map((formateur) => (
-                    <div 
-                      key={formateur.id} 
-                      className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow relative"
-                    >
+                {/* Liste des formateurs avec bandeau à côté */}
+                {filteredFormateurs.map((formateur) => (
+                  <div key={formateur.id} className="flex gap-4">
+                    {/* Fiche Formateur */}
+                    <div className="w-96 flex-shrink-0 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow">
                       {/* En-tête de la fiche */}
                       <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-4">
                         <div className="flex items-center gap-4">
