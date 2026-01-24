@@ -398,13 +398,13 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                     </div>
 
                     {/* Filtres */}
-                    <div className="p-4 border-b bg-gray-50 flex flex-wrap items-center gap-3">
+                    <div className="p-4 border-b bg-gray-50 flex flex-wrap items-center gap-3 flex-shrink-0">
                       <div className="flex items-center gap-2">
                         <Filter className="w-4 h-4 text-gray-400" />
                         <select
                           value={statusFilter}
                           onChange={(e) => setStatusFilter(e.target.value)}
-                          className="px-3 py-1.5 border border-gray-300 rounded-md text-sm bg-white"
+                          className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
                         >
                           <option value="all">Tous les statuts</option>
                           <option value="EN_ATTENTE">En attente</option>
@@ -417,7 +417,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                       <select
                         value={directionFilter}
                         onChange={(e) => setDirectionFilter(e.target.value)}
-                        className="px-3 py-1.5 border border-gray-300 rounded-md text-sm bg-white"
+                        className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
                       >
                         <option value="all">Toutes</option>
                         <option value="sent">Envoyées</option>
