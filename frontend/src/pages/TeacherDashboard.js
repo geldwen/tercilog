@@ -4579,24 +4579,22 @@ export default function TeacherDashboard({ user, onLogout }) {
                     </div>
                   </div>
                 ))}
-                  </div>
                 </div>
 
                 {/* Bandeau "Mes échanges centre" - horizontal en bas */}
-                <div className="col-span-full mt-6">
-                  <div 
-                    onClick={() => setShowTicketingModal(true)}
-                    className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl shadow-xl p-6 text-white cursor-pointer hover:shadow-2xl hover:scale-[1.01] transition-all flex items-center gap-8"
-                  >
-                    <div className="flex items-center gap-4 flex-shrink-0">
-                      <div className="p-4 bg-white/20 rounded-xl">
-                        <MessageSquare className="w-10 h-10" />
-                      </div>
-                      <div>
-                        <h3 className="text-2xl font-bold">Mes échanges centre</h3>
-                        <p className="text-blue-200 text-sm mt-1">Gérez vos demandes avec les centres de formation</p>
-                      </div>
+                <div 
+                  onClick={() => setShowTicketingModal(true)}
+                  className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl shadow-xl p-6 text-white cursor-pointer hover:shadow-2xl hover:scale-[1.01] transition-all flex items-center gap-8"
+                >
+                  <div className="flex items-center gap-4 flex-shrink-0">
+                    <div className="p-4 bg-white/20 rounded-xl">
+                      <MessageSquare className="w-10 h-10" />
                     </div>
+                    <div>
+                      <h3 className="text-2xl font-bold">Mes échanges centre</h3>
+                      <p className="text-blue-200 text-sm mt-1">Gérez vos demandes avec les centres de formation</p>
+                    </div>
+                  </div>
                     
                     <div className="flex-1 flex items-center gap-6 justify-center">
                       <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
