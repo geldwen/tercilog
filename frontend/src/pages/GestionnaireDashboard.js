@@ -227,8 +227,28 @@ export default function GestionnaireDashboard({ user, onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* DEPLOYMENT TEST MARKER - DELETE AFTER VERIFICATION */}
+      <div 
+        data-testid="deploy-test-marker-gestionnaire"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: '#dc2626',
+          color: 'white',
+          padding: '12px',
+          textAlign: 'center',
+          fontSize: '18px',
+          fontWeight: 'bold',
+          zIndex: 9999,
+          boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+        }}
+      >
+        🔴 TEST DEPLOY V3 - ESPACE GESTION - {new Date().toLocaleDateString('fr-FR')} 🔴
+      </div>
       {/* Header identique à l'admin */}
-      <header className="text-white shadow-lg" style={{ backgroundColor: TERCIFORM_BLUE }}>
+      <header className="text-white shadow-lg" style={{ backgroundColor: TERCIFORM_BLUE, marginTop: '48px' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
