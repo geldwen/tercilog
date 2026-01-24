@@ -5394,7 +5394,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                   </label>
                   {formateurForm.photo && (
                     <span className="text-sm text-green-600 font-medium">{formateurForm.photo.name}</span>
-                  )}}
+                  )}
                 </div>
               </div>
             </div>
