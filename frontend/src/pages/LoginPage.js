@@ -40,27 +40,7 @@ export default function LoginPage({ onLogin }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-      {/* DEPLOYMENT TEST MARKER - DELETE AFTER VERIFICATION */}
-      <div 
-        data-testid="deploy-test-marker"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: '#dc2626',
-          color: 'white',
-          padding: '12px',
-          textAlign: 'center',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          zIndex: 9999,
-          boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-        }}
-      >
-        🔴 TEST DEPLOY V3 - VERSION DU {new Date().toLocaleDateString('fr-FR')} 🔴
-      </div>
-      <div className="w-full max-w-md animate-fade-in" style={{ marginTop: '60px' }}>
+      <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
           <img 
             src="https://customer-assets.emergentagent.com/job_f0bae013-d5d3-4906-a078-392b9e03aa37/artifacts/tiidl44l_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png"
