@@ -290,20 +290,20 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
             </div>
           ) : (
             /* Liste des tickets */
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
               {/* Onglets catégories */}
-              <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex-1 flex flex-col">
-                <div className="border-b px-4">
-                  <TabsList className="bg-transparent h-auto gap-1 flex-wrap justify-start py-2">
+              <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex-1 flex flex-col min-h-0">
+                <div className="border-b px-4 flex-shrink-0">
+                  <TabsList className="bg-transparent h-auto gap-1 flex-wrap justify-start py-3">
                     {CATEGORIES.map(cat => {
                       const Icon = cat.icon;
                       return (
                         <TabsTrigger
                           key={cat.id}
                           value={cat.id}
-                          className="px-3 py-2 text-xs data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 rounded-lg"
+                          className="px-4 py-2.5 text-sm font-medium data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 rounded-lg border border-transparent data-[state=active]:border-blue-200"
                         >
-                          <Icon className="w-4 h-4 mr-1" />
+                          <Icon className="w-4 h-4 mr-2" />
                           {cat.label}
                         </TabsTrigger>
                       );
