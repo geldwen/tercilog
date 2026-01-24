@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   MessageSquare, Send, Building, Wrench, FileText, Calendar, Coffee, Mail,
-  Clock, Plus, Trash2, Upload, Download, Users, CheckCircle, XCircle, AlertCircle
+  Clock, Plus, Trash2, Upload, Download, CheckCircle, XCircle, AlertCircle, Inbox
 } from "lucide-react";
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
@@ -35,7 +35,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState([]);
   
-  // Formulaire Salles
+  // Formulaire Salles (Admin seulement)
   const [salleForm, setSalleForm] = useState({
     lieu: '',
     centre: '',
@@ -46,11 +46,11 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     commentaire: ''
   });
   
-  // Formulaire Matériel
+  // Formulaire Matériel (Admin seulement)
   const [materiels, setMateriels] = useState([{ nom: '', quantite: 1 }]);
   const [materielCommentaire, setMaterielCommentaire] = useState('');
   
-  // Formulaire Supports - documents
+  // Documents
   const [documents, setDocuments] = useState([]);
   const [uploadingDoc, setUploadingDoc] = useState(false);
   
@@ -59,6 +59,9 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     sujet: '',
     message: ''
   });
+
+  const isAdmin = userRole === 'teacher';
+  const isGestionnaire = userRole === 'gestionnaire';
 
   useEffect(() => {
     if (open) {
@@ -69,7 +72,6 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
 
   const loadRequests = async () => {
     try {
-      // Adapter la catégorie pour le backend (EMAIL -> AUTRE)
       const backendCategory = activeCategory === 'EMAIL' ? 'AUTRE' : activeCategory;
       const response = await axios.get(`${API}/ticketing/requests?category=${backendCategory}`);
       setRequests(response.data || []);
@@ -89,7 +91,20 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
 
   const formatDateTime = (dateStr) => {
     if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString('fr-FR', {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatDateTimeShort = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -98,7 +113,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     });
   };
 
-  // ========== VALIDATION / REFUS ==========
+  // ========== VALIDATION / REFUS (Gestionnaire seulement) ==========
   const handleValidateRequest = async (requestId) => {
     setLoading(true);
     try {
@@ -129,7 +144,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     }
   };
 
-  // ========== SALLES ==========
+  // ========== SALLES (Admin seulement) ==========
   const handleSubmitSalle = async (e) => {
     e.preventDefault();
     if (!salleForm.lieu || !salleForm.date_souhaitee || !salleForm.nombre_personnes) {
@@ -158,7 +173,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     }
   };
 
-  // ========== MATERIEL ==========
+  // ========== MATERIEL (Admin seulement) ==========
   const addMateriel = () => {
     setMateriels([...materiels, { nom: '', quantite: 1 }]);
   };
@@ -265,9 +280,9 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     );
   };
 
-  // Composant pour les boutons de validation (visible uniquement pour les gestionnaires)
+  // Composant pour les boutons de validation (Gestionnaire seulement)
   const ValidationButtons = ({ request }) => {
-    if (userRole !== 'gestionnaire' || request.status !== 'EN_ATTENTE') return null;
+    if (!isGestionnaire || request.status !== 'EN_ATTENTE') return null;
     
     return (
       <div className="flex gap-2 mt-3">
@@ -293,67 +308,10 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     );
   };
 
-  // Historique des demandes
-  const RequestHistory = ({ categoryFilter }) => {
+  // Filtrer les demandes par catégorie
+  const getCategoryRequests = (categoryFilter) => {
     const backendCategory = categoryFilter === 'EMAIL' ? 'AUTRE' : categoryFilter;
-    const categoryRequests = requests.filter(r => r.category === backendCategory);
-    
-    if (categoryRequests.length === 0) return null;
-    
-    const catConfig = CATEGORIES.find(c => c.id === categoryFilter);
-    
-    return (
-      <div className={`bg-white rounded-2xl border-2 ${catConfig?.borderColor || 'border-gray-200'} p-6 mt-6`}>
-        <h4 className={`font-bold ${catConfig?.textColor || 'text-gray-800'} mb-4 flex items-center gap-2`}>
-          <Clock className="w-5 h-5" />
-          Historique des demandes
-        </h4>
-        <div className="space-y-4">
-          {categoryRequests.map((req, idx) => (
-            <div key={req.id || idx} className="p-4 bg-gray-50 rounded-xl border hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  {/* Contenu selon le type */}
-                  {req.category === 'SALLES' && (
-                    <>
-                      <p className="font-semibold text-gray-900">{req.lieu} {req.centre && `- ${req.centre}`}</p>
-                      <p className="text-sm text-gray-600">{req.nombre_personnes} personnes • {req.type_reservation === 'journee' ? 'Journée' : 'Demi-journée'}</p>
-                      <p className="text-sm text-gray-500">Date souhaitée: {req.date_souhaitee}</p>
-                    </>
-                  )}
-                  {req.category === 'MATERIEL' && (
-                    <>
-                      <p className="font-semibold text-gray-900">
-                        {req.items?.map(i => `${i.nom} (x${i.quantite})`).join(', ')}
-                      </p>
-                      {req.commentaire && <p className="text-sm text-gray-600">{req.commentaire}</p>}
-                    </>
-                  )}
-                  {req.category === 'AUTRE' && (
-                    <>
-                      <p className="font-semibold text-gray-900">{req.sujet}</p>
-                      <p className="text-sm text-gray-600 line-clamp-2">{req.message}</p>
-                    </>
-                  )}
-                  
-                  <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    Créé le {formatDateTime(req.created_at)}
-                    {req.updated_at !== req.created_at && (
-                      <span className="ml-2">• Mis à jour le {formatDateTime(req.updated_at)}</span>
-                    )}
-                  </p>
-                  <p className="text-xs text-gray-400">Par: {req.created_by_name}</p>
-                </div>
-                <StatusBadge status={req.status} />
-              </div>
-              
-              <ValidationButtons request={req} />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return requests.filter(r => r.category === backendCategory);
   };
 
   return (
@@ -364,13 +322,13 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
             <div className="p-2 bg-white/20 rounded-lg">
               <MessageSquare className="w-6 h-6" />
             </div>
-            {userRole === 'teacher' ? 'Mes échanges centre' : 'Mes échanges formateur'}
+            {isAdmin ? 'Mes échanges centre' : 'Demandes des formateurs'}
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col min-h-0">
           <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex-1 flex flex-col min-h-0">
-            {/* Onglets des catégories avec icônes colorées */}
+            {/* Onglets des catégories */}
             <div className="border-b px-4 bg-gray-50 flex-shrink-0">
               <TabsList className="bg-transparent h-auto gap-2 flex-wrap justify-start py-4">
                 {CATEGORIES.map(cat => {
@@ -400,195 +358,283 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
             {/* ========== ONGLET SALLES ========== */}
             <TabsContent value="SALLES" className="flex-1 overflow-y-auto p-6 mt-0">
               <div className="max-w-3xl mx-auto">
-                <div className="bg-blue-50 rounded-2xl p-6 border-2 border-blue-200">
-                  <h3 className="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
-                    <div className="p-2 bg-blue-500 rounded-lg">
-                      <Building className="w-6 h-6 text-white" />
-                    </div>
-                    Demande de réservation de salle
-                  </h3>
-                  
-                  <form onSubmit={handleSubmitSalle} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-blue-900 font-semibold">Lieu *</Label>
-                        <Input
-                          value={salleForm.lieu}
-                          onChange={(e) => setSalleForm({...salleForm, lieu: e.target.value})}
-                          placeholder="Ex: Paris, Lyon..."
-                          className="mt-1 border-blue-200 focus:border-blue-500"
-                          required
-                        />
+                {isAdmin ? (
+                  /* ADMIN: Formulaire de demande */
+                  <div className="bg-blue-50 rounded-2xl p-6 border-2 border-blue-200 mb-6">
+                    <h3 className="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+                      <div className="p-2 bg-blue-500 rounded-lg">
+                        <Building className="w-6 h-6 text-white" />
                       </div>
-                      <div>
-                        <Label className="text-blue-900 font-semibold">Centre</Label>
-                        <Input
-                          value={salleForm.centre}
-                          onChange={(e) => setSalleForm({...salleForm, centre: e.target.value})}
-                          placeholder="Nom du centre"
-                          className="mt-1 border-blue-200 focus:border-blue-500"
-                        />
-                      </div>
-                    </div>
+                      Demande de réservation de salle
+                    </h3>
                     
-                    <div className="grid grid-cols-2 gap-4">
+                    <form onSubmit={handleSubmitSalle} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-blue-900 font-semibold">Lieu *</Label>
+                          <Input
+                            value={salleForm.lieu}
+                            onChange={(e) => setSalleForm({...salleForm, lieu: e.target.value})}
+                            placeholder="Ex: Paris, Lyon..."
+                            className="mt-1 border-blue-200 focus:border-blue-500"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-blue-900 font-semibold">Centre</Label>
+                          <Input
+                            value={salleForm.centre}
+                            onChange={(e) => setSalleForm({...salleForm, centre: e.target.value})}
+                            placeholder="Nom du centre"
+                            className="mt-1 border-blue-200 focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-blue-900 font-semibold">Nombre de personnes *</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={salleForm.nombre_personnes}
+                            onChange={(e) => setSalleForm({...salleForm, nombre_personnes: e.target.value})}
+                            placeholder="Ex: 10"
+                            className="mt-1 border-blue-200 focus:border-blue-500"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-blue-900 font-semibold">Type de réservation *</Label>
+                          <select
+                            value={salleForm.type_reservation}
+                            onChange={(e) => setSalleForm({...salleForm, type_reservation: e.target.value})}
+                            className="w-full mt-1 px-3 py-2 border border-blue-200 rounded-md text-base focus:border-blue-500"
+                          >
+                            <option value="journee">Journée complète</option>
+                            <option value="demi_journee_matin">Demi-journée (Matin)</option>
+                            <option value="demi_journee_apres_midi">Demi-journée (Après-midi)</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-blue-900 font-semibold">Date souhaitée *</Label>
+                          <Input
+                            type="date"
+                            value={salleForm.date_souhaitee}
+                            onChange={(e) => setSalleForm({...salleForm, date_souhaitee: e.target.value})}
+                            className="mt-1 border-blue-200 focus:border-blue-500"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-blue-900 font-semibold">Email destinataire</Label>
+                          <Input
+                            type="email"
+                            value={salleForm.email_destinataire}
+                            onChange={(e) => setSalleForm({...salleForm, email_destinataire: e.target.value})}
+                            placeholder="email@exemple.com"
+                            className="mt-1 border-blue-200 focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+                      
                       <div>
-                        <Label className="text-blue-900 font-semibold">Nombre de personnes *</Label>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={salleForm.nombre_personnes}
-                          onChange={(e) => setSalleForm({...salleForm, nombre_personnes: e.target.value})}
-                          placeholder="Ex: 10"
-                          className="mt-1 border-blue-200 focus:border-blue-500"
-                          required
+                        <Label className="text-blue-900 font-semibold">Commentaire</Label>
+                        <Textarea
+                          value={salleForm.commentaire}
+                          onChange={(e) => setSalleForm({...salleForm, commentaire: e.target.value})}
+                          placeholder="Précisions supplémentaires..."
+                          className="mt-1 min-h-[80px] border-blue-200 focus:border-blue-500"
                         />
                       </div>
-                      <div>
-                        <Label className="text-blue-900 font-semibold">Type de réservation *</Label>
-                        <select
-                          value={salleForm.type_reservation}
-                          onChange={(e) => setSalleForm({...salleForm, type_reservation: e.target.value})}
-                          className="w-full mt-1 px-3 py-2 border border-blue-200 rounded-md text-base focus:border-blue-500 focus:ring-blue-500"
-                        >
-                          <option value="journee">Journée complète</option>
-                          <option value="demi_journee_matin">Demi-journée (Matin)</option>
-                          <option value="demi_journee_apres_midi">Demi-journée (Après-midi)</option>
-                        </select>
+                      
+                      <Button 
+                        type="submit" 
+                        disabled={loading}
+                        className="w-full py-3 text-lg font-bold bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Send className="w-5 h-5 mr-2" />
+                        Soumettre la demande
+                      </Button>
+                    </form>
+                  </div>
+                ) : (
+                  /* GESTIONNAIRE: Message si pas de demandes */
+                  getCategoryRequests('SALLES').length === 0 && (
+                    <div className="bg-blue-50 rounded-2xl p-12 text-center border-2 border-blue-200 mb-6">
+                      <div className="p-4 bg-blue-100 rounded-2xl w-fit mx-auto mb-4">
+                        <Inbox className="w-16 h-16 text-blue-400" />
                       </div>
+                      <h3 className="text-xl font-bold text-blue-900 mb-2">Aucune demande de salle</h3>
+                      <p className="text-blue-700">Votre formateur n'a pas encore effectué de demande de salle</p>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-blue-900 font-semibold">Date souhaitée *</Label>
-                        <Input
-                          type="date"
-                          value={salleForm.date_souhaitee}
-                          onChange={(e) => setSalleForm({...salleForm, date_souhaitee: e.target.value})}
-                          className="mt-1 border-blue-200 focus:border-blue-500"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-blue-900 font-semibold">Email destinataire</Label>
-                        <Input
-                          type="email"
-                          value={salleForm.email_destinataire}
-                          onChange={(e) => setSalleForm({...salleForm, email_destinataire: e.target.value})}
-                          placeholder="email@exemple.com"
-                          className="mt-1 border-blue-200 focus:border-blue-500"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label className="text-blue-900 font-semibold">Commentaire</Label>
-                      <Textarea
-                        value={salleForm.commentaire}
-                        onChange={(e) => setSalleForm({...salleForm, commentaire: e.target.value})}
-                        placeholder="Précisions supplémentaires..."
-                        className="mt-1 min-h-[80px] border-blue-200 focus:border-blue-500"
-                      />
-                    </div>
-                    
-                    <Button 
-                      type="submit" 
-                      disabled={loading}
-                      className="w-full py-3 text-lg font-bold bg-blue-600 hover:bg-blue-700"
-                      data-testid="submit-salle-btn"
-                    >
-                      <Send className="w-5 h-5 mr-2" />
-                      Soumettre la demande
-                    </Button>
-                  </form>
-                </div>
+                  )
+                )}
 
-                <RequestHistory categoryFilter="SALLES" />
+                {/* Historique des demandes */}
+                {getCategoryRequests('SALLES').length > 0 && (
+                  <div className="bg-white rounded-2xl border-2 border-blue-200 p-6">
+                    <h4 className="font-bold text-blue-800 mb-4 flex items-center gap-2">
+                      <Clock className="w-5 h-5" />
+                      Historique des demandes de salle
+                    </h4>
+                    <div className="space-y-4">
+                      {getCategoryRequests('SALLES').map((req, idx) => (
+                        <div key={req.id || idx} className="p-4 bg-gray-50 rounded-xl border hover:shadow-md transition-shadow">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-900">{req.lieu} {req.centre && `- ${req.centre}`}</p>
+                              <p className="text-sm text-gray-600">{req.nombre_personnes} personnes • {req.type_reservation === 'journee' ? 'Journée' : 'Demi-journée'}</p>
+                              <p className="text-sm text-gray-500">Date souhaitée: {req.date_souhaitee}</p>
+                              <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                Créé le {formatDateTime(req.created_at)}
+                              </p>
+                              {req.updated_at !== req.created_at && (
+                                <p className="text-xs text-gray-400">Mis à jour le {formatDateTime(req.updated_at)}</p>
+                              )}
+                              <p className="text-xs text-gray-400">Par: {req.created_by_name}</p>
+                            </div>
+                            <StatusBadge status={req.status} />
+                          </div>
+                          <ValidationButtons request={req} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
             {/* ========== ONGLET MATERIEL ========== */}
             <TabsContent value="MATERIEL" className="flex-1 overflow-y-auto p-6 mt-0">
               <div className="max-w-3xl mx-auto">
-                <div className="bg-orange-50 rounded-2xl p-6 border-2 border-orange-200">
-                  <h3 className="text-xl font-bold text-orange-900 mb-4 flex items-center gap-2">
-                    <div className="p-2 bg-orange-500 rounded-lg">
-                      <Wrench className="w-6 h-6 text-white" />
+                {isAdmin ? (
+                  /* ADMIN: Formulaire de demande */
+                  <div className="bg-orange-50 rounded-2xl p-6 border-2 border-orange-200 mb-6">
+                    <h3 className="text-xl font-bold text-orange-900 mb-4 flex items-center gap-2">
+                      <div className="p-2 bg-orange-500 rounded-lg">
+                        <Wrench className="w-6 h-6 text-white" />
+                      </div>
+                      Demande de matériel
+                    </h3>
+                    
+                    <form onSubmit={handleSubmitMateriel} className="space-y-4">
+                      <div className="space-y-3">
+                        {materiels.map((mat, index) => (
+                          <div key={index} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-orange-200">
+                            <div className="flex-1">
+                              <Input
+                                value={mat.nom}
+                                onChange={(e) => updateMateriel(index, 'nom', e.target.value)}
+                                placeholder="Nom du matériel"
+                                className="border-orange-200 focus:border-orange-500"
+                              />
+                            </div>
+                            <div className="w-24">
+                              <Input
+                                type="number"
+                                min="1"
+                                value={mat.quantite}
+                                onChange={(e) => updateMateriel(index, 'quantite', parseInt(e.target.value) || 1)}
+                                className="border-orange-200 focus:border-orange-500 text-center"
+                              />
+                            </div>
+                            <span className="text-sm text-gray-500 w-12">unité(s)</span>
+                            {materiels.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeMateriel(index)}
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addMateriel}
+                        className="w-full border-dashed border-2 border-orange-300 text-orange-600 hover:bg-orange-50"
+                      >
+                        <Plus className="w-5 h-5 mr-2" />
+                        Ajouter un matériel
+                      </Button>
+                      
+                      <div>
+                        <Label className="text-orange-900 font-semibold">Commentaire</Label>
+                        <Textarea
+                          value={materielCommentaire}
+                          onChange={(e) => setMaterielCommentaire(e.target.value)}
+                          placeholder="Précisions sur votre demande..."
+                          className="mt-1 min-h-[80px] border-orange-200 focus:border-orange-500"
+                        />
+                      </div>
+                      
+                      <Button 
+                        type="submit" 
+                        disabled={loading}
+                        className="w-full py-3 text-lg font-bold bg-orange-600 hover:bg-orange-700"
+                      >
+                        <Send className="w-5 h-5 mr-2" />
+                        Soumettre la demande
+                      </Button>
+                    </form>
+                  </div>
+                ) : (
+                  /* GESTIONNAIRE: Message si pas de demandes */
+                  getCategoryRequests('MATERIEL').length === 0 && (
+                    <div className="bg-orange-50 rounded-2xl p-12 text-center border-2 border-orange-200 mb-6">
+                      <div className="p-4 bg-orange-100 rounded-2xl w-fit mx-auto mb-4">
+                        <Inbox className="w-16 h-16 text-orange-400" />
+                      </div>
+                      <h3 className="text-xl font-bold text-orange-900 mb-2">Aucune demande de matériel</h3>
+                      <p className="text-orange-700">Votre formateur n'a pas encore effectué de demande de matériel</p>
                     </div>
-                    Demande de matériel
-                  </h3>
-                  
-                  <form onSubmit={handleSubmitMateriel} className="space-y-4">
-                    <div className="space-y-3">
-                      {materiels.map((mat, index) => (
-                        <div key={index} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-orange-200">
-                          <div className="flex-1">
-                            <Input
-                              value={mat.nom}
-                              onChange={(e) => updateMateriel(index, 'nom', e.target.value)}
-                              placeholder="Nom du matériel"
-                              className="border-orange-200 focus:border-orange-500"
-                            />
+                  )
+                )}
+
+                {/* Historique des demandes */}
+                {getCategoryRequests('MATERIEL').length > 0 && (
+                  <div className="bg-white rounded-2xl border-2 border-orange-200 p-6">
+                    <h4 className="font-bold text-orange-800 mb-4 flex items-center gap-2">
+                      <Clock className="w-5 h-5" />
+                      Historique des demandes de matériel
+                    </h4>
+                    <div className="space-y-4">
+                      {getCategoryRequests('MATERIEL').map((req, idx) => (
+                        <div key={req.id || idx} className="p-4 bg-gray-50 rounded-xl border hover:shadow-md transition-shadow">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-900">
+                                {req.items?.map(i => `${i.nom} (x${i.quantite})`).join(', ')}
+                              </p>
+                              {req.commentaire && <p className="text-sm text-gray-600 mt-1">{req.commentaire}</p>}
+                              <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                Créé le {formatDateTime(req.created_at)}
+                              </p>
+                              {req.updated_at !== req.created_at && (
+                                <p className="text-xs text-gray-400">Mis à jour le {formatDateTime(req.updated_at)}</p>
+                              )}
+                              <p className="text-xs text-gray-400">Par: {req.created_by_name}</p>
+                            </div>
+                            <StatusBadge status={req.status} />
                           </div>
-                          <div className="w-24">
-                            <Input
-                              type="number"
-                              min="1"
-                              value={mat.quantite}
-                              onChange={(e) => updateMateriel(index, 'quantite', parseInt(e.target.value) || 1)}
-                              className="border-orange-200 focus:border-orange-500 text-center"
-                            />
-                          </div>
-                          <span className="text-sm text-gray-500 w-12">unité(s)</span>
-                          {materiels.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeMateriel(index)}
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
+                          <ValidationButtons request={req} />
                         </div>
                       ))}
                     </div>
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addMateriel}
-                      className="w-full border-dashed border-2 border-orange-300 text-orange-600 hover:bg-orange-50"
-                      data-testid="add-materiel-btn"
-                    >
-                      <Plus className="w-5 h-5 mr-2" />
-                      Ajouter un matériel
-                    </Button>
-                    
-                    <div>
-                      <Label className="text-orange-900 font-semibold">Commentaire</Label>
-                      <Textarea
-                        value={materielCommentaire}
-                        onChange={(e) => setMaterielCommentaire(e.target.value)}
-                        placeholder="Précisions sur votre demande..."
-                        className="mt-1 min-h-[80px] border-orange-200 focus:border-orange-500"
-                      />
-                    </div>
-                    
-                    <Button 
-                      type="submit" 
-                      disabled={loading}
-                      className="w-full py-3 text-lg font-bold bg-orange-600 hover:bg-orange-700"
-                      data-testid="submit-materiel-btn"
-                    >
-                      <Send className="w-5 h-5 mr-2" />
-                      Soumettre la demande
-                    </Button>
-                  </form>
-                </div>
-
-                <RequestHistory categoryFilter="MATERIEL" />
+                  </div>
+                )}
               </div>
             </TabsContent>
 
@@ -603,7 +649,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                     Documents & Supports
                   </h3>
                   
-                  {/* Zone de téléversement */}
+                  {/* Zone de téléversement (pour tous) */}
                   <div className="border-2 border-dashed border-purple-300 rounded-xl p-8 text-center bg-white mb-6">
                     <input
                       type="file"
@@ -626,7 +672,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                     </label>
                   </div>
                   
-                  {/* Liste des documents */}
+                  {/* Liste des documents avec horodatage */}
                   <div className="space-y-3">
                     <h4 className="font-semibold text-purple-900">Documents disponibles</h4>
                     {documents.length === 0 ? (
@@ -697,12 +743,12 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
             {/* ========== ONGLET EMAIL ========== */}
             <TabsContent value="EMAIL" className="flex-1 overflow-y-auto p-6 mt-0">
               <div className="max-w-3xl mx-auto">
-                <div className="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200">
+                <div className="bg-gray-50 rounded-2xl p-6 border-2 border-gray-200 mb-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <div className="p-2 bg-gray-500 rounded-lg">
                       <Mail className="w-6 h-6 text-white" />
                     </div>
-                    {userRole === 'teacher' ? 'Envoyer un email au centre' : 'Envoyer un email au formateur'}
+                    {isAdmin ? 'Envoyer un email au centre' : 'Envoyer un email au formateur'}
                   </h3>
                   
                   <form onSubmit={handleSendMail} className="space-y-4">
@@ -723,7 +769,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                         value={mailForm.message}
                         onChange={(e) => setMailForm({...mailForm, message: e.target.value})}
                         placeholder="Écrivez votre message ici..."
-                        className="mt-1 min-h-[200px] border-gray-300 focus:border-gray-500"
+                        className="mt-1 min-h-[150px] border-gray-300 focus:border-gray-500"
                         required
                       />
                     </div>
@@ -732,7 +778,6 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                       type="submit" 
                       disabled={loading}
                       className="w-full py-3 text-lg font-bold bg-gray-700 hover:bg-gray-800"
-                      data-testid="submit-mail-btn"
                     >
                       <Send className="w-5 h-5 mr-2" />
                       Envoyer l'email
@@ -740,7 +785,38 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                   </form>
                 </div>
 
-                <RequestHistory categoryFilter="EMAIL" />
+                {/* Historique des emails avec horodatage complet */}
+                {getCategoryRequests('EMAIL').length > 0 && (
+                  <div className="bg-white rounded-2xl border-2 border-gray-200 p-6">
+                    <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                      <Clock className="w-5 h-5" />
+                      Historique des messages
+                    </h4>
+                    <div className="space-y-4">
+                      {getCategoryRequests('EMAIL').map((req, idx) => (
+                        <div key={req.id || idx} className="p-4 bg-gray-50 rounded-xl border hover:shadow-md transition-shadow">
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 bg-gray-200 rounded-full flex-shrink-0">
+                              <Mail className="w-4 h-4 text-gray-600" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm text-gray-600">
+                                <span className="font-semibold text-gray-900">{req.created_by_name}</span>
+                                {' '}vous a envoyé un email
+                              </p>
+                              <p className="font-semibold text-gray-900 mt-1">Objet : {req.sujet}</p>
+                              <p className="text-sm text-gray-600 mt-1 line-clamp-2">{req.message}</p>
+                              <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {formatDateTime(req.created_at)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
