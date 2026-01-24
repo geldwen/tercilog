@@ -892,14 +892,13 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                       <div className="w-2 h-2 rounded-full bg-gray-300"></div>
                       <span>Autre</span>
                     </div>
-                  </div>
+                </div>
                   
-                  <button className="px-6 py-3 bg-white text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-colors flex items-center gap-2 flex-shrink-0">
-                    <MessageSquare className="w-5 h-5" />
-                    Accéder à mes demandes
-                  </button>
-                </div>
-                </div>
+                <button className="px-6 py-3 bg-white text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-colors flex items-center gap-2 flex-shrink-0">
+                  <MessageSquare className="w-5 h-5" />
+                  Accéder à mes demandes
+                </button>
+              </div>
               </div>
             )}
           </TabsContent>
