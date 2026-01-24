@@ -121,13 +121,13 @@ frontend/node_modules/.cache/default-development/19.pack
 frontend/node_modules/.cache/default-development/20.pack
 frontend/node_modules/.cache/default-development/21.pack
 -e 
-# Environment files
-*.env
-*.env.*
+# Environment files - DO NOT block .env files (required for Emergent deployment)
+# *.env
+# *.env.*
 -e 
-# Environment files
-*.env
-*.env.*
+# Environment files - DO NOT block .env files (required for Emergent deployment)
+# *.env
+# *.env.*
 frontend/node_modules/.cache/default-development/22.pack
 frontend/node_modules/.cache/default-development/23.pack
 frontend/node_modules/.cache/default-development/24.pack
