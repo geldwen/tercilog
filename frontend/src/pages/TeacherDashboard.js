@@ -4635,123 +4635,176 @@ export default function TeacherDashboard({ user, onLogout }) {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-6">
                 {filteredClients.map((client) => (
                   <div 
                     key={client.id} 
-                    className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-sky-100"
-                    data-testid={`client-card-${client.id}`}
+                    className="flex gap-6 items-stretch"
+                    data-testid={`client-row-${client.id}`}
                   >
-                    {/* En-tête avec photo à gauche et boutons à droite */}
-                    <div className="p-4 flex gap-4">
-                      {/* Photo du centre - en haut à gauche */}
-                      <div className="w-24 h-24 flex-shrink-0 rounded-xl bg-gradient-to-br from-sky-100 to-sky-200 flex items-center justify-center overflow-hidden">
-                        {client.photo_url ? (
-                          <img 
-                            src={`${API}/clients/${client.id}/photo`} 
-                            alt={client.nom_centre}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
+                    {/* Carte Client */}
+                    <div 
+                      className="w-[400px] flex-shrink-0 bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-sky-100"
+                      data-testid={`client-card-${client.id}`}
+                    >
+                      {/* En-tête avec photo à gauche et boutons à droite */}
+                      <div className="p-4 flex gap-4">
+                        {/* Photo du centre - en haut à gauche */}
+                        <div className="w-24 h-24 flex-shrink-0 rounded-xl bg-gradient-to-br from-sky-100 to-sky-200 flex items-center justify-center overflow-hidden">
+                          {client.photo_url ? (
+                            <img 
+                              src={`${API}/clients/${client.id}/photo`} 
+                              alt={client.nom_centre}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <Building className="w-10 h-10 text-sky-400" />
+                          )}
+                        </div>
+                        
+                        {/* Boutons Historique et Actions */}
+                        <div className="flex-1 flex flex-col gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedClient(client);
+                              setShowClientHistoryDialog(true);
                             }}
-                          />
-                        ) : (
-                          <Building className="w-10 h-10 text-sky-400" />
-                        )}
+                            className="flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
+                            data-testid={`history-client-btn-${client.id}`}
+                          >
+                            <Clock className="w-4 h-4" />
+                            Historique
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedClient(client);
+                              setShowClientActionsDialog(true);
+                            }}
+                            className="flex items-center justify-center gap-2 px-3 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors text-sm font-medium"
+                            data-testid={`actions-client-btn-${client.id}`}
+                          >
+                            <FolderOpen className="w-4 h-4" />
+                            Actions
+                          </button>
+                        </div>
                       </div>
                       
-                      {/* Boutons Historique et Actions */}
-                      <div className="flex-1 flex flex-col gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedClient(client);
-                            setShowClientHistoryDialog(true);
-                          }}
-                          className="flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
-                          data-testid={`history-client-btn-${client.id}`}
-                        >
-                          <Clock className="w-4 h-4" />
-                          Historique
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedClient(client);
-                            setShowClientActionsDialog(true);
-                          }}
-                          className="flex items-center justify-center gap-2 px-3 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors text-sm font-medium"
-                          data-testid={`actions-client-btn-${client.id}`}
-                        >
-                          <FolderOpen className="w-4 h-4" />
-                          Actions
-                        </button>
+                      {/* Informations du client */}
+                      <div className="px-4 pb-4">
+                        <h3 className="text-lg font-bold text-gray-800 mb-2">{client.nom_centre}</h3>
+                        
+                        {client.adresse_siege && (
+                          <p className="text-sm text-gray-600 mb-1 flex items-start gap-2">
+                            <span className="text-sky-500 mt-0.5">📍</span>
+                            <span>{client.adresse_siege}</span>
+                          </p>
+                        )}
+                        
+                        {client.telephone_siege && (
+                          <p className="text-sm text-gray-600 mb-1 flex items-center gap-2">
+                            <Phone className="w-4 h-4 text-sky-500" />
+                            <span>{client.telephone_siege}</span>
+                          </p>
+                        )}
+                        
+                        {client.siret && (
+                          <p className="text-sm text-gray-500 mb-3">
+                            <span className="font-medium">SIRET:</span> {client.siret}
+                          </p>
+                        )}
+
+                        {/* Responsable */}
+                        {client.nom_responsable && (
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <p className="text-xs uppercase text-gray-400 font-semibold mb-1">Responsable</p>
+                            <p className="text-sm font-medium text-gray-700">{client.nom_responsable}</p>
+                            {client.email_responsable && (
+                              <p className="text-xs text-sky-600">{client.email_responsable}</p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Gestionnaire */}
+                        {client.nom_gestionnaire && (
+                          <div className="mt-2">
+                            <p className="text-xs uppercase text-gray-400 font-semibold mb-1">Gestionnaire</p>
+                            <p className="text-sm font-medium text-gray-700">{client.nom_gestionnaire}</p>
+                            {client.email_gestionnaire && (
+                              <p className="text-xs text-sky-600">{client.email_gestionnaire}</p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Boutons d'action */}
+                        <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end gap-2">
+                          <button
+                            onClick={() => openEditClientDialog(client)}
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 transition-colors"
+                            data-testid={`edit-client-btn-${client.id}`}
+                          >
+                            <Edit className="w-4 h-4" />
+                            Modifier
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClient(client.id)}
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                            data-testid={`delete-client-btn-${client.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Supprimer
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    
-                    {/* Informations du client */}
-                    <div className="px-4 pb-4">
-                      <h3 className="text-lg font-bold text-gray-800 mb-2">{client.nom_centre}</h3>
-                      
-                      {client.adresse_siege && (
-                        <p className="text-sm text-gray-600 mb-1 flex items-start gap-2">
-                          <span className="text-sky-500 mt-0.5">📍</span>
-                          <span>{client.adresse_siege}</span>
-                        </p>
-                      )}
-                      
-                      {client.telephone_siege && (
-                        <p className="text-sm text-gray-600 mb-1 flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-sky-500" />
-                          <span>{client.telephone_siege}</span>
-                        </p>
-                      )}
-                      
-                      {client.siret && (
-                        <p className="text-sm text-gray-500 mb-3">
-                          <span className="font-medium">SIRET:</span> {client.siret}
-                        </p>
-                      )}
 
-                      {/* Responsable */}
-                      {client.nom_responsable && (
-                        <div className="mt-3 pt-3 border-t border-gray-100">
-                          <p className="text-xs uppercase text-gray-400 font-semibold mb-1">Responsable</p>
-                          <p className="text-sm font-medium text-gray-700">{client.nom_responsable}</p>
-                          {client.email_responsable && (
-                            <p className="text-xs text-sky-600">{client.email_responsable}</p>
-                          )}
+                    {/* Bandeau d'échange à côté de la carte client */}
+                    <div 
+                      onClick={() => setShowTicketingModal(true)}
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-6 text-white cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all flex flex-col justify-between"
+                      data-testid={`ticketing-banner-${client.id}`}
+                    >
+                      <div className="flex flex-col items-center text-center">
+                        <div className="p-4 bg-white/20 rounded-xl mb-4">
+                          <MessageSquare className="w-10 h-10" />
                         </div>
-                      )}
-
-                      {/* Gestionnaire */}
-                      {client.nom_gestionnaire && (
-                        <div className="mt-2">
-                          <p className="text-xs uppercase text-gray-400 font-semibold mb-1">Gestionnaire</p>
-                          <p className="text-sm font-medium text-gray-700">{client.nom_gestionnaire}</p>
-                          {client.email_gestionnaire && (
-                            <p className="text-xs text-sky-600">{client.email_gestionnaire}</p>
-                          )}
+                        <h3 className="text-2xl font-bold mb-2">Échanger avec {client.nom_centre}</h3>
+                        <p className="text-blue-200 text-sm mb-6">Faites vos demandes à ce centre</p>
+                        
+                        <div className="flex flex-wrap gap-3 justify-center mb-6">
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-blue-300"></div>
+                            Salles
+                          </span>
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-orange-300"></div>
+                            Matériel
+                          </span>
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-purple-300"></div>
+                            Supports
+                          </span>
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-green-300"></div>
+                            Organisation
+                          </span>
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-pink-300"></div>
+                            Accueil
+                          </span>
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-gray-300"></div>
+                            Email
+                          </span>
                         </div>
-                      )}
-
-                      {/* Boutons d'action */}
-                      <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end gap-2">
-                        <button
-                          onClick={() => openEditClientDialog(client)}
-                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 transition-colors"
-                          data-testid={`edit-client-btn-${client.id}`}
-                        >
-                          <Edit className="w-4 h-4" />
-                          Modifier
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClient(client.id)}
-                          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                          data-testid={`delete-client-btn-${client.id}`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Supprimer
-                        </button>
                       </div>
+                      
+                      <button className="w-full px-4 py-3 bg-white text-blue-700 rounded-lg font-bold text-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
+                        <MessageSquare className="w-5 h-5" />
+                        Accéder aux échanges
+                      </button>
                     </div>
                   </div>
                 ))}
