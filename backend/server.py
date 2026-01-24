@@ -10872,7 +10872,7 @@ async def create_client(
 def send_gestionnaire_welcome_email(to_email: str, name: str, centre_name: str, password: str):
     """Envoie un email de bienvenue à un gestionnaire/responsable"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-edu-1.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://support-portal-69.preview.emergentagent.com')
     
     html_body = f"""
     <html>
@@ -11216,7 +11216,7 @@ def send_room_request_email(to_email: str, recipient_name: str, client_name: str
         """
     
     # URL du portail de gestion (à personnaliser)
-    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-edu-1.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://support-portal-69.preview.emergentagent.com')
     
     html_body = f"""
     <html>
@@ -11742,7 +11742,7 @@ async def get_ticket_recipient_trainers(current_user: User = Depends(get_current
 async def send_ticket_notification_email(ticket: dict, message: dict, notification_type: str, old_status: str = None):
     """Envoyer notification email pour les tickets"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-edu-1.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://support-portal-69.preview.emergentagent.com')
     ticket_link = f"{portal_url}?ticket={ticket['id']}"
     
     # Déterminer le destinataire
@@ -11873,7 +11873,7 @@ async def send_ticketing_notification(
 ):
     """Envoyer une notification email pour les demandes de ticketing"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-edu-1.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://support-portal-69.preview.emergentagent.com')
     timestamp = datetime.now(timezone.utc).strftime("%d/%m/%Y à %H:%M:%S")
     
     sender_name = sender_user.get('name', 'Utilisateur')
@@ -12274,7 +12274,7 @@ async def update_ticketing_request_status(
             if client:
                 validator_name = client.get("nom_centre", validator_name)
         
-        portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-edu-1.preview.emergentagent.com')
+        portal_url = os.environ.get('FRONTEND_URL', 'https://support-portal-69.preview.emergentagent.com')
         
         subject = f"[TerciForm] Votre demande de {category_label} a été {status_label}"
         
