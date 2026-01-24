@@ -672,6 +672,7 @@ async def send_session_reminders():
                     
                     # Construire le message selon la modalité
                     logo_url = "https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png"
+                    portal_url = get_student_portal_url()
                     
                     if modality == "distanciel" or not modality or modality == "":
                         # Message pour DISTANCIEL - Bleu marine avec logo Terciform
