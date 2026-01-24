@@ -12069,7 +12069,7 @@ async def create_materiel_request(request: MaterielRequest, current_user: dict =
 # ========== ENDPOINT: DOCUMENTS/SUPPORTS ==========
 @api_router.post("/ticketing/documents")
 async def upload_ticketing_document(
-    file: UploadFile = File(...),
+    file: UploadFile = FastAPIFile(...),
     current_user: dict = Depends(get_current_user)
 ):
     """Téléverser un document pour le ticketing"""
