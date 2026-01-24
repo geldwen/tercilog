@@ -12150,7 +12150,7 @@ async def download_ticketing_document(doc_id: str, token: str = None):
 
 # ========== ENDPOINT: MAIL (AUTRE DEMANDE) ==========
 @api_router.post("/ticketing/mail")
-async def send_ticketing_mail(request: MailRequest, current_user: dict = Depends(get_current_user)):
+async def send_ticketing_mail(request: MailRequest, current_user: User = Depends(get_current_user)):
     """Envoyer un mail via le ticketing"""
     
     request_id = str(uuid.uuid4())
@@ -12162,10 +12162,10 @@ async def send_ticketing_mail(request: MailRequest, current_user: dict = Depends
         "sujet": request.sujet,
         "message": request.message,
         "status": "ENVOYE",
-        "created_by_user_id": current_user["id"],
-        "created_by_name": current_user.get("name", "Utilisateur"),
-        "created_by_role": current_user.get("role", "teacher"),
-        "client_id": current_user.get("client_id"),
+        "created_by_user_id": current_user.id,
+        "created_by_name": current_user.name or "Utilisateur",
+        "created_by_role": current_user.role or "teacher",
+        "client_id": current_user.client_id,
         "created_at": timestamp.isoformat()
     }
     
@@ -12173,23 +12173,24 @@ async def send_ticketing_mail(request: MailRequest, current_user: dict = Depends
     
     # Déterminer le destinataire
     recipient_email = None
-    if current_user.get("role") == "teacher":
+    if current_user.role == "teacher":
         # Formateur envoie au centre/gestionnaire
-        if current_user.get("client_id"):
-            client = await db.clients.find_one({"id": current_user["client_id"]})
+        if current_user.client_id:
+            client = await db.clients.find_one({"id": current_user.client_id})
             if client:
                 recipient_email = client.get("email_gestionnaire") or client.get("email_responsable")
     else:
         # Gestionnaire envoie au formateur référent
-        if current_user.get("client_id"):
-            client = await db.clients.find_one({"id": current_user["client_id"]})
+        if current_user.client_id:
+            client = await db.clients.find_one({"id": current_user.client_id})
             if client and client.get("formateur_id"):
                 formateur = await db.formateurs.find_one({"id": client["formateur_id"]})
                 if formateur:
                     recipient_email = formateur.get("email")
     
     if recipient_email:
-        await send_ticketing_notification("MAIL", mail_record, current_user, recipient_email)
+        user_dict = {"id": current_user.id, "name": current_user.name, "role": current_user.role, "client_id": current_user.client_id}
+        await send_ticketing_notification("MAIL", mail_record, user_dict, recipient_email)
     
     return {"success": True, "id": request_id, "message": "Mail envoyé avec succès", "created_at": timestamp.isoformat()}
 
@@ -12197,7 +12198,7 @@ async def send_ticketing_mail(request: MailRequest, current_user: dict = Depends
 @api_router.get("/ticketing/requests")
 async def get_ticketing_requests(
     category: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Récupérer les demandes de ticketing"""
     
@@ -12208,13 +12209,13 @@ async def get_ticketing_requests(
         query["category"] = category
     
     # Filtrer selon le rôle
-    if current_user.get("role") == "gestionnaire" and current_user.get("client_id"):
+    if current_user.role == "gestionnaire" and current_user.client_id:
         query["$or"] = [
-            {"client_id": current_user["client_id"]},
+            {"client_id": current_user.client_id},
             {"created_by_role": "teacher"}
         ]
-    elif current_user.get("role") == "teacher":
-        query["created_by_user_id"] = current_user["id"]
+    elif current_user.role == "teacher":
+        query["created_by_user_id"] = current_user.id
     
     requests = await db.ticketing_requests.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
     return requests
@@ -12224,7 +12225,7 @@ async def get_ticketing_requests(
 async def update_ticketing_request_status(
     request_id: str,
     status_update: dict,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Mettre à jour le statut d'une demande"""
     
