@@ -1869,6 +1869,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [exitSearchQuery, setExitSearchQuery] = useState('');
   const [exportingArchivedPdf, setExportingArchivedPdf] = useState(false);
   const [showTicketingModal, setShowTicketingModal] = useState(false);
+  const [ticketingClient, setTicketingClient] = useState(null);
 
   // Liste des mois disponibles pour le filtre
   const availableExitMonths = useMemo(() => {
