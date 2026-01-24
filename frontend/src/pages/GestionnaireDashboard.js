@@ -724,14 +724,16 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Grille des formateurs */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {formateurs.map(formateur => (
-                    <div 
-                      key={formateur.id} 
-                      className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow"
-                    >
-                      {/* En-tête de la fiche - identique à l'admin */}
+                {/* Liste des formateurs avec bandeau à côté de chaque carte */}
+                {formateurs.map(formateur => (
+                  <div 
+                    key={formateur.id} 
+                    className="flex gap-6 items-stretch"
+                    data-testid={`formateur-row-${formateur.id}`}
+                  >
+                    {/* Fiche Formateur */}
+                    <div className="w-[400px] flex-shrink-0 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow">
+                      {/* En-tête de la fiche */}
                       <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-4">
                         <div className="flex items-center gap-4">
                           <div className="w-20 h-20 rounded-full bg-white border-4 border-white shadow-lg overflow-hidden flex-shrink-0">
@@ -752,153 +754,152 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                           <div className="text-white">
                             <h3 className="text-xl font-bold">{formateur.prenom} {formateur.nom}</h3>
                             {formateur.societe && (
-                            <p className="text-amber-100 text-sm">{formateur.societe}</p>
-                          )}
+                              <p className="text-amber-100 text-sm">{formateur.societe}</p>
+                            )}
+                          </div>
                         </div>
+                      </div>
+
+                      {/* Corps de la fiche */}
+                      <div className="p-4 space-y-3">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Mail className="w-4 h-4" />
+                          <span className="text-sm truncate">{formateur.email}</span>
+                        </div>
+                        
+                        {formateur.telephone && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Phone className="w-4 h-4" />
+                            <span className="text-sm">{formateur.telephone}</span>
+                          </div>
+                        )}
+
+                        {formateur.siret && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <FileText className="w-4 h-4" />
+                            <span className="text-sm">SIRET: {formateur.siret}</span>
+                          </div>
+                        )}
+
+                        {formateur.nda && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Award className="w-4 h-4" />
+                            <span className="text-sm">NDA: {formateur.nda}</span>
+                          </div>
+                        )}
+
+                        {/* Matières enseignées */}
+                        {formateur.matieres && formateur.matieres.length > 0 && formateur.matieres[0] && (
+                          <div className="pt-2 border-t border-gray-100">
+                            <p className="text-xs font-semibold text-gray-500 mb-2">MATIÈRES ENSEIGNÉES</p>
+                            <div className="flex flex-wrap gap-1">
+                              {formateur.matieres.filter(m => m).map((matiere, idx) => (
+                                <span 
+                                  key={idx}
+                                  className="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium"
+                                >
+                                  {matiere}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Documents - Boutons de téléchargement */}
+                        {(formateur.cv_url || formateur.diplome1_url || formateur.diplome2_url) && (
+                          <div className="pt-2 border-t border-gray-100">
+                            <p className="text-xs font-semibold text-gray-500 mb-2">DOCUMENTS</p>
+                            <div className="flex flex-wrap gap-2">
+                              {formateur.cv_url && (
+                                <button 
+                                  onClick={() => {
+                                    const token = localStorage.getItem('token');
+                                    window.open(`${API}/formateurs/${formateur.id}/download/cv?token=${token}`, '_blank');
+                                  }}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs hover:bg-blue-200 transition-colors cursor-pointer"
+                                >
+                                  <Download className="w-3 h-3" />
+                                  CV
+                                </button>
+                              )}
+                              {formateur.diplome1_url && (
+                                <button 
+                                  onClick={() => {
+                                    const token = localStorage.getItem('token');
+                                    window.open(`${API}/formateurs/${formateur.id}/download/diplome1?token=${token}`, '_blank');
+                                  }}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-xs hover:bg-green-200 transition-colors cursor-pointer"
+                                >
+                                  <Download className="w-3 h-3" />
+                                  Diplôme 1
+                                </button>
+                              )}
+                              {formateur.diplome2_url && (
+                                <button 
+                                  onClick={() => {
+                                    const token = localStorage.getItem('token');
+                                    window.open(`${API}/formateurs/${formateur.id}/download/diplome2?token=${token}`, '_blank');
+                                  }}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-xs hover:bg-green-200 transition-colors cursor-pointer"
+                                >
+                                  <Download className="w-3 h-3" />
+                                  Diplôme 2
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Corps de la fiche - identique à l'admin */}
-                    <div className="p-4 space-y-3">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Mail className="w-4 h-4" />
-                        <span className="text-sm truncate">{formateur.email}</span>
+                    {/* Bandeau d'échange à côté de la carte formateur */}
+                    <div 
+                      onClick={() => setShowTicketingModal(true)}
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-6 text-white cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all flex flex-col justify-between"
+                      data-testid={`ticketing-banner-${formateur.id}`}
+                    >
+                      <div>
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="p-3 bg-white/20 rounded-lg">
+                            <MessageSquare className="w-8 h-8" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold">Échanger avec {formateur.prenom}</h3>
+                            <p className="text-blue-200 text-sm">Communiquez avec ce formateur</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          <span className="flex items-center gap-1 text-xs bg-white/10 px-2 py-1 rounded-full">
+                            <div className="w-2 h-2 rounded-full bg-blue-300"></div>
+                            Salles
+                          </span>
+                          <span className="flex items-center gap-1 text-xs bg-white/10 px-2 py-1 rounded-full">
+                            <div className="w-2 h-2 rounded-full bg-orange-300"></div>
+                            Matériel
+                          </span>
+                          <span className="flex items-center gap-1 text-xs bg-white/10 px-2 py-1 rounded-full">
+                            <div className="w-2 h-2 rounded-full bg-purple-300"></div>
+                            Supports
+                          </span>
+                          <span className="flex items-center gap-1 text-xs bg-white/10 px-2 py-1 rounded-full">
+                            <div className="w-2 h-2 rounded-full bg-green-300"></div>
+                            Planning
+                          </span>
+                          <span className="flex items-center gap-1 text-xs bg-white/10 px-2 py-1 rounded-full">
+                            <div className="w-2 h-2 rounded-full bg-pink-300"></div>
+                            Logistique
+                          </span>
+                        </div>
                       </div>
                       
-                      {formateur.telephone && (
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Phone className="w-4 h-4" />
-                          <span className="text-sm">{formateur.telephone}</span>
-                        </div>
-                      )}
-
-                      {formateur.siret && (
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <FileText className="w-4 h-4" />
-                          <span className="text-sm">SIRET: {formateur.siret}</span>
-                        </div>
-                      )}
-
-                      {formateur.nda && (
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Award className="w-4 h-4" />
-                          <span className="text-sm">NDA: {formateur.nda}</span>
-                        </div>
-                      )}
-
-                      {/* Matières enseignées */}
-                      {formateur.matieres && formateur.matieres.length > 0 && formateur.matieres[0] && (
-                        <div className="pt-2 border-t border-gray-100">
-                          <p className="text-xs font-semibold text-gray-500 mb-2">MATIÈRES ENSEIGNÉES</p>
-                          <div className="flex flex-wrap gap-1">
-                            {formateur.matieres.filter(m => m).map((matiere, idx) => (
-                              <span 
-                                key={idx}
-                                className="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium"
-                              >
-                                {matiere}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Documents - Boutons de téléchargement */}
-                      {(formateur.cv_url || formateur.diplome1_url || formateur.diplome2_url) && (
-                        <div className="pt-2 border-t border-gray-100">
-                          <p className="text-xs font-semibold text-gray-500 mb-2">DOCUMENTS</p>
-                          <div className="flex flex-wrap gap-2">
-                            {formateur.cv_url && (
-                              <button 
-                                onClick={() => {
-                                  const token = localStorage.getItem('token');
-                                  window.open(`${API}/formateurs/${formateur.id}/download/cv?token=${token}`, '_blank');
-                                }}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs hover:bg-blue-200 transition-colors cursor-pointer"
-                              >
-                                <Download className="w-3 h-3" />
-                                CV
-                              </button>
-                            )}
-                            {formateur.diplome1_url && (
-                              <button 
-                                onClick={() => {
-                                  const token = localStorage.getItem('token');
-                                  window.open(`${API}/formateurs/${formateur.id}/download/diplome1?token=${token}`, '_blank');
-                                }}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-xs hover:bg-green-200 transition-colors cursor-pointer"
-                              >
-                                <Download className="w-3 h-3" />
-                                Diplôme 1
-                              </button>
-                            )}
-                            {formateur.diplome2_url && (
-                              <button 
-                                onClick={() => {
-                                  const token = localStorage.getItem('token');
-                                  window.open(`${API}/formateurs/${formateur.id}/download/diplome2?token=${token}`, '_blank');
-                                }}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-xs hover:bg-green-200 transition-colors cursor-pointer"
-                              >
-                                <Download className="w-3 h-3" />
-                                Diplôme 2
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                      <button className="w-full px-4 py-2.5 bg-white text-blue-700 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
+                        <MessageSquare className="w-4 h-4" />
+                        Accéder aux échanges
+                      </button>
                     </div>
                   </div>
                 ))}
-                </div>
-
-                {/* Bandeau "Mes échanges formateur" - horizontal en bas */}
-                <div 
-                  onClick={() => setShowTicketingModal(true)}
-                  className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl shadow-xl p-6 text-white cursor-pointer hover:shadow-2xl hover:scale-[1.01] transition-all flex items-center gap-8"
-                >
-                  <div className="flex items-center gap-4 flex-shrink-0">
-                    <div className="p-4 bg-white/20 rounded-xl">
-                      <MessageSquare className="w-10 h-10" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold">Mes échanges formateur</h3>
-                      <p className="text-blue-200 text-sm mt-1">Communiquez avec votre formateur</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 flex items-center gap-6 justify-center">
-                    <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
-                      <div className="w-2 h-2 rounded-full bg-blue-300"></div>
-                      <span>Salles</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
-                      <div className="w-2 h-2 rounded-full bg-orange-300"></div>
-                      <span>Matériel</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
-                      <div className="w-2 h-2 rounded-full bg-purple-300"></div>
-                      <span>Supports</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
-                      <div className="w-2 h-2 rounded-full bg-green-300"></div>
-                      <span>Planning</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
-                      <div className="w-2 h-2 rounded-full bg-pink-300"></div>
-                      <span>Logistique</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm bg-white/10 px-3 py-1.5 rounded-full">
-                      <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                      <span>Autre</span>
-                    </div>
-                </div>
-                  
-                <button className="px-6 py-3 bg-white text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-colors flex items-center gap-2 flex-shrink-0">
-                  <MessageSquare className="w-5 h-5" />
-                  Accéder à mes demandes
-                </button>
-              </div>
               </div>
             )}
           </TabsContent>
