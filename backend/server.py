@@ -12227,23 +12227,105 @@ async def update_ticketing_request_status(
     status_update: dict,
     current_user: User = Depends(get_current_user)
 ):
-    """Mettre à jour le statut d'une demande"""
+    """Mettre à jour le statut d'une demande et envoyer notification"""
     
     new_status = status_update.get("status")
     if not new_status:
         raise HTTPException(status_code=400, detail="Statut requis")
     
     timestamp = datetime.now(timezone.utc)
+    timestamp_str = timestamp.strftime("%d/%m/%Y à %H:%M:%S")
     
+    # Récupérer la demande
+    request_doc = await db.ticketing_requests.find_one({"id": request_id}, {"_id": 0})
+    if not request_doc:
+        raise HTTPException(status_code=404, detail="Demande non trouvée")
+    
+    # Mettre à jour le statut
     result = await db.ticketing_requests.update_one(
         {"id": request_id},
-        {"$set": {"status": new_status, "updated_at": timestamp.isoformat()}}
+        {"$set": {"status": new_status, "updated_at": timestamp.isoformat(), "validated_by": current_user.name, "validated_at": timestamp.isoformat()}}
     )
     
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Demande non trouvée")
     
-    return {"success": True, "message": "Statut mis à jour", "updated_at": timestamp.isoformat()}
+    # Envoyer email de notification au créateur de la demande
+    creator_user = await db.users.find_one({"id": request_doc["created_by_user_id"]}, {"_id": 0})
+    if creator_user and creator_user.get("email"):
+        # Déterminer le libellé du statut
+        status_label = "acceptée" if new_status == "ACCEPTEE" else "refusée"
+        status_color = "#22c55e" if new_status == "ACCEPTEE" else "#ef4444"
+        status_bg = "#dcfce7" if new_status == "ACCEPTEE" else "#fee2e2"
+        
+        # Déterminer le type de demande
+        category_labels = {
+            "SALLES": "réservation de salle",
+            "MATERIEL": "matériel",
+            "SUPPORTS": "documents/supports",
+            "AUTRE": "message"
+        }
+        category_label = category_labels.get(request_doc.get("category", ""), "demande")
+        
+        # Nom du centre/validateur
+        validator_name = current_user.name or "Le centre"
+        if current_user.client_id:
+            client = await db.clients.find_one({"id": current_user.client_id})
+            if client:
+                validator_name = client.get("nom_centre", validator_name)
+        
+        portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-edu-1.preview.emergentagent.com')
+        
+        subject = f"[TerciForm] Votre demande de {category_label} a été {status_label}"
+        
+        html_body = f"""
+        <html>
+        <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+            <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, {status_color} 0%, {status_color}dd 100%); padding: 25px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 22px;">Demande {status_label}</h1>
+                </div>
+                
+                <div style="padding: 30px;">
+                    <div style="background-color: {status_bg}; border-radius: 10px; padding: 20px; margin-bottom: 20px; text-align: center;">
+                        <p style="margin: 0; font-size: 18px; color: {status_color}; font-weight: bold;">
+                            {'✅' if new_status == 'ACCEPTEE' else '❌'} {validator_name} a {status_label} votre demande de {category_label}
+                        </p>
+                    </div>
+                    
+                    <div style="background-color: #f8fafc; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 15px 0; color: #1e3a5f;">Détails de la demande</h3>
+                        <table style="width: 100%;">
+                            <tr><td style="padding: 5px 0;"><strong>Type:</strong></td><td>{category_label.capitalize()}</td></tr>
+                            <tr><td style="padding: 5px 0;"><strong>Horodatage validation:</strong></td><td>{timestamp_str}</td></tr>
+                            <tr><td style="padding: 5px 0;"><strong>Validé par:</strong></td><td>{validator_name}</td></tr>
+                        </table>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 25px 0;">
+                        <a href="{portal_url}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: 600;">
+                            Accéder à mon espace
+                        </a>
+                    </div>
+                </div>
+                
+                <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                    <p style="margin: 0; color: #64748b; font-size: 12px;">
+                        Ce message a été envoyé automatiquement par TerciForm le {timestamp_str}
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        try:
+            send_email(creator_user["email"], subject, html_body)
+            logging.info(f"Email de validation envoyé à {creator_user['email']} pour demande {request_id}")
+        except Exception as e:
+            logging.error(f"Erreur envoi email validation: {e}")
+    
+    return {"success": True, "message": f"Statut mis à jour: {new_status}", "updated_at": timestamp.isoformat()}
 
 # Include router
 app.include_router(api_router)
