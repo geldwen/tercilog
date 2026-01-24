@@ -863,8 +863,8 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                         <div className="p-4 bg-white/20 rounded-xl mb-4">
                           <MessageSquare className="w-10 h-10" />
                         </div>
-                        <h3 className="text-2xl font-bold mb-2">Échanger avec ce formateur</h3>
-                        <p className="text-blue-200 text-sm mb-6">Communiquez avec votre formateur</p>
+                        <h3 className="text-2xl font-bold mb-2">Échanger avec {formateur.prenom}</h3>
+                        <p className="text-blue-200 text-sm mb-6">Gérez les demandes de ce formateur</p>
                         
                         <div className="flex flex-wrap gap-3 justify-center mb-6">
                           <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
@@ -889,7 +889,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                           </span>
                           <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
                             <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-                            Autre
+                            Email
                           </span>
                         </div>
                       </div>
