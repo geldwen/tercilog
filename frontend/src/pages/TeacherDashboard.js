@@ -4799,12 +4799,20 @@ export default function TeacherDashboard({ user, onLogout }) {
                       onClick={() => {
                         setTicketingClient(client);
                         setShowTicketingModal(true);
+                        markTicketsAsRead(client.id);
                       }}
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-6 text-white cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all flex flex-col justify-between"
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-6 text-white cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all flex flex-col justify-between relative"
                       data-testid={`ticketing-banner-${client.id}`}
                     >
+                      {/* Puce de notification rouge */}
+                      {unreadTicketCounts[client.id] > 0 && (
+                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg animate-pulse">
+                          {unreadTicketCounts[client.id]}
+                        </div>
+                      )}
+                      
                       <div className="flex flex-col items-center text-center">
-                        <div className="p-4 bg-white/20 rounded-xl mb-4">
+                        <div className="p-4 bg-white/20 rounded-xl mb-4 relative">
                           <MessageSquare className="w-10 h-10" />
                         </div>
                         <h3 className="text-2xl font-bold mb-2">Échanger avec {client.nom_centre}</h3>
