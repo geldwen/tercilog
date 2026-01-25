@@ -4716,6 +4716,17 @@ export default function TeacherDashboard({ user, onLogout }) {
                         {/* Boutons d'action */}
                         <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end gap-2">
                           <button
+                            onClick={() => {
+                              setSelectedClient(client);
+                              setShowClientHistoryDialog(true);
+                            }}
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+                            data-testid={`history-client-btn-${client.id}`}
+                          >
+                            <Clock className="w-4 h-4" />
+                            Historique
+                          </button>
+                          <button
                             onClick={() => openEditClientDialog(client)}
                             className="flex items-center gap-1 px-3 py-1.5 text-sm bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 transition-colors"
                             data-testid={`edit-client-btn-${client.id}`}
