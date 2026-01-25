@@ -799,11 +799,56 @@ export default function TeacherDashboard({ user, onLogout }) {
       const response = await axios.get(`${API}/clients`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setClients(response.data || []);
+      const clientsData = response.data || [];
+      setClients(clientsData);
+      
+      // Charger les compteurs de tickets non lus pour chaque client
+      loadUnreadTicketCounts(clientsData);
     } catch (error) {
       console.error('Erreur chargement clients:', error);
     } finally {
       setLoadingClients(false);
+    }
+  };
+
+  // Charger les compteurs de tickets non lus
+  const loadUnreadTicketCounts = async (clientsList) => {
+    try {
+      const token = localStorage.getItem('token');
+      const counts = {};
+      
+      for (const client of clientsList) {
+        try {
+          const response = await axios.get(`${API}/tickets/unread-count/${client.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          counts[client.id] = response.data.unread_count || 0;
+        } catch (err) {
+          counts[client.id] = 0;
+        }
+      }
+      
+      setUnreadTicketCounts(counts);
+    } catch (error) {
+      console.error('Erreur chargement compteurs tickets:', error);
+    }
+  };
+
+  // Marquer les tickets comme lus quand on ouvre le ticketing
+  const markTicketsAsRead = async (clientId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API}/tickets/mark-read/${clientId}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Mettre à jour le compteur local
+      setUnreadTicketCounts(prev => ({
+        ...prev,
+        [clientId]: 0
+      }));
+    } catch (error) {
+      console.error('Erreur marquage tickets lus:', error);
     }
   };
 
