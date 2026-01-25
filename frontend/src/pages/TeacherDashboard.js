@@ -128,6 +128,9 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [showClientActionsDialog, setShowClientActionsDialog] = useState(false);
   const [clientActionsTab, setClientActionsTab] = useState('salles'); // 'salles' ou 'facturation'
   
+  // États pour les notifications de tickets non lus
+  const [unreadTicketCounts, setUnreadTicketCounts] = useState({});
+  
   // États pour les demandes de salle
   const [roomRequests, setRoomRequests] = useState([]);
   const [loadingRoomRequests, setLoadingRoomRequests] = useState(false);
