@@ -4666,7 +4666,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                           )}
                         </div>
                         
-                        {/* Boutons Historique et Actions */}
+                        {/* Bouton Historique uniquement */}
                         <div className="flex-1 flex flex-col gap-2">
                           <button
                             onClick={() => {
@@ -4678,17 +4678,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                           >
                             <Clock className="w-4 h-4" />
                             Historique
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedClient(client);
-                              setShowClientActionsDialog(true);
-                            }}
-                            className="flex items-center justify-center gap-2 px-3 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors text-sm font-medium"
-                            data-testid={`actions-client-btn-${client.id}`}
-                          >
-                            <FolderOpen className="w-4 h-4" />
-                            Actions
                           </button>
                         </div>
                       </div>
