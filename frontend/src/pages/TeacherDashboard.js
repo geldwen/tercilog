@@ -4648,7 +4648,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                       className="w-[400px] flex-shrink-0 bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-sky-100"
                       data-testid={`client-card-${client.id}`}
                     >
-                      {/* En-tête avec photo à gauche et boutons à droite */}
+                      {/* En-tête avec photo */}
                       <div className="p-4 flex gap-4">
                         {/* Photo du centre - en haut à gauche */}
                         <div className="w-24 h-24 flex-shrink-0 rounded-xl bg-gradient-to-br from-sky-100 to-sky-200 flex items-center justify-center overflow-hidden">
@@ -4664,21 +4664,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                           ) : (
                             <Building className="w-10 h-10 text-sky-400" />
                           )}
-                        </div>
-                        
-                        {/* Bouton Historique uniquement */}
-                        <div className="flex-1 flex flex-col gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedClient(client);
-                              setShowClientHistoryDialog(true);
-                            }}
-                            className="flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-medium"
-                            data-testid={`history-client-btn-${client.id}`}
-                          >
-                            <Clock className="w-4 h-4" />
-                            Historique
-                          </button>
                         </div>
                       </div>
                       
