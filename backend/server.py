@@ -11710,6 +11710,44 @@ async def update_ticket_status(
     
     return {"message": f"Statut mis à jour: {new_status}"}
 
+# Compter les tickets non lus pour un client/centre
+@api_router.get("/tickets/unread-count/{client_id}")
+async def get_unread_ticket_count(client_id: str, current_user: User = Depends(get_current_user)):
+    """Compter les tickets non lus pour un centre donné"""
+    if current_user.role == "teacher":
+        # Formateur: compter les tickets qu'il n'a pas lus (envoyés par le centre)
+        count = await db.tickets.count_documents({
+            "assigned_center_id": client_id,
+            "read_by_trainer": {"$ne": True},
+            "is_archived": False
+        })
+    else:
+        # Gestionnaire: compter les tickets qu'il n'a pas lus (envoyés par le formateur)
+        count = await db.tickets.count_documents({
+            "assigned_center_id": client_id,
+            "read_by_center": {"$ne": True},
+            "is_archived": False
+        })
+    return {"unread_count": count}
+
+# Marquer les tickets comme lus
+@api_router.post("/tickets/mark-read/{client_id}")
+async def mark_tickets_as_read(client_id: str, current_user: User = Depends(get_current_user)):
+    """Marquer tous les tickets d'un centre comme lus"""
+    if current_user.role == "teacher":
+        # Formateur marque comme lu
+        await db.tickets.update_many(
+            {"assigned_center_id": client_id},
+            {"$set": {"read_by_trainer": True}}
+        )
+    else:
+        # Gestionnaire marque comme lu
+        await db.tickets.update_many(
+            {"assigned_center_id": client_id},
+            {"$set": {"read_by_center": True}}
+        )
+    return {"message": "Tickets marqués comme lus"}
+
 # Récupérer les centres (pour sélection dans le formulaire)
 @api_router.get("/tickets/recipients/centers")
 async def get_ticket_recipient_centers(current_user: User = Depends(get_current_user)):
