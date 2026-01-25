@@ -891,10 +891,20 @@ export default function GestionnaireDashboard({ user, onLogout }) {
 
                     {/* Bandeau d'échange à côté de la carte formateur */}
                     <div 
-                      onClick={() => setShowTicketingModal(true)}
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-6 text-white cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all flex flex-col justify-between"
+                      onClick={() => {
+                        setShowTicketingModal(true);
+                        if (client?.id) markTicketsAsRead(client.id);
+                      }}
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-6 text-white cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all flex flex-col justify-between relative"
                       data-testid={`ticketing-banner-${formateur.id}`}
                     >
+                      {/* Puce de notification rouge */}
+                      {unreadTicketCount > 0 && (
+                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg animate-pulse">
+                          {unreadTicketCount}
+                        </div>
+                      )}
+                      
                       <div className="flex flex-col items-center text-center">
                         <div className="p-4 bg-white/20 rounded-xl mb-4">
                           <MessageSquare className="w-10 h-10" />
