@@ -751,12 +751,21 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                 
                 {/* Bouton pour accéder aux demandes même sans formateur */}
                 <button
-                  onClick={() => setShowTicketingModal(true)}
-                  className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+                  onClick={() => {
+                    setShowTicketingModal(true);
+                    if (client?.id) markTicketsAsRead(client.id);
+                  }}
+                  className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors inline-flex items-center gap-2 relative"
                   data-testid="ticketing-access-btn"
                 >
                   <MessageSquare className="w-5 h-5" />
                   Voir les demandes en cours
+                  {/* Puce de notification */}
+                  {unreadTicketCount > 0 && (
+                    <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-xs animate-pulse">
+                      {unreadTicketCount}
+                    </span>
+                  )}
                 </button>
               </div>
             ) : (
