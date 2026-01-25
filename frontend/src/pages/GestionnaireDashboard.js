@@ -51,10 +51,31 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   
   // Ticketing
   const [showTicketingModal, setShowTicketingModal] = useState(false);
+  const [unreadTicketCount, setUnreadTicketCount] = useState(0);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  // Charger le compteur de tickets non lus
+  const loadUnreadTicketCount = async (clientId) => {
+    try {
+      const response = await axios.get(`${API}/tickets/unread-count/${clientId}`);
+      setUnreadTicketCount(response.data.unread_count || 0);
+    } catch (error) {
+      console.error('Erreur chargement compteur tickets:', error);
+    }
+  };
+
+  // Marquer les tickets comme lus
+  const markTicketsAsRead = async (clientId) => {
+    try {
+      await axios.post(`${API}/tickets/mark-read/${clientId}`);
+      setUnreadTicketCount(0);
+    } catch (error) {
+      console.error('Erreur marquage tickets lus:', error);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -68,6 +89,11 @@ export default function GestionnaireDashboard({ user, onLogout }) {
       
       setClient(clientRes.data);
       setStudents(studentsRes.data || []);
+      
+      // Charger le compteur de tickets non lus
+      if (clientRes.data?.id) {
+        loadUnreadTicketCount(clientRes.data.id);
+      }
       setSessions(sessionsRes.data || []);
       setFormateurs(formateursRes.data || []);
     } catch (error) {
