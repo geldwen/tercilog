@@ -11504,7 +11504,9 @@ async def create_ticket(
         "updated_at": now,
         "last_message_at": now,
         "is_archived": False,
-        "message_count": 1
+        "message_count": 1,
+        "read_by_trainer": sender_role == TicketRole.TRAINER,
+        "read_by_center": sender_role == TicketRole.CENTER
     }
     
     await db.tickets.insert_one(ticket)
