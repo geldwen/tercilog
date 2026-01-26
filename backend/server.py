@@ -11318,23 +11318,116 @@ async def get_gestionnaire_students(current_user: User = Depends(get_current_use
 
 @api_router.post("/gestionnaire/students")
 async def create_gestionnaire_student(data: dict, current_user: User = Depends(get_current_user)):
-    """Crée un élève pour le centre du gestionnaire"""
+    """Crée un élève pour le centre du gestionnaire et notifie le formateur"""
     if current_user.role != "gestionnaire":
         raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    # Récupérer les infos du centre
+    client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+    centre_name = client.get('nom_centre', '') if client else ''
     
     # Ajouter les infos du centre
     data['role'] = 'student'
     data['client_id'] = current_user.client_id
     
-    # Utiliser le nom du centre comme organisme
+    # Utiliser le nom du centre comme organisme si non fourni
     if not data.get('organism'):
-        client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
-        data['organism'] = client.get('nom_centre', '') if client else ''
+        data['organism'] = centre_name
+    
+    # Extraire les données de notification avant de créer l'élève
+    notify_formateur = data.pop('notify_formateur', False)
+    created_by_center = data.pop('created_by_center', centre_name)
+    include_tests = data.pop('includeTests', False)
+    selected_tests = data.pop('selectedTests', {})
+    include_questionnaires = data.pop('includeQuestionnaires', False)
+    selected_questionnaires = data.pop('selectedQuestionnaires', {})
+    formateur_id = data.get('formateur_id', '')
     
     # Créer via la fonction register existante
     try:
         user_create = UserCreate(**data)
         student = await register(user_create)
+        
+        # Envoyer email au formateur si demandé
+        if notify_formateur and data.get('teacher_email'):
+            try:
+                teacher_email = data.get('teacher_email')
+                teacher_name = data.get('teacher_name', 'Formateur')
+                student_name = data.get('name', '')
+                student_parcours = data.get('parcours', '')
+                student_hours = data.get('total_hours', 0)
+                
+                # Construire le contenu de l'email
+                logo_url = "https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png"
+                
+                email_html = f"""
+                <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc;">
+                    <div style="background: linear-gradient(135deg, #1E3A5F 0%, #2D5A87 100%); padding: 24px; text-align: center;">
+                        <img src="{logo_url}" alt="Terciform" style="height: 60px; margin-bottom: 10px;">
+                        <h1 style="color: white; margin: 0; font-size: 24px;">Nouvel élève attribué</h1>
+                    </div>
+                    
+                    <div style="padding: 32px; background-color: white;">
+                        <p style="margin: 0 0 20px 0; font-size: 16px; color: #374151;">
+                            Bonjour <strong>{teacher_name}</strong>,
+                        </p>
+                        
+                        <div style="background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+                            <p style="margin: 0; color: #92400E; font-weight: 600; font-size: 16px;">
+                                📚 Le centre <strong>{created_by_center}</strong> vient de vous attribuer un nouvel élève !
+                            </p>
+                        </div>
+                        
+                        <div style="background-color: #f1f5f9; padding: 20px; border-radius: 12px; margin: 20px 0;">
+                            <h3 style="margin: 0 0 16px 0; color: #1E3A5F; font-size: 18px;">📋 Informations de l'élève</h3>
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 8px 0; color: #6B7280; width: 140px;">Nom :</td>
+                                    <td style="padding: 8px 0; color: #111827; font-weight: 600;">{student_name}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; color: #6B7280;">Parcours :</td>
+                                    <td style="padding: 8px 0; color: #111827; font-weight: 600;">{student_parcours}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; color: #6B7280;">Heures prévues :</td>
+                                    <td style="padding: 8px 0; color: #111827; font-weight: 600;">{student_hours}h</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; color: #6B7280;">Centre :</td>
+                                    <td style="padding: 8px 0; color: #111827; font-weight: 600;">{created_by_center}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <p style="margin: 20px 0; font-size: 14px; color: #6B7280;">
+                            Connectez-vous à votre espace TerciLog pour voir cet élève et planifier vos séances.
+                        </p>
+                        
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="{get_student_portal_url()}" style="display: inline-block; background-color: #1E3A5F; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                                Accéder à TerciLog
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div style="background-color: #f1f5f9; padding: 20px; text-align: center;">
+                        <p style="margin: 0; color: #6B7280; font-size: 12px;">
+                            Terciform - Propulsez vos compétences
+                        </p>
+                    </div>
+                </div>
+                """
+                
+                await send_email_async(
+                    to=teacher_email,
+                    subject=f"📚 Nouvel élève attribué - {student_name} ({student_parcours})",
+                    html_content=email_html
+                )
+                logging.info(f"Email de notification envoyé au formateur {teacher_email} pour le nouvel élève {student_name}")
+            except Exception as e:
+                logging.error(f"Erreur envoi email notification formateur: {e}")
+        
         return {"success": True, "student_id": student.id}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
