@@ -11823,6 +11823,32 @@ async def get_unread_ticket_count(client_id: str, current_user: User = Depends(g
         })
     return {"unread_count": count}
 
+# Compter les tickets non lus par catégorie
+@api_router.get("/tickets/unread-count-by-category/{client_id}")
+async def get_unread_ticket_count_by_category(client_id: str, current_user: User = Depends(get_current_user)):
+    """Compter les tickets non lus par catégorie pour un centre donné"""
+    categories = ['SALLES', 'MATERIEL', 'SUPPORTS', 'ORGANISATION', 'ACCUEIL', 'EMAIL']
+    result = {}
+    
+    for cat in categories:
+        if current_user.role == "teacher":
+            count = await db.tickets.count_documents({
+                "assigned_center_id": client_id,
+                "category": cat,
+                "read_by_trainer": {"$ne": True},
+                "is_archived": False
+            })
+        else:
+            count = await db.tickets.count_documents({
+                "assigned_center_id": client_id,
+                "category": cat,
+                "read_by_center": {"$ne": True},
+                "is_archived": False
+            })
+        result[cat] = count
+    
+    return result
+
 # Marquer les tickets comme lus
 @api_router.post("/tickets/mark-read/{client_id}")
 async def mark_tickets_as_read(client_id: str, current_user: User = Depends(get_current_user)):
