@@ -36,8 +36,63 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   const [showCreateStudent, setShowCreateStudent] = useState(false);
   const [studentForm, setStudentForm] = useState({
     name: '', email: '', phone: '', parcours: 'Anglais', 
-    total_hours: 0, password: '', organism: '', support_type: ''
+    total_hours: 0, password: '', organism: '', support_type: '',
+    teacher_name: '', teacher_email: '', teacher_phone: '',
+    teacher_profile_picture: '', teacher_profile_picture_type: '',
+    formateur_id: ''
   });
+  const [includeTests, setIncludeTests] = useState(false);
+  const [includeQuestionnaires, setIncludeQuestionnaires] = useState(false);
+  const [selectedTests, setSelectedTests] = useState({
+    positionnement: '', miParcours: '', fin: ''
+  });
+  const [selectedQuestionnaires, setSelectedQuestionnaires] = useState({
+    froid: '', chaud: ''
+  });
+  
+  // Modèles de tests par parcours
+  const testModels = {
+    'Anglais': {
+      positionnement: ['Test A1 Anglais', 'Test A2 Anglais', 'Test B1 Anglais', 'Test B2 Anglais'],
+      miParcours: ['Évaluation mi-parcours A1-A2', 'Évaluation mi-parcours B1-B2'],
+      fin: ['Certification Anglais Niveau A2', 'Certification Anglais Niveau B1', 'Certification Anglais Niveau B2']
+    },
+    'Management': {
+      positionnement: ['Test Management Débutant', 'Test Management Intermédiaire'],
+      miParcours: ['Évaluation mi-parcours Management'],
+      fin: ['Certification Management']
+    },
+    'Bureautique': {
+      positionnement: ['Test Word Débutant', 'Test Excel Débutant', 'Test Pack Office'],
+      miParcours: ['Évaluation mi-parcours Bureautique'],
+      fin: ['Certification TOSA', 'Certification ENI']
+    },
+    'Informatique': {
+      positionnement: ['Test Informatique Général', 'Test Développement Web'],
+      miParcours: ['Évaluation mi-parcours Informatique'],
+      fin: ['Certification Informatique']
+    }
+  };
+  
+  // Modèles de questionnaires par parcours
+  const questionnaireModels = {
+    'Anglais': {
+      froid: ['Questionnaire Qualiopi Anglais - Standard', 'Questionnaire Qualiopi Anglais - Intensif'],
+      chaud: ['Évaluation à chaud Anglais']
+    },
+    'Management': {
+      froid: ['Questionnaire Qualiopi Management'],
+      chaud: ['Évaluation à chaud Management']
+    },
+    'Bureautique': {
+      froid: ['Questionnaire Qualiopi Bureautique'],
+      chaud: ['Évaluation à chaud Bureautique']
+    },
+    'Informatique': {
+      froid: ['Questionnaire Qualiopi Informatique'],
+      chaud: ['Évaluation à chaud Informatique']
+    }
+  };
 
   // Détail séance
   const [showSessionDetail, setShowSessionDetail] = useState(false);
