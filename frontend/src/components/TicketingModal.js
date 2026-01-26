@@ -34,6 +34,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
   const [activeCategory, setActiveCategory] = useState('SALLES');
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState([]);
+  const [unreadByCategory, setUnreadByCategory] = useState({});
   
   // Formulaire Salles (Admin seulement)
   const [salleForm, setSalleForm] = useState({
