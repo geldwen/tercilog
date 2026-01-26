@@ -353,17 +353,24 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                 {CATEGORIES.map(cat => {
                   const Icon = cat.icon;
                   const isActive = activeCategory === cat.id;
+                  const unreadCount = unreadByCategory[cat.id] || 0;
                   return (
                     <TabsTrigger
                       key={cat.id}
                       value={cat.id}
-                      className={`px-5 py-3 text-base font-semibold rounded-xl border-2 transition-all flex items-center gap-2 ${
+                      className={`px-5 py-3 text-base font-semibold rounded-xl border-2 transition-all flex items-center gap-2 relative ${
                         isActive 
                           ? `${cat.color} text-white shadow-lg border-transparent` 
                           : `bg-white ${cat.textColor} hover:${cat.bgLight} ${cat.borderColor}`
                       }`}
                       data-testid={`tab-${cat.id.toLowerCase()}`}
                     >
+                      {/* Puce de notification rouge par catégorie */}
+                      {unreadCount > 0 && (
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-lg animate-pulse z-10">
+                          {unreadCount}
+                        </div>
+                      )}
                       <div className={`p-1 rounded-md ${isActive ? 'bg-white/20' : cat.bgLight}`}>
                         <Icon className={`w-4 h-4 ${isActive ? 'text-white' : cat.textColor}`} />
                       </div>
