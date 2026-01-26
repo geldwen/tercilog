@@ -68,8 +68,23 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     if (open) {
       loadRequests();
       loadDocuments();
+      loadUnreadByCategory();
     }
   }, [open, activeCategory]);
+
+  // Charger les compteurs de tickets non lus par catégorie
+  const loadUnreadByCategory = async () => {
+    if (!clientId) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/tickets/unread-count-by-category/${clientId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUnreadByCategory(response.data || {});
+    } catch (error) {
+      console.error('Erreur chargement compteurs par catégorie:', error);
+    }
+  };
 
   const loadRequests = async () => {
     try {
