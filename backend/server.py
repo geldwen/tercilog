@@ -11419,10 +11419,10 @@ async def create_gestionnaire_student(data: dict, current_user: User = Depends(g
                 </div>
                 """
                 
-                await send_email_async(
-                    to=teacher_email,
+                send_email(
+                    to_email=teacher_email,
                     subject=f"📚 Nouvel élève attribué - {student_name} ({student_parcours})",
-                    html_content=email_html
+                    html_body=email_html
                 )
                 logging.info(f"Email de notification envoyé au formateur {teacher_email} pour le nouvel élève {student_name}")
             except Exception as e:
