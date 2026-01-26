@@ -470,57 +470,229 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                       Créer un élève
                     </button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Nouvel Élève</DialogTitle>
                       <DialogDescription>Créer un compte élève pour {client?.nom_centre}</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleCreateStudent} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Nom complet *</Label>
-                        <Input placeholder="ex: Jean Dupont" value={studentForm.name} onChange={(e) => setStudentForm({...studentForm, name: e.target.value})} required />
+                      {/* Informations de base */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Nom complet *</Label>
+                          <Input placeholder="ex: Jean Dupont" value={studentForm.name} onChange={(e) => setStudentForm({...studentForm, name: e.target.value})} required />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Numéro de téléphone</Label>
+                          <Input placeholder="ex: 06 12 34 56 78" value={studentForm.phone} onChange={(e) => setStudentForm({...studentForm, phone: e.target.value})} />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Numéro de téléphone</Label>
-                        <Input placeholder="ex: 06 12 34 56 78" value={studentForm.phone} onChange={(e) => setStudentForm({...studentForm, phone: e.target.value})} />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Email *</Label>
+                          <Input type="email" placeholder="jean.dupont@email.com" value={studentForm.email} onChange={(e) => setStudentForm({...studentForm, email: e.target.value})} required />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Mot de passe *</Label>
+                          <Input type="password" placeholder="••••••••" value={studentForm.password} onChange={(e) => setStudentForm({...studentForm, password: e.target.value})} required />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Email *</Label>
-                        <Input type="email" placeholder="jean.dupont@email.com" value={studentForm.email} onChange={(e) => setStudentForm({...studentForm, email: e.target.value})} required />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Organisme de formation</Label>
+                          <Input placeholder="ex: Pôle Emploi" value={studentForm.organism} onChange={(e) => setStudentForm({...studentForm, organism: e.target.value})} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Prise en charge parcours</Label>
+                          <Input placeholder="ex: CPF" value={studentForm.support_type} onChange={(e) => setStudentForm({...studentForm, support_type: e.target.value})} />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Mot de passe *</Label>
-                        <Input type="password" placeholder="••••••••" value={studentForm.password} onChange={(e) => setStudentForm({...studentForm, password: e.target.value})} required />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Parcours / Matière *</Label>
+                          <select 
+                            value={studentForm.parcours} 
+                            onChange={(e) => setStudentForm({...studentForm, parcours: e.target.value})} 
+                            className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md"
+                            required
+                          >
+                            <option value="Anglais">Anglais</option>
+                            <option value="Management">Management</option>
+                            <option value="Bureautique">Bureautique</option>
+                            <option value="Informatique">Informatique</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Heures prévues</Label>
+                          <Input type="number" value={studentForm.total_hours} onChange={(e) => setStudentForm({...studentForm, total_hours: parseFloat(e.target.value) || 0})} />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Organisme de formation</Label>
-                        <Input placeholder="ex: Pôle Emploi" value={studentForm.organism} onChange={(e) => setStudentForm({...studentForm, organism: e.target.value})} />
+                      
+                      {/* BLOC : Sélection du formateur */}
+                      <div className="p-4 border-2 border-amber-200 rounded-lg bg-amber-50 space-y-3">
+                        <h4 className="font-bold text-amber-900 flex items-center gap-2">
+                          <PenTool className="w-5 h-5" />
+                          Assigner un formateur
+                        </h4>
+                        <p className="text-sm text-gray-600">Sélectionnez le formateur qui sera en charge de cet élève.</p>
+                        
+                        <div className="space-y-2">
+                          <Label className="text-amber-700">Formateur référent</Label>
+                          <select 
+                            value={studentForm.formateur_id}
+                            onChange={(e) => setStudentForm({...studentForm, formateur_id: e.target.value})}
+                            className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white"
+                          >
+                            <option value="">-- Sélectionner un formateur --</option>
+                            {formateurs.map(f => (
+                              <option key={f.id} value={f.id}>
+                                {f.prenom} {f.nom} {f.matieres?.length > 0 ? `(${f.matieres.join(', ')})` : ''} - {f.email}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        {/* Aperçu du formateur sélectionné */}
+                        {studentForm.formateur_id && (() => {
+                          const selectedFormateur = formateurs.find(f => f.id === studentForm.formateur_id);
+                          if (!selectedFormateur) return null;
+                          return (
+                            <div className="p-3 bg-white border border-amber-200 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                  {selectedFormateur.photo_url ? (
+                                    <img src={`${process.env.REACT_APP_BACKEND_URL}${selectedFormateur.photo_url}`} alt={selectedFormateur.nom} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <PenTool className="w-6 h-6 text-amber-600" />
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="font-semibold">{selectedFormateur.prenom} {selectedFormateur.nom}</p>
+                                  <p className="text-sm text-gray-500">{selectedFormateur.email}</p>
+                                  {selectedFormateur.matieres?.length > 0 && (
+                                    <div className="flex gap-1 mt-1">
+                                      {selectedFormateur.matieres.map(m => (
+                                        <span key={m} className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">{m}</span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
-                      <div className="space-y-2">
-                        <Label>Prise en charge parcours</Label>
-                        <Input placeholder="ex: CPF" value={studentForm.support_type} onChange={(e) => setStudentForm({...studentForm, support_type: e.target.value})} />
+                      
+                      {/* BLOC : Tests de parcours */}
+                      <div className="p-4 border-2 border-blue-200 rounded-lg bg-blue-50 space-y-3">
+                        <h4 className="font-bold text-blue-900">🟦 Tests de parcours</h4>
+                        <p className="text-sm text-gray-700">Souhaitez-vous introduire les tests du parcours « {studentForm.parcours} » ?</p>
+                        <div className="flex gap-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="includeTests" checked={includeTests === true} onChange={() => setIncludeTests(true)} />
+                            <span>Oui</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="includeTests" checked={includeTests === false} onChange={() => setIncludeTests(false)} />
+                            <span>Non</span>
+                          </label>
+                        </div>
+                        
+                        {includeTests && (
+                          <div className="space-y-3 mt-3 pl-4 border-l-4 border-blue-300">
+                            <div className="space-y-2">
+                              <Label className="text-sm">T1 - Test de positionnement</Label>
+                              <select 
+                                value={selectedTests.positionnement}
+                                onChange={(e) => setSelectedTests({...selectedTests, positionnement: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                              >
+                                <option value="">-- Choisir un modèle --</option>
+                                {testModels[studentForm.parcours]?.positionnement.map(model => (
+                                  <option key={model} value={model}>{model}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm">T2 - Test à mi parcours</Label>
+                              <select 
+                                value={selectedTests.miParcours}
+                                onChange={(e) => setSelectedTests({...selectedTests, miParcours: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                              >
+                                <option value="">-- Choisir un modèle --</option>
+                                {testModels[studentForm.parcours]?.miParcours.map(model => (
+                                  <option key={model} value={model}>{model}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm">T3 - Test de fin de formation</Label>
+                              <select 
+                                value={selectedTests.fin}
+                                onChange={(e) => setSelectedTests({...selectedTests, fin: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                              >
+                                <option value="">-- Choisir un modèle --</option>
+                                {testModels[studentForm.parcours]?.fin.map(model => (
+                                  <option key={model} value={model}>{model}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <div className="space-y-2">
-                        <Label>Parcours / Matière *</Label>
-                        <select 
-                          value={studentForm.parcours} 
-                          onChange={(e) => setStudentForm({...studentForm, parcours: e.target.value})} 
-                          className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md"
-                          required
-                        >
-                          <option value="Anglais">Anglais</option>
-                          <option value="Management">Management</option>
-                          <option value="Bureautique">Bureautique</option>
-                          <option value="Informatique">Informatique</option>
-                        </select>
+
+                      {/* BLOC : Questionnaires Qualiopi */}
+                      <div className="p-4 border-2 border-yellow-200 rounded-lg bg-yellow-50 space-y-3">
+                        <h4 className="font-bold text-yellow-900">🟨 Questionnaires Qualiopi</h4>
+                        <p className="text-sm text-gray-700">Souhaitez-vous introduire les questionnaires pour le parcours « {studentForm.parcours} » ?</p>
+                        <div className="flex gap-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="includeQuestionnaires" checked={includeQuestionnaires === true} onChange={() => setIncludeQuestionnaires(true)} />
+                            <span>Oui</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="includeQuestionnaires" checked={includeQuestionnaires === false} onChange={() => setIncludeQuestionnaires(false)} />
+                            <span>Non</span>
+                          </label>
+                        </div>
+                        
+                        {includeQuestionnaires && (
+                          <div className="space-y-3 mt-3 pl-4 border-l-4 border-yellow-300">
+                            <div className="space-y-2">
+                              <Label className="text-sm">Q1 - Questionnaire à froid</Label>
+                              <select 
+                                value={selectedQuestionnaires.froid}
+                                onChange={(e) => setSelectedQuestionnaires({...selectedQuestionnaires, froid: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                              >
+                                <option value="">-- Choisir un modèle --</option>
+                                {questionnaireModels[studentForm.parcours]?.froid.map(model => (
+                                  <option key={model} value={model}>{model}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm">Q2 - Questionnaire à chaud</Label>
+                              <select 
+                                value={selectedQuestionnaires.chaud}
+                                onChange={(e) => setSelectedQuestionnaires({...selectedQuestionnaires, chaud: e.target.value})}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                              >
+                                <option value="">-- Choisir un modèle --</option>
+                                {questionnaireModels[studentForm.parcours]?.chaud.map(model => (
+                                  <option key={model} value={model}>{model}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <div className="space-y-2">
-                        <Label>Heures prévues</Label>
-                        <Input type="number" value={studentForm.total_hours} onChange={(e) => setStudentForm({...studentForm, total_hours: parseFloat(e.target.value) || 0})} />
-                      </div>
+                      
                       <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setShowCreateStudent(false)}>Annuler</Button>
-                        <Button type="submit" style={{ backgroundColor: TERCIFORM_BLUE }} className="text-white">Créer un élève</Button>
+                        <Button type="submit" style={{ backgroundColor: TERCIFORM_BLUE }} className="text-white">Créer l'élève</Button>
                       </DialogFooter>
                     </form>
                   </DialogContent>
