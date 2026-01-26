@@ -199,14 +199,41 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     }
     
     try {
-      await axios.post(`${API}/gestionnaire/students`, {
+      // Récupérer les infos du formateur sélectionné
+      let formateurInfo = null;
+      if (studentForm.formateur_id) {
+        formateurInfo = formateurs.find(f => f.id === studentForm.formateur_id);
+      }
+      
+      const studentData = {
         ...studentForm,
         client_id: user.client_id,
-        organism: studentForm.organism || client?.nom_centre || ''
-      });
+        organism: studentForm.organism || client?.nom_centre || '',
+        teacher_name: formateurInfo ? `${formateurInfo.prenom} ${formateurInfo.nom}` : studentForm.teacher_name,
+        teacher_email: formateurInfo ? formateurInfo.email : studentForm.teacher_email,
+        teacher_phone: formateurInfo ? formateurInfo.telephone : studentForm.teacher_phone,
+        includeTests,
+        selectedTests,
+        includeQuestionnaires,
+        selectedQuestionnaires,
+        created_by_center: client?.nom_centre || '',
+        notify_formateur: true  // Flag pour notifier le formateur
+      };
+      
+      await axios.post(`${API}/gestionnaire/students`, studentData);
       toast.success('Élève créé avec succès');
       setShowCreateStudent(false);
-      setStudentForm({ name: '', email: '', phone: '', parcours: 'Anglais', total_hours: 0, password: '', organism: '', support_type: '' });
+      setStudentForm({ 
+        name: '', email: '', phone: '', parcours: 'Anglais', 
+        total_hours: 0, password: '', organism: '', support_type: '',
+        teacher_name: '', teacher_email: '', teacher_phone: '',
+        teacher_profile_picture: '', teacher_profile_picture_type: '',
+        formateur_id: ''
+      });
+      setIncludeTests(false);
+      setIncludeQuestionnaires(false);
+      setSelectedTests({ positionnement: '', miParcours: '', fin: '' });
+      setSelectedQuestionnaires({ froid: '', chaud: '' });
       loadData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de la création');
