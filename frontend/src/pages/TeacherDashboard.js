@@ -4352,6 +4352,13 @@ export default function TeacherDashboard({ user, onLogout }) {
                                               {isFuture && <span className="px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded">À VENIR</span>}
                                               <span className="font-medium text-gray-900">{session.subject}</span>
                                               <span className="text-gray-500">le {new Date(session.date).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                              {/* Créneau horaire */}
+                                              {session.start_time && session.end_time && (
+                                                <span className="text-blue-600 font-medium flex items-center gap-1">
+                                                  <Clock className="w-3.5 h-3.5" />
+                                                  {session.start_time} - {session.end_time}
+                                                </span>
+                                              )}
                                               <span className="font-semibold text-gray-700">{session.duration_hours}h</span>
                                               {session.status === 'confirmed' && session.validated_at && (
                                                 <span className="text-xs text-green-700 font-medium">
