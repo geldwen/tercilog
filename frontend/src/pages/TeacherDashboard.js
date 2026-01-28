@@ -681,7 +681,9 @@ export default function TeacherDashboard({ user, onLogout }) {
         ...studentForm, 
         role: "student", 
         credit_hours: studentForm.total_hours,
-        resources: resources
+        resources: resources,
+        client_id: studentForm.client_id || null,
+        client_name: studentForm.client_name || ''
       });
       toast.success("Élève créé !");
       
@@ -695,12 +697,12 @@ export default function TeacherDashboard({ user, onLogout }) {
           phone: "", 
           email: "", 
           password: "",
-          // Garder : organism, session_type, parcours, teacher_*, formation_*
+          // Garder : organism, session_type, parcours, teacher_*, formation_*, client_id, client_name
         }));
         toast.info("Vous pouvez ajouter un autre élève");
       } else {
         setShowCreateStudent(false);
-        setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0, parcours: "Anglais", teacher_name: "", teacher_email: "", teacher_phone: "", teacher_profile_picture: "/api/profile-pictures/homme_default.png", teacher_profile_picture_type: "homme", formation_address: "", formation_building: "", formation_street: "", formation_postal_code: "", formation_city: "", formation_country: "France", formation_transports: "" });
+        setStudentForm({ name: "", phone: "", email: "", password: "", organism: "", support_type: "", session_type: "", start_date: "", end_date: "", total_hours: 0, parcours: "Anglais", teacher_name: "", teacher_email: "", teacher_phone: "", teacher_profile_picture: "/api/profile-pictures/homme_default.png", teacher_profile_picture_type: "homme", formation_address: "", formation_building: "", formation_street: "", formation_postal_code: "", formation_city: "", formation_country: "France", formation_transports: "", client_id: "", client_name: "" });
       }
       
       setIncludeTests(false);
