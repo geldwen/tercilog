@@ -3252,7 +3252,45 @@ export default function TeacherDashboard({ user, onLogout }) {
                     <div className="space-y-2"><Label>Numéro de téléphone</Label><Input placeholder="ex: 06 12 34 56 78" value={studentForm.phone} onChange={(e) => setStudentForm({ ...studentForm, phone: e.target.value })} /></div>
                     <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="jean.dupont@email.com" value={studentForm.email} onChange={(e) => setStudentForm({ ...studentForm, email: e.target.value })} required /></div>
                     <div className="space-y-2"><Label>Mot de passe TerciLog</Label><Input type="password" placeholder="••••••••" value={studentForm.password} onChange={(e) => setStudentForm({ ...studentForm, password: e.target.value })} required /></div>
-                    <div className="space-y-2"><Label>Organisme de formation</Label><Input placeholder="ex: Pôle Emploi" value={studentForm.organism} onChange={(e) => setStudentForm({ ...studentForm, organism: e.target.value })} /></div>
+                    
+                    {/* BLOC : Centre de formation (liaison avec Espace Gestion) */}
+                    <div className="p-4 border-2 border-sky-200 rounded-lg bg-sky-50 space-y-3">
+                      <h4 className="font-bold text-sky-900 flex items-center gap-2">
+                        <Building className="w-5 h-5" />
+                        Centre de formation (Espace Gestion)
+                      </h4>
+                      <p className="text-sm text-gray-600">L'élève apparaîtra dans l'Espace Gestion du centre sélectionné.</p>
+                      <div className="space-y-2">
+                        <Label className="text-sky-700">Sélectionner un centre</Label>
+                        <select 
+                          value={studentForm.client_id || ''}
+                          onChange={(e) => {
+                            const selectedClient = clients.find(c => c.id === e.target.value);
+                            setStudentForm({ 
+                              ...studentForm, 
+                              client_id: e.target.value,
+                              client_name: selectedClient?.nom_centre || '',
+                              organism: selectedClient?.nom_centre || studentForm.organism
+                            });
+                          }}
+                          className="w-full px-3 py-2 border border-sky-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 bg-white"
+                        >
+                          <option value="">-- Aucun centre (élève indépendant) --</option>
+                          {clients.map(c => (
+                            <option key={c.id} value={c.id}>{c.nom_centre}</option>
+                          ))}
+                        </select>
+                      </div>
+                      {studentForm.client_id && (
+                        <div className="p-3 bg-white border border-sky-200 rounded-lg">
+                          <p className="text-sm text-sky-800">
+                            ✓ Cet élève sera visible dans l'<strong>Espace Gestion</strong> de <strong>{studentForm.client_name}</strong>
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2"><Label>Organisme financeur</Label><Input placeholder="ex: Pôle Emploi, OPCO..." value={studentForm.organism} onChange={(e) => setStudentForm({ ...studentForm, organism: e.target.value })} /></div>
                     <div className="space-y-2"><Label>Prise en charge parcours</Label><Input placeholder="ex: CPF" value={studentForm.support_type} onChange={(e) => setStudentForm({ ...studentForm, support_type: e.target.value })} /></div>
                     <div className="space-y-2">
                       <Label>Parcours / Matière *</Label>
