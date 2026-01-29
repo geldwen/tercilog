@@ -11011,6 +11011,16 @@ async def update_client(
     
     await db.clients.update_one({"id": client_id}, {"$set": update_data})
     
+    # IMPORTANT: Synchroniser le gestionnaire avec ce client
+    if email_gestionnaire:
+        gestionnaire = await db.users.find_one({"email": email_gestionnaire, "role": "gestionnaire"})
+        if gestionnaire:
+            await db.users.update_one(
+                {"email": email_gestionnaire},
+                {"$set": {"client_id": client_id, "client_name": nom_centre}}
+            )
+            logger.info(f"✅ Gestionnaire {email_gestionnaire} synchronisé avec client {nom_centre}")
+    
     updated_client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     return updated_client
 
