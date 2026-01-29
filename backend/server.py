@@ -1540,10 +1540,13 @@ async def register(user_data: UserCreate):
 
 @api_router.post("/auth/login", response_model=Token)
 async def login(credentials: UserLogin):
+    logger.info(f"Login attempt for: {credentials.email}")
     user_doc = await db.users.find_one({"email": credentials.email}, {"_id": 0})
     if not user_doc:
+        logger.info(f"User not found: {credentials.email}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
+    logger.info(f"User found: {user_doc.get('name')}, has password_hash: {'password_hash' in user_doc}")
     if not verify_password(credentials.password, user_doc['password_hash']):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
