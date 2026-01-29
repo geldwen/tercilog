@@ -1126,6 +1126,16 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                                   <p className="text-xs text-gray-600">Heures restantes</p>
                                   <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{student.credit_hours !== undefined ? student.credit_hours : student.total_hours || 0}h</p>
                                 </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => exportStudentAttendancePDF(student)}
+                                  className="ml-auto"
+                                  title="Exporter les émargements en PDF"
+                                >
+                                  <Download className="w-4 h-4 mr-1" />
+                                  Émargements PDF
+                                </Button>
                               </div>
                             </div>
                           </div>
