@@ -1010,6 +1010,18 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   const openEditClientDialog = (client) => {
     setSelectedClient(client);
+    // Construire la liste des gestionnaires à partir des données existantes
+    let gestionnaires = [];
+    if (client.gestionnaires && Array.isArray(client.gestionnaires)) {
+      gestionnaires = client.gestionnaires.map(g => ({ nom: g.nom || '', email: g.email || '', password: '' }));
+    } else if (client.email_gestionnaire) {
+      // Compatibilité avec l'ancien format
+      gestionnaires = [{ nom: client.nom_gestionnaire || '', email: client.email_gestionnaire, password: '' }];
+    }
+    if (gestionnaires.length === 0) {
+      gestionnaires = [{ nom: '', email: '', password: '' }];
+    }
+    
     setNewClientData({
       nom_centre: client.nom_centre || '',
       adresse_siege: client.adresse_siege || '',
@@ -1017,8 +1029,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       siret: client.siret || '',
       nom_responsable: client.nom_responsable || '',
       email_responsable: client.email_responsable || '',
-      nom_gestionnaire: client.nom_gestionnaire || '',
-      email_gestionnaire: client.email_gestionnaire || '',
+      gestionnaires: gestionnaires,
       photo: null,
       photoName: ''
     });
