@@ -26,6 +26,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   const [sessions, setSessions] = useState([]);
   const [formateurs, setFormateurs] = useState([]);
   const [client, setClient] = useState(null);
+  const [debugInfo, setDebugInfo] = useState(null);
   
   // Recherche
   const [showSearchStudent, setShowSearchStudent] = useState(false);
