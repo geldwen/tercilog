@@ -6559,36 +6559,80 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
             </div>
 
-            {/* Gestionnaire */}
+            {/* Gestionnaires */}
             <div className="border-t pt-4">
-              <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">Gestionnaire</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nom du gestionnaire
-                  </label>
-                  <input
-                    type="text"
-                    value={newClientData.nom_gestionnaire}
-                    onChange={(e) => setNewClientData(prev => ({ ...prev, nom_gestionnaire: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                    placeholder="Prénom Nom"
-                    data-testid="client-nom-gestionnaire-input"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email du gestionnaire
-                  </label>
-                  <input
-                    type="email"
-                    value={newClientData.email_gestionnaire}
-                    onChange={(e) => setNewClientData(prev => ({ ...prev, email_gestionnaire: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                    placeholder="gestionnaire@exemple.com"
-                    data-testid="client-email-gestionnaire-input"
-                  />
-                </div>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Gestionnaires</h4>
+                <button
+                  type="button"
+                  onClick={() => setNewClientData(prev => ({
+                    ...prev,
+                    gestionnaires: [...prev.gestionnaires, { nom: '', email: '', password: '' }]
+                  }))}
+                  className="flex items-center gap-1 px-3 py-1 bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 transition-colors text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  Ajouter un gestionnaire
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">
+                Tous les gestionnaires auront accès à l'Espace Gestion du centre.
+              </p>
+              <div className="space-y-3">
+                {newClientData.gestionnaires.map((gestionnaire, index) => (
+                  <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-600">Gestionnaire {index + 1}</span>
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setNewClientData(prev => ({
+                            ...prev,
+                            gestionnaires: prev.gestionnaires.filter((_, i) => i !== index)
+                          }))}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <input
+                        type="text"
+                        value={gestionnaire.nom}
+                        onChange={(e) => {
+                          const newGestionnaires = [...newClientData.gestionnaires];
+                          newGestionnaires[index].nom = e.target.value;
+                          setNewClientData(prev => ({ ...prev, gestionnaires: newGestionnaires }));
+                        }}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm"
+                        placeholder="Nom"
+                      />
+                      <input
+                        type="email"
+                        value={gestionnaire.email}
+                        onChange={(e) => {
+                          const newGestionnaires = [...newClientData.gestionnaires];
+                          newGestionnaires[index].email = e.target.value;
+                          setNewClientData(prev => ({ ...prev, gestionnaires: newGestionnaires }));
+                        }}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm"
+                        placeholder="Email"
+                      />
+                      <input
+                        type="password"
+                        value={gestionnaire.password}
+                        onChange={(e) => {
+                          const newGestionnaires = [...newClientData.gestionnaires];
+                          newGestionnaires[index].password = e.target.value;
+                          setNewClientData(prev => ({ ...prev, gestionnaires: newGestionnaires }));
+                        }}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 text-sm"
+                        placeholder="Mot de passe"
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
