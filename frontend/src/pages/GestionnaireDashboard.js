@@ -1195,10 +1195,10 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                                   size="sm"
                                   onClick={() => exportStudentAttendancePDF(student)}
                                   className="ml-auto"
-                                  title="Exporter les émargements en PDF"
+                                  title="Télécharger le planning de l'élève"
                                 >
                                   <Download className="w-4 h-4 mr-1" />
-                                  Émargements PDF
+                                  Planning PDF
                                 </Button>
                               </div>
                             </div>
