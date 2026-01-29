@@ -10775,6 +10775,7 @@ async def create_client(
     nom_gestionnaire: str = Form(""),
     email_gestionnaire: str = Form(""),
     password: str = Form(""),
+    gestionnaires: str = Form("[]"),  # JSON string de la liste des gestionnaires
     formateur_id: str = Form(""),
     photo: UploadFile = FastAPIFile(None),
     current_user: User = Depends(get_current_user)
@@ -10785,6 +10786,14 @@ async def create_client(
     
     client_id = str(uuid.uuid4())
     photo_url = ""
+    
+    # Parser la liste des gestionnaires
+    import json as json_module
+    gestionnaires_list = []
+    try:
+        gestionnaires_list = json_module.loads(gestionnaires) if gestionnaires else []
+    except:
+        gestionnaires_list = []
     
     # Créer le dossier pour ce client
     client_dir = Path("/app/backend/static/clients") / client_id
@@ -10804,11 +10813,6 @@ async def create_client(
     if formateur_id:
         formateur_data = await db.formateurs.find_one({"id": formateur_id}, {"_id": 0})
     
-    # Hash du mot de passe si fourni
-    password_hash = ""
-    if password:
-        password_hash = pwd_context.hash(password)
-    
     client_data = {
         "id": client_id,
         "nom_centre": nom_centre,
@@ -10819,8 +10823,8 @@ async def create_client(
         "email_responsable": email_responsable,
         "nom_gestionnaire": nom_gestionnaire,
         "email_gestionnaire": email_gestionnaire,
+        "gestionnaires": [{"nom": g.get("nom", ""), "email": g.get("email", "")} for g in gestionnaires_list],
         "photo_url": photo_url,
-        "password_hash": password_hash,
         "formateur_id": formateur_id,
         "formateur_name": formateur_data.get("name", "") if formateur_data else "",
         "formateur_email": formateur_data.get("email", "") if formateur_data else "",
@@ -10830,55 +10834,62 @@ async def create_client(
     
     await db.clients.insert_one(client_data)
     
-    # Créer les comptes utilisateurs pour gestionnaire et responsable si mot de passe fourni
+    # Créer les comptes utilisateurs pour tous les gestionnaires
     emails_sent = []
-    if password:
-        contacts_to_create = []
+    
+    for g in gestionnaires_list:
+        g_email = g.get("email", "").strip()
+        g_name = g.get("nom", "").strip()
+        g_password = g.get("password", "").strip()
         
-        if email_gestionnaire and nom_gestionnaire:
-            contacts_to_create.append({
-                "email": email_gestionnaire,
-                "name": nom_gestionnaire,
-                "role": "gestionnaire"
-            })
+        if not g_email:
+            continue
         
-        if email_responsable and nom_responsable and email_responsable != email_gestionnaire:
-            contacts_to_create.append({
-                "email": email_responsable,
-                "name": nom_responsable,
-                "role": "gestionnaire"  # Même rôle, même accès
-            })
+        # Vérifier si l'utilisateur existe déjà
+        existing_user = await db.users.find_one({"email": g_email})
         
-        for contact in contacts_to_create:
-            # Vérifier si l'utilisateur existe déjà
-            existing_user = await db.users.find_one({"email": contact["email"]})
-            if not existing_user:
-                # Créer le compte utilisateur
-                user_data = {
-                    "id": str(uuid.uuid4()),
-                    "email": contact["email"],
-                    "name": contact["name"],
-                    "password_hash": password_hash,
-                    "role": "gestionnaire",
-                    "client_id": client_id,  # Lien vers le client
-                    "client_name": nom_centre,
-                    "created_at": datetime.now(timezone.utc)
-                }
-                await db.users.insert_one(user_data)
-                
+        if not existing_user:
+            # Créer le compte utilisateur avec mot de passe (ou un par défaut)
+            if g_password:
+                password_hash = pwd_context.hash(g_password)
+            else:
+                # Générer un mot de passe par défaut
+                g_password = f"Terci{nom_centre[:4]}2024!"
+                password_hash = pwd_context.hash(g_password)
+            
+            user_data = {
+                "id": str(uuid.uuid4()),
+                "email": g_email,
+                "name": g_name or g_email.split('@')[0],
+                "password_hash": password_hash,
+                "role": "gestionnaire",
+                "client_id": client_id,
+                "client_name": nom_centre,
+                "created_at": datetime.now(timezone.utc)
+            }
+            await db.users.insert_one(user_data)
+            
             # Envoyer l'email de bienvenue
             email_sent = send_gestionnaire_welcome_email(
-                to_email=contact["email"],
-                name=contact["name"],
+                to_email=g_email,
+                name=g_name or g_email.split('@')[0],
                 centre_name=nom_centre,
-                password=password
+                password=g_password
             )
             if email_sent:
-                emails_sent.append(contact["email"])
+                emails_sent.append(g_email)
+                logger.info(f"✅ Email de bienvenue envoyé à {g_email}")
+        else:
+            # Utilisateur existe déjà - mettre à jour le client_id si nécessaire
+            if not existing_user.get("client_id"):
+                await db.users.update_one(
+                    {"email": g_email},
+                    {"$set": {"client_id": client_id, "client_name": nom_centre}}
+                )
+            logger.info(f"ℹ️ Utilisateur {g_email} existe déjà")
     
-    # Retourner sans _id et sans password_hash
+    # Retourner sans _id
     client_data.pop("_id", None)
-    client_data.pop("password_hash", None)
     
     return {
         **client_data,
