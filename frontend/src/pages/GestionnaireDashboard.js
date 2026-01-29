@@ -944,97 +944,205 @@ export default function GestionnaireDashboard({ user, onLogout }) {
 
           {/* ===== ONGLET SÉANCES ===== */}
           <TabsContent value="seances" className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-white rounded-2xl shadow-lg">
-              <h2 className="text-xl font-bold text-gray-800">Séances ({sessions.length})</h2>
-              <p className="text-sm text-gray-500">Consultez les séances programmées (lecture seule)</p>
+            {/* En-tête avec résumé */}
+            <div className="p-4 bg-white rounded-2xl shadow-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-800">Séances de {client?.nom_centre || 'votre centre'}</h2>
+                <p className="text-sm text-gray-500">Semaine du {weekStart.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au {weekEnd.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="text-3xl font-bold text-green-600">{todaySessions.length}</div>
+                  <div className="text-sm text-green-700">Aujourd'hui</div>
+                </div>
+                <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="text-3xl font-bold text-blue-600">{weekSessions.length}</div>
+                  <div className="text-sm text-blue-700">Cette semaine</div>
+                </div>
+                <div className="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="text-3xl font-bold text-gray-600">{sessions.length}</div>
+                  <div className="text-sm text-gray-700">Total</div>
+                </div>
+              </div>
             </div>
 
-            {sortedSessions.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-2xl shadow-lg">
-                <Calendar className="w-20 h-20 mx-auto text-emerald-200 mb-4" />
-                <p className="text-gray-500 text-lg">Aucune séance pour le moment</p>
+            {/* Séances du jour */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+              <div className="p-4 bg-gradient-to-r from-green-500 to-green-600 text-white">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Séances du jour - {today.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </h3>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {sortedSessions.map(session => {
-                  const student = students.find(s => s.id === session.student_id);
-                  const isToday = session.date === new Date().toISOString().split('T')[0];
-                  const isPast = session.date < new Date().toISOString().split('T')[0];
-                  
-                  return (
-                    <Card 
-                      key={session.id}
-                      className={`shadow-md hover:shadow-lg transition-shadow border-l-4 ${
-                        isToday ? 'border-l-green-500 bg-green-50' : 
-                        isPast ? 'border-l-gray-300' : 'border-l-blue-500'
-                      }`}
-                    >
-                      <CardContent className="py-4">
+              {todaySessions.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto text-gray-300 mb-2" />
+                  Aucune séance aujourd'hui
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {todaySessions.map(session => {
+                    const student = students.find(s => s.id === session.student_id);
+                    return (
+                      <div key={session.id} className="p-4 hover:bg-green-50 transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div className="text-center min-w-[70px] p-2 rounded-lg" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
-                              <div className="text-xs text-gray-500">
-                                {new Date(session.date).toLocaleDateString('fr-FR', { weekday: 'short' })}
-                              </div>
-                              <div className="text-2xl font-bold" style={{ color: TERCIFORM_BLUE }}>
-                                {new Date(session.date).getDate()}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {new Date(session.date).toLocaleDateString('fr-FR', { month: 'short' })}
-                              </div>
+                            <div className="text-center px-4 py-2 bg-green-100 rounded-lg">
+                              <div className="text-lg font-bold text-green-700">{session.start_time}</div>
+                              <div className="text-xs text-green-600">{session.end_time}</div>
                             </div>
-                            
                             <div>
-                              <div className="font-semibold text-gray-900">
-                                {student?.name || 'Élève'}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {session.subject} • {session.start_time} - {session.end_time}
-                              </div>
+                              <div className="font-semibold text-gray-900">{student?.name || 'Élève'}</div>
+                              <div className="text-sm text-gray-500">{session.subject} • {session.duration_hours}h</div>
                               {session.modality && (
-                                <span className={`text-xs px-2 py-1 rounded ${session.modality === 'distanciel' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                                <span className={`text-xs px-2 py-0.5 rounded ${session.modality === 'distanciel' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
                                   {session.modality === 'distanciel' ? 'Distanciel' : 'Présentiel'}
                                 </span>
                               )}
                             </div>
                           </div>
-                          
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <span className="text-lg font-bold" style={{ color: TERCIFORM_BLUE }}>
-                                {session.duration_hours || 0}h
-                              </span>
-                            </div>
-                            
+                          <div className="flex items-center gap-3">
                             {session.signature ? (
-                              <span className="flex items-center gap-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
+                              <span className="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
                                 <CheckCircle className="w-4 h-4" />
                                 Émargée
                               </span>
                             ) : (
-                              <span className="flex items-center gap-1 px-3 py-2 bg-orange-100 text-orange-700 rounded-lg text-sm font-medium">
+                              <span className="flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-sm font-medium">
                                 <Clock className="w-4 h-4" />
                                 En attente
                               </span>
                             )}
-                            
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => { setSelectedSession(session); setShowSessionDetail(true); }}
-                              className="gap-2"
-                            >
+                            <Button variant="outline" size="sm" onClick={() => { setSelectedSession(session); setShowSessionDetail(true); }}>
                               <Eye className="w-4 h-4" />
-                              Détails
                             </Button>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Séances de la semaine */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+              <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Autres séances de la semaine
+                </h3>
+              </div>
+              {weekSessions.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto text-gray-300 mb-2" />
+                  Aucune autre séance cette semaine
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {weekSessions.map(session => {
+                    const student = students.find(s => s.id === session.student_id);
+                    const sessionDate = new Date(session.date);
+                    const isPast = session.date < today.toISOString().split('T')[0];
+                    return (
+                      <div key={session.id} className={`p-4 hover:bg-blue-50 transition-colors ${isPast ? 'opacity-60' : ''}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className={`text-center px-3 py-2 rounded-lg min-w-[80px] ${isPast ? 'bg-gray-100' : 'bg-blue-100'}`}>
+                              <div className={`text-xs ${isPast ? 'text-gray-500' : 'text-blue-600'}`}>
+                                {sessionDate.toLocaleDateString('fr-FR', { weekday: 'short' })}
+                              </div>
+                              <div className={`text-xl font-bold ${isPast ? 'text-gray-600' : 'text-blue-700'}`}>
+                                {sessionDate.getDate()}
+                              </div>
+                              <div className={`text-xs ${isPast ? 'text-gray-500' : 'text-blue-600'}`}>
+                                {sessionDate.toLocaleDateString('fr-FR', { month: 'short' })}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-semibold text-gray-900">{student?.name || 'Élève'}</div>
+                              <div className="text-sm text-gray-500 flex items-center gap-2">
+                                <Clock className="w-3.5 h-3.5" />
+                                {session.start_time} - {session.end_time} • {session.subject} • {session.duration_hours}h
+                              </div>
+                              {session.modality && (
+                                <span className={`text-xs px-2 py-0.5 rounded ${session.modality === 'distanciel' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                                  {session.modality === 'distanciel' ? 'Distanciel' : 'Présentiel'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {session.signature ? (
+                              <span className="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
+                                <CheckCircle className="w-4 h-4" />
+                                Émargée
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-sm font-medium">
+                                <Clock className="w-4 h-4" />
+                                En attente
+                              </span>
+                            )}
+                            <Button variant="outline" size="sm" onClick={() => { setSelectedSession(session); setShowSessionDetail(true); }}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Historique complet (collapsible) */}
+            <details className="bg-white rounded-2xl shadow-lg overflow-hidden">
+              <summary className="p-4 bg-gray-100 cursor-pointer hover:bg-gray-200 transition-colors font-semibold text-gray-700 flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Voir toutes les séances ({sessions.length})
+              </summary>
+              <div className="divide-y max-h-96 overflow-y-auto">
+                {sortedSessions.map(session => {
+                  const student = students.find(s => s.id === session.student_id);
+                  const isToday = session.date === today.toISOString().split('T')[0];
+                  const isPast = session.date < today.toISOString().split('T')[0];
+                  
+                  return (
+                    <div key={session.id} className={`p-4 hover:bg-gray-50 transition-colors ${isPast && !isToday ? 'opacity-60' : ''}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`text-center px-3 py-2 rounded-lg min-w-[80px] ${isToday ? 'bg-green-100' : isPast ? 'bg-gray-100' : 'bg-blue-100'}`}>
+                            <div className="text-xs text-gray-500">
+                              {new Date(session.date).toLocaleDateString('fr-FR', { weekday: 'short' })}
+                            </div>
+                            <div className={`text-xl font-bold ${isToday ? 'text-green-700' : isPast ? 'text-gray-600' : 'text-blue-700'}`}>
+                              {new Date(session.date).getDate()}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {new Date(session.date).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-900">{student?.name || 'Élève'}</div>
+                            <div className="text-sm text-gray-500">
+                              {session.start_time} - {session.end_time} • {session.subject} • {session.duration_hours}h
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {session.signature ? (
+                            <CheckCircle className="w-5 h-5 text-green-500" />
+                          ) : (
+                            <Clock className="w-5 h-5 text-orange-500" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
-            )}
+            </details>
           </TabsContent>
 
           {/* ===== ONGLET FORMATEURS ===== */}
