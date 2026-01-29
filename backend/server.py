@@ -77,7 +77,9 @@ async def health_check():
 
 # Mount static files for profile pictures
 from fastapi.staticfiles import StaticFiles
-app.mount("/static", StaticFiles(directory="/app/backend/static"), name="static")
+static_dir = ROOT_DIR / "static"
+static_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
