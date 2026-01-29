@@ -10997,6 +10997,7 @@ async def update_client(
     email_responsable: str = Form(""),
     nom_gestionnaire: str = Form(""),
     email_gestionnaire: str = Form(""),
+    gestionnaires: str = Form("[]"),  # JSON string de la liste des gestionnaires
     photo: UploadFile = FastAPIFile(None),
     current_user: User = Depends(get_current_user)
 ):
@@ -11007,6 +11008,21 @@ async def update_client(
     existing_client = await db.clients.find_one({"id": client_id})
     if not existing_client:
         raise HTTPException(status_code=404, detail="Client non trouvé")
+    
+    # Parser la liste des gestionnaires
+    import json as json_module
+    gestionnaires_list = []
+    try:
+        gestionnaires_list = json_module.loads(gestionnaires) if gestionnaires else []
+    except:
+        gestionnaires_list = []
+    
+    # Récupérer les emails existants pour détecter les nouveaux
+    existing_gestionnaires = existing_client.get("gestionnaires", [])
+    existing_emails = set([g.get("email", "").lower() for g in existing_gestionnaires])
+    # Ajouter l'ancien format si existant
+    if existing_client.get("email_gestionnaire"):
+        existing_emails.add(existing_client.get("email_gestionnaire", "").lower())
     
     photo_url = existing_client.get("photo_url", "")
     
@@ -11031,24 +11047,90 @@ async def update_client(
         "email_responsable": email_responsable,
         "nom_gestionnaire": nom_gestionnaire,
         "email_gestionnaire": email_gestionnaire,
+        "gestionnaires": [{"nom": g.get("nom", ""), "email": g.get("email", "")} for g in gestionnaires_list],
         "photo_url": photo_url,
         "updated_at": datetime.now(timezone.utc)
     }
     
     await db.clients.update_one({"id": client_id}, {"$set": update_data})
     
-    # IMPORTANT: Synchroniser le gestionnaire avec ce client
-    if email_gestionnaire:
-        gestionnaire = await db.users.find_one({"email": email_gestionnaire, "role": "gestionnaire"})
-        if gestionnaire:
+    # Créer les comptes pour les NOUVEAUX gestionnaires et envoyer les emails de bienvenue
+    emails_sent = []
+    
+    for g in gestionnaires_list:
+        g_email = g.get("email", "").strip()
+        g_name = g.get("nom", "").strip()
+        g_password = g.get("password", "").strip()
+        
+        if not g_email:
+            continue
+        
+        # Vérifier si c'est un NOUVEAU gestionnaire
+        is_new = g_email.lower() not in existing_emails
+        
+        # Vérifier si l'utilisateur existe déjà dans la base
+        existing_user = await db.users.find_one({"email": g_email})
+        
+        if not existing_user:
+            # Créer le compte utilisateur
+            if g_password:
+                password_hash = pwd_context.hash(g_password)
+            else:
+                # Générer un mot de passe par défaut
+                g_password = f"Terci{nom_centre[:4]}2024!"
+                password_hash = pwd_context.hash(g_password)
+            
+            user_data = {
+                "id": str(uuid.uuid4()),
+                "email": g_email,
+                "name": g_name or g_email.split('@')[0],
+                "password_hash": password_hash,
+                "role": "gestionnaire",
+                "client_id": client_id,
+                "client_name": nom_centre,
+                "created_at": datetime.now(timezone.utc)
+            }
+            await db.users.insert_one(user_data)
+            
+            # Envoyer l'email de bienvenue aux NOUVEAUX uniquement
+            email_sent = send_gestionnaire_welcome_email(
+                to_email=g_email,
+                name=g_name or g_email.split('@')[0],
+                centre_name=nom_centre,
+                password=g_password
+            )
+            if email_sent:
+                emails_sent.append(g_email)
+                logger.info(f"✅ Email de bienvenue envoyé au nouveau gestionnaire {g_email}")
+        else:
+            # Utilisateur existe - mettre à jour le client_id si nécessaire
             await db.users.update_one(
-                {"email": email_gestionnaire},
+                {"email": g_email},
                 {"$set": {"client_id": client_id, "client_name": nom_centre}}
             )
-            logger.info(f"✅ Gestionnaire {email_gestionnaire} synchronisé avec client {nom_centre}")
+            
+            # Si c'est un nouveau gestionnaire (ajouté à ce client) mais utilisateur existant
+            # On lui envoie un email de bienvenue avec ses identifiants actuels
+            if is_new and g_password:
+                # Mettre à jour le mot de passe si fourni
+                await db.users.update_one(
+                    {"email": g_email},
+                    {"$set": {"password_hash": pwd_context.hash(g_password)}}
+                )
+                email_sent = send_gestionnaire_welcome_email(
+                    to_email=g_email,
+                    name=g_name or existing_user.get("name", ""),
+                    centre_name=nom_centre,
+                    password=g_password
+                )
+                if email_sent:
+                    emails_sent.append(g_email)
     
     updated_client = await db.clients.find_one({"id": client_id}, {"_id": 0})
-    return updated_client
+    return {
+        **updated_client,
+        "emails_sent": emails_sent
+    }
 
 @api_router.delete("/clients/{client_id}")
 async def delete_client(client_id: str, current_user: User = Depends(get_current_user)):
