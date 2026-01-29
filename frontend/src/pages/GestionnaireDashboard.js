@@ -407,7 +407,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     return result;
   }, [exitedStudents, exitYearFilter, exitMonthFilter, exitSearchQuery]);
 
-  // Export PDF des émargements pour un élève
+  // Export PDF des émargements pour un élève (téléchargement direct)
   const exportStudentAttendancePDF = async (student) => {
     const studentSessions = sessions
       .filter(s => s.student_id === student.id && (s.signature || s.teacher_signature))
@@ -418,123 +418,185 @@ export default function GestionnaireDashboard({ user, onLogout }) {
       return;
     }
 
-    // Créer le contenu HTML pour le PDF
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Émargements - ${student.name}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1 { color: #0D2040; border-bottom: 2px solid #0D2040; padding-bottom: 10px; }
-          .info { margin-bottom: 20px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background-color: #0D2040; color: white; }
-          .signature-img { max-height: 40px; }
-          .timestamp { font-size: 10px; color: #666; }
-        </style>
-      </head>
-      <body>
-        <h1>Feuille d'émargement - ${student.name}</h1>
-        <div class="info">
-          <p><strong>Organisme:</strong> ${student.organism || 'Non défini'}</p>
-          <p><strong>Parcours:</strong> ${student.parcours || 'Non défini'}</p>
-          <p><strong>Total heures:</strong> ${student.total_hours || 0}h</p>
-          <p><strong>Date d'export:</strong> ${new Date().toLocaleDateString('fr-FR')}</p>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Horaires</th>
-              <th>Durée</th>
-              <th>Signature Élève</th>
-              <th>Horodatage</th>
-              <th>Signature Formateur</th>
-              <th>Horodatage</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${studentSessions.map(s => `
-              <tr>
-                <td>${s.date}</td>
-                <td>${s.start_time} - ${s.end_time}</td>
-                <td>${s.duration_hours}h</td>
-                <td>${s.signature ? '<img src="' + s.signature + '" class="signature-img"/>' : '-'}</td>
-                <td class="timestamp">${s.signed_at ? formatSignedAt(s.signed_at) : '-'}</td>
-                <td>${s.teacher_signature ? '<img src="' + s.teacher_signature + '" class="signature-img"/>' : '-'}</td>
-                <td class="timestamp">${s.teacher_signed_at ? formatSignedAt(s.teacher_signed_at) : '-'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </body>
-      </html>
-    `;
-
-    // Ouvrir dans une nouvelle fenêtre pour impression/PDF
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.print();
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Logo TerciForm (texte stylisé en attendant le vrai logo)
+      doc.setFillColor(13, 32, 64); // TERCIFORM_BLUE
+      doc.rect(0, 0, pageWidth, 25, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TERCIFORM', pageWidth / 2, 15, { align: 'center' });
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Formation Professionnelle', pageWidth / 2, 21, { align: 'center' });
+      
+      // Titre
+      doc.setTextColor(13, 32, 64);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Feuille d'émargement - ${student.name}`, 14, 40);
+      
+      // Informations élève
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      let yPos = 50;
+      doc.text(`Organisme: ${student.organism || 'Non défini'}`, 14, yPos);
+      doc.text(`Parcours: ${student.parcours || 'Non défini'}`, 14, yPos + 6);
+      doc.text(`Total heures: ${student.total_hours || 0}h`, 14, yPos + 12);
+      doc.text(`Date d'export: ${new Date().toLocaleDateString('fr-FR')}`, 14, yPos + 18);
+      
+      // Tableau des séances
+      const tableData = studentSessions.map(s => [
+        s.date,
+        `${s.start_time} - ${s.end_time}`,
+        `${s.duration_hours}h`,
+        s.signature ? '✓ Signé' : '-',
+        s.signed_at ? formatSignedAt(s.signed_at) : '-',
+        s.teacher_signature ? '✓ Signé' : '-',
+        s.teacher_signed_at ? formatSignedAt(s.teacher_signed_at) : '-'
+      ]);
+      
+      doc.autoTable({
+        startY: yPos + 28,
+        head: [['Date', 'Horaires', 'Durée', 'Élève', 'Horodatage', 'Formateur', 'Horodatage']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [13, 32, 64], textColor: [255, 255, 255] },
+        styles: { fontSize: 8, cellPadding: 3 },
+        columnStyles: {
+          0: { cellWidth: 22 },
+          1: { cellWidth: 28 },
+          2: { cellWidth: 15 },
+          3: { cellWidth: 18 },
+          4: { cellWidth: 32 },
+          5: { cellWidth: 18 },
+          6: { cellWidth: 32 }
+        }
+      });
+      
+      // Pied de page
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(`Page ${i}/${pageCount} - TerciForm - Document généré le ${new Date().toLocaleString('fr-FR')}`, 
+          pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+      }
+      
+      // Téléchargement direct
+      const fileName = `emargements_${student.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      toast.success(`PDF téléchargé: ${fileName}`);
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
+      toast.error('Erreur lors de l\'export PDF');
+    }
   };
 
-  // Export PDF d'une séance individuelle
+  // Export PDF d'une séance individuelle (téléchargement direct)
   const exportSessionPDF = (session) => {
     const student = students.find(s => s.id === session.student_id);
     
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Émargement - Séance du ${session.date}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1 { color: #0D2040; border-bottom: 2px solid #0D2040; padding-bottom: 10px; }
-          .section { margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px; }
-          .signature-box { display: inline-block; margin: 10px; padding: 10px; border: 1px solid #ddd; background: white; }
-          .signature-img { max-height: 60px; }
-          .timestamp { font-size: 12px; color: #666; margin-top: 5px; }
-        </style>
-      </head>
-      <body>
-        <h1>Feuille d'émargement</h1>
-        <div class="section">
-          <h3>Informations de la séance</h3>
-          <p><strong>Élève:</strong> ${student?.name || 'N/A'}</p>
-          <p><strong>Date:</strong> ${session.date}</p>
-          <p><strong>Horaires:</strong> ${session.start_time} - ${session.end_time}</p>
-          <p><strong>Durée:</strong> ${session.duration_hours}h</p>
-          <p><strong>Matière:</strong> ${session.subject || 'N/A'}</p>
-          <p><strong>Modalité:</strong> ${session.modality === 'distanciel' ? 'Distanciel' : 'Présentiel'}</p>
-        </div>
-        <div class="section">
-          <h3>Émargements</h3>
-          <div class="signature-box">
-            <strong>Signature Élève:</strong><br/>
-            ${session.signature ? '<img src="' + session.signature + '" class="signature-img"/>' : 'Non signé'}
-            <div class="timestamp">${session.signed_at ? '📅 ' + formatSignedAt(session.signed_at) : ''}</div>
-          </div>
-          <div class="signature-box">
-            <strong>Signature Formateur:</strong><br/>
-            ${session.teacher_signature ? '<img src="' + session.teacher_signature + '" class="signature-img"/>' : 'Non signé'}
-            <div class="timestamp">${session.teacher_signed_at ? '📅 ' + formatSignedAt(session.teacher_signed_at) : ''}</div>
-          </div>
-        </div>
-        <p style="margin-top: 30px; font-size: 12px; color: #666;">
-          Document généré le ${new Date().toLocaleString('fr-FR')} - TerciForm
-        </p>
-      </body>
-      </html>
-    `;
-
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.print();
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      
+      // Logo TerciForm
+      doc.setFillColor(13, 32, 64);
+      doc.rect(0, 0, pageWidth, 25, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TERCIFORM', pageWidth / 2, 15, { align: 'center' });
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Formation Professionnelle', pageWidth / 2, 21, { align: 'center' });
+      
+      // Titre
+      doc.setTextColor(13, 32, 64);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Feuille d'émargement - Séance du ${session.date}`, 14, 40);
+      
+      // Informations de la séance
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      let yPos = 55;
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text('Informations de la séance', 14, yPos);
+      doc.setFont('helvetica', 'normal');
+      yPos += 8;
+      doc.text(`Élève: ${student?.name || 'N/A'}`, 14, yPos);
+      doc.text(`Date: ${session.date}`, 14, yPos + 6);
+      doc.text(`Horaires: ${session.start_time} - ${session.end_time}`, 14, yPos + 12);
+      doc.text(`Durée: ${session.duration_hours}h`, 14, yPos + 18);
+      doc.text(`Matière: ${session.subject || 'N/A'}`, 14, yPos + 24);
+      doc.text(`Modalité: ${session.modality === 'distanciel' ? 'Distanciel' : 'Présentiel'}`, 14, yPos + 30);
+      
+      // Section émargements
+      yPos += 45;
+      doc.setFont('helvetica', 'bold');
+      doc.text('Émargements', 14, yPos);
+      
+      // Signature élève
+      yPos += 10;
+      doc.setFillColor(240, 253, 244); // bg-green-50
+      doc.rect(14, yPos, 85, 35, 'F');
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(14, yPos, 85, 35, 'S');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text('Signature Élève:', 18, yPos + 8);
+      doc.setFont('helvetica', 'normal');
+      if (session.signature) {
+        doc.text('✓ Signé', 18, yPos + 16);
+        if (session.signed_at) {
+          doc.setFontSize(8);
+          doc.text(`Horodatage: ${formatSignedAt(session.signed_at)}`, 18, yPos + 24);
+        }
+      } else {
+        doc.text('Non signé', 18, yPos + 16);
+      }
+      
+      // Signature formateur
+      doc.setFillColor(250, 245, 255); // bg-purple-50
+      doc.rect(105, yPos, 85, 35, 'F');
+      doc.rect(105, yPos, 85, 35, 'S');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text('Signature Formateur:', 109, yPos + 8);
+      doc.setFont('helvetica', 'normal');
+      if (session.teacher_signature) {
+        doc.text('✓ Signé', 109, yPos + 16);
+        if (session.teacher_signed_at) {
+          doc.setFontSize(8);
+          doc.text(`Horodatage: ${formatSignedAt(session.teacher_signed_at)}`, 109, yPos + 24);
+        }
+      } else {
+        doc.text('Non signé', 109, yPos + 16);
+      }
+      
+      // Pied de page
+      doc.setFontSize(8);
+      doc.setTextColor(128, 128, 128);
+      doc.text(`TerciForm - Document généré le ${new Date().toLocaleString('fr-FR')}`, 
+        pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+      
+      // Téléchargement direct
+      const fileName = `emargement_seance_${session.date}_${student?.name?.replace(/\s+/g, '_') || 'eleve'}.pdf`;
+      doc.save(fileName);
+      toast.success(`PDF téléchargé: ${fileName}`);
+    } catch (error) {
+      console.error('Erreur export PDF:', error);
+      toast.error('Erreur lors de l\'export PDF');
+    }
   };
 
   if (loading) {
