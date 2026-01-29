@@ -405,6 +405,136 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     return result;
   }, [exitedStudents, exitYearFilter, exitMonthFilter, exitSearchQuery]);
 
+  // Export PDF des émargements pour un élève
+  const exportStudentAttendancePDF = async (student) => {
+    const studentSessions = sessions
+      .filter(s => s.student_id === student.id && (s.signature || s.teacher_signature))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    if (studentSessions.length === 0) {
+      toast.warning('Aucune séance émargée pour cet élève');
+      return;
+    }
+
+    // Créer le contenu HTML pour le PDF
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Émargements - ${student.name}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { color: #0D2040; border-bottom: 2px solid #0D2040; padding-bottom: 10px; }
+          .info { margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #0D2040; color: white; }
+          .signature-img { max-height: 40px; }
+          .timestamp { font-size: 10px; color: #666; }
+        </style>
+      </head>
+      <body>
+        <h1>Feuille d'émargement - ${student.name}</h1>
+        <div class="info">
+          <p><strong>Organisme:</strong> ${student.organism || 'Non défini'}</p>
+          <p><strong>Parcours:</strong> ${student.parcours || 'Non défini'}</p>
+          <p><strong>Total heures:</strong> ${student.total_hours || 0}h</p>
+          <p><strong>Date d'export:</strong> ${new Date().toLocaleDateString('fr-FR')}</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Horaires</th>
+              <th>Durée</th>
+              <th>Signature Élève</th>
+              <th>Horodatage</th>
+              <th>Signature Formateur</th>
+              <th>Horodatage</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${studentSessions.map(s => `
+              <tr>
+                <td>${s.date}</td>
+                <td>${s.start_time} - ${s.end_time}</td>
+                <td>${s.duration_hours}h</td>
+                <td>${s.signature ? '<img src="' + s.signature + '" class="signature-img"/>' : '-'}</td>
+                <td class="timestamp">${s.signed_at ? formatSignedAt(s.signed_at) : '-'}</td>
+                <td>${s.teacher_signature ? '<img src="' + s.teacher_signature + '" class="signature-img"/>' : '-'}</td>
+                <td class="timestamp">${s.teacher_signed_at ? formatSignedAt(s.teacher_signed_at) : '-'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    // Ouvrir dans une nouvelle fenêtre pour impression/PDF
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  // Export PDF d'une séance individuelle
+  const exportSessionPDF = (session) => {
+    const student = students.find(s => s.id === session.student_id);
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Émargement - Séance du ${session.date}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { color: #0D2040; border-bottom: 2px solid #0D2040; padding-bottom: 10px; }
+          .section { margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px; }
+          .signature-box { display: inline-block; margin: 10px; padding: 10px; border: 1px solid #ddd; background: white; }
+          .signature-img { max-height: 60px; }
+          .timestamp { font-size: 12px; color: #666; margin-top: 5px; }
+        </style>
+      </head>
+      <body>
+        <h1>Feuille d'émargement</h1>
+        <div class="section">
+          <h3>Informations de la séance</h3>
+          <p><strong>Élève:</strong> ${student?.name || 'N/A'}</p>
+          <p><strong>Date:</strong> ${session.date}</p>
+          <p><strong>Horaires:</strong> ${session.start_time} - ${session.end_time}</p>
+          <p><strong>Durée:</strong> ${session.duration_hours}h</p>
+          <p><strong>Matière:</strong> ${session.subject || 'N/A'}</p>
+          <p><strong>Modalité:</strong> ${session.modality === 'distanciel' ? 'Distanciel' : 'Présentiel'}</p>
+        </div>
+        <div class="section">
+          <h3>Émargements</h3>
+          <div class="signature-box">
+            <strong>Signature Élève:</strong><br/>
+            ${session.signature ? '<img src="' + session.signature + '" class="signature-img"/>' : 'Non signé'}
+            <div class="timestamp">${session.signed_at ? '📅 ' + formatSignedAt(session.signed_at) : ''}</div>
+          </div>
+          <div class="signature-box">
+            <strong>Signature Formateur:</strong><br/>
+            ${session.teacher_signature ? '<img src="' + session.teacher_signature + '" class="signature-img"/>' : 'Non signé'}
+            <div class="timestamp">${session.teacher_signed_at ? '📅 ' + formatSignedAt(session.teacher_signed_at) : ''}</div>
+          </div>
+        </div>
+        <p style="margin-top: 30px; font-size: 12px; color: #666;">
+          Document généré le ${new Date().toLocaleString('fr-FR')} - TerciForm
+        </p>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
