@@ -11470,23 +11470,48 @@ async def get_gestionnaire_students(current_user: User = Depends(get_current_use
     if current_user.role != "gestionnaire":
         raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
     
-    if not current_user.client_id:
+    # Récupérer le nom du centre depuis plusieurs sources possibles
+    centre_name = ""
+    
+    if current_user.client_id:
+        client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+        centre_name = client.get("nom_centre", "") if client else ""
+    
+    # Fallback: utiliser client_name du user si pas de client trouvé
+    if not centre_name and current_user.client_name:
+        centre_name = current_user.client_name
+    
+    # Si toujours pas de nom, essayer de trouver via l'email du gestionnaire
+    if not centre_name:
+        client_by_email = await db.clients.find_one({"email_gestionnaire": current_user.email}, {"_id": 0})
+        if client_by_email:
+            centre_name = client_by_email.get("nom_centre", "")
+            # Mettre à jour le gestionnaire avec le client_id trouvé
+            await db.users.update_one(
+                {"id": current_user.id},
+                {"$set": {"client_id": client_by_email.get("id"), "client_name": centre_name}}
+            )
+            logger.info(f"✅ Auto-correction gestionnaire {current_user.email} → {centre_name}")
+    
+    if not centre_name:
+        logger.warning(f"⚠️ Gestionnaire {current_user.email} sans centre associé")
         return []
     
-    # Récupérer les élèves liés au client_id OU à l'organism du centre
-    client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
-    centre_name = client.get("nom_centre", "") if client else ""
+    # Nettoyer le nom du centre (espaces, etc.)
+    centre_name_clean = centre_name.strip()
     
-    students = await db.users.find(
-        {
-            "role": "student",
-            "$or": [
-                {"client_id": current_user.client_id},
-                {"organism": {"$regex": centre_name, "$options": "i"}} if centre_name else {"client_id": current_user.client_id}
-            ]
-        },
-        {"_id": 0, "password_hash": 0}
-    ).to_list(1000)
+    # Recherche flexible : client_id OU organism contenant le nom du centre
+    query = {
+        "role": "student",
+        "$or": [
+            {"client_id": current_user.client_id} if current_user.client_id else {"_id": None},
+            {"organism": {"$regex": centre_name_clean, "$options": "i"}}
+        ]
+    }
+    
+    students = await db.users.find(query, {"_id": 0, "password_hash": 0}).to_list(1000)
+    
+    logger.info(f"📊 Gestionnaire {current_user.email}: {len(students)} élèves trouvés pour '{centre_name_clean}'")
     
     return students
 
