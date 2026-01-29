@@ -11093,6 +11093,52 @@ async def download_client_photo(client_id: str, token: str = None):
     
     return FileResponse(str(file_path), filename=os.path.basename(file_path))
 
+# ===== ENDPOINT SYNCHRONISATION AUTOMATIQUE =====
+@api_router.post("/clients/sync-all-gestionnaires")
+async def sync_all_gestionnaires(current_user: User = Depends(get_current_user)):
+    """Synchronise TOUS les gestionnaires avec leurs clients respectifs basé sur l'email"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    synced = []
+    errors = []
+    
+    # Récupérer tous les clients
+    clients = await db.clients.find({}, {"_id": 0}).to_list(1000)
+    
+    for client in clients:
+        email_gestionnaire = client.get("email_gestionnaire", "")
+        if email_gestionnaire:
+            # Chercher le gestionnaire par email
+            gestionnaire = await db.users.find_one({"email": email_gestionnaire, "role": "gestionnaire"})
+            if gestionnaire:
+                # Mettre à jour le gestionnaire avec le client_id
+                await db.users.update_one(
+                    {"email": email_gestionnaire},
+                    {"$set": {
+                        "client_id": client.get("id"),
+                        "client_name": client.get("nom_centre", "")
+                    }}
+                )
+                synced.append({
+                    "gestionnaire": email_gestionnaire,
+                    "client": client.get("nom_centre"),
+                    "client_id": client.get("id")
+                })
+                logger.info(f"✅ Synchronisé: {email_gestionnaire} → {client.get('nom_centre')}")
+            else:
+                errors.append({
+                    "email": email_gestionnaire,
+                    "client": client.get("nom_centre"),
+                    "error": "Compte gestionnaire non trouvé"
+                })
+    
+    return {
+        "message": f"{len(synced)} gestionnaire(s) synchronisé(s)",
+        "synced": synced,
+        "errors": errors
+    }
+
 # ===== ENDPOINT POUR LIER GESTIONNAIRE À UN CLIENT =====
 @api_router.post("/clients/{client_id}/link-gestionnaire")
 async def link_gestionnaire_to_client(
