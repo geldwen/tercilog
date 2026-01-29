@@ -420,6 +420,24 @@ export default function GestionnaireDashboard({ user, onLogout }) {
         </div>
       </header>
 
+      {/* Bandeau de diagnostic - visible pour identifier les problèmes de données */}
+      {debugInfo && (
+        <div className="bg-yellow-100 border-b-2 border-yellow-400 px-4 py-2">
+          <div className="max-w-7xl mx-auto flex items-center justify-between text-sm">
+            <div className="flex items-center gap-6">
+              <span className="font-semibold text-yellow-800">🔍 Diagnostic:</span>
+              <span>Client ID: <strong>{debugInfo.gestionnaire?.client_id || 'NON DÉFINI'}</strong></span>
+              <span>Centre: <strong>{debugInfo.client?.nom_centre || 'NON TROUVÉ'}</strong></span>
+              <span>Élèves: <strong>{debugInfo.students_count}</strong></span>
+              <span>Séances: <strong>{debugInfo.sessions_count}</strong></span>
+            </div>
+            {debugInfo.gestionnaire?.client_id === 'NON DÉFINI' && (
+              <span className="text-red-600 font-bold">⚠️ Gestionnaire non lié à un client !</span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Contenu principal */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
         {/* Fond coloré selon l'onglet actif - comme l'admin */}
