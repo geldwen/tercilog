@@ -974,6 +974,35 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  // Synchroniser tous les gestionnaires avec leurs clients
+  const handleSyncGestionnaires = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API}/clients/sync-all-gestionnaires`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const data = response.data;
+      if (data.synced && data.synced.length > 0) {
+        toast.success(`${data.synced.length} gestionnaire(s) synchronisé(s) avec succès !`);
+        data.synced.forEach(s => {
+          console.log(`✅ ${s.gestionnaire} → ${s.client}`);
+        });
+      } else {
+        toast.info('Aucun gestionnaire à synchroniser');
+      }
+      
+      if (data.errors && data.errors.length > 0) {
+        data.errors.forEach(e => {
+          toast.warning(`${e.email}: ${e.error}`);
+        });
+      }
+    } catch (error) {
+      console.error('Erreur synchronisation:', error);
+      toast.error('Erreur lors de la synchronisation');
+    }
+  };
+
   const openEditClientDialog = (client) => {
     setSelectedClient(client);
     setNewClientData({
