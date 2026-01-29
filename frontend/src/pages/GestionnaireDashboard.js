@@ -1489,13 +1489,27 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               </div>
               
               <div className="border-t pt-4">
-                <p className="text-sm text-gray-500 mb-2">Statut</p>
-                {selectedSession.signature ? (
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                    <p className="text-green-700 font-medium flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5" />
-                      Séance émargée
-                    </p>
+                <p className="text-sm text-gray-500 mb-2">Statut d'émargement</p>
+                {selectedSession.signature || selectedSession.teacher_signature ? (
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200 space-y-3">
+                    {selectedSession.signature && (
+                      <div className="flex items-center gap-3">
+                        <p className="text-green-700 font-medium flex items-center gap-2">
+                          <CheckCircle className="w-5 h-5" />
+                          Signature élève:
+                        </p>
+                        <img src={selectedSession.signature} alt="Signature élève" className="h-12 object-contain border rounded p-1 bg-white" />
+                      </div>
+                    )}
+                    {selectedSession.teacher_signature && (
+                      <div className="flex items-center gap-3">
+                        <p className="text-purple-700 font-medium flex items-center gap-2">
+                          <CheckCircle className="w-5 h-5" />
+                          Signature formateur:
+                        </p>
+                        <img src={selectedSession.teacher_signature} alt="Signature formateur" className="h-12 object-contain border rounded p-1 bg-white" />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
