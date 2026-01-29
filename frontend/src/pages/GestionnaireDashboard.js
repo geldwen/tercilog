@@ -422,18 +422,30 @@ export default function GestionnaireDashboard({ user, onLogout }) {
 
       {/* Bandeau de diagnostic - visible pour identifier les problèmes de données */}
       {debugInfo && (
-        <div className="bg-yellow-100 border-b-2 border-yellow-400 px-4 py-2">
-          <div className="max-w-7xl mx-auto flex items-center justify-between text-sm">
-            <div className="flex items-center gap-6">
-              <span className="font-semibold text-yellow-800">🔍 Diagnostic:</span>
-              <span>Client ID: <strong>{debugInfo.gestionnaire?.client_id || 'NON DÉFINI'}</strong></span>
-              <span>Centre: <strong>{debugInfo.client?.nom_centre || 'NON TROUVÉ'}</strong></span>
-              <span>Élèves: <strong>{debugInfo.students_count}</strong></span>
-              <span>Séances: <strong>{debugInfo.sessions_count}</strong></span>
+        <div className="bg-yellow-100 border-b-2 border-yellow-400 px-4 py-3">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between text-sm mb-2">
+              <div className="flex items-center gap-6">
+                <span className="font-semibold text-yellow-800">🔍 Diagnostic Production:</span>
+                <span>Client ID: <strong>{debugInfo.gestionnaire?.client_id || 'NON DÉFINI'}</strong></span>
+                <span>Centre: <strong>{debugInfo.client?.nom_centre || 'NON TROUVÉ'}</strong></span>
+                <span>Élèves trouvés: <strong className="text-blue-600">{debugInfo.students_count}</strong></span>
+                <span>Séances: <strong className="text-green-600">{debugInfo.sessions_count}</strong></span>
+              </div>
+              {debugInfo.gestionnaire?.client_id === 'NON DÉFINI' && (
+                <span className="text-red-600 font-bold">⚠️ Gestionnaire non lié !</span>
+              )}
             </div>
-            {debugInfo.gestionnaire?.client_id === 'NON DÉFINI' && (
-              <span className="text-red-600 font-bold">⚠️ Gestionnaire non lié à un client !</span>
-            )}
+            {/* Infos supplémentaires */}
+            <div className="text-xs text-yellow-700 space-y-1">
+              <div>📊 Étudiants avec "zepartner" dans organisme: <strong>{debugInfo.students_with_zepartner || 0}</strong></div>
+              {debugInfo.all_organisms && debugInfo.all_organisms.length > 0 && (
+                <div>📋 Organismes existants: {debugInfo.all_organisms.slice(0, 10).join(', ')}</div>
+              )}
+              {debugInfo.search_pattern && (
+                <div>🔎 Recherche: "{debugInfo.search_pattern}"</div>
+              )}
+            </div>
           </div>
         </div>
       )}
