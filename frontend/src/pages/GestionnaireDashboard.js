@@ -967,7 +967,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                                 </div>
                                 <div className="px-4 py-2 rounded-lg" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
                                   <p className="text-xs text-gray-600">Heures restantes</p>
-                                  <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{student.credit_hours || student.total_hours || 0}h</p>
+                                  <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{student.credit_hours !== undefined ? student.credit_hours : student.total_hours || 0}h</p>
                                 </div>
                               </div>
                             </div>
