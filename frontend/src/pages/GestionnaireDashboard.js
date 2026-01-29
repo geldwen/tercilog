@@ -1069,18 +1069,28 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                           </div>
                           <div className="flex items-center gap-3">
                             {session.signature || session.teacher_signature ? (
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-col gap-1">
                                 {session.signature && (
-                                  <span className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
+                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
                                     <CheckCircle className="w-4 h-4" />
                                     <img src={session.signature} alt="Signature élève" className="h-6 object-contain" />
-                                  </span>
+                                    {session.signed_at && (
+                                      <span className="text-xs text-green-600 ml-1">
+                                        {formatSignedAt(session.signed_at)}
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                                 {session.teacher_signature && (
-                                  <span className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium">
+                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium">
                                     <CheckCircle className="w-4 h-4" />
                                     <img src={session.teacher_signature} alt="Signature formateur" className="h-6 object-contain" />
-                                  </span>
+                                    {session.teacher_signed_at && (
+                                      <span className="text-xs text-purple-600 ml-1">
+                                        {formatSignedAt(session.teacher_signed_at)}
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             ) : (
@@ -1150,18 +1160,28 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                           </div>
                           <div className="flex items-center gap-3">
                             {session.signature || session.teacher_signature ? (
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-col gap-1">
                                 {session.signature && (
-                                  <span className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
+                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
                                     <CheckCircle className="w-4 h-4" />
                                     <img src={session.signature} alt="Signature élève" className="h-6 object-contain" />
-                                  </span>
+                                    {session.signed_at && (
+                                      <span className="text-xs text-green-600 ml-1">
+                                        {formatSignedAt(session.signed_at)}
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                                 {session.teacher_signature && (
-                                  <span className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium">
+                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium">
                                     <CheckCircle className="w-4 h-4" />
                                     <img src={session.teacher_signature} alt="Signature formateur" className="h-6 object-contain" />
-                                  </span>
+                                    {session.teacher_signed_at && (
+                                      <span className="text-xs text-purple-600 ml-1">
+                                        {formatSignedAt(session.teacher_signed_at)}
+                                      </span>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             ) : (
