@@ -4722,6 +4722,16 @@ export default function TeacherDashboard({ user, onLogout }) {
                     data-testid="client-search-input"
                   />
                 </div>
+                {/* Bouton synchroniser gestionnaires */}
+                <button
+                  onClick={handleSyncGestionnaires}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-md"
+                  data-testid="sync-gestionnaires-btn"
+                  title="Synchronise les comptes gestionnaires avec leurs clients respectifs"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Synchroniser
+                </button>
                 {/* Bouton créer un client */}
                 <button
                   onClick={() => {
