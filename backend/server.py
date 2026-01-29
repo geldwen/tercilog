@@ -11083,6 +11083,44 @@ async def download_client_photo(client_id: str, token: str = None):
     
     return FileResponse(str(file_path), filename=os.path.basename(file_path))
 
+# ===== ENDPOINT POUR LIER GESTIONNAIRE À UN CLIENT =====
+@api_router.post("/clients/{client_id}/link-gestionnaire")
+async def link_gestionnaire_to_client(
+    client_id: str,
+    gestionnaire_email: str = Form(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Lie un gestionnaire existant à un client"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    # Vérifier que le client existe
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    
+    # Vérifier que le gestionnaire existe
+    gestionnaire = await db.users.find_one({"email": gestionnaire_email, "role": "gestionnaire"})
+    if not gestionnaire:
+        raise HTTPException(status_code=404, detail="Gestionnaire non trouvé")
+    
+    # Mettre à jour le gestionnaire avec le client_id
+    await db.users.update_one(
+        {"email": gestionnaire_email},
+        {"$set": {
+            "client_id": client_id,
+            "client_name": client.get("nom_centre", "")
+        }}
+    )
+    
+    logger.info(f"Gestionnaire {gestionnaire_email} lié au client {client.get('nom_centre')}")
+    
+    return {
+        "message": f"Gestionnaire {gestionnaire_email} lié au client {client.get('nom_centre')}",
+        "client_id": client_id,
+        "client_name": client.get("nom_centre")
+    }
+
 # ===== ENDPOINTS DEMANDES DE SALLE =====
 @api_router.get("/clients/{client_id}/room-requests")
 async def get_room_requests(client_id: str, current_user: User = Depends(get_current_user)):
