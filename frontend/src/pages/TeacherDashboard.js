@@ -937,20 +937,34 @@ export default function TeacherDashboard({ user, onLogout }) {
       formData.append('siret', newClientData.siret);
       formData.append('nom_responsable', newClientData.nom_responsable);
       formData.append('email_responsable', newClientData.email_responsable);
-      formData.append('nom_gestionnaire', newClientData.nom_gestionnaire);
-      formData.append('email_gestionnaire', newClientData.email_gestionnaire);
+      
+      // Envoyer la liste des gestionnaires en JSON
+      const validGestionnaires = (newClientData.gestionnaires || []).filter(g => g.email.trim());
+      formData.append('gestionnaires', JSON.stringify(validGestionnaires));
+      
+      // Compatibilité : premier gestionnaire aussi en champs séparés
+      if (validGestionnaires.length > 0) {
+        formData.append('nom_gestionnaire', validGestionnaires[0].nom);
+        formData.append('email_gestionnaire', validGestionnaires[0].email);
+      }
       
       if (newClientData.photo) {
         formData.append('photo', newClientData.photo);
       }
 
-      await axios.put(`${API}/clients/${selectedClient.id}`, formData, {
+      const response = await axios.put(`${API}/clients/${selectedClient.id}`, formData, {
         headers: { 
           Authorization: `Bearer ${token}`
         }
       });
 
-      toast.success('Client modifié avec succès');
+      // Afficher les nouveaux emails de bienvenue envoyés
+      const emailsSent = response.data?.emails_sent || [];
+      if (emailsSent.length > 0) {
+        toast.success(`Client modifié ! Emails de bienvenue envoyés à: ${emailsSent.join(', ')}`);
+      } else {
+        toast.success('Client modifié avec succès');
+      }
       setShowEditClientDialog(false);
       setSelectedClient(null);
       resetClientForm();
