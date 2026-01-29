@@ -305,6 +305,23 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     return (a.start_time || '').localeCompare(b.start_time || '');
   });
 
+  // Formater l'horodatage d'émargement
+  const formatSignedAt = (isoDate) => {
+    if (!isoDate) return '';
+    try {
+      const date = new Date(isoDate);
+      return date.toLocaleString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return '';
+    }
+  };
+
   // Couleur du parcours
   const getParcoursStyle = (parcours) => {
     const styles = {
