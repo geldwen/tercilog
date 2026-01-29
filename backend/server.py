@@ -11404,8 +11404,22 @@ async def get_gestionnaire_debug(current_user: User = Depends(get_current_user))
         },
         "client": None,
         "students_count": 0,
-        "sessions_count": 0
+        "sessions_count": 0,
+        "all_organisms": [],
+        "students_with_zepartner": 0
     }
+    
+    # Recherche DIRECTE de tous les étudiants avec "zepartner" dans organism
+    all_zepartner_students = await db.users.find(
+        {"role": "student", "organism": {"$regex": "zepartner", "$options": "i"}},
+        {"_id": 0, "id": 1, "name": 1, "organism": 1}
+    ).to_list(1000)
+    debug_info["students_with_zepartner"] = len(all_zepartner_students)
+    
+    # Récupérer tous les organismes uniques
+    all_students = await db.users.find({"role": "student"}, {"_id": 0, "organism": 1}).to_list(1000)
+    unique_organisms = list(set([s.get("organism", "") for s in all_students if s.get("organism")]))
+    debug_info["all_organisms"] = sorted(unique_organisms)[:20]  # Top 20
     
     if current_user.client_id:
         # Récupérer le client
@@ -11414,6 +11428,8 @@ async def get_gestionnaire_debug(current_user: User = Depends(get_current_user))
         
         if client:
             centre_name = client.get("nom_centre", "")
+            debug_info["search_pattern"] = centre_name
+            
             # Compter les étudiants
             students = await db.users.find(
                 {
@@ -11423,10 +11439,11 @@ async def get_gestionnaire_debug(current_user: User = Depends(get_current_user))
                         {"organism": {"$regex": centre_name, "$options": "i"}} if centre_name else {"client_id": current_user.client_id}
                     ]
                 },
-                {"_id": 0, "id": 1}
+                {"_id": 0, "id": 1, "name": 1, "organism": 1}
             ).to_list(1000)
             
             debug_info["students_count"] = len(students)
+            debug_info["sample_students"] = students[:5]  # Montrer les 5 premiers
             
             if students:
                 student_ids = [s['id'] for s in students]
