@@ -1549,6 +1549,19 @@ async def login(credentials: UserLogin):
     if not verify_password(credentials.password, user_doc['password_hash']):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
+    # AUTO-SYNC: Si c'est un gestionnaire sans client_id, chercher et lier automatiquement
+    if user_doc.get('role') == 'gestionnaire' and not user_doc.get('client_id'):
+        # Chercher un client qui a cet email comme gestionnaire
+        client = await db.clients.find_one({"email_gestionnaire": credentials.email}, {"_id": 0})
+        if client:
+            await db.users.update_one(
+                {"email": credentials.email},
+                {"$set": {"client_id": client.get("id"), "client_name": client.get("nom_centre", "")}}
+            )
+            user_doc['client_id'] = client.get("id")
+            user_doc['client_name'] = client.get("nom_centre", "")
+            logger.info(f"✅ Auto-sync gestionnaire {credentials.email} → client {client.get('nom_centre')}")
+    
     access_token = create_access_token(data={"sub": user_doc['id']})
     # Supprimer password_hash avant de créer l'objet User
     user_doc.pop('password_hash', None)
