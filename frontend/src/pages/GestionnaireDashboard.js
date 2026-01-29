@@ -317,26 +317,36 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   };
 
   // Calcul des élèves actifs vs sorties de parcours
+  // IMPORTANT: Les élèves actifs sont ceux qui ont des heures restantes OU qui n'ont pas terminé leur formation
   const activeStudents = useMemo(() => {
-    return students.filter(s => (s.credit_hours || s.total_hours || 0) > 0);
+    return students.filter(s => {
+      const remainingHours = s.credit_hours !== undefined ? s.credit_hours : (s.total_hours || 0);
+      // Un élève est actif s'il a des heures restantes OU s'il n'a pas de date de fin
+      return remainingHours > 0 || !s.end_date;
+    });
   }, [students]);
 
   const exitedStudents = useMemo(() => {
     return students.filter(s => {
-      const remainingHours = s.credit_hours || 0;
+      const remainingHours = s.credit_hours !== undefined ? s.credit_hours : 0;
+      // Un élève est sorti s'il a 0 heures ET une date de fin définie
       return remainingHours <= 0 && s.end_date;
     }).map(student => {
-      // Trouver la dernière séance signée pour avoir la date de sortie
+      // Trouver la dernière séance signée pour avoir la date de sortie réelle
       const studentSessions = sessions
-        .filter(s => s.student_id === student.id && s.signature)
+        .filter(sess => sess.student_id === student.id && (sess.signature || sess.teacher_signature))
         .sort((a, b) => new Date(b.date) - new Date(a.date));
       const lastSession = studentSessions[0];
-      const exitDate = student.end_date || lastSession?.date || null;
+      
+      // La date de sortie est la date de la dernière séance émargée (priorité) ou end_date
+      const exitDate = lastSession?.date || student.end_date;
+      
       return {
         ...student,
         exit_date: exitDate,
         exit_year: exitDate ? exitDate.substring(0, 4) : null,
-        exit_month: exitDate ? exitDate.substring(5, 7) : null
+        exit_month: exitDate ? exitDate.substring(5, 7) : null,
+        last_session_date: lastSession?.date || null
       };
     });
   }, [students, sessions]);
