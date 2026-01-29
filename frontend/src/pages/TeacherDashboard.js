@@ -117,9 +117,7 @@ export default function TeacherDashboard({ user, onLogout }) {
     siret: '',
     nom_responsable: '',
     email_responsable: '',
-    nom_gestionnaire: '',
-    email_gestionnaire: '',
-    password: '',
+    gestionnaires: [{ nom: '', email: '', password: '' }], // Liste de gestionnaires
     photo: null,
     photoName: '',
     formateur_id: ''
