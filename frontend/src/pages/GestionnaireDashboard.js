@@ -143,6 +143,14 @@ export default function GestionnaireDashboard({ user, onLogout }) {
         axios.get(`${API}/gestionnaire/formateurs`)
       ]);
       
+      // Charger les infos de debug
+      try {
+        const debugRes = await axios.get(`${API}/gestionnaire/debug`);
+        setDebugInfo(debugRes.data);
+      } catch (e) {
+        console.log('Debug endpoint not available');
+      }
+      
       setClient(clientRes.data);
       setStudents(studentsRes.data || []);
       
