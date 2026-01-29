@@ -1229,9 +1229,14 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                                 En attente
                               </span>
                             )}
-                            <Button variant="outline" size="sm" onClick={() => { setSelectedSession(session); setShowSessionDetail(true); }}>
+                            <Button variant="outline" size="sm" onClick={() => { setSelectedSession(session); setShowSessionDetail(true); }} title="Voir les détails">
                               <Eye className="w-4 h-4" />
                             </Button>
+                            {(session.signature || session.teacher_signature) && (
+                              <Button variant="outline" size="sm" onClick={() => exportSessionPDF(session)} title="Exporter en PDF">
+                                <Download className="w-4 h-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1320,9 +1325,14 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                                 En attente
                               </span>
                             )}
-                            <Button variant="outline" size="sm" onClick={() => { setSelectedSession(session); setShowSessionDetail(true); }}>
+                            <Button variant="outline" size="sm" onClick={() => { setSelectedSession(session); setShowSessionDetail(true); }} title="Voir les détails">
                               <Eye className="w-4 h-4" />
                             </Button>
+                            {(session.signature || session.teacher_signature) && (
+                              <Button variant="outline" size="sm" onClick={() => exportSessionPDF(session)} title="Exporter en PDF">
+                                <Download className="w-4 h-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
