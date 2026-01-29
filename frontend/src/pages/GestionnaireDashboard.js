@@ -1540,21 +1540,35 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                 {selectedSession.signature || selectedSession.teacher_signature ? (
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200 space-y-3">
                     {selectedSession.signature && (
-                      <div className="flex items-center gap-3">
-                        <p className="text-green-700 font-medium flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5" />
-                          Signature élève:
-                        </p>
-                        <img src={selectedSession.signature} alt="Signature élève" className="h-12 object-contain border rounded p-1 bg-white" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <p className="text-green-700 font-medium flex items-center gap-2">
+                            <CheckCircle className="w-5 h-5" />
+                            Signature élève:
+                          </p>
+                          <img src={selectedSession.signature} alt="Signature élève" className="h-12 object-contain border rounded p-1 bg-white" />
+                        </div>
+                        {selectedSession.signed_at && (
+                          <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded">
+                            📅 {formatSignedAt(selectedSession.signed_at)}
+                          </span>
+                        )}
                       </div>
                     )}
                     {selectedSession.teacher_signature && (
-                      <div className="flex items-center gap-3">
-                        <p className="text-purple-700 font-medium flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5" />
-                          Signature formateur:
-                        </p>
-                        <img src={selectedSession.teacher_signature} alt="Signature formateur" className="h-12 object-contain border rounded p-1 bg-white" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <p className="text-purple-700 font-medium flex items-center gap-2">
+                            <CheckCircle className="w-5 h-5" />
+                            Signature formateur:
+                          </p>
+                          <img src={selectedSession.teacher_signature} alt="Signature formateur" className="h-12 object-contain border rounded p-1 bg-white" />
+                        </div>
+                        {selectedSession.teacher_signed_at && (
+                          <span className="text-sm text-purple-600 bg-purple-100 px-2 py-1 rounded">
+                            📅 {formatSignedAt(selectedSession.teacher_signed_at)}
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
