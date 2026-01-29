@@ -11637,25 +11637,43 @@ async def get_gestionnaire_sessions(current_user: User = Depends(get_current_use
     if current_user.role != "gestionnaire":
         raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
     
-    if not current_user.client_id:
+    # Récupérer le nom du centre depuis plusieurs sources possibles
+    centre_name = ""
+    
+    if current_user.client_id:
+        client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+        centre_name = client.get("nom_centre", "") if client else ""
+    
+    # Fallback: utiliser client_name du user
+    if not centre_name and current_user.client_name:
+        centre_name = current_user.client_name
+    
+    # Fallback: chercher via l'email du gestionnaire
+    if not centre_name:
+        client_by_email = await db.clients.find_one({"email_gestionnaire": current_user.email}, {"_id": 0})
+        if client_by_email:
+            centre_name = client_by_email.get("nom_centre", "")
+    
+    if not centre_name:
+        logger.warning(f"⚠️ Sessions: Gestionnaire {current_user.email} sans centre associé")
         return []
     
-    # Récupérer les élèves du centre d'abord
-    client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
-    centre_name = client.get("nom_centre", "") if client else ""
+    # Nettoyer le nom du centre
+    centre_name_clean = centre_name.strip()
     
-    students = await db.users.find(
-        {
-            "role": "student",
-            "$or": [
-                {"client_id": current_user.client_id},
-                {"organism": {"$regex": centre_name, "$options": "i"}} if centre_name else {"client_id": current_user.client_id}
-            ]
-        },
-        {"_id": 0, "id": 1}
-    ).to_list(1000)
+    # Récupérer les élèves du centre
+    query = {
+        "role": "student",
+        "$or": [
+            {"client_id": current_user.client_id} if current_user.client_id else {"_id": None},
+            {"organism": {"$regex": centre_name_clean, "$options": "i"}}
+        ]
+    }
     
+    students = await db.users.find(query, {"_id": 0, "id": 1}).to_list(1000)
     student_ids = [s['id'] for s in students]
+    
+    logger.info(f"📊 Sessions: {len(student_ids)} élèves trouvés pour '{centre_name_clean}'")
     
     if not student_ids:
         return []
@@ -11665,6 +11683,8 @@ async def get_gestionnaire_sessions(current_user: User = Depends(get_current_use
         {"student_id": {"$in": student_ids}},
         {"_id": 0}
     ).to_list(10000)
+    
+    logger.info(f"📅 Sessions: {len(sessions)} séances trouvées")
     
     return sessions
 
