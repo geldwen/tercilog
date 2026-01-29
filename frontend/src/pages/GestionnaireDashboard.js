@@ -243,7 +243,54 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   // Afficher les élèves
   const displayedStudents = filteredStudents || students;
 
-  // Trier les séances par date
+  // Calculer les dates de la semaine en cours (lundi au dimanche)
+  const getWeekDates = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    // Ajuster pour que lundi soit le premier jour (0 = dimanche, donc on ajuste)
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+    
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    
+    return { monday, sunday, today };
+  };
+
+  const { monday: weekStart, sunday: weekEnd, today } = getWeekDates();
+  
+  // Formater une date pour affichage
+  const formatDateFr = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  };
+
+  // Séances du jour
+  const todaySessions = useMemo(() => {
+    const todayStr = today.toISOString().split('T')[0];
+    return sessions.filter(s => s.date === todayStr).sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+  }, [sessions, today]);
+
+  // Séances de la semaine (hors aujourd'hui)
+  const weekSessions = useMemo(() => {
+    const todayStr = today.toISOString().split('T')[0];
+    const mondayStr = weekStart.toISOString().split('T')[0];
+    const sundayStr = weekEnd.toISOString().split('T')[0];
+    
+    return sessions
+      .filter(s => s.date >= mondayStr && s.date <= sundayStr && s.date !== todayStr)
+      .sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return (a.start_time || '').localeCompare(b.start_time || '');
+      });
+  }, [sessions, weekStart, weekEnd, today]);
+
+  // Trier les séances par date (pour l'historique complet)
   const sortedSessions = [...sessions].sort((a, b) => {
     if (a.date !== b.date) return b.date.localeCompare(a.date);
     return (a.start_time || '').localeCompare(b.start_time || '');
