@@ -11278,6 +11278,54 @@ def send_room_request_email(to_email: str, recipient_name: str, client_name: str
 
 # ===== ENDPOINTS GESTIONNAIRE (SIMPLIFIÉ) =====
 
+@api_router.get("/gestionnaire/debug")
+async def get_gestionnaire_debug(current_user: User = Depends(get_current_user)):
+    """Endpoint de diagnostic pour vérifier la configuration du gestionnaire"""
+    if current_user.role != "gestionnaire":
+        raise HTTPException(status_code=403, detail="Accès réservé aux gestionnaires")
+    
+    # Infos du gestionnaire
+    debug_info = {
+        "gestionnaire": {
+            "id": current_user.id,
+            "email": current_user.email,
+            "name": current_user.name,
+            "client_id": current_user.client_id or "NON DÉFINI",
+            "client_name": current_user.client_name or "NON DÉFINI"
+        },
+        "client": None,
+        "students_count": 0,
+        "sessions_count": 0
+    }
+    
+    if current_user.client_id:
+        # Récupérer le client
+        client = await db.clients.find_one({"id": current_user.client_id}, {"_id": 0})
+        debug_info["client"] = client
+        
+        if client:
+            centre_name = client.get("nom_centre", "")
+            # Compter les étudiants
+            students = await db.users.find(
+                {
+                    "role": "student",
+                    "$or": [
+                        {"client_id": current_user.client_id},
+                        {"organism": {"$regex": centre_name, "$options": "i"}} if centre_name else {"client_id": current_user.client_id}
+                    ]
+                },
+                {"_id": 0, "id": 1}
+            ).to_list(1000)
+            
+            debug_info["students_count"] = len(students)
+            
+            if students:
+                student_ids = [s['id'] for s in students]
+                sessions_count = await db.sessions.count_documents({"student_id": {"$in": student_ids}})
+                debug_info["sessions_count"] = sessions_count
+    
+    return debug_info
+
 @api_router.get("/gestionnaire/client")
 async def get_gestionnaire_client(current_user: User = Depends(get_current_user)):
     """Récupère les infos du centre du gestionnaire"""
