@@ -1201,6 +1201,73 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                                   Planning PDF
                                 </Button>
                               </div>
+                              
+                              {/* Séances de l'élève */}
+                              {(() => {
+                                const today = new Date().toISOString().split('T')[0];
+                                const studentSessions = sessions.filter(s => s.student_id === student.id);
+                                const completedSessions = studentSessions
+                                  .filter(s => s.date < today || (s.signature || s.teacher_signature))
+                                  .sort((a, b) => new Date(b.date) - new Date(a.date));
+                                const upcomingSessions = studentSessions
+                                  .filter(s => s.date >= today && !s.signature && !s.teacher_signature)
+                                  .sort((a, b) => new Date(a.date) - new Date(b.date));
+                                
+                                return (
+                                  <div className="mt-4 space-y-3">
+                                    {/* Séances effectuées */}
+                                    <details className="group">
+                                      <summary className="cursor-pointer flex items-center gap-2 text-sm font-medium text-green-700 hover:text-green-800">
+                                        <CheckCircle className="w-4 h-4" />
+                                        Séances effectuées ({completedSessions.length})
+                                        <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
+                                      </summary>
+                                      {completedSessions.length > 0 ? (
+                                        <div className="mt-2 space-y-1 pl-6 max-h-40 overflow-y-auto">
+                                          {completedSessions.map(s => (
+                                            <div key={s.id} className="flex items-center justify-between text-xs p-2 bg-green-50 rounded border border-green-100">
+                                              <span className="font-medium">{s.date}</span>
+                                              <span>{s.start_time} - {s.end_time}</span>
+                                              <span className="text-green-600">{s.duration_hours}h</span>
+                                              {(s.signature || s.teacher_signature) && (
+                                                <span className="text-green-700 font-medium flex items-center gap-1">
+                                                  <CheckCircle className="w-3 h-3" />
+                                                  {s.signed_at ? formatSignedAt(s.signed_at) : 'Émargée'}
+                                                </span>
+                                              )}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <p className="text-xs text-gray-500 mt-2 pl-6">Aucune séance effectuée</p>
+                                      )}
+                                    </details>
+                                    
+                                    {/* Séances à venir */}
+                                    <details className="group">
+                                      <summary className="cursor-pointer flex items-center gap-2 text-sm font-medium text-blue-700 hover:text-blue-800">
+                                        <Calendar className="w-4 h-4" />
+                                        Séances à venir ({upcomingSessions.length})
+                                        <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
+                                      </summary>
+                                      {upcomingSessions.length > 0 ? (
+                                        <div className="mt-2 space-y-1 pl-6 max-h-40 overflow-y-auto">
+                                          {upcomingSessions.map(s => (
+                                            <div key={s.id} className="flex items-center justify-between text-xs p-2 bg-blue-50 rounded border border-blue-100">
+                                              <span className="font-medium">{s.date}</span>
+                                              <span>{s.start_time} - {s.end_time}</span>
+                                              <span className="text-blue-600">{s.duration_hours}h</span>
+                                              <span className="text-blue-700">{s.modality === 'distanciel' ? '📹 Distanciel' : '📍 Présentiel'}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <p className="text-xs text-gray-500 mt-2 pl-6">Aucune séance planifiée</p>
+                                      )}
+                                    </details>
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>
