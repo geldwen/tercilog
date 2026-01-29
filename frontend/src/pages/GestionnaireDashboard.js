@@ -1734,7 +1734,15 @@ export default function GestionnaireDashboard({ user, onLogout }) {
             </div>
           )}
           
-          <DialogFooter>
+          <DialogFooter className="flex justify-between">
+            <div>
+              {(selectedSession?.signature || selectedSession?.teacher_signature) && (
+                <Button variant="outline" onClick={() => exportSessionPDF(selectedSession)}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Exporter PDF
+                </Button>
+              )}
+            </div>
             <Button variant="outline" onClick={() => setShowSessionDetail(false)}>Fermer</Button>
           </DialogFooter>
         </DialogContent>
