@@ -33,6 +33,20 @@ Build a comprehensive educational platform called "TerciForm" with:
 - ✅ Read-only view of sessions for their center
 - ✅ Ability to create new students for their center
 - ✅ UI harmonized with admin dashboard style
+- ✅ **Multi-manager support** - multiple contacts per client
+- ✅ **Absence marking** - round "A" button to mark students as absent
+- ✅ **PDF export with signatures** - direct download with manual signature images
+- ✅ **Multi-date room reservation** - select multiple dates in one request
+
+### Recent Updates (Jan 2026)
+- ✅ Added "absent" button (round) for each session in student history
+- ✅ Toggle absent/present status with visual feedback (red for absent)
+- ✅ Display "Élève absent de la séance" text in session history
+- ✅ Updated PDF export to include absence status
+- ✅ Updated PDF export to include actual signature images (not just "Signé")
+- ✅ Fixed PDF direct download (no print dialog)
+- ✅ Added `is_absent` and `absent_marked_at` fields to Session model
+- ✅ Added `/api/sessions/{session_id}/mark-absent` endpoint
 
 ### Deployment (Fixed - Dec 2025)
 - ✅ Added `/health` endpoint for Kubernetes readiness probes
@@ -40,17 +54,18 @@ Build a comprehensive educational platform called "TerciForm" with:
 ## Pending Issues
 | Issue | Priority | Status |
 |-------|----------|--------|
-| Test GestionnaireDashboard UI | P0 | Not Started |
-| Communication tab implementation | P1 | Blocked (awaiting specs) |
-| Refactor TeacherDashboard.js | P1 | Not Started |
-| Refactor server.py | P1 | Not Started |
-| Welcome email password verification | P2 | User verification pending |
-| Q2 data mismatch in quality report | P2 | User verification pending |
+| Remaining hours incorrect for some students | P1 | Not Started |
+| User volker@zepartner.com cannot login | P1 | Not Started |
+| Trainer documents disappear on edit | P2 | Not Started |
+| Refactor TeacherDashboard.js | P2 | Not Started |
+| Refactor server.py | P2 | Not Started |
 
 ## Upcoming Tasks
-1. Implement "Communication" tab in manager dashboard
-2. "Fidélité" (Loyalty) program implementation
-3. Refactor monolithic files
+1. Investigate remaining hours calculation for "Isleme BAGOUZ"
+2. Fix volker@zepartner.com login issue
+3. Fix trainer documents disappearing on profile edit
+4. "Fidélité" (Loyalty) program implementation
+5. Refactor monolithic files
 
 ## Future/Backlog
 - SMS notifications
@@ -71,28 +86,22 @@ Build a comprehensive educational platform called "TerciForm" with:
 
 ## Test Credentials
 - **Admin**: `terciform@gmail.com` / `Geldwen1982*+`
-- **Manager**: `ghizzo.formations@gmail.com` / `Ghizzo2026`
+- **Manager (Zepartner)**: `mounarezgui.pro@gmail.com` / `zepart648`
 
 ## 3rd Party Integrations
 - Jitsi Meet (video conferencing)
 - Gmail SMTP (transactional emails)
+- jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
-- **Dec 2025**: Added "Sorties de parcours" collapsible banner in Students tab (Admin + Gestionnaire)
+- **Jan 2026**: Added "absent" button functionality to mark students absent from sessions
+- **Jan 2026**: Updated PDF export to show actual signature images instead of "Signé" text
+- **Jan 2026**: Fixed PDF export to use direct download instead of print dialog
+- **Jan 2026**: Added `is_absent` and `absent_marked_at` fields to Session model
+- **Dec 2025**: Added "Sorties de parcours" collapsible banner in Students tab
 - **Dec 2025**: Added year filter and name search for course completions
 - **Dec 2025**: Added formateur assignment when creating a client
-- **Dec 2025**: Updated welcome email text for gestionnaires
-- **Dec 2025**: Enhanced formateur display in Gestionnaire Dashboard (photo, subjects, contact)
-- **Dec 2025**: Redesigned GestionnaireDashboard with colored backgrounds (violet/green/orange/pink)
-- **Dec 2025**: Replaced "Communication" tab with "Formateurs" tab showing trainers for the center
-- **Dec 2025**: Added `/api/gestionnaire/formateurs` endpoint
-- **Dec 2025**: Added "Fidélité" (Loyalty) tab placeholder to GestionnaireDashboard
-- **Dec 2025**: Created test gestionnaire account (gestionnaire.test@terciform.com / Test2024!)
+- **Dec 2025**: Multi-manager support for clients
+- **Dec 2025**: Multi-date room reservation feature
+- **Dec 2025**: Enhanced GestionnaireDashboard with colored backgrounds
 - **Dec 2025**: Fixed deployment issue - added `/health` endpoint
-- **Dec 2025**: Rebuilt simplified GestionnaireDashboard from scratch
-- **Dec 2025**: Fixed formateur email notification bug
-
-## Test Credentials
-- **Admin**: `terciform@gmail.com` / `Geldwen1982*+`
-- **Manager (existing)**: `ghizzo.formations@gmail.com` / `Ghizzo2026`
-- **Manager (test)**: `gestionnaire.test@terciform.com` / `Test2024!` (Centre: Iscod)
