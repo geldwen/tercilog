@@ -1207,11 +1207,22 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                                 const today = new Date().toISOString().split('T')[0];
                                 const studentSessions = sessions.filter(s => s.student_id === student.id);
                                 const completedSessions = studentSessions
-                                  .filter(s => s.date < today || (s.signature || s.teacher_signature))
+                                  .filter(s => s.date < today || (s.signature || s.teacher_signature) || s.is_absent)
                                   .sort((a, b) => new Date(b.date) - new Date(a.date));
                                 const upcomingSessions = studentSessions
-                                  .filter(s => s.date >= today && !s.signature && !s.teacher_signature)
+                                  .filter(s => s.date >= today && !s.signature && !s.teacher_signature && !s.is_absent)
                                   .sort((a, b) => new Date(a.date) - new Date(b.date));
+                                
+                                // Fonction pour marquer absent
+                                const handleMarkAbsent = async (sessionId) => {
+                                  try {
+                                    await axios.patch(`${API}/sessions/${sessionId}/mark-absent`);
+                                    toast.success('Statut de présence mis à jour');
+                                    loadData();
+                                  } catch (error) {
+                                    toast.error('Erreur lors de la mise à jour');
+                                  }
+                                };
                                 
                                 return (
                                   <div className="mt-4 space-y-3">
@@ -1225,16 +1236,30 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                                       {completedSessions.length > 0 ? (
                                         <div className="mt-2 space-y-1 pl-6 max-h-40 overflow-y-auto">
                                           {completedSessions.map(s => (
-                                            <div key={s.id} className="flex items-center justify-between text-xs p-2 bg-green-50 rounded border border-green-100">
+                                            <div key={s.id} className={`flex items-center justify-between text-xs p-2 rounded border ${s.is_absent ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-100'}`}>
                                               <span className="font-medium">{s.date}</span>
                                               <span>{s.start_time} - {s.end_time}</span>
-                                              <span className="text-green-600">{s.duration_hours}h</span>
-                                              {(s.signature || s.teacher_signature) && (
+                                              <span className={s.is_absent ? 'text-red-600' : 'text-green-600'}>{s.duration_hours}h</span>
+                                              {s.is_absent ? (
+                                                <span className="text-red-600 font-medium">Élève absent de la séance</span>
+                                              ) : (s.signature || s.teacher_signature) ? (
                                                 <span className="text-green-700 font-medium flex items-center gap-1">
                                                   <CheckCircle className="w-3 h-3" />
                                                   {s.signed_at ? formatSignedAt(s.signed_at) : 'Émargée'}
                                                 </span>
-                                              )}
+                                              ) : null}
+                                              {/* Bouton Absent rond */}
+                                              <button
+                                                onClick={() => handleMarkAbsent(s.id)}
+                                                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                                                  s.is_absent 
+                                                    ? 'bg-red-500 text-white hover:bg-red-600' 
+                                                    : 'bg-gray-200 text-gray-600 hover:bg-red-100 hover:text-red-600'
+                                                }`}
+                                                title={s.is_absent ? 'Annuler absence' : 'Marquer absent'}
+                                              >
+                                                {s.is_absent ? '✓' : 'A'}
+                                              </button>
                                             </div>
                                           ))}
                                         </div>
