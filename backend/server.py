@@ -12320,7 +12320,9 @@ class SalleRequest(BaseModel):
     centre: Optional[str] = None
     nombre_personnes: int
     type_reservation: str  # journee, demi_journee_matin, demi_journee_apres_midi
-    date_souhaitee: str
+    date_souhaitee: Optional[str] = None  # Compatibilité ancienne version
+    dates: Optional[List[str]] = None  # Nouvelle version: liste de dates
+    dates_list: Optional[List[str]] = None  # Alternative pour la liste
     email_destinataire: Optional[str] = None
     commentaire: Optional[str] = None
 
