@@ -468,13 +468,17 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                           <Input
                             type="date"
                             onChange={(e) => {
-                              addDateToSalle(e.target.value);
-                              e.target.value = ''; // Reset pour permettre une nouvelle sélection
+                              const selectedDate = e.target.value;
+                              if (selectedDate) {
+                                addDateToSalle(selectedDate);
+                                // Reset après un court délai pour permettre une nouvelle sélection
+                                setTimeout(() => { e.target.value = ''; }, 100);
+                              }
                             }}
                             className="mt-1 border-blue-200 focus:border-blue-500"
                           />
                           {/* Affichage des dates sélectionnées */}
-                          {salleForm.dates.length > 0 && (
+                          {salleForm.dates && salleForm.dates.length > 0 ? (
                             <div className="mt-2 flex flex-wrap gap-1">
                               {salleForm.dates.map(date => (
                                 <span key={date} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
@@ -482,15 +486,14 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                                   <button 
                                     type="button"
                                     onClick={() => removeDateFromSalle(date)}
-                                    className="text-blue-500 hover:text-red-500"
+                                    className="text-blue-500 hover:text-red-500 ml-1"
                                   >
                                     ×
                                   </button>
                                 </span>
                               ))}
                             </div>
-                          )}
-                          {salleForm.dates.length === 0 && (
+                          ) : (
                             <p className="text-xs text-gray-400 mt-1">Aucune date sélectionnée</p>
                           )}
                         </div>
