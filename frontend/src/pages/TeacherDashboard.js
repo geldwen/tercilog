@@ -7097,6 +7097,116 @@ export default function TeacherDashboard({ user, onLogout }) {
                   <div className="bg-sky-50 rounded-xl p-5 border border-sky-200 space-y-4">
                     <h5 className="font-semibold text-sky-800">Nouvelle demande de salle</h5>
                     
+                    {/* Option ajout rapide de dates multiples */}
+                    <div className="bg-white rounded-lg p-4 border border-sky-100">
+                      <details className="group">
+                        <summary className="cursor-pointer flex items-center gap-2 text-sm font-medium text-sky-700">
+                          <CalendarDays className="w-4 h-4" />
+                          Ajouter plusieurs dates rapidement
+                          <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
+                        </summary>
+                        <div className="mt-3 space-y-3 pt-3 border-t border-sky-100">
+                          <p className="text-xs text-gray-500">
+                            Sélectionnez les dates, puis renseignez les horaires et lieu communs. Toutes les demandes seront créées en un clic.
+                          </p>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Dates (sélectionnez plusieurs)</label>
+                              <input
+                                type="date"
+                                id="multi-date-picker"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                                onChange={(e) => {
+                                  const newDate = e.target.value;
+                                  if (newDate && !roomRequestFormData.some(r => r.date === newDate)) {
+                                    // Copier les infos de la première ligne (horaires, lieu) pour la nouvelle date
+                                    const baseInfo = roomRequestFormData[0] || {};
+                                    setRoomRequestFormData(prev => [...prev, {
+                                      date: newDate,
+                                      start_time: baseInfo.start_time || '',
+                                      end_time: baseInfo.end_time || '',
+                                      location_name: baseInfo.location_name || '',
+                                      location_address: baseInfo.location_address || '',
+                                      num_learners: baseInfo.num_learners || 1
+                                    }]);
+                                  }
+                                  e.target.value = ''; // Reset pour permettre la sélection d'une autre date
+                                }}
+                              />
+                              <p className="text-xs text-gray-400 mt-1">Cliquez pour ajouter chaque date</p>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Dates sélectionnées</label>
+                              <div className="flex flex-wrap gap-1">
+                                {roomRequestFormData.filter(r => r.date).map((req, idx) => (
+                                  <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 bg-sky-100 text-sky-700 rounded text-xs">
+                                    {req.date}
+                                    <button 
+                                      onClick={() => setRoomRequestFormData(prev => prev.filter((_, i) => i !== idx))}
+                                      className="text-sky-500 hover:text-red-500"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </span>
+                                ))}
+                                {roomRequestFormData.filter(r => r.date).length === 0 && (
+                                  <span className="text-xs text-gray-400">Aucune date sélectionnée</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-4 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Heure début (pour toutes)</label>
+                              <input
+                                type="time"
+                                value={roomRequestFormData[0]?.start_time || ''}
+                                onChange={(e) => {
+                                  setRoomRequestFormData(prev => prev.map(r => ({ ...r, start_time: e.target.value })));
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Heure fin (pour toutes)</label>
+                              <input
+                                type="time"
+                                value={roomRequestFormData[0]?.end_time || ''}
+                                onChange={(e) => {
+                                  setRoomRequestFormData(prev => prev.map(r => ({ ...r, end_time: e.target.value })));
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Lieu (pour toutes)</label>
+                              <input
+                                type="text"
+                                value={roomRequestFormData[0]?.location_name || ''}
+                                onChange={(e) => {
+                                  setRoomRequestFormData(prev => prev.map(r => ({ ...r, location_name: e.target.value })));
+                                }}
+                                placeholder="Centre..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Adresse</label>
+                              <input
+                                type="text"
+                                value={roomRequestFormData[0]?.location_address || ''}
+                                onChange={(e) => {
+                                  setRoomRequestFormData(prev => prev.map(r => ({ ...r, location_address: e.target.value })));
+                                }}
+                                placeholder="Adresse..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </details>
+                    </div>
+                    
                     {/* Lignes de demande */}
                     {roomRequestFormData.map((req, index) => (
                       <div key={index} className="bg-white rounded-lg p-4 border border-sky-100 space-y-3">
