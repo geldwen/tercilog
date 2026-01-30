@@ -1293,16 +1293,14 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                                   <p className="text-xs text-gray-600">Heures restantes</p>
                                   <p className="text-xl font-bold" style={{ color: TERCIFORM_BLUE }}>{student.credit_hours !== undefined ? student.credit_hours : student.total_hours || 0}h</p>
                                 </div>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
+                                <button
                                   onClick={() => exportStudentAttendancePDF(student)}
-                                  className="ml-auto"
-                                  title="Télécharger le planning de l'élève"
+                                  className="ml-auto flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium transition-colors shadow-md"
+                                  title="Télécharger le planning de l'élève en PDF"
                                 >
-                                  <Download className="w-4 h-4 mr-1" />
-                                  Planning PDF
-                                </Button>
+                                  <Download className="w-4 h-4" />
+                                  Télécharger planning élève PDF
+                                </button>
                               </div>
                               
                               {/* Séances de l'élève */}
