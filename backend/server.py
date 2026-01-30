@@ -5198,6 +5198,33 @@ async def teacher_sign_session(session_id: str, signature_data: dict, current_us
     return Session(**session_doc)
 
 
+@api_router.patch("/sessions/{session_id}/mark-absent")
+async def mark_session_absent(session_id: str, current_user: User = Depends(get_current_user)):
+    """Marquer un élève comme absent d'une séance (gestionnaire uniquement)"""
+    if current_user.role not in ["teacher", "gestionnaire"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session_doc:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Toggle le statut absent
+    is_currently_absent = session_doc.get("is_absent", False)
+    paris_tz = pytz.timezone('Europe/Paris')
+    now_paris = datetime.now(paris_tz)
+    
+    update_data = {
+        "is_absent": not is_currently_absent,
+        "absent_marked_at": now_paris.isoformat() if not is_currently_absent else None
+    }
+    
+    await db.sessions.update_one({"id": session_id}, {"$set": update_data})
+    
+    logger.info(f"Session {session_id} marked as {'absent' if not is_currently_absent else 'present'} by {current_user.email}")
+    
+    session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    return Session(**session_doc)
+
 
 @api_router.put("/sessions/{session_id}")
 async def update_session(session_id: str, data: dict, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user)):
