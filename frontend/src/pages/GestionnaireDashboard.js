@@ -1468,26 +1468,112 @@ export default function GestionnaireDashboard({ user, onLogout }) {
 
           {/* ===== ONGLET SÉANCES ===== */}
           <TabsContent value="seances" className="space-y-6">
-            {/* En-tête avec résumé */}
+            {/* Module de recherche de séances */}
             <div className="p-4 bg-white rounded-2xl shadow-lg">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800">Séances de {client?.nom_centre || 'votre centre'}</h2>
-                <p className="text-sm text-gray-500">Semaine du {weekStart.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au {weekEnd.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <Search className="w-5 h-5" />
+                Rechercher une séance
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <input
+                  type="text"
+                  placeholder="Nom de l'élève..."
+                  value={sessionSearchName}
+                  onChange={(e) => setSessionSearchName(e.target.value)}
+                  className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <select
+                  value={sessionSearchMonth}
+                  onChange={(e) => setSessionSearchMonth(e.target.value)}
+                  className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">Tous les mois</option>
+                  {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map(m => (
+                    <option key={m} value={m}>{monthNames[parseInt(m)]}</option>
+                  ))}
+                </select>
+                <input
+                  type="time"
+                  placeholder="Heure"
+                  value={sessionSearchHour}
+                  onChange={(e) => setSessionSearchHour(e.target.value)}
+                  className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <button
+                  onClick={() => {
+                    // Rechercher la séance
+                    const filtered = sessions.filter(s => {
+                      const student = students.find(st => st.id === s.student_id);
+                      const studentName = (student?.name || '').toLowerCase();
+                      const searchName = sessionSearchName.toLowerCase().trim();
+                      const sessionMonth = s.date?.substring(5, 7);
+                      
+                      let match = true;
+                      if (searchName && !studentName.includes(searchName)) match = false;
+                      if (sessionSearchMonth && sessionMonth !== sessionSearchMonth) match = false;
+                      if (sessionSearchHour && s.start_time !== sessionSearchHour) match = false;
+                      return match;
+                    });
+                    
+                    if (filtered.length > 0) {
+                      setSearchedSession(filtered[0]);
+                      setShowSearchResult(true);
+                    } else {
+                      toast.warning('Aucune séance trouvée');
+                      setSearchedSession(null);
+                      setShowSearchResult(false);
+                    }
+                  }}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <Search className="w-4 h-4" />
+                  Rechercher
+                </button>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
-                  <div className="text-3xl font-bold text-green-600">{todaySessions.length}</div>
-                  <div className="text-sm text-green-700">Aujourd'hui</div>
+              
+              {/* Résultat de recherche */}
+              {showSearchResult && searchedSession && (
+                <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-purple-800 mb-2">Séance trouvée</h4>
+                    <button onClick={() => { setShowSearchResult(false); setSearchedSession(null); }} className="text-purple-600 hover:text-purple-800">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className={`text-center px-4 py-2 rounded-lg ${searchedSession.signature || searchedSession.teacher_signature ? 'bg-green-100' : searchedSession.date >= today.toISOString().split('T')[0] ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                      <div className="text-lg font-bold">{searchedSession.date}</div>
+                      <div className="text-xs">{searchedSession.start_time} - {searchedSession.end_time}</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold">{students.find(s => s.id === searchedSession.student_id)?.name || 'Élève'}</div>
+                      <div className="text-sm text-gray-600">{searchedSession.subject} • {searchedSession.duration_hours}h</div>
+                    </div>
+                    <div className="ml-auto flex items-center gap-2">
+                      {searchedSession.is_absent ? (
+                        <span className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-sm font-medium">ABSENT</span>
+                      ) : searchedSession.signature || searchedSession.teacher_signature ? (
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm font-medium flex items-center gap-1">
+                            <CheckCircle className="w-4 h-4" />
+                            Émargée
+                          </span>
+                          {searchedSession.signature && (
+                            <img src={searchedSession.signature} alt="Signature" className="h-8 border rounded" />
+                          )}
+                        </div>
+                      ) : searchedSession.date >= today.toISOString().split('T')[0] ? (
+                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">À VENIR</span>
+                      ) : (
+                        <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-lg text-sm font-medium">En attente</span>
+                      )}
+                      <Button variant="outline" size="sm" onClick={() => { setSelectedSession(searchedSession); setShowSessionDetail(true); }}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="text-3xl font-bold text-blue-600">{weekSessions.length}</div>
-                  <div className="text-sm text-blue-700">Cette semaine</div>
-                </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="text-3xl font-bold text-gray-600">{sessions.length}</div>
-                  <div className="text-sm text-gray-700">Total</div>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Séances du jour */}
@@ -1526,7 +1612,9 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            {session.signature || session.teacher_signature ? (
+                            {session.is_absent ? (
+                              <span className="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-sm font-medium">ABSENT</span>
+                            ) : session.signature || session.teacher_signature ? (
                               <div className="flex flex-col gap-1">
                                 {session.signature && (
                                   <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
@@ -1543,11 +1631,6 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                                   <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium">
                                     <CheckCircle className="w-4 h-4" />
                                     <img src={session.teacher_signature} alt="Signature formateur" className="h-6 object-contain" />
-                                    {session.teacher_signed_at && (
-                                      <span className="text-xs text-purple-600 ml-1">
-                                        {formatSignedAt(session.teacher_signed_at)}
-                                      </span>
-                                    )}
                                   </div>
                                 )}
                               </div>
@@ -1560,11 +1643,6 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                             <Button variant="outline" size="sm" onClick={() => { setSelectedSession(session); setShowSessionDetail(true); }} title="Voir les détails">
                               <Eye className="w-4 h-4" />
                             </Button>
-                            {(session.signature || session.teacher_signature) && (
-                              <Button variant="outline" size="sm" onClick={() => exportSessionPDF(session)} title="Exporter en PDF">
-                                <Download className="w-4 h-4" />
-                              </Button>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -1574,149 +1652,78 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               )}
             </div>
 
-            {/* Séances de la semaine */}
+            {/* Séances des 2 semaines à venir */}
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
               <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
                 <h3 className="text-lg font-bold flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
-                  Autres séances de la semaine
+                  Séances des 2 prochaines semaines
                 </h3>
               </div>
-              {weekSessions.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  <Calendar className="w-12 h-12 mx-auto text-gray-300 mb-2" />
-                  Aucune autre séance cette semaine
-                </div>
-              ) : (
-                <div className="divide-y">
-                  {weekSessions.map(session => {
-                    const student = students.find(s => s.id === session.student_id);
-                    const sessionDate = new Date(session.date);
-                    const isPast = session.date < today.toISOString().split('T')[0];
-                    return (
-                      <div key={session.id} className={`p-4 hover:bg-blue-50 transition-colors ${isPast ? 'opacity-60' : ''}`}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className={`text-center px-3 py-2 rounded-lg min-w-[80px] ${isPast ? 'bg-gray-100' : 'bg-blue-100'}`}>
-                              <div className={`text-xs ${isPast ? 'text-gray-500' : 'text-blue-600'}`}>
-                                {sessionDate.toLocaleDateString('fr-FR', { weekday: 'short' })}
-                              </div>
-                              <div className={`text-xl font-bold ${isPast ? 'text-gray-600' : 'text-blue-700'}`}>
-                                {sessionDate.getDate()}
-                              </div>
-                              <div className={`text-xs ${isPast ? 'text-gray-500' : 'text-blue-600'}`}>
-                                {sessionDate.toLocaleDateString('fr-FR', { month: 'short' })}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="font-semibold text-gray-900">{student?.name || 'Élève'}</div>
-                              <div className="text-sm text-gray-500 flex items-center gap-2">
-                                <Clock className="w-3.5 h-3.5" />
-                                {session.start_time} - {session.end_time} • {session.subject} • {session.duration_hours}h
-                              </div>
-                              {session.modality && (
-                                <span className={`text-xs px-2 py-0.5 rounded ${session.modality === 'distanciel' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
-                                  {session.modality === 'distanciel' ? 'Distanciel' : 'Présentiel'}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            {session.signature || session.teacher_signature ? (
-                              <div className="flex flex-col gap-1">
-                                {session.signature && (
-                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
-                                    <CheckCircle className="w-4 h-4" />
-                                    <img src={session.signature} alt="Signature élève" className="h-6 object-contain" />
-                                    {session.signed_at && (
-                                      <span className="text-xs text-green-600 ml-1">
-                                        {formatSignedAt(session.signed_at)}
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                                {session.teacher_signature && (
-                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium">
-                                    <CheckCircle className="w-4 h-4" />
-                                    <img src={session.teacher_signature} alt="Signature formateur" className="h-6 object-contain" />
-                                    {session.teacher_signed_at && (
-                                      <span className="text-xs text-purple-600 ml-1">
-                                        {formatSignedAt(session.teacher_signed_at)}
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-sm font-medium">
-                                <Clock className="w-4 h-4" />
-                                En attente
-                              </span>
-                            )}
-                            <Button variant="outline" size="sm" onClick={() => { setSelectedSession(session); setShowSessionDetail(true); }} title="Voir les détails">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            {(session.signature || session.teacher_signature) && (
-                              <Button variant="outline" size="sm" onClick={() => exportSessionPDF(session)} title="Exporter en PDF">
-                                <Download className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Historique complet (collapsible) */}
-            <details className="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <summary className="p-4 bg-gray-100 cursor-pointer hover:bg-gray-200 transition-colors font-semibold text-gray-700 flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                Voir toutes les séances ({sessions.length})
-              </summary>
-              <div className="divide-y max-h-96 overflow-y-auto">
-                {sortedSessions.map(session => {
-                  const student = students.find(s => s.id === session.student_id);
-                  const isToday = session.date === today.toISOString().split('T')[0];
-                  const isPast = session.date < today.toISOString().split('T')[0];
-                  
+              {(() => {
+                const todayStr = today.toISOString().split('T')[0];
+                const twoWeeksLater = new Date(today);
+                twoWeeksLater.setDate(twoWeeksLater.getDate() + 14);
+                const twoWeeksStr = twoWeeksLater.toISOString().split('T')[0];
+                
+                const upcomingTwoWeeks = sessions
+                  .filter(s => s.date > todayStr && s.date <= twoWeeksStr)
+                  .sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                if (upcomingTwoWeeks.length === 0) {
                   return (
-                    <div key={session.id} className={`p-4 hover:bg-gray-50 transition-colors ${isPast && !isToday ? 'opacity-60' : ''}`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className={`text-center px-3 py-2 rounded-lg min-w-[80px] ${isToday ? 'bg-green-100' : isPast ? 'bg-gray-100' : 'bg-blue-100'}`}>
-                            <div className="text-xs text-gray-500">
-                              {new Date(session.date).toLocaleDateString('fr-FR', { weekday: 'short' })}
-                            </div>
-                            <div className={`text-xl font-bold ${isToday ? 'text-green-700' : isPast ? 'text-gray-600' : 'text-blue-700'}`}>
-                              {new Date(session.date).getDate()}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {new Date(session.date).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-900">{student?.name || 'Élève'}</div>
-                            <div className="text-sm text-gray-500">
-                              {session.start_time} - {session.end_time} • {session.subject} • {session.duration_hours}h
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {session.signature ? (
-                            <CheckCircle className="w-5 h-5 text-green-500" />
-                          ) : (
-                            <Clock className="w-5 h-5 text-orange-500" />
-                          )}
-                        </div>
-                      </div>
+                    <div className="p-8 text-center text-gray-500">
+                      <Calendar className="w-12 h-12 mx-auto text-gray-300 mb-2" />
+                      Aucune séance prévue dans les 2 prochaines semaines
                     </div>
                   );
-                })}
-              </div>
-            </details>
+                }
+                
+                return (
+                  <div className="divide-y max-h-96 overflow-y-auto">
+                    {upcomingTwoWeeks.map(session => {
+                      const student = students.find(s => s.id === session.student_id);
+                      return (
+                        <div key={session.id} className="p-4 hover:bg-blue-50 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="text-center px-3 py-2 bg-blue-100 rounded-lg min-w-[80px]">
+                                <div className="text-xs text-blue-600">
+                                  {new Date(session.date).toLocaleDateString('fr-FR', { weekday: 'short' })}
+                                </div>
+                                <div className="text-xl font-bold text-blue-700">
+                                  {new Date(session.date).getDate()}
+                                </div>
+                                <div className="text-xs text-blue-600">
+                                  {new Date(session.date).toLocaleDateString('fr-FR', { month: 'short' })}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="font-semibold text-gray-900">{student?.name || 'Élève'}</div>
+                                <div className="text-sm text-gray-500">
+                                  {session.start_time} - {session.end_time} • {session.subject} • {session.duration_hours}h
+                                </div>
+                                {session.modality && (
+                                  <span className={`text-xs px-2 py-0.5 rounded ${session.modality === 'distanciel' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                                    {session.modality === 'distanciel' ? 'Distanciel' : 'Présentiel'}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">À venir</span>
+                              <Button variant="outline" size="sm" onClick={() => { setSelectedSession(session); setShowSessionDetail(true); }}>
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
           </TabsContent>
 
           {/* ===== ONGLET FORMATEURS ===== */}
