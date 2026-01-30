@@ -462,14 +462,13 @@ export default function GestionnaireDashboard({ user, onLogout }) {
       doc.text(`Organisme: ${student.organism || 'Non défini'}`, 14, yPos);
       doc.text(`Parcours: ${student.parcours || 'Non défini'}`, 14, yPos + 6);
       doc.text(`Total heures: ${student.total_hours || 0}h`, 14, yPos + 12);
-      doc.text(`Date d'export: ${new Date().toLocaleDateString('fr-FR')}`, 14, yPos + 18);
+      doc.text(`Heures restantes: ${student.credit_hours !== undefined ? student.credit_hours : student.total_hours || 0}h`, 14, yPos + 18);
+      doc.text(`Date d'export: ${new Date().toLocaleDateString('fr-FR')}`, 14, yPos + 24);
       
-      yPos = yPos + 28;
+      yPos = yPos + 34;
       
-      // Pour chaque séance, afficher les détails avec les signatures
-      for (let i = 0; i < studentSessions.length; i++) {
-        const s = studentSessions[i];
-        
+      // Fonction pour afficher une séance
+      const renderSession = (s, isUpcoming = false) => {
         // Vérifier si on a besoin d'une nouvelle page
         if (yPos > pageHeight - 80) {
           doc.addPage();
@@ -480,6 +479,8 @@ export default function GestionnaireDashboard({ user, onLogout }) {
         const sessionHeight = 55;
         if (s.is_absent) {
           doc.setFillColor(254, 226, 226); // Rouge clair pour absent
+        } else if (isUpcoming) {
+          doc.setFillColor(219, 234, 254); // Bleu clair pour à venir
         } else {
           doc.setFillColor(240, 253, 244); // Vert clair pour présent
         }
@@ -492,6 +493,15 @@ export default function GestionnaireDashboard({ user, onLogout }) {
         doc.setFontSize(11);
         doc.setTextColor(13, 32, 64);
         doc.text(`Séance du ${s.date}`, 18, yPos + 8);
+        
+        // Badge statut
+        if (isUpcoming) {
+          doc.setFillColor(59, 130, 246); // Bleu
+          doc.roundedRect(pageWidth - 60, yPos + 3, 40, 10, 2, 2, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(8);
+          doc.text('À VENIR', pageWidth - 55, yPos + 10);
+        }
         
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
@@ -506,6 +516,12 @@ export default function GestionnaireDashboard({ user, onLogout }) {
           doc.text('ÉLÈVE ABSENT DE LA SÉANCE', 18, yPos + 32);
           doc.setTextColor(0, 0, 0);
           doc.setFont('helvetica', 'normal');
+        } else if (isUpcoming) {
+          doc.setTextColor(59, 130, 246); // Bleu
+          doc.setFont('helvetica', 'bold');
+          doc.text('SÉANCE PROGRAMMÉE', 18, yPos + 32);
+          doc.setTextColor(0, 0, 0);
+          doc.setFont('helvetica', 'normal');
         } else {
           // Signatures
           const sigStartX = 18;
@@ -518,7 +534,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
             try {
               doc.addImage(s.signature, 'PNG', sigStartX, yPos + 34, sigWidth, sigHeight);
             } catch (e) {
-              doc.text('✓ Signé', sigStartX, yPos + 40);
+              doc.text('Signé', sigStartX, yPos + 40);
             }
             if (s.signed_at) {
               doc.setFontSize(7);
@@ -526,7 +542,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               doc.setFontSize(9);
             }
           } else if (s.signature) {
-            doc.text('Signature élève: ✓ Signé', sigStartX, yPos + 35);
+            doc.text('Signature élève: Signé', sigStartX, yPos + 35);
           }
           
           // Signature formateur
@@ -536,7 +552,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
             try {
               doc.addImage(s.teacher_signature, 'PNG', teacherSigX, yPos + 34, sigWidth, sigHeight);
             } catch (e) {
-              doc.text('✓ Signé', teacherSigX, yPos + 40);
+              doc.text('Signé', teacherSigX, yPos + 40);
             }
             if (s.teacher_signed_at) {
               doc.setFontSize(7);
@@ -544,11 +560,43 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               doc.setFontSize(9);
             }
           } else if (s.teacher_signature) {
-            doc.text('Signature formateur: ✓ Signé', teacherSigX, yPos + 35);
+            doc.text('Signature formateur: Signé', teacherSigX, yPos + 35);
           }
         }
         
         yPos += sessionHeight + 5;
+      };
+      
+      // Afficher les séances effectuées/émargées
+      if (completedSessions.length > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(34, 197, 94); // Vert
+        doc.text(`SÉANCES EFFECTUÉES (${completedSessions.length})`, 14, yPos);
+        yPos += 8;
+        
+        for (const s of completedSessions) {
+          renderSession(s, false);
+        }
+      }
+      
+      // Afficher les séances à venir
+      if (upcomingSessions.length > 0) {
+        // Nouvelle page si nécessaire
+        if (yPos > pageHeight - 100) {
+          doc.addPage();
+          yPos = 20;
+        }
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(59, 130, 246); // Bleu
+        doc.text(`SÉANCES À VENIR (${upcomingSessions.length})`, 14, yPos);
+        yPos += 8;
+        
+        for (const s of upcomingSessions) {
+          renderSession(s, true);
+        }
       }
       
       // Pied de page sur toutes les pages
