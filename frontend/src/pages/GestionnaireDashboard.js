@@ -101,6 +101,13 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   const [showSessionDetail, setShowSessionDetail] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
 
+  // Recherche de séances
+  const [sessionSearchName, setSessionSearchName] = useState('');
+  const [sessionSearchMonth, setSessionSearchMonth] = useState('');
+  const [sessionSearchHour, setSessionSearchHour] = useState('');
+  const [searchedSession, setSearchedSession] = useState(null);
+  const [showSearchResult, setShowSearchResult] = useState(false);
+
   // Sorties de parcours
   const [showExitBanner, setShowExitBanner] = useState(false);
   const [exitYearFilter, setExitYearFilter] = useState('');
