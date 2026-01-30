@@ -5974,9 +5974,14 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
                 statut = status_fr.get(session.get('status', ''), session.get('status', ''))
                 statut_paragraph = Paragraph(statut, cell_style)
                 
-                # Signature élève
+                # Style pour ABSENT en gras et rouge
+                absent_style = ParagraphStyle('AbsentStyle', parent=styles['Normal'], fontSize=10, fontName='Helvetica-Bold', textColor=colors.red)
+                
+                # Signature élève - si absent, afficher ABSENT en gras rouge
                 student_sig_content = []
-                if session.get('signature'):
+                if session.get('is_absent'):
+                    student_sig_content.append(Paragraph("<b>ABSENT</b>", absent_style))
+                elif session.get('signature'):
                     try:
                         sig_data = session['signature']
                         if sig_data.startswith('data:image'):
@@ -5995,13 +6000,15 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
                             except:
                                 pass
                     except Exception as e:
-                        student_sig_content.append(Paragraph("✓ Signé", signature_style))
+                        student_sig_content.append(Paragraph("Signe", signature_style))
                 else:
                     student_sig_content.append(Paragraph("-", cell_style))
                 
-                # Signature formateur
+                # Signature formateur - si absent, afficher "-"
                 teacher_sig_content = []
-                if session.get('teacher_signature'):
+                if session.get('is_absent'):
+                    teacher_sig_content.append(Paragraph("-", cell_style))
+                elif session.get('teacher_signature'):
                     try:
                         sig_data = session['teacher_signature']
                         if sig_data.startswith('data:image'):
@@ -6020,7 +6027,7 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
                             except:
                                 pass
                     except Exception as e:
-                        teacher_sig_content.append(Paragraph("✓ Signé", signature_style))
+                        teacher_sig_content.append(Paragraph("Signe", signature_style))
                 else:
                     teacher_sig_content.append(Paragraph("-", cell_style))
                 
