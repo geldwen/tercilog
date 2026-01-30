@@ -5228,6 +5228,60 @@ async def mark_session_absent(session_id: str, current_user: User = Depends(get_
     return Session(**session_doc)
 
 
+@api_router.patch("/students/{student_id}/archive")
+async def archive_student(student_id: str, current_user: User = Depends(get_current_user)):
+    """Archiver un élève (gestionnaire ou admin uniquement)"""
+    if current_user.role not in ["teacher", "gestionnaire"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Trouver l'élève
+    student_doc = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student_doc:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Marquer comme archivé
+    paris_tz = pytz.timezone('Europe/Paris')
+    now_paris = datetime.now(paris_tz)
+    
+    update_data = {
+        "is_archived": True,
+        "archived_at": now_paris.isoformat(),
+        "archived_by": current_user.email
+    }
+    
+    await db.users.update_one({"id": student_id}, {"$set": update_data})
+    
+    logger.info(f"Student {student_id} archived by {current_user.email}")
+    
+    # Retourner l'élève mis à jour
+    student_doc = await db.users.find_one({"id": student_id}, {"_id": 0})
+    return student_doc
+
+
+@api_router.patch("/students/{student_id}/unarchive")
+async def unarchive_student(student_id: str, current_user: User = Depends(get_current_user)):
+    """Désarchiver un élève (gestionnaire ou admin uniquement)"""
+    if current_user.role not in ["teacher", "gestionnaire"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    student_doc = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student_doc:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    update_data = {
+        "is_archived": False,
+        "archived_at": None,
+        "archived_by": None
+    }
+    
+    await db.users.update_one({"id": student_id}, {"$set": update_data})
+    
+    logger.info(f"Student {student_id} unarchived by {current_user.email}")
+    
+    student_doc = await db.users.find_one({"id": student_id}, {"_id": 0})
+    return student_doc
+
+
 @api_router.put("/sessions/{session_id}")
 async def update_session(session_id: str, data: dict, background_tasks: BackgroundTasks, current_user: User = Depends(get_current_user)):
     """Mettre à jour une séance (ex: ajouter un lien visio)"""
