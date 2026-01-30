@@ -12474,7 +12474,14 @@ async def create_salle_request(request: SalleRequest, current_user: User = Depen
         dates_list = [request.date_souhaitee]
     
     # Formater les dates pour l'affichage
-    dates_formatted = ", ".join([format_date_fr(d) for d in dates_list]) if dates_list else request.date_souhaitee
+    def format_date_local(date_str):
+        try:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            return date_obj.strftime("%d/%m/%Y")
+        except:
+            return date_str
+    
+    dates_formatted = ", ".join([format_date_local(d) for d in dates_list]) if dates_list else (request.date_souhaitee or "")
     
     salle_request = {
         "id": request_id,
