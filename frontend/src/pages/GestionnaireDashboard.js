@@ -599,47 +599,90 @@ export default function GestionnaireDashboard({ user, onLogout }) {
       doc.text(`Matière: ${session.subject || 'N/A'}`, 14, yPos + 24);
       doc.text(`Modalité: ${session.modality === 'distanciel' ? 'Distanciel' : 'Présentiel'}`, 14, yPos + 30);
       
-      // Section émargements
+      // Section émargements ou statut absent
       yPos += 45;
-      doc.setFont('helvetica', 'bold');
-      doc.text('Émargements', 14, yPos);
       
-      // Signature élève
-      yPos += 10;
-      doc.setFillColor(240, 253, 244); // bg-green-50
-      doc.rect(14, yPos, 85, 35, 'F');
-      doc.setDrawColor(200, 200, 200);
-      doc.rect(14, yPos, 85, 35, 'S');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text('Signature Élève:', 18, yPos + 8);
-      doc.setFont('helvetica', 'normal');
-      if (session.signature) {
-        doc.text('✓ Signé', 18, yPos + 16);
-        if (session.signed_at) {
-          doc.setFontSize(8);
-          doc.text(`Horodatage: ${formatSignedAt(session.signed_at)}`, 18, yPos + 24);
+      // Si l'élève est absent
+      if (session.is_absent) {
+        doc.setFillColor(254, 226, 226); // Rouge clair
+        doc.rect(14, yPos, pageWidth - 28, 40, 'F');
+        doc.setDrawColor(220, 38, 38);
+        doc.rect(14, yPos, pageWidth - 28, 40, 'S');
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(220, 38, 38);
+        doc.text('ÉLÈVE ABSENT DE LA SÉANCE', pageWidth / 2, yPos + 20, { align: 'center' });
+        
+        if (session.absent_marked_at) {
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Marqué absent le: ${formatSignedAt(session.absent_marked_at)}`, pageWidth / 2, yPos + 30, { align: 'center' });
         }
       } else {
-        doc.text('Non signé', 18, yPos + 16);
-      }
-      
-      // Signature formateur
-      doc.setFillColor(250, 245, 255); // bg-purple-50
-      doc.rect(105, yPos, 85, 35, 'F');
-      doc.rect(105, yPos, 85, 35, 'S');
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text('Signature Formateur:', 109, yPos + 8);
-      doc.setFont('helvetica', 'normal');
-      if (session.teacher_signature) {
-        doc.text('✓ Signé', 109, yPos + 16);
-        if (session.teacher_signed_at) {
-          doc.setFontSize(8);
-          doc.text(`Horodatage: ${formatSignedAt(session.teacher_signed_at)}`, 109, yPos + 24);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Émargements', 14, yPos);
+        
+        // Signature élève
+        yPos += 10;
+        doc.setFillColor(240, 253, 244); // bg-green-50
+        doc.rect(14, yPos, 85, 50, 'F');
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(14, yPos, 85, 50, 'S');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Signature Élève:', 18, yPos + 8);
+        doc.setFont('helvetica', 'normal');
+        
+        if (session.signature && session.signature.startsWith('data:image')) {
+          try {
+            doc.addImage(session.signature, 'PNG', 18, yPos + 12, 70, 25);
+          } catch (e) {
+            doc.text('✓ Signé', 18, yPos + 20);
+          }
+          if (session.signed_at) {
+            doc.setFontSize(7);
+            doc.text(`Horodatage: ${formatSignedAt(session.signed_at)}`, 18, yPos + 45);
+          }
+        } else if (session.signature) {
+          doc.text('✓ Signé', 18, yPos + 20);
+          if (session.signed_at) {
+            doc.setFontSize(8);
+            doc.text(`Horodatage: ${formatSignedAt(session.signed_at)}`, 18, yPos + 30);
+          }
+        } else {
+          doc.text('Non signé', 18, yPos + 20);
         }
-      } else {
-        doc.text('Non signé', 109, yPos + 16);
+        
+        // Signature formateur
+        doc.setFillColor(250, 245, 255); // bg-purple-50
+        doc.rect(105, yPos, 85, 50, 'F');
+        doc.rect(105, yPos, 85, 50, 'S');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('Signature Formateur:', 109, yPos + 8);
+        doc.setFont('helvetica', 'normal');
+        
+        if (session.teacher_signature && session.teacher_signature.startsWith('data:image')) {
+          try {
+            doc.addImage(session.teacher_signature, 'PNG', 109, yPos + 12, 70, 25);
+          } catch (e) {
+            doc.text('✓ Signé', 109, yPos + 20);
+          }
+          if (session.teacher_signed_at) {
+            doc.setFontSize(7);
+            doc.text(`Horodatage: ${formatSignedAt(session.teacher_signed_at)}`, 109, yPos + 45);
+          }
+        } else if (session.teacher_signature) {
+          doc.text('✓ Signé', 109, yPos + 20);
+          if (session.teacher_signed_at) {
+            doc.setFontSize(8);
+            doc.text(`Horodatage: ${formatSignedAt(session.teacher_signed_at)}`, 109, yPos + 30);
+          }
+        } else {
+          doc.text('Non signé', 109, yPos + 20);
+        }
       }
       
       // Pied de page
