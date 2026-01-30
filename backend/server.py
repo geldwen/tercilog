@@ -12462,10 +12462,19 @@ async def send_ticketing_notification(
 # ========== ENDPOINT: DEMANDE DE SALLE ==========
 @api_router.post("/ticketing/salles")
 async def create_salle_request(request: SalleRequest, current_user: User = Depends(get_current_user)):
-    """Créer une demande de réservation de salle"""
+    """Créer une demande de réservation de salle (supporte plusieurs dates)"""
     
     request_id = str(uuid.uuid4())
     timestamp = datetime.now(timezone.utc)
+    
+    # Récupérer la liste des dates (nouvelle version ou ancienne version)
+    dates_list = request.dates_list or request.dates or []
+    if not dates_list and request.date_souhaitee:
+        # Compatibilité avec l'ancienne version (une seule date)
+        dates_list = [request.date_souhaitee]
+    
+    # Formater les dates pour l'affichage
+    dates_formatted = ", ".join([format_date_fr(d) for d in dates_list]) if dates_list else request.date_souhaitee
     
     salle_request = {
         "id": request_id,
@@ -12474,7 +12483,8 @@ async def create_salle_request(request: SalleRequest, current_user: User = Depen
         "centre": request.centre,
         "nombre_personnes": request.nombre_personnes,
         "type_reservation": request.type_reservation,
-        "date_souhaitee": request.date_souhaitee,
+        "date_souhaitee": dates_formatted,  # Pour compatibilité affichage
+        "dates_list": dates_list,  # Liste des dates pour le traitement
         "email_destinataire": request.email_destinataire,
         "commentaire": request.commentaire,
         "status": "EN_ATTENTE",
@@ -12501,7 +12511,8 @@ async def create_salle_request(request: SalleRequest, current_user: User = Depen
         user_dict = {"id": current_user.id, "name": current_user.name, "role": current_user.role, "client_id": current_user.client_id}
         await send_ticketing_notification("SALLES", salle_request, user_dict, recipient_email)
     
-    return {"success": True, "id": request_id, "message": "Demande de salle créée avec succès", "created_at": timestamp.isoformat()}
+    nb_dates = len(dates_list)
+    return {"success": True, "id": request_id, "message": f"Demande de salle créée pour {nb_dates} date(s)", "created_at": timestamp.isoformat()}
 
 # ========== ENDPOINT: DEMANDE DE MATERIEL ==========
 @api_router.post("/ticketing/materiel")
