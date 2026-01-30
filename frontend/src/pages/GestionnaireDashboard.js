@@ -370,21 +370,15 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     });
   }, [students, sessions]);
 
-  // Années disponibles pour le filtre
+  // Années disponibles pour le filtre - toujours afficher 2025, 2026, 2027
   const availableExitYears = useMemo(() => {
-    const years = [...new Set(exitedStudents.map(s => s.exit_year).filter(Boolean))];
-    return years.sort().reverse();
-  }, [exitedStudents]);
+    return ['2027', '2026', '2025'];
+  }, []);
 
-  // Mois disponibles pour le filtre (selon l'année sélectionnée)
+  // Mois disponibles pour le filtre - tous les mois de l'année
   const availableExitMonths = useMemo(() => {
-    let filtered = exitedStudents;
-    if (exitYearFilter) {
-      filtered = filtered.filter(s => s.exit_year === exitYearFilter);
-    }
-    const months = [...new Set(filtered.map(s => s.exit_month).filter(Boolean))];
-    return months.sort();
-  }, [exitedStudents, exitYearFilter]);
+    return ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+  }, []);
 
   const monthNames = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
