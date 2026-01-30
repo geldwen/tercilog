@@ -163,21 +163,27 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
   // ========== SALLES (Admin seulement) ==========
   const handleSubmitSalle = async (e) => {
     e.preventDefault();
-    if (!salleForm.lieu || !salleForm.date_souhaitee || !salleForm.nombre_personnes) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
+    if (!salleForm.lieu || salleForm.dates.length === 0 || !salleForm.nombre_personnes) {
+      toast.error('Veuillez remplir tous les champs obligatoires (lieu, au moins une date, nombre de personnes)');
       return;
     }
     
     setLoading(true);
     try {
-      await axios.post(`${API}/ticketing/salles`, salleForm);
-      toast.success('Demande de salle envoyée avec succès !');
+      // Envoyer avec la liste des dates
+      const formData = {
+        ...salleForm,
+        date_souhaitee: salleForm.dates.join(', '), // Pour compatibilité
+        dates_list: salleForm.dates
+      };
+      await axios.post(`${API}/ticketing/salles`, formData);
+      toast.success(`Demande de salle envoyée pour ${salleForm.dates.length} date(s) !`);
       setSalleForm({
         lieu: '',
         centre: '',
         nombre_personnes: '',
         type_reservation: 'journee',
-        date_souhaitee: '',
+        dates: [],
         email_destinataire: '',
         commentaire: ''
       });
@@ -187,6 +193,18 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
     } finally {
       setLoading(false);
     }
+  };
+
+  // Ajouter une date à la liste
+  const addDateToSalle = (date) => {
+    if (date && !salleForm.dates.includes(date)) {
+      setSalleForm(prev => ({ ...prev, dates: [...prev.dates, date].sort() }));
+    }
+  };
+
+  // Supprimer une date de la liste
+  const removeDateFromSalle = (dateToRemove) => {
+    setSalleForm(prev => ({ ...prev, dates: prev.dates.filter(d => d !== dateToRemove) }));
   };
 
   // ========== MATERIEL (Admin seulement) ==========
