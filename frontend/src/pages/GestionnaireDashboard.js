@@ -1275,43 +1275,207 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                               ? new Date(student.exit_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
                               : 'Non définie';
                             
+                            // Récupérer les séances de cet élève
+                            const studentSessions = sessions.filter(s => s.student_id === student.id);
+                            const signedSessions = studentSessions.filter(s => s.signature || s.teacher_signature);
+                            const absentSessions = studentSessions.filter(s => s.is_absent);
+                            
                             return (
-                              <div key={student.id} className="p-4 hover:bg-gray-50 transition-colors">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-4">
-                                    <div 
-                                      className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
-                                      style={{ backgroundColor: TERCIFORM_BLUE }}
-                                    >
-                                      {(student.name?.[0] || '').toUpperCase()}
+                              <details key={student.id} className="group">
+                                <summary className="p-4 hover:bg-gray-50 transition-colors cursor-pointer list-none">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                      <div 
+                                        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                                        style={{ backgroundColor: TERCIFORM_BLUE }}
+                                      >
+                                        {(student.name?.[0] || '').toUpperCase()}
+                                      </div>
+                                      <div>
+                                        <div className="flex items-center gap-2">
+                                          <h4 className="font-semibold text-gray-900">{student.name}</h4>
+                                          {student.parcours && (
+                                            <span 
+                                              className="px-2 py-0.5 rounded-full text-xs font-bold"
+                                              style={{ backgroundColor: parcoursStyle.bg, color: parcoursStyle.color }}
+                                            >
+                                              {student.parcours}
+                                            </span>
+                                          )}
+                                          {student.is_archived && (
+                                            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-200 text-gray-700">
+                                              Archivé
+                                            </span>
+                                          )}
+                                          <ChevronDown className="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" />
+                                        </div>
+                                        <p className="text-sm text-gray-500">{student.organism || 'Sans organisme'}</p>
+                                        <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                                          <span><span className="font-medium">{student.total_hours || 0}h</span> totales</span>
+                                          <span><span className="font-medium text-green-600">{signedSessions.length}</span> séances émargées</span>
+                                          {absentSessions.length > 0 && (
+                                            <span><span className="font-medium text-red-600">{absentSessions.length}</span> absences</span>
+                                          )}
+                                        </div>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <div className="flex items-center gap-2">
-                                        <h4 className="font-semibold text-gray-900">{student.name}</h4>
-                                        {student.parcours && (
-                                          <span 
-                                            className="px-2 py-0.5 rounded-full text-xs font-bold"
-                                            style={{ backgroundColor: parcoursStyle.bg, color: parcoursStyle.color }}
-                                          >
-                                            {student.parcours}
-                                          </span>
+                                    <div className="flex items-center gap-3">
+                                      <div className="text-right">
+                                        <span className="text-xs text-gray-500 block mb-1">Date de sortie</span>
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                          <Calendar className="w-4 h-4 mr-1" />
+                                          {exitDateFormatted}
+                                        </span>
+                                      </div>
+                                      <button
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          exportStudentAttendancePDF(student);
+                                        }}
+                                        className="flex items-center gap-2 px-3 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium transition-colors shadow-md"
+                                        title="Télécharger le récapitulatif de formation en PDF"
+                                      >
+                                        <Download className="w-3 h-3" />
+                                        PDF
+                                      </button>
+                                    </div>
+                                  </div>
+                                </summary>
+                                
+                                {/* Détails complets de l'élève */}
+                                <div className="px-4 pb-4 bg-gray-50 border-t">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+                                    {/* Informations générales */}
+                                    <div className="bg-white p-4 rounded-lg shadow-sm">
+                                      <h5 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <Users className="w-4 h-4" />
+                                        Informations élève
+                                      </h5>
+                                      <div className="space-y-2 text-sm">
+                                        <p><span className="text-gray-500">Email:</span> {student.email}</p>
+                                        {student.phone && <p><span className="text-gray-500">Téléphone:</span> {student.phone}</p>}
+                                        {student.start_date && (
+                                          <p><span className="text-gray-500">Entrée en formation:</span> <span className="font-medium text-green-700">{new Date(student.start_date).toLocaleDateString('fr-FR')}</span></p>
+                                        )}
+                                        {student.end_date && (
+                                          <p><span className="text-gray-500">Fin prévue:</span> {new Date(student.end_date).toLocaleDateString('fr-FR')}</p>
+                                        )}
+                                        <p><span className="text-gray-500">Sortie de formation:</span> <span className="font-medium text-blue-700">{exitDateFormatted}</span></p>
+                                        {student.teacher_name && (
+                                          <p><span className="text-gray-500">Formateur:</span> <span className="text-purple-700 font-medium">{student.teacher_name}</span></p>
                                         )}
                                       </div>
-                                      <p className="text-sm text-gray-500">{student.organism || 'Sans organisme'}</p>
-                                      <p className="text-sm text-gray-600 mt-1">
-                                        <span className="font-medium">{student.total_hours || 0}h</span> réalisées
-                                      </p>
+                                    </div>
+                                    
+                                    {/* Résumé des heures */}
+                                    <div className="bg-white p-4 rounded-lg shadow-sm">
+                                      <h5 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <Clock className="w-4 h-4" />
+                                        Bilan des heures
+                                      </h5>
+                                      <div className="space-y-2">
+                                        <div className="flex justify-between items-center py-1 border-b">
+                                          <span className="text-gray-600">Heures totales prévues</span>
+                                          <span className="font-bold">{student.total_hours || 0}h</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-1 border-b">
+                                          <span className="text-gray-600">Heures effectuées</span>
+                                          <span className="font-bold text-green-600">{student.signed_hours || 0}h</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-1 border-b">
+                                          <span className="text-gray-600">Séances émargées</span>
+                                          <span className="font-bold text-green-600">{signedSessions.length}</span>
+                                        </div>
+                                        {absentSessions.length > 0 && (
+                                          <div className="flex justify-between items-center py-1 border-b">
+                                            <span className="text-gray-600">Absences</span>
+                                            <span className="font-bold text-red-600">{absentSessions.length}</span>
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
-                                  <div className="text-right">
-                                    <span className="text-xs text-gray-500 block mb-1">Date de sortie</span>
-                                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                      <Calendar className="w-4 h-4 mr-1" />
-                                      {exitDateFormatted}
-                                    </span>
+                                  
+                                  {/* Historique des séances */}
+                                  <div className="bg-white p-4 rounded-lg shadow-sm mt-2">
+                                    <h5 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                      <Calendar className="w-4 h-4" />
+                                      Historique des séances ({studentSessions.length})
+                                    </h5>
+                                    {studentSessions.length === 0 ? (
+                                      <p className="text-gray-500 text-sm">Aucune séance enregistrée</p>
+                                    ) : (
+                                      <div className="max-h-60 overflow-y-auto space-y-2">
+                                        {studentSessions.sort((a, b) => new Date(a.date) - new Date(b.date)).map(session => (
+                                          <div 
+                                            key={session.id} 
+                                            className={`flex items-center justify-between p-2 rounded text-sm ${
+                                              session.is_absent 
+                                                ? 'bg-red-50 border border-red-200' 
+                                                : (session.signature || session.teacher_signature) 
+                                                  ? 'bg-green-50 border border-green-200' 
+                                                  : 'bg-gray-50 border border-gray-200'
+                                            }`}
+                                          >
+                                            <div className="flex items-center gap-3">
+                                              <span className="font-medium">{session.date}</span>
+                                              <span className="text-gray-500">{session.start_time} - {session.end_time}</span>
+                                              <span>{session.subject}</span>
+                                              <span className="font-semibold">{session.duration_hours}h</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              {session.is_absent ? (
+                                                <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-bold">ABSENT</span>
+                                              ) : (session.signature || session.teacher_signature) ? (
+                                                <div className="flex items-center gap-2">
+                                                  {session.signature && (
+                                                    <div className="flex items-center gap-1">
+                                                      <span className="text-xs text-green-600">Élève:</span>
+                                                      <img src={session.signature} alt="Sig élève" className="h-5 border border-green-300 rounded" />
+                                                    </div>
+                                                  )}
+                                                  {session.teacher_signature && (
+                                                    <div className="flex items-center gap-1">
+                                                      <span className="text-xs text-purple-600">Form:</span>
+                                                      <img src={session.teacher_signature} alt="Sig formateur" className="h-5 border border-purple-300 rounded" />
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              ) : (
+                                                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">Non émargée</span>
+                                              )}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
+                                  
+                                  {/* Bouton pour réactiver l'élève */}
+                                  {student.is_archived && (
+                                    <div className="mt-4 flex justify-end">
+                                      <button
+                                        onClick={async () => {
+                                          if (window.confirm(`Voulez-vous réactiver l'élève "${student.name}" ? Il retournera dans les élèves actifs.`)) {
+                                            try {
+                                              await axios.patch(`${API}/students/${student.id}/unarchive`);
+                                              toast.success(`${student.name} a été réactivé`);
+                                              loadData();
+                                            } catch (error) {
+                                              toast.error("Erreur lors de la réactivation");
+                                            }
+                                          }
+                                        }}
+                                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                                      >
+                                        <Users className="w-4 h-4" />
+                                        Réactiver cet élève
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
-                              </div>
+                              </details>
                             );
                           })}
                         </div>
