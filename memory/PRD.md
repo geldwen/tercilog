@@ -27,7 +27,7 @@ Build a comprehensive educational platform called "TerciForm" with:
 - ✅ PDF generation for student records
 - ✅ Quiz/questionnaire system
 
-### Gestionnaire Dashboard (Simplified - Complete)
+### Gestionnaire Dashboard (Complete)
 - ✅ Manager-specific view filtered by center/client_id
 - ✅ Read-only view of students for their center
 - ✅ Read-only view of sessions for their center
@@ -36,7 +36,13 @@ Build a comprehensive educational platform called "TerciForm" with:
 - ✅ **Multi-manager support** - multiple contacts per client
 - ✅ **Absence marking** - round "A" button to mark students as absent
 - ✅ **PDF export with signatures** - direct download with manual signature images
+- ✅ **PDF export includes upcoming sessions** - shows both completed and scheduled sessions
 - ✅ **Multi-date room reservation** - select multiple dates in one request
+- ✅ **Dynamic remaining hours calculation** - total_hours minus signed session hours
+- ✅ **Session search module** - search by student name, month, and hour
+- ✅ **Simplified sessions view** - today's sessions + 2 weeks upcoming only
+- ✅ **Purple round PDF button** - "Télécharger planning élève PDF"
+- ✅ **Exit filters** - Years 2025, 2026, 2027 and all 12 months
 
 ### Recent Updates (Jan 2026)
 - ✅ Added "absent" button (round) for each session in student history
@@ -47,36 +53,20 @@ Build a comprehensive educational platform called "TerciForm" with:
 - ✅ Fixed PDF direct download (no print dialog)
 - ✅ Added `is_absent` and `absent_marked_at` fields to Session model
 - ✅ Added `/api/sessions/{session_id}/mark-absent` endpoint
-
-### Deployment (Fixed - Dec 2025)
-- ✅ Added `/health` endpoint for Kubernetes readiness probes
+- ✅ Added `import base64` to fix signature rendering in backend PDF
+- ✅ Redesigned SÉANCES tab with search module and 2-week view
+- ✅ Changed PDF button to purple round button
+- ✅ Fixed exit filters to show 2025, 2026, 2027 and all months
+- ✅ Dynamic calculation of remaining hours (total - signed)
 
 ## Pending Issues
 | Issue | Priority | Status |
 |-------|----------|--------|
-| Remaining hours incorrect for some students | P1 | Not Started |
-| User volker@zepartner.com cannot login | P1 | Not Started |
+| Djibril Kante should be historized | P1 | Check production data |
+| Isleme Baghouz shows wrong hours | P1 | Check production data |
 | Trainer documents disappear on edit | P2 | Not Started |
 | Refactor TeacherDashboard.js | P2 | Not Started |
 | Refactor server.py | P2 | Not Started |
-
-## Upcoming Tasks
-1. Investigate remaining hours calculation for "Isleme BAGOUZ"
-2. Fix volker@zepartner.com login issue
-3. Fix trainer documents disappearing on profile edit
-4. "Fidélité" (Loyalty) program implementation
-5. Refactor monolithic files
-
-## Future/Backlog
-- SMS notifications
-- FILE type resource uploads/downloads
-- Full CRUD interface for quiz templates
-- Database query optimization (pagination)
-
-## Technical Debt
-- `TeacherDashboard.js`: >6000 lines, needs component extraction
-- `server.py`: Monolith, needs router separation
-- MongoDB queries with high limits (`.to_list(10000)`)
 
 ## Key Files
 - `/app/backend/server.py` - Main backend
@@ -94,14 +84,11 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
-- **Jan 2026**: Added "absent" button functionality to mark students absent from sessions
-- **Jan 2026**: Updated PDF export to show actual signature images instead of "Signé" text
-- **Jan 2026**: Fixed PDF export to use direct download instead of print dialog
-- **Jan 2026**: Added `is_absent` and `absent_marked_at` fields to Session model
-- **Dec 2025**: Added "Sorties de parcours" collapsible banner in Students tab
-- **Dec 2025**: Added year filter and name search for course completions
-- **Dec 2025**: Added formateur assignment when creating a client
+- **Jan 30, 2026**: Redesigned SÉANCES tab with search module and 2-week upcoming view
+- **Jan 30, 2026**: Changed PDF button to purple round "Télécharger planning élève PDF"
+- **Jan 30, 2026**: Fixed exit filters to show 2025-2027 and all months
+- **Jan 30, 2026**: Dynamic calculation of remaining hours
+- **Jan 30, 2026**: PDF export now includes upcoming/scheduled sessions
+- **Jan 30, 2026**: Fixed signature images in PDF (added import base64)
+- **Jan 2026**: Added "absent" button functionality
 - **Dec 2025**: Multi-manager support for clients
-- **Dec 2025**: Multi-date room reservation feature
-- **Dec 2025**: Enhanced GestionnaireDashboard with colored backgrounds
-- **Dec 2025**: Fixed deployment issue - added `/health` endpoint
