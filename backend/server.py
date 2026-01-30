@@ -6084,9 +6084,13 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
                 horaires = f"{session.get('start_time', '')} - {session.get('end_time', '')}"
                 duree = f"{session.get('duration_hours', 0)}h"
                 
-                # Statut
-                statut = status_fr.get(session.get('status', ''), session.get('status', ''))
-                statut_paragraph = Paragraph(statut, cell_style)
+                # Statut - si absent, afficher ABSENT en gras rouge
+                absent_style = ParagraphStyle('AbsentStyle', parent=styles['Normal'], fontSize=10, fontName='Helvetica-Bold', textColor=colors.red)
+                if session.get('is_absent'):
+                    statut_paragraph = Paragraph("<b>ABSENT</b>", absent_style)
+                else:
+                    statut = status_fr.get(session.get('status', ''), session.get('status', ''))
+                    statut_paragraph = Paragraph(statut, cell_style)
                 
                 table_data.append([
                     Paragraph(date_formatted, cell_style),
