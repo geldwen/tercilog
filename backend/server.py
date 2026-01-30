@@ -10984,9 +10984,41 @@ def send_gestionnaire_welcome_email(to_email: str, name: str, centre_name: str, 
                 
                 <div style="background-color: #fef2f2; border-radius: 8px; padding: 15px; margin: 20px 0;">
                     <p style="margin: 0; font-size: 13px; color: #991b1b;">
-                        <strong>⚠️ Important :</strong> Nous vous recommandons de conserver ces identifiants en lieu sûr. Pour des raisons de sécurité, ne partagez jamais votre mot de passe.
+                        <strong>Important :</strong> Nous vous recommandons de conserver ces identifiants en lieu sur. Pour des raisons de securite, ne partagez jamais votre mot de passe.
                     </p>
                 </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 13px; color: #64748b;">
+                    TerciForm - Propulsez vos competences
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f"Bienvenue sur TerciForm - {centre_name}"
+        msg['From'] = os.environ.get('SMTP_FROM', 'terciform@gmail.com')
+        msg['To'] = to_email
+        
+        part = MIMEText(html_body, 'html')
+        msg.attach(part)
+        
+        with smtplib.SMTP(os.environ.get('SMTP_HOST', 'smtp.gmail.com'), int(os.environ.get('SMTP_PORT', '587'))) as server:
+            server.starttls()
+            server.login(os.environ.get('SMTP_USER', 'terciform@gmail.com'), os.environ.get('SMTP_PASS', ''))
+            server.send_message(msg)
+        
+        logger.info(f"Email de bienvenue gestionnaire envoye a {to_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Erreur envoi email gestionnaire {to_email}: {e}")
+        return False
 
 
 def send_new_student_notification_to_gestionnaires(student_name: str, student_organism: str, gestionnaire_emails: list):
