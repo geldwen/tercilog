@@ -410,12 +410,25 @@ export default function GestionnaireDashboard({ user, onLogout }) {
 
   // Export PDF des émargements pour un élève (téléchargement direct)
   const exportStudentAttendancePDF = async (student) => {
-    const studentSessions = sessions
-      .filter(s => s.student_id === student.id && (s.signature || s.teacher_signature || s.is_absent))
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Toutes les séances de l'élève (émargées, absentes ET à venir)
+    const allStudentSessions = sessions
+      .filter(s => s.student_id === student.id)
       .sort((a, b) => new Date(a.date) - new Date(b.date));
     
-    if (studentSessions.length === 0) {
-      toast.warning('Aucune séance émargée pour cet élève');
+    // Séances passées/émargées/absentes
+    const completedSessions = allStudentSessions.filter(s => 
+      s.date < today || s.signature || s.teacher_signature || s.is_absent
+    );
+    
+    // Séances à venir (programmées)
+    const upcomingSessions = allStudentSessions.filter(s => 
+      s.date >= today && !s.signature && !s.teacher_signature && !s.is_absent
+    );
+    
+    if (allStudentSessions.length === 0) {
+      toast.warning('Aucune séance pour cet élève');
       return;
     }
 
