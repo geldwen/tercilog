@@ -1336,8 +1336,27 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                 {(filteredStudents || activeStudents).map(student => {
                   const parcoursStyle = getParcoursStyle(student.parcours);
                   return (
-                    <Card key={student.id} className="shadow-md hover:shadow-lg transition-shadow border-2" style={{ borderColor: TERCIFORM_BLUE }}>
-                      <CardContent className="pt-6">
+                    <Card key={student.id} className="shadow-md hover:shadow-lg transition-shadow border-2 relative" style={{ borderColor: TERCIFORM_BLUE }}>
+                      {/* Bouton Historiser en haut à gauche */}
+                      <button
+                        onClick={async () => {
+                          if (window.confirm(`Voulez-vous historiser l'élève "${student.name}" ? Il sera déplacé dans les sorties de parcours.`)) {
+                            try {
+                              await axios.patch(`${API}/students/${student.id}/archive`);
+                              toast.success(`${student.name} a été historisé`);
+                              loadData();
+                            } catch (error) {
+                              toast.error("Erreur lors de l'archivage");
+                            }
+                          }
+                        }}
+                        className="absolute top-2 left-2 px-3 py-1 bg-gray-400 hover:bg-gray-500 text-white text-xs font-medium rounded-full transition-colors flex items-center gap-1 z-10"
+                        title="Historiser cet élève (le déplacer dans les sorties de parcours)"
+                      >
+                        <FolderOpen className="w-3 h-3" />
+                        Historiser
+                      </button>
+                      <CardContent className="pt-10">
                         <div className="space-y-4">
                           <div className="flex items-start justify-between">
                             <div className="space-y-2 flex-1">
