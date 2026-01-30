@@ -367,15 +367,15 @@ export default function GestionnaireDashboard({ user, onLogout }) {
 
   const activeStudents = useMemo(() => {
     return studentsWithCalculatedHours.filter(s => {
-      // Un élève est actif s'il a des heures restantes calculées > 0
-      return s.calculated_remaining_hours > 0;
+      // Un élève est actif s'il a des heures restantes calculées > 0 ET n'est pas archivé
+      return s.calculated_remaining_hours > 0 && !s.is_archived;
     });
   }, [studentsWithCalculatedHours]);
 
   const exitedStudents = useMemo(() => {
     return studentsWithCalculatedHours.filter(s => {
-      // Un élève est sorti s'il a 0 heures restantes calculées
-      return s.calculated_remaining_hours <= 0;
+      // Un élève est sorti s'il a 0 heures restantes calculées OU s'il est archivé manuellement
+      return s.calculated_remaining_hours <= 0 || s.is_archived;
     }).map(student => {
       // Trouver la dernière séance signée pour avoir la date de sortie réelle
       const studentSessions = sessions
@@ -383,8 +383,8 @@ export default function GestionnaireDashboard({ user, onLogout }) {
         .sort((a, b) => new Date(b.date) - new Date(a.date));
       const lastSession = studentSessions[0];
       
-      // La date de sortie est la date de la dernière séance émargée (priorité) ou end_date
-      const exitDate = lastSession?.date || student.end_date;
+      // La date de sortie est la date d'archivage (priorité) ou la date de la dernière séance ou end_date
+      const exitDate = student.archived_at?.substring(0, 10) || lastSession?.date || student.end_date;
       
       return {
         ...student,
