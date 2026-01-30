@@ -4446,9 +4446,10 @@ export default function TeacherDashboard({ user, onLogout }) {
                                         const isFuture = sessionDate > today;
                                         
                                         return (
-                                          <div key={session.id} className={`flex items-center justify-between text-sm py-3 px-4 rounded-lg ${isFuture ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'}`}>
+                                          <div key={session.id} className={`flex items-center justify-between text-sm py-3 px-4 rounded-lg ${session.is_absent ? 'bg-red-50 border border-red-200' : isFuture ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'}`}>
                                             <div className="flex items-center gap-3 flex-1 flex-wrap">
-                                              {isFuture && <span className="px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded">À VENIR</span>}
+                                              {session.is_absent && <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded">ABSENT</span>}
+                                              {isFuture && !session.is_absent && <span className="px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded">À VENIR</span>}
                                               <span className="font-medium text-gray-900">{session.subject}</span>
                                               <span className="text-gray-500">le {new Date(session.date).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}</span>
                                               {/* Créneau horaire */}
@@ -4459,17 +4460,22 @@ export default function TeacherDashboard({ user, onLogout }) {
                                                 </span>
                                               )}
                                               <span className="font-semibold text-gray-700">{session.duration_hours}h</span>
-                                              {session.status === 'confirmed' && session.validated_at && (
+                                              {session.is_absent && (
+                                                <span className="text-red-600 font-medium">
+                                                  Élève absent de la séance
+                                                </span>
+                                              )}
+                                              {!session.is_absent && session.status === 'confirmed' && session.validated_at && (
                                                 <span className="text-xs text-green-700 font-medium">
                                                   - Confirmée le {formatDateWithDay(session.validated_at)}
                                                 </span>
                                               )}
-                                              {session.status === 'rejected' && session.validated_at && (
+                                              {!session.is_absent && session.status === 'rejected' && session.validated_at && (
                                                 <span className="text-xs text-red-700 font-medium">
                                                   - Refusée le {formatDateWithDay(session.validated_at)}
                                                 </span>
                                               )}
-                                              {session.status === 'pending' && (
+                                              {!session.is_absent && session.status === 'pending' && (
                                                 <span className="text-xs text-yellow-700 font-medium flex items-center gap-1">
                                                   <AlertCircle className="w-4 h-4" />
                                                   - En attente de validation
@@ -4477,7 +4483,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                                               )}
                                             </div>
                                             <div className="flex items-center gap-3">
-                                              {session.signature && session.signed_at && (
+                                              {!session.is_absent && session.signature && session.signed_at && (
                                                 <div className="flex items-center gap-2">
                                                   <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
                                                     ✓ Émargé le {formatDateTimeWithDay(session.signed_at)}
@@ -4490,11 +4496,35 @@ export default function TeacherDashboard({ user, onLogout }) {
                                                   />
                                                 </div>
                                               )}
-                                              {session.signature_status === "pending" && !session.signature && (
+                                              {!session.is_absent && session.signature_status === "pending" && !session.signature && (
                                                 <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium">
                                                   ⏳ En attente d'émargement
                                                 </span>
                                               )}
+                                              {/* Bouton Absent rond */}
+                                              <button
+                                                onClick={async (e) => {
+                                                  e.stopPropagation();
+                                                  try {
+                                                    const token = localStorage.getItem('token');
+                                                    await axios.patch(`${API}/sessions/${session.id}/mark-absent`, {}, {
+                                                      headers: { Authorization: `Bearer ${token}` }
+                                                    });
+                                                    toast.success('Statut de présence mis à jour');
+                                                    loadData();
+                                                  } catch (error) {
+                                                    toast.error('Erreur lors de la mise à jour');
+                                                  }
+                                                }}
+                                                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all flex-shrink-0 ${
+                                                  session.is_absent 
+                                                    ? 'bg-red-500 text-white hover:bg-red-600' 
+                                                    : 'bg-gray-200 text-gray-600 hover:bg-red-100 hover:text-red-600'
+                                                }`}
+                                                title={session.is_absent ? 'Annuler absence' : 'Marquer absent'}
+                                              >
+                                                {session.is_absent ? '✓' : 'A'}
+                                              </button>
                                             </div>
                                           </div>
                                         );
