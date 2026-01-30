@@ -193,13 +193,13 @@ class Token(BaseModel):
 class Session(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    subject: str
-    date: str  # Format: YYYY-MM-DD
-    start_time: str  # Format: HH:MM
-    end_time: str  # Format: HH:MM
-    student_id: str
-    student_name: str
-    student_email: str
+    subject: str = ""
+    date: str = ""  # Format: YYYY-MM-DD
+    start_time: str = ""  # Format: HH:MM
+    end_time: str = ""  # Format: HH:MM
+    student_id: str = ""
+    student_name: str = ""  # Rendu optionnel avec défaut
+    student_email: str = ""  # Rendu optionnel avec défaut
     status: str = "pending"  # pending, confirmed, rejected
     validation_deadline: Optional[str] = None
     validated_at: Optional[str] = None
