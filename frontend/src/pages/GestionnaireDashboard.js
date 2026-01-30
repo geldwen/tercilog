@@ -410,7 +410,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
   // Export PDF des émargements pour un élève (téléchargement direct)
   const exportStudentAttendancePDF = async (student) => {
     const studentSessions = sessions
-      .filter(s => s.student_id === student.id && (s.signature || s.teacher_signature))
+      .filter(s => s.student_id === student.id && (s.signature || s.teacher_signature || s.is_absent))
       .sort((a, b) => new Date(a.date) - new Date(b.date));
     
     if (studentSessions.length === 0) {
@@ -421,6 +421,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     try {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
       
       // Logo TerciForm (texte stylisé en attendant le vrai logo)
       doc.setFillColor(13, 32, 64); // TERCIFORM_BLUE
@@ -437,7 +438,7 @@ export default function GestionnaireDashboard({ user, onLogout }) {
       doc.setTextColor(13, 32, 64);
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      doc.text(`Feuille d'émargement - ${student.name}`, 14, 40);
+      doc.text(`Planning de formation - ${student.name}`, 14, 40);
       
       // Informations élève
       doc.setFontSize(10);
@@ -449,47 +450,105 @@ export default function GestionnaireDashboard({ user, onLogout }) {
       doc.text(`Total heures: ${student.total_hours || 0}h`, 14, yPos + 12);
       doc.text(`Date d'export: ${new Date().toLocaleDateString('fr-FR')}`, 14, yPos + 18);
       
-      // Tableau des séances
-      const tableData = studentSessions.map(s => [
-        s.date,
-        `${s.start_time} - ${s.end_time}`,
-        `${s.duration_hours}h`,
-        s.signature ? '✓ Signé' : '-',
-        s.signed_at ? formatSignedAt(s.signed_at) : '-',
-        s.teacher_signature ? '✓ Signé' : '-',
-        s.teacher_signed_at ? formatSignedAt(s.teacher_signed_at) : '-'
-      ]);
+      yPos = yPos + 28;
       
-      doc.autoTable({
-        startY: yPos + 28,
-        head: [['Date', 'Horaires', 'Durée', 'Élève', 'Horodatage', 'Formateur', 'Horodatage']],
-        body: tableData,
-        theme: 'grid',
-        headStyles: { fillColor: [13, 32, 64], textColor: [255, 255, 255] },
-        styles: { fontSize: 8, cellPadding: 3 },
-        columnStyles: {
-          0: { cellWidth: 22 },
-          1: { cellWidth: 28 },
-          2: { cellWidth: 15 },
-          3: { cellWidth: 18 },
-          4: { cellWidth: 32 },
-          5: { cellWidth: 18 },
-          6: { cellWidth: 32 }
+      // Pour chaque séance, afficher les détails avec les signatures
+      for (let i = 0; i < studentSessions.length; i++) {
+        const s = studentSessions[i];
+        
+        // Vérifier si on a besoin d'une nouvelle page
+        if (yPos > pageHeight - 80) {
+          doc.addPage();
+          yPos = 20;
         }
-      });
+        
+        // Fond de la séance
+        const sessionHeight = 55;
+        if (s.is_absent) {
+          doc.setFillColor(254, 226, 226); // Rouge clair pour absent
+        } else {
+          doc.setFillColor(240, 253, 244); // Vert clair pour présent
+        }
+        doc.rect(14, yPos, pageWidth - 28, sessionHeight, 'F');
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(14, yPos, pageWidth - 28, sessionHeight, 'S');
+        
+        // Informations de la séance
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(13, 32, 64);
+        doc.text(`Séance du ${s.date}`, 18, yPos + 8);
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Horaires: ${s.start_time} - ${s.end_time} (${s.duration_hours}h)`, 18, yPos + 16);
+        doc.text(`Matière: ${s.subject || 'N/A'}`, 18, yPos + 23);
+        
+        // Statut de présence
+        if (s.is_absent) {
+          doc.setTextColor(220, 38, 38); // Rouge
+          doc.setFont('helvetica', 'bold');
+          doc.text('ÉLÈVE ABSENT DE LA SÉANCE', 18, yPos + 32);
+          doc.setTextColor(0, 0, 0);
+          doc.setFont('helvetica', 'normal');
+        } else {
+          // Signatures
+          const sigStartX = 18;
+          const sigWidth = 40;
+          const sigHeight = 18;
+          
+          // Signature élève
+          if (s.signature && s.signature.startsWith('data:image')) {
+            doc.text('Signature élève:', sigStartX, yPos + 32);
+            try {
+              doc.addImage(s.signature, 'PNG', sigStartX, yPos + 34, sigWidth, sigHeight);
+            } catch (e) {
+              doc.text('✓ Signé', sigStartX, yPos + 40);
+            }
+            if (s.signed_at) {
+              doc.setFontSize(7);
+              doc.text(formatSignedAt(s.signed_at), sigStartX, yPos + 54);
+              doc.setFontSize(9);
+            }
+          } else if (s.signature) {
+            doc.text('Signature élève: ✓ Signé', sigStartX, yPos + 35);
+          }
+          
+          // Signature formateur
+          const teacherSigX = pageWidth / 2 + 10;
+          if (s.teacher_signature && s.teacher_signature.startsWith('data:image')) {
+            doc.text('Signature formateur:', teacherSigX, yPos + 32);
+            try {
+              doc.addImage(s.teacher_signature, 'PNG', teacherSigX, yPos + 34, sigWidth, sigHeight);
+            } catch (e) {
+              doc.text('✓ Signé', teacherSigX, yPos + 40);
+            }
+            if (s.teacher_signed_at) {
+              doc.setFontSize(7);
+              doc.text(formatSignedAt(s.teacher_signed_at), teacherSigX, yPos + 54);
+              doc.setFontSize(9);
+            }
+          } else if (s.teacher_signature) {
+            doc.text('Signature formateur: ✓ Signé', teacherSigX, yPos + 35);
+          }
+        }
+        
+        yPos += sessionHeight + 5;
+      }
       
-      // Pied de page
+      // Pied de page sur toutes les pages
       const pageCount = doc.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(8);
         doc.setTextColor(128, 128, 128);
         doc.text(`Page ${i}/${pageCount} - TerciForm - Document généré le ${new Date().toLocaleString('fr-FR')}`, 
-          pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+          pageWidth / 2, pageHeight - 10, { align: 'center' });
       }
       
       // Téléchargement direct
-      const fileName = `emargements_${student.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = `planning_${student.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(fileName);
       toast.success(`PDF téléchargé: ${fileName}`);
     } catch (error) {
