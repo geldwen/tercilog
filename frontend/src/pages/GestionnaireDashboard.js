@@ -344,19 +344,38 @@ export default function GestionnaireDashboard({ user, onLogout }) {
 
   // Calcul des élèves actifs vs sorties de parcours
   // IMPORTANT: Les élèves actifs sont ceux qui ont des heures restantes OU qui n'ont pas terminé leur formation
-  const activeStudents = useMemo(() => {
-    return students.filter(s => {
-      const remainingHours = s.credit_hours !== undefined ? s.credit_hours : (s.total_hours || 0);
-      // Un élève est actif s'il a des heures restantes OU s'il n'a pas de date de fin
-      return remainingHours > 0 || !s.end_date;
+  // Les heures restantes = total_hours - heures des séances signées
+  const studentsWithCalculatedHours = useMemo(() => {
+    return students.map(student => {
+      // Calculer les heures signées pour cet élève
+      const studentSessions = sessions.filter(s => 
+        s.student_id === student.id && 
+        (s.signature || s.teacher_signature) && 
+        !s.is_absent
+      );
+      const signedHours = studentSessions.reduce((sum, s) => sum + (s.duration_hours || 0), 0);
+      const totalHours = student.total_hours || 0;
+      const calculatedRemainingHours = Math.max(0, totalHours - signedHours);
+      
+      return {
+        ...student,
+        calculated_remaining_hours: calculatedRemainingHours,
+        signed_hours: signedHours
+      };
     });
-  }, [students]);
+  }, [students, sessions]);
+
+  const activeStudents = useMemo(() => {
+    return studentsWithCalculatedHours.filter(s => {
+      // Un élève est actif s'il a des heures restantes calculées > 0
+      return s.calculated_remaining_hours > 0;
+    });
+  }, [studentsWithCalculatedHours]);
 
   const exitedStudents = useMemo(() => {
-    return students.filter(s => {
-      const remainingHours = s.credit_hours !== undefined ? s.credit_hours : 0;
-      // Un élève est sorti s'il a 0 heures ET une date de fin définie
-      return remainingHours <= 0 && s.end_date;
+    return studentsWithCalculatedHours.filter(s => {
+      // Un élève est sorti s'il a 0 heures restantes calculées
+      return s.calculated_remaining_hours <= 0;
     }).map(student => {
       // Trouver la dernière séance signée pour avoir la date de sortie réelle
       const studentSessions = sessions
