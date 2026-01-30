@@ -11008,7 +11008,7 @@ def send_new_student_notification_to_gestionnaires(student_name: str, student_or
             <div style="padding: 35px;">
                 <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 12px; padding: 25px; margin: 20px 0; border: 1px solid #6ee7b7;">
                     <p style="margin: 0; font-size: 16px; color: #065f46; font-weight: 500;">
-                        👤 Votre formateur vient de créer un nouvel élève.
+                        Votre formateur vient de creer un nouvel eleve.
                     </p>
                 </div>
                 
