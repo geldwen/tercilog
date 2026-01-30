@@ -11095,34 +11095,7 @@ def send_new_student_notification_to_gestionnaires(student_name: str, student_or
                 logger.warning(f"⚠️ Échec envoi notification à {email}")
     
     return emails_sent
-                
-                <p style="margin-top: 30px; color: #718096; font-size: 15px;">
-                    Cordialement,<br>
-                    <strong style="color: #2d3748;">L'équipe TerciForm</strong>
-                </p>
-            </div>
-            
-            <!-- Footer -->
-            <div style="background-color: #f7fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
-                <p style="margin: 0; color: #a0aec0; font-size: 12px;">
-                    Cet email a été envoyé automatiquement par TerciForm.
-                </p>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    
-    email_sent = send_email(to_email, "TerciForm - Bienvenue dans votre espace de gestion", html_body)
-    if email_sent:
-        logger.info(f"Email de bienvenue gestionnaire envoyé à {to_email}")
-    else:
-        logger.error(f"Échec envoi email de bienvenue gestionnaire à {to_email}")
-    return email_sent
-    
-    # Retourner sans _id
-    client_data.pop("_id", None)
-    return client_data
+
 
 @api_router.put("/clients/{client_id}")
 async def update_client(
