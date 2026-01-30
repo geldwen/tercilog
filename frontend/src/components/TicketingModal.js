@@ -464,14 +464,35 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                       
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-blue-900 font-semibold">Date souhaitée *</Label>
+                          <Label className="text-blue-900 font-semibold">Dates souhaitées * (cliquez pour ajouter)</Label>
                           <Input
                             type="date"
-                            value={salleForm.date_souhaitee}
-                            onChange={(e) => setSalleForm({...salleForm, date_souhaitee: e.target.value})}
+                            onChange={(e) => {
+                              addDateToSalle(e.target.value);
+                              e.target.value = ''; // Reset pour permettre une nouvelle sélection
+                            }}
                             className="mt-1 border-blue-200 focus:border-blue-500"
-                            required
                           />
+                          {/* Affichage des dates sélectionnées */}
+                          {salleForm.dates.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {salleForm.dates.map(date => (
+                                <span key={date} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                                  {new Date(date).toLocaleDateString('fr-FR')}
+                                  <button 
+                                    type="button"
+                                    onClick={() => removeDateFromSalle(date)}
+                                    className="text-blue-500 hover:text-red-500"
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {salleForm.dates.length === 0 && (
+                            <p className="text-xs text-gray-400 mt-1">Aucune date sélectionnée</p>
+                          )}
                         </div>
                         <div>
                           <Label className="text-blue-900 font-semibold">Email destinataire</Label>
@@ -482,6 +503,11 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                             placeholder="email@exemple.com"
                             className="mt-1 border-blue-200 focus:border-blue-500"
                           />
+                          <p className="text-xs text-gray-400 mt-1">
+                            {salleForm.dates.length > 0 
+                              ? `UN seul email sera envoyé avec les ${salleForm.dates.length} date(s)` 
+                              : ''}
+                          </p>
                         </div>
                       </div>
                       
