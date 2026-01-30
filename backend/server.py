@@ -11015,7 +11015,7 @@ def send_new_student_notification_to_gestionnaires(student_name: str, student_or
                 <div style="background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0;">
                     <table style="width: 100%;">
                         <tr>
-                            <td style="padding: 10px 0; color: #64748b; font-weight: 500;">Nom de l'élève :</td>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500;">Nom de l eleve :</td>
                             <td style="padding: 10px 0; color: #1e293b; font-weight: 600;">{student_name}</td>
                         </tr>
                         <tr>
