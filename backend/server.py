@@ -223,6 +223,8 @@ class Session(BaseModel):
     organism: str = ""  # Organisme/Centre de formation
     student_organism: str = ""  # Organisme de l'élève (pour affichage planning)
     modality: str = "distanciel"  # distanciel ou présentiel
+    is_absent: bool = False  # Si l'élève était absent de la séance
+    absent_marked_at: Optional[str] = None  # Horodatage du marquage absent
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class StudentResource(BaseModel):
