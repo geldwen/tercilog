@@ -464,19 +464,27 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                       
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-blue-900 font-semibold">Dates souhaitées * (cliquez pour ajouter)</Label>
-                          <Input
-                            type="date"
-                            onChange={(e) => {
-                              const selectedDate = e.target.value;
-                              if (selectedDate) {
-                                addDateToSalle(selectedDate);
-                                // Reset après un court délai pour permettre une nouvelle sélection
-                                setTimeout(() => { e.target.value = ''; }, 100);
-                              }
-                            }}
-                            className="mt-1 border-blue-200 focus:border-blue-500"
-                          />
+                          <Label className="text-blue-900 font-semibold">Dates souhaitées *</Label>
+                          <div className="flex gap-2 mt-1">
+                            <Input
+                              type="date"
+                              id="date-picker-salle"
+                              className="border-blue-200 focus:border-blue-500 flex-1"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const input = document.getElementById('date-picker-salle');
+                                if (input && input.value) {
+                                  addDateToSalle(input.value);
+                                  input.value = '';
+                                }
+                              }}
+                              className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
+                            >
+                              + Ajouter
+                            </button>
+                          </div>
                           {/* Affichage des dates sélectionnées */}
                           {salleForm.dates && salleForm.dates.length > 0 ? (
                             <div className="mt-2 flex flex-wrap gap-1">
@@ -494,7 +502,7 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                               ))}
                             </div>
                           ) : (
-                            <p className="text-xs text-gray-400 mt-1">Aucune date sélectionnée</p>
+                            <p className="text-xs text-gray-400 mt-1">Cliquez sur "+ Ajouter" après avoir sélectionné une date</p>
                           )}
                         </div>
                         <div>
