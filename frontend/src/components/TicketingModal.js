@@ -558,7 +558,11 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
                             <div className="flex-1">
                               <p className="font-semibold text-gray-900">{req.lieu} {req.centre && `- ${req.centre}`}</p>
                               <p className="text-sm text-gray-600">{req.nombre_personnes} personnes • {req.type_reservation === 'journee' ? 'Journée' : 'Demi-journée'}</p>
-                              <p className="text-sm text-gray-500">Date souhaitée: {req.date_souhaitee}</p>
+                              <p className="text-sm text-gray-500">
+                                Date(s) souhaitée(s): {req.dates_list?.length > 0 
+                                  ? req.dates_list.map(d => new Date(d).toLocaleDateString('fr-FR')).join(', ')
+                                  : req.date_souhaitee}
+                              </p>
                               <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
                                 Créé le {formatDateTime(req.created_at)}
