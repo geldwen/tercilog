@@ -5978,9 +5978,9 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
                 absent_style = ParagraphStyle('AbsentStyle', parent=styles['Normal'], fontSize=10, fontName='Helvetica-Bold', textColor=colors.red)
                 
                 # Signature élève - si absent, afficher ABSENT en gras rouge
-                student_sig_content = []
+                student_sig = None
                 if session.get('is_absent'):
-                    student_sig_content.append(Paragraph("<b>ABSENT</b>", absent_style))
+                    student_sig = Paragraph("<font color='red'><b>ABSENT</b></font>", cell_style)
                 elif session.get('signature'):
                     try:
                         sig_data = session['signature']
@@ -5988,26 +5988,21 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
                             sig_data = sig_data.split(',')[1]
                         sig_bytes = base64.b64decode(sig_data)
                         sig_img = PILImage.open(io.BytesIO(sig_bytes))
-                        sig_img.thumbnail((60, 25))
+                        sig_img.thumbnail((60, 25), PILImage.Resampling.LANCZOS)
                         img_buffer = io.BytesIO()
                         sig_img.save(img_buffer, format='PNG')
                         img_buffer.seek(0)
-                        student_sig_content.append(Image(img_buffer, width=60, height=25))
-                        if session.get('signed_at'):
-                            try:
-                                signed_dt = datetime.fromisoformat(session['signed_at'].replace('Z', '+00:00'))
-                                student_sig_content.append(Paragraph(f"{signed_dt.strftime('%d/%m %H:%M')}", signature_style))
-                            except:
-                                pass
+                        student_sig = Image(img_buffer, width=60, height=25)
                     except Exception as e:
-                        student_sig_content.append(Paragraph("Signe", signature_style))
+                        logger.error(f"Erreur signature élève: {e}")
+                        student_sig = Paragraph("-", cell_style)
                 else:
-                    student_sig_content.append(Paragraph("-", cell_style))
+                    student_sig = Paragraph("-", cell_style)
                 
                 # Signature formateur - si absent, afficher "-"
-                teacher_sig_content = []
+                teacher_sig = None
                 if session.get('is_absent'):
-                    teacher_sig_content.append(Paragraph("-", cell_style))
+                    teacher_sig = Paragraph("-", cell_style)
                 elif session.get('teacher_signature'):
                     try:
                         sig_data = session['teacher_signature']
@@ -6015,21 +6010,16 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
                             sig_data = sig_data.split(',')[1]
                         sig_bytes = base64.b64decode(sig_data)
                         sig_img = PILImage.open(io.BytesIO(sig_bytes))
-                        sig_img.thumbnail((60, 25))
+                        sig_img.thumbnail((60, 25), PILImage.Resampling.LANCZOS)
                         img_buffer = io.BytesIO()
                         sig_img.save(img_buffer, format='PNG')
                         img_buffer.seek(0)
-                        teacher_sig_content.append(Image(img_buffer, width=60, height=25))
-                        if session.get('teacher_signed_at'):
-                            try:
-                                signed_dt = datetime.fromisoformat(session['teacher_signed_at'].replace('Z', '+00:00'))
-                                teacher_sig_content.append(Paragraph(f"{signed_dt.strftime('%d/%m %H:%M')}", signature_style))
-                            except:
-                                pass
+                        teacher_sig = Image(img_buffer, width=60, height=25)
                     except Exception as e:
-                        teacher_sig_content.append(Paragraph("Signe", signature_style))
+                        logger.error(f"Erreur signature formateur: {e}")
+                        teacher_sig = Paragraph("-", cell_style)
                 else:
-                    teacher_sig_content.append(Paragraph("-", cell_style))
+                    teacher_sig = Paragraph("-", cell_style)
                 
                 table_data.append([
                     Paragraph(date_formatted, cell_style),
@@ -6037,8 +6027,8 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
                     Paragraph(horaires, cell_style),
                     Paragraph(duree, cell_style),
                     statut_paragraph,
-                    student_sig_content if len(student_sig_content) == 1 else student_sig_content,
-                    teacher_sig_content if len(teacher_sig_content) == 1 else teacher_sig_content
+                    student_sig,
+                    teacher_sig
                 ])
             
             # Ligne Totaux
