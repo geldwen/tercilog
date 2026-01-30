@@ -36,13 +36,13 @@ export default function TicketingModal({ open, onClose, userRole, userId, client
   const [requests, setRequests] = useState([]);
   const [unreadByCategory, setUnreadByCategory] = useState({});
   
-  // Formulaire Salles (Admin seulement)
+  // Formulaire Salles (Admin seulement) - supporte plusieurs dates
   const [salleForm, setSalleForm] = useState({
     lieu: '',
     centre: '',
     nombre_personnes: '',
     type_reservation: 'journee',
-    date_souhaitee: '',
+    dates: [], // Liste de dates au lieu d'une seule
     email_destinataire: '',
     commentaire: ''
   });
