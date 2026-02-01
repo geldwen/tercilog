@@ -1637,6 +1637,30 @@ async def create_student(data: dict, current_user: User = Depends(get_current_us
     if resources:
         await save_student_resources(student.id, student.parcours, resources)
     
+    # NOTIFICATION AUX GESTIONNAIRES : Envoyer un email aux gestionnaires du centre
+    try:
+        student_organism = data.get('organism', '')
+        if student_organism:
+            # Trouver le client correspondant à cet organisme
+            client = await db.clients.find_one({"nom_centre": student_organism}, {"_id": 0})
+            if client and client.get('gestionnaires'):
+                # Récupérer les emails des gestionnaires
+                gestionnaire_emails = [g.get('email') for g in client.get('gestionnaires', []) if g.get('email')]
+                if gestionnaire_emails:
+                    # Envoyer la notification en arrière-plan
+                    send_new_student_notification_to_gestionnaires(
+                        student_name=student.name,
+                        student_organism=student_organism,
+                        gestionnaire_emails=gestionnaire_emails
+                    )
+                    logger.info(f"✅ Notification nouvel élève envoyée aux gestionnaires: {gestionnaire_emails}")
+                else:
+                    logger.warning(f"⚠️ Aucun email de gestionnaire trouvé pour le centre {student_organism}")
+            else:
+                logger.warning(f"⚠️ Aucun client trouvé pour l'organisme {student_organism} ou pas de gestionnaires configurés")
+    except Exception as e:
+        logger.error(f"❌ Erreur lors de l'envoi de notification aux gestionnaires: {e}")
+    
     # Recharger l'élève avec le teacher_id
     updated_student = await db.users.find_one({"id": student.id}, {"_id": 0, "password_hash": 0})
     return User(**updated_student)
