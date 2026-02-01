@@ -1640,26 +1640,42 @@ async def create_student(data: dict, current_user: User = Depends(get_current_us
     # NOTIFICATION AUX GESTIONNAIRES : Envoyer un email aux gestionnaires du centre
     try:
         student_organism = data.get('organism', '')
-        if student_organism:
-            # Trouver le client correspondant à cet organisme
+        student_client_id = data.get('client_id', '')
+        
+        client = None
+        
+        # Chercher d'abord par client_id si disponible
+        if student_client_id:
+            client = await db.clients.find_one({"id": student_client_id}, {"_id": 0})
+            logger.info(f"🔍 Recherche client par client_id: {student_client_id} -> {'trouvé' if client else 'non trouvé'}")
+        
+        # Sinon chercher par nom_centre (organisme)
+        if not client and student_organism:
             client = await db.clients.find_one({"nom_centre": student_organism}, {"_id": 0})
-            if client and client.get('gestionnaires'):
-                # Récupérer les emails des gestionnaires
-                gestionnaire_emails = [g.get('email') for g in client.get('gestionnaires', []) if g.get('email')]
-                if gestionnaire_emails:
-                    # Envoyer la notification en arrière-plan
-                    send_new_student_notification_to_gestionnaires(
-                        student_name=student.name,
-                        student_organism=student_organism,
-                        gestionnaire_emails=gestionnaire_emails
-                    )
-                    logger.info(f"✅ Notification nouvel élève envoyée aux gestionnaires: {gestionnaire_emails}")
-                else:
-                    logger.warning(f"⚠️ Aucun email de gestionnaire trouvé pour le centre {student_organism}")
+            logger.info(f"🔍 Recherche client par nom_centre: {student_organism} -> {'trouvé' if client else 'non trouvé'}")
+        
+        if client:
+            gestionnaires = client.get('gestionnaires', [])
+            gestionnaire_emails = [g.get('email') for g in gestionnaires if g.get('email')]
+            
+            logger.info(f"📧 Client trouvé: {client.get('nom_centre')} avec gestionnaires: {gestionnaire_emails}")
+            
+            if gestionnaire_emails:
+                # Envoyer la notification
+                send_new_student_notification_to_gestionnaires(
+                    student_name=student.name,
+                    student_organism=student_organism or client.get('nom_centre', ''),
+                    gestionnaire_emails=gestionnaire_emails
+                )
+                logger.info(f"✅ Notification nouvel élève '{student.name}' envoyée aux gestionnaires: {gestionnaire_emails}")
             else:
-                logger.warning(f"⚠️ Aucun client trouvé pour l'organisme {student_organism} ou pas de gestionnaires configurés")
+                logger.warning(f"⚠️ Client '{client.get('nom_centre')}' trouvé mais aucun email de gestionnaire configuré")
+        else:
+            logger.warning(f"⚠️ Aucun client trouvé pour l'élève (organisme: '{student_organism}', client_id: '{student_client_id}')")
     except Exception as e:
         logger.error(f"❌ Erreur lors de l'envoi de notification aux gestionnaires: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
     
     # Recharger l'élève avec le teacher_id
     updated_student = await db.users.find_one({"id": student.id}, {"_id": 0, "password_hash": 0})
