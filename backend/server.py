@@ -5666,6 +5666,37 @@ async def update_session(session_id: str, data: dict, background_tasks: Backgrou
                 )
                 logger.info(f"Email de modification de séance programmé pour {student['email']}")
                 
+                # NOTIFICATION AU GESTIONNAIRE pour la modification
+                try:
+                    student_organism = student.get("organism", "")
+                    student_client_id = student.get("client_id", "")
+                    
+                    client = None
+                    if student_client_id:
+                        client = await db.clients.find_one({"id": student_client_id}, {"_id": 0})
+                    if not client and student_organism:
+                        client = await db.clients.find_one({"nom_centre": student_organism}, {"_id": 0})
+                    
+                    if client:
+                        gestionnaires = client.get("gestionnaires", [])
+                        gestionnaire_emails = [g.get("email") for g in gestionnaires if g.get("email")]
+                        
+                        if gestionnaire_emails:
+                            background_tasks.add_task(
+                                send_gestionnaire_session_notification,
+                                gestionnaire_emails,
+                                student.get("name", ""),
+                                updated_session.get("teacher_name", current_user.name),
+                                updated_session.get("subject", ""),
+                                updated_session.get("date", ""),
+                                updated_session.get("start_time", ""),
+                                updated_session.get("end_time", ""),
+                                "modifiee"
+                            )
+                            logger.info(f"Notification modification programmee pour gestionnaires: {gestionnaire_emails}")
+                except Exception as e:
+                    logger.error(f"Erreur envoi notification gestionnaire modification: {e}")
+                
                 # Logger l'envoi de l'email de modification dans l'historique
                 await log_student_activity(
                     student_id=student["id"],
