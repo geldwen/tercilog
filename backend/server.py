@@ -5258,9 +5258,64 @@ async def delete_session(session_id: str, current_user: User = Depends(get_curre
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
+    # Recuperer la seance AVANT de la supprimer pour avoir les infos
+    session_doc = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session_doc:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Recuperer les infos de l'eleve
+    student = await db.users.find_one({"id": session_doc.get("student_id")}, {"_id": 0})
+    
+    # Supprimer la seance
     result = await db.sessions.delete_one({"id": session_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Session not found")
+    
+    # NOTIFICATION A L'ELEVE
+    if student and student.get("email"):
+        try:
+            send_session_deleted_email(
+                to_email=student.get("email"),
+                student_name=student.get("name", ""),
+                subject=session_doc.get("subject", ""),
+                date=session_doc.get("date", ""),
+                start_time=session_doc.get("start_time", ""),
+                end_time=session_doc.get("end_time", ""),
+                teacher_name=session_doc.get("teacher_name", current_user.name)
+            )
+            logger.info(f"Email de suppression envoye a l'eleve {student.get('email')}")
+        except Exception as e:
+            logger.error(f"Erreur envoi email suppression eleve: {e}")
+    
+    # NOTIFICATION AU GESTIONNAIRE
+    try:
+        student_organism = student.get("organism", "") if student else ""
+        student_client_id = student.get("client_id", "") if student else ""
+        
+        client = None
+        if student_client_id:
+            client = await db.clients.find_one({"id": student_client_id}, {"_id": 0})
+        if not client and student_organism:
+            client = await db.clients.find_one({"nom_centre": student_organism}, {"_id": 0})
+        
+        if client:
+            gestionnaires = client.get("gestionnaires", [])
+            gestionnaire_emails = [g.get("email") for g in gestionnaires if g.get("email")]
+            
+            if gestionnaire_emails:
+                send_gestionnaire_session_notification(
+                    gestionnaire_emails=gestionnaire_emails,
+                    student_name=student.get("name", "") if student else "",
+                    teacher_name=session_doc.get("teacher_name", current_user.name),
+                    subject=session_doc.get("subject", ""),
+                    date=session_doc.get("date", ""),
+                    start_time=session_doc.get("start_time", ""),
+                    end_time=session_doc.get("end_time", ""),
+                    action="supprimee"
+                )
+                logger.info(f"Notification suppression envoyee aux gestionnaires: {gestionnaire_emails}")
+    except Exception as e:
+        logger.error(f"Erreur envoi notification gestionnaire suppression: {e}")
     
     return {"message": "Session deleted"}
 
