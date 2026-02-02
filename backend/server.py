@@ -1193,6 +1193,208 @@ def send_session_modified_email(to_email: str, student_name: str, subject: str, 
     return email_sent
 
 
+def send_session_deleted_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str, teacher_name: str = ""):
+    """Envoyer un email de notification de suppression de séance à l'élève"""
+    portal_url = get_student_portal_url()
+    
+    # Fonction pour formater une date en français
+    def format_date_fr(date_str):
+        try:
+            from datetime import datetime
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            formatted = date_obj.strftime("%A %d %B %Y").capitalize()
+            day_translations = {
+                "Monday": "Lundi", "Tuesday": "Mardi", "Wednesday": "Mercredi",
+                "Thursday": "Jeudi", "Friday": "Vendredi", "Saturday": "Samedi", "Sunday": "Dimanche"
+            }
+            month_translations = {
+                "January": "janvier", "February": "fevrier", "March": "mars", "April": "avril",
+                "May": "mai", "June": "juin", "July": "juillet", "August": "aout",
+                "September": "septembre", "October": "octobre", "November": "novembre", "December": "decembre"
+            }
+            for en, fr in day_translations.items():
+                formatted = formatted.replace(en, fr)
+            for en, fr in month_translations.items():
+                formatted = formatted.replace(en, fr)
+            return formatted
+        except:
+            return date_str
+    
+    formatted_date = format_date_fr(date)
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+        <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <!-- Header avec logo -->
+            <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 35px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 26px; font-weight: 600;">Seance annulee</h1>
+            </div>
+            
+            <!-- Contenu -->
+            <div style="padding: 35px;">
+                <p style="font-size: 17px; color: #2d3748;">Bonjour <strong>{student_name}</strong>,</p>
+                
+                <p style="font-size: 16px; color: #4a5568; margin: 20px 0;">
+                    Nous vous informons que la seance suivante a ete annulee :
+                </p>
+                
+                <!-- Details de la seance supprimee -->
+                <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-radius: 12px; padding: 25px; margin: 25px 0; border: 1px solid #fca5a5;">
+                    <p style="margin: 0 0 15px 0; font-size: 14px; color: #dc2626; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+                        Seance annulee
+                    </p>
+                    <p style="margin: 0 0 8px 0; font-size: 15px; color: #7f1d1d;"><strong>Matiere :</strong> {subject}</p>
+                    <p style="margin: 0 0 8px 0; font-size: 15px; color: #7f1d1d;"><strong>Date :</strong> {formatted_date}</p>
+                    <p style="margin: 0 0 8px 0; font-size: 15px; color: #7f1d1d;"><strong>Horaires :</strong> {start_time} - {end_time}</p>
+                    {f'<p style="margin: 0; font-size: 15px; color: #7f1d1d;"><strong>Formateur :</strong> {teacher_name}</p>' if teacher_name else ''}
+                </div>
+                
+                <!-- Message de repositionnement -->
+                <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #6ee7b7;">
+                    <p style="margin: 0; font-size: 16px; color: #065f46; font-weight: 500;">
+                        Votre formateur vous recontactera prochainement pour repositionner d'autres seances.
+                    </p>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{portal_url}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 16px 35px; text-decoration: none; border-radius: 30px; display: inline-block; font-weight: 600; font-size: 15px; box-shadow: 0 4px 15px rgba(30,58,95,0.3);">
+                        Acceder a mon espace
+                    </a>
+                </div>
+                
+                <p style="margin-top: 30px; color: #718096; font-size: 15px;">
+                    Bien a vous,<br>
+                    <strong style="color: #2d3748;">L'equipe TerciForm</strong>
+                </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f7fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #a0aec0; font-size: 12px;">
+                    Cet email a ete envoye automatiquement par TerciForm.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    email_sent = send_email(to_email, "TerciForm - Seance annulee", html_body)
+    if email_sent:
+        logger.info(f"Email de suppression de seance envoye a {to_email}")
+    else:
+        logger.error(f"Echec envoi email de suppression a {to_email}")
+    return email_sent
+
+
+def send_gestionnaire_session_notification(gestionnaire_emails: list, student_name: str, teacher_name: str, subject: str, date: str, start_time: str, end_time: str, action: str = "modifiee"):
+    """Envoyer un email de notification de modification/suppression de seance au gestionnaire"""
+    
+    # Fonction pour formater une date en francais
+    def format_date_fr(date_str):
+        try:
+            from datetime import datetime
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            formatted = date_obj.strftime("%A %d %B %Y").capitalize()
+            day_translations = {
+                "Monday": "Lundi", "Tuesday": "Mardi", "Wednesday": "Mercredi",
+                "Thursday": "Jeudi", "Friday": "Vendredi", "Saturday": "Samedi", "Sunday": "Dimanche"
+            }
+            month_translations = {
+                "January": "janvier", "February": "fevrier", "March": "mars", "April": "avril",
+                "May": "mai", "June": "juin", "July": "juillet", "August": "aout",
+                "September": "septembre", "October": "octobre", "November": "novembre", "December": "decembre"
+            }
+            for en, fr in day_translations.items():
+                formatted = formatted.replace(en, fr)
+            for en, fr in month_translations.items():
+                formatted = formatted.replace(en, fr)
+            return formatted
+        except:
+            return date_str
+    
+    formatted_date = format_date_fr(date)
+    
+    # Couleurs selon l'action
+    if action == "supprimee":
+        header_color = "linear-gradient(135deg, #dc2626 0%, #ef4444 100%)"
+        box_bg = "linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)"
+        box_border = "#fca5a5"
+        title_color = "#dc2626"
+        text_color = "#7f1d1d"
+        action_text = "SUPPRIMEE"
+        email_subject = f"TerciForm - Seance supprimee pour {student_name}"
+    else:
+        header_color = "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)"
+        box_bg = "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)"
+        box_border = "#fcd34d"
+        title_color = "#d97706"
+        text_color = "#78350f"
+        action_text = "MODIFIEE"
+        email_subject = f"TerciForm - Seance modifiee pour {student_name}"
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+        <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <!-- Header avec logo -->
+            <div style="background: {header_color}; padding: 35px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 26px; font-weight: 600;">Seance {action}</h1>
+            </div>
+            
+            <!-- Contenu -->
+            <div style="padding: 35px;">
+                <p style="font-size: 17px; color: #2d3748;">Bonjour,</p>
+                
+                <p style="font-size: 16px; color: #4a5568; margin: 20px 0;">
+                    Une seance de formation a ete <strong>{action}</strong> dans votre centre :
+                </p>
+                
+                <!-- Details de la seance -->
+                <div style="background: {box_bg}; border-radius: 12px; padding: 25px; margin: 25px 0; border: 1px solid {box_border};">
+                    <p style="margin: 0 0 15px 0; font-size: 14px; color: {title_color}; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+                        Seance {action_text}
+                    </p>
+                    <p style="margin: 0 0 8px 0; font-size: 15px; color: {text_color};"><strong>Eleve :</strong> {student_name}</p>
+                    <p style="margin: 0 0 8px 0; font-size: 15px; color: {text_color};"><strong>Formateur :</strong> {teacher_name}</p>
+                    <p style="margin: 0 0 8px 0; font-size: 15px; color: {text_color};"><strong>Matiere :</strong> {subject}</p>
+                    <p style="margin: 0 0 8px 0; font-size: 15px; color: {text_color};"><strong>Date :</strong> {formatted_date}</p>
+                    <p style="margin: 0; font-size: 15px; color: {text_color};"><strong>Horaires :</strong> {start_time} - {end_time}</p>
+                </div>
+                
+                <p style="margin-top: 30px; color: #718096; font-size: 15px;">
+                    Cordialement,<br>
+                    <strong style="color: #2d3748;">L'equipe TerciForm</strong>
+                </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f7fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; color: #a0aec0; font-size: 12px;">
+                    Cet email a ete envoye automatiquement par TerciForm.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    emails_sent = []
+    for email in gestionnaire_emails:
+        if email:
+            result = send_email(email, email_subject, html_body)
+            if result:
+                logger.info(f"Notification seance {action} envoyee au gestionnaire {email}")
+                emails_sent.append(email)
+            else:
+                logger.error(f"Echec envoi notification seance {action} au gestionnaire {email}")
+    
+    return emails_sent
+
+
 def send_student_confirmed_email(student_name: str, subject: str, date: str, start_time: str, end_time: str):
     """Envoyer un email au professeur quand un élève confirme sa séance"""
     teacher_email = os.environ.get('GMAIL_USER', 'terciform@gmail.com')
