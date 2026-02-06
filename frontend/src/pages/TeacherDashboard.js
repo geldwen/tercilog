@@ -2664,7 +2664,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader><DialogTitle>Créer des séances</DialogTitle><DialogDescription>Créer une ou plusieurs séances pour un élève</DialogDescription></DialogHeader>
                   <form onSubmit={handleCreateMultiSessions} className="space-y-4">
-                    {/* Sélection multi-élèves */}
+                    {/* Sélection multi-élèves avec recherche */}
                     <div className="space-y-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
                       <div className="flex items-center justify-between">
                         <Label className="text-base font-bold">Élèves * ({selectedStudents.length} sélectionné(s))</Label>
@@ -2689,8 +2689,60 @@ export default function TeacherDashboard({ user, onLogout }) {
                           </Button>
                         </div>
                       </div>
+                      
+                      {/* Champ de recherche */}
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="text"
+                          placeholder="Rechercher un élève par nom..."
+                          value={sessionStudentSearch}
+                          onChange={(e) => setSessionStudentSearch(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        {sessionStudentSearch && (
+                          <button
+                            type="button"
+                            onClick={() => setSessionStudentSearch('')}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                      
+                      {/* Élèves sélectionnés (badges) */}
+                      {selectedStudents.length > 0 && (
+                        <div className="flex flex-wrap gap-2 p-2 bg-white rounded border">
+                          {selectedStudents.map(studentId => {
+                            const student = students.find(s => s.id === studentId);
+                            return student ? (
+                              <span
+                                key={studentId}
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                              >
+                                {student.name}
+                                <button
+                                  type="button"
+                                  onClick={() => toggleStudentSelection(studentId)}
+                                  className="ml-1 text-blue-600 hover:text-red-600"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
+                      
+                      {/* Liste des élèves filtrée */}
                       <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 bg-white rounded border">
-                        {students.map(student => (
+                        {students
+                          .filter(student => {
+                            if (!sessionStudentSearch.trim()) return true;
+                            return student.name.toLowerCase().includes(sessionStudentSearch.toLowerCase());
+                          })
+                          .map(student => (
                           <div
                             key={student.id}
                             onClick={() => toggleStudentSelection(student.id)}
@@ -2709,13 +2761,26 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 onChange={() => {}}
                                 className="w-4 h-4"
                               />
-                              <span className="text-sm">{student.name}</span>
+                              <div className="flex flex-col">
+                                <span className="text-sm">{student.name}</span>
+                                {student.organism && (
+                                  <span className="text-xs text-gray-500">{student.organism}</span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
+                        {students.filter(student => {
+                          if (!sessionStudentSearch.trim()) return true;
+                          return student.name.toLowerCase().includes(sessionStudentSearch.toLowerCase());
+                        }).length === 0 && (
+                          <div className="col-span-2 p-4 text-center text-gray-500">
+                            Aucun élève trouvé pour "{sessionStudentSearch}"
+                          </div>
+                        )}
                       </div>
                       <p className="text-xs text-gray-600 italic">
-                        💡 Cliquez sur les élèves pour créer les mêmes séances pour plusieurs élèves
+                        💡 Recherchez par nom et cliquez pour sélectionner plusieurs élèves
                       </p>
                     </div>
 
