@@ -5054,8 +5054,17 @@ async def create_bulk_sessions(
                     client = await db.clients.find_one({"nom_centre": student_organism}, {"_id": 0})
                 
                 if client:
+                    # Collecter tous les emails de gestionnaires (ancien champ + nouveau tableau)
+                    gestionnaire_emails = []
+                    if client.get("email_gestionnaire"):
+                        gestionnaire_emails.append(client.get("email_gestionnaire"))
                     gestionnaires = client.get("gestionnaires", [])
-                    gestionnaire_emails = [g.get("email") for g in gestionnaires if g.get("email")]
+                    for g in gestionnaires:
+                        email = g.get("email") if isinstance(g, dict) else None
+                        if email and email not in gestionnaire_emails:
+                            gestionnaire_emails.append(email)
+                    
+                    logger.info(f"📧 Bulk - Client {client.get('nom_centre')} - Emails: {gestionnaire_emails}")
                     
                     if gestionnaire_emails:
                         # Envoyer un email par séance créée
@@ -5387,8 +5396,17 @@ async def delete_session(session_id: str, current_user: User = Depends(get_curre
             client = await db.clients.find_one({"nom_centre": student_organism}, {"_id": 0})
         
         if client:
+            # Collecter tous les emails de gestionnaires (ancien champ + nouveau tableau)
+            gestionnaire_emails = []
+            if client.get("email_gestionnaire"):
+                gestionnaire_emails.append(client.get("email_gestionnaire"))
             gestionnaires = client.get("gestionnaires", [])
-            gestionnaire_emails = [g.get("email") for g in gestionnaires if g.get("email")]
+            for g in gestionnaires:
+                email = g.get("email") if isinstance(g, dict) else None
+                if email and email not in gestionnaire_emails:
+                    gestionnaire_emails.append(email)
+            
+            logger.info(f"📧 Suppression - Client {client.get('nom_centre')} - Emails: {gestionnaire_emails}")
             
             if gestionnaire_emails:
                 send_gestionnaire_session_notification(
