@@ -5784,8 +5784,17 @@ async def update_session(session_id: str, data: dict, background_tasks: Backgrou
                         client = await db.clients.find_one({"nom_centre": student_organism}, {"_id": 0})
                     
                     if client:
+                        # Collecter tous les emails de gestionnaires (ancien champ + nouveau tableau)
+                        gestionnaire_emails = []
+                        if client.get("email_gestionnaire"):
+                            gestionnaire_emails.append(client.get("email_gestionnaire"))
                         gestionnaires = client.get("gestionnaires", [])
-                        gestionnaire_emails = [g.get("email") for g in gestionnaires if g.get("email")]
+                        for g in gestionnaires:
+                            email = g.get("email") if isinstance(g, dict) else None
+                            if email and email not in gestionnaire_emails:
+                                gestionnaire_emails.append(email)
+                        
+                        logger.info(f"📧 Modification - Client {client.get('nom_centre')} - Emails: {gestionnaire_emails}")
                         
                         if gestionnaire_emails:
                             background_tasks.add_task(
