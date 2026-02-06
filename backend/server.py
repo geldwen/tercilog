@@ -5041,6 +5041,39 @@ async def create_bulk_sessions(
                 f"📅 Nouvelles séances TerciForm - {len(student_sessions)} séance(s)",
                 email_body
             )
+            
+            # NOTIFICATION AUX GESTIONNAIRES du centre - un email par séance créée
+            try:
+                student_organism = student.get("organism", "")
+                student_client_id = student.get("client_id", "")
+                
+                client = None
+                if student_client_id:
+                    client = await db.clients.find_one({"id": student_client_id}, {"_id": 0})
+                if not client and student_organism:
+                    client = await db.clients.find_one({"nom_centre": student_organism}, {"_id": 0})
+                
+                if client:
+                    gestionnaires = client.get("gestionnaires", [])
+                    gestionnaire_emails = [g.get("email") for g in gestionnaires if g.get("email")]
+                    
+                    if gestionnaire_emails:
+                        # Envoyer un email par séance créée
+                        for s in student_sessions:
+                            background_tasks.add_task(
+                                send_gestionnaire_session_notification,
+                                gestionnaire_emails,
+                                student.get("name", ""),
+                                current_user.name,
+                                s.subject,
+                                s.date,
+                                s.start_time,
+                                s.end_time,
+                                "creee"
+                            )
+                        logger.info(f"✅ {len(student_sessions)} notifications creation seance envoyees aux gestionnaires: {gestionnaire_emails}")
+            except Exception as e:
+                logger.error(f"❌ Erreur envoi notification gestionnaire creation bulk: {e}")
     
     logger.info(f"Bulk sessions created: {len(created_sessions)} sessions for {len(student_ids)} students")
     return {"message": f"{len(created_sessions)} sessions created", "sessions": created_sessions}
