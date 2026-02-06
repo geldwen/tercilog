@@ -1326,6 +1326,14 @@ def send_gestionnaire_session_notification(gestionnaire_emails: list, student_na
         text_color = "#7f1d1d"
         action_text = "SUPPRIMEE"
         email_subject = f"TerciForm - Seance supprimee pour {student_name}"
+    elif action == "creee":
+        header_color = "linear-gradient(135deg, #059669 0%, #10b981 100%)"
+        box_bg = "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)"
+        box_border = "#6ee7b7"
+        title_color = "#059669"
+        text_color = "#065f46"
+        action_text = "CREEE"
+        email_subject = f"TerciForm - Nouvelle seance pour {student_name}"
     else:
         header_color = "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)"
         box_bg = "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)"
@@ -1350,7 +1358,7 @@ def send_gestionnaire_session_notification(gestionnaire_emails: list, student_na
                 <p style="font-size: 17px; color: #2d3748;">Bonjour,</p>
                 
                 <p style="font-size: 16px; color: #4a5568; margin: 20px 0;">
-                    Une seance de formation a ete <strong>{action}</strong> dans votre centre :
+                    {'Votre formateur a cree une nouvelle seance de formation :' if action == 'creee' else f'Une seance de formation a ete <strong>{action}</strong> dans votre centre :'}
                 </p>
                 
                 <!-- Details de la seance -->
