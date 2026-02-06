@@ -83,6 +83,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [formateurPlanningYear, setFormateurPlanningYear] = useState(new Date().getFullYear());
   const [formateurs, setFormateurs] = useState([]);
   const [formateurSearchQuery, setFormateurSearchQuery] = useState('');
+  const [sessionStudentSearch, setSessionStudentSearch] = useState(''); // Recherche élève dans création séance
   const [formateurForm, setFormateurForm] = useState({
     photo: null,
     photoPreview: null,
