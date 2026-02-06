@@ -5191,6 +5191,40 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
     else:
         logger.error(f"ÉCHEC envoi email de confirmation à {student['email']} pour la séance {session.id}")
     
+    # NOTIFICATION AUX GESTIONNAIRES du centre
+    try:
+        student_organism = student.get("organism", "")
+        student_client_id = student.get("client_id", "")
+        
+        client = None
+        if student_client_id:
+            client = await db.clients.find_one({"id": student_client_id}, {"_id": 0})
+        if not client and student_organism:
+            client = await db.clients.find_one({"nom_centre": student_organism}, {"_id": 0})
+        
+        if client:
+            gestionnaires = client.get("gestionnaires", [])
+            gestionnaire_emails = [g.get("email") for g in gestionnaires if g.get("email")]
+            
+            if gestionnaire_emails:
+                send_gestionnaire_session_notification(
+                    gestionnaire_emails=gestionnaire_emails,
+                    student_name=student.get("name", ""),
+                    teacher_name=current_user.name,
+                    subject=session_data.subject,
+                    date=session_data.date,
+                    start_time=session_data.start_time,
+                    end_time=session_data.end_time,
+                    action="creee"
+                )
+                logger.info(f"✅ Notification creation seance envoyee aux gestionnaires: {gestionnaire_emails}")
+            else:
+                logger.warning(f"⚠️ Aucun gestionnaire configure pour le client {client.get('nom_centre')}")
+        else:
+            logger.warning(f"⚠️ Aucun client trouve pour l'eleve (organism: {student_organism}, client_id: {student_client_id})")
+    except Exception as e:
+        logger.error(f"❌ Erreur envoi notification gestionnaire creation seance: {e}")
+    
     return session
 
 @api_router.get("/sessions", response_model=List[Session])
