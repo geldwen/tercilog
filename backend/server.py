@@ -1624,12 +1624,13 @@ async def save_student_resources(student_id: str, parcours: str, resources: dict
                 parcours=parcours,
                 category="TEST_PARCOURS",
                 sub_type="POSITIONNEMENT",
+                name=tests["positionnement"],
                 template_name=tests["positionnement"],
                 template_id=template_id,
                 resource_type="FORM"
             )
-            await db.student_resources.insert_one(resource.dict())
-            saved_resources.append(resource.dict())
+            await db.student_resources.insert_one(resource.model_dump())
+            saved_resources.append(resource.model_dump())
             logger.info(f"Test positionnement '{tests['positionnement']}' assigné à élève {student_id}")
         
         if tests.get("miParcours"):
@@ -1639,12 +1640,13 @@ async def save_student_resources(student_id: str, parcours: str, resources: dict
                 parcours=parcours,
                 category="TEST_PARCOURS",
                 sub_type="MI_PARCOURS",
+                name=tests["miParcours"],
                 template_name=tests["miParcours"],
                 template_id=template_id,
                 resource_type="FORM"
             )
-            await db.student_resources.insert_one(resource.dict())
-            saved_resources.append(resource.dict())
+            await db.student_resources.insert_one(resource.model_dump())
+            saved_resources.append(resource.model_dump())
             logger.info(f"Test mi-parcours '{tests['miParcours']}' assigné à élève {student_id}")
         
         if tests.get("fin"):
@@ -1654,12 +1656,13 @@ async def save_student_resources(student_id: str, parcours: str, resources: dict
                 parcours=parcours,
                 category="TEST_PARCOURS",
                 sub_type="FIN",
+                name=tests["fin"],
                 template_name=tests["fin"],
                 template_id=template_id,
                 resource_type="FORM"
             )
-            await db.student_resources.insert_one(resource.dict())
-            saved_resources.append(resource.dict())
+            await db.student_resources.insert_one(resource.model_dump())
+            saved_resources.append(resource.model_dump())
             logger.info(f"Test fin '{tests['fin']}' assigné à élève {student_id}")
     
     # Questionnaires Qualiopi
@@ -1671,11 +1674,12 @@ async def save_student_resources(student_id: str, parcours: str, resources: dict
                 parcours=parcours,
                 category="QUESTIONNAIRE_QUALIOPI",
                 sub_type="POSITIONNEMENT",
+                name=questionnaires["q1"],
                 template_name=questionnaires["q1"],
                 resource_type="FORM"
             )
-            await db.student_resources.insert_one(resource.dict())
-            saved_resources.append(resource.dict())
+            await db.student_resources.insert_one(resource.model_dump())
+            saved_resources.append(resource.model_dump())
             logger.info(f"Questionnaire Q1 '{questionnaires['q1']}' assigné à élève {student_id}")
         
         if questionnaires.get("q2"):
@@ -1684,11 +1688,12 @@ async def save_student_resources(student_id: str, parcours: str, resources: dict
                 parcours=parcours,
                 category="QUESTIONNAIRE_QUALIOPI",
                 sub_type="MI_PARCOURS",
+                name=questionnaires["q2"],
                 template_name=questionnaires["q2"],
                 resource_type="FORM"
             )
-            await db.student_resources.insert_one(resource.dict())
-            saved_resources.append(resource.dict())
+            await db.student_resources.insert_one(resource.model_dump())
+            saved_resources.append(resource.model_dump())
             logger.info(f"Questionnaire Q2 '{questionnaires['q2']}' assigné à élève {student_id}")
         
         if questionnaires.get("q3"):
@@ -1697,11 +1702,12 @@ async def save_student_resources(student_id: str, parcours: str, resources: dict
                 parcours=parcours,
                 category="QUESTIONNAIRE_QUALIOPI",
                 sub_type="FIN",
+                name=questionnaires["q3"],
                 template_name=questionnaires["q3"],
                 resource_type="FORM"
             )
-            await db.student_resources.insert_one(resource.dict())
-            saved_resources.append(resource.dict())
+            await db.student_resources.insert_one(resource.model_dump())
+            saved_resources.append(resource.model_dump())
             logger.info(f"Questionnaire Q3 '{questionnaires['q3']}' assigné à élève {student_id}")
     
     logger.info(f"Total {len(saved_resources)} ressources assignées à l'élève {student_id}")
