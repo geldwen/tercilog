@@ -346,7 +346,8 @@ export default function GestionnaireDashboard({ user, onLogout }) {
       'Anglais': { bg: '#FFE4F0', color: '#DB2777' },
       'Bureautique': { bg: '#D1FAE5', color: '#059669' },
       'Management': { bg: '#DBEAFE', color: '#2563EB' },
-      'Informatique': { bg: '#F3E8FF', color: '#9333EA' }
+      'Informatique': { bg: '#F3E8FF', color: '#9333EA' },
+      'Excel': { bg: '#DCFCE7', color: '#16A34A' }
     };
     return styles[parcours] || { bg: '#F3F4F6', color: '#6B7280' };
   };
