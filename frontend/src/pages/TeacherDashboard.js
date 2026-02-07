@@ -3431,6 +3431,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <option value="Management">Management</option>
                         <option value="Bureautique">Bureautique</option>
                         <option value="Informatique">Informatique</option>
+                        <option value="Excel">Excel</option>
                       </select>
                     </div>
                     <div className="p-4 border-2 border-indigo-200 rounded-lg bg-indigo-50 space-y-3">
@@ -3829,6 +3830,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <option value="Management">Management</option>
                         <option value="Bureautique">Bureautique</option>
                         <option value="Informatique">Informatique</option>
+                        <option value="Excel">Excel</option>
                       </select>
                     </div>
                     <div className="p-4 border-2 border-indigo-200 rounded-lg bg-indigo-50 space-y-3">
