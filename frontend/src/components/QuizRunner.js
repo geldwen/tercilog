@@ -219,16 +219,19 @@ const QuizRunner = () => {
   }
 
   // Compter les questions répondues
-  const totalQuestions = quiz.sections.reduce((sum, section) => sum + section.questions.length, 0);
+  const totalQuestions = quiz.sections ? quiz.sections.reduce((sum, section) => sum + (section.questions?.length || 0), 0) : 0;
   const answeredQuestions = Object.keys(answers).length;
-  const progress = (answeredQuestions / totalQuestions * 100).toFixed(0);
+  const progress = totalQuestions > 0 ? (answeredQuestions / totalQuestions * 100).toFixed(0) : 0;
+
+  // Titre du quiz - supporte les deux formats
+  const quizTitle = quiz.title || quiz.template_name || "Test";
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* En-tête */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">{quiz.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">{quizTitle}</h1>
           <p className="text-gray-600 mb-4">{quiz.description}</p>
           
           {/* Barre de progression */}
@@ -247,18 +250,22 @@ const QuizRunner = () => {
         </div>
 
         {/* Sections et questions */}
-        {quiz.sections.map((section, sectionIndex) => (
-          <div key={section.id} className="bg-white rounded-lg shadow-md p-6 mb-6">
+        {quiz.sections && quiz.sections.map((section, sectionIndex) => (
+          <div key={section.id || sectionIndex} className="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 className="text-xl font-bold text-indigo-600 mb-2">{section.title}</h2>
             <p className="text-gray-600 mb-6">{section.description}</p>
 
-            {section.questions.map((question, questionIndex) => {
+            {section.questions && section.questions.map((question, questionIndex) => {
               const questionNumber = quiz.sections
                 .slice(0, sectionIndex)
-                .reduce((sum, s) => sum + s.questions.length, 0) + questionIndex + 1;
+                .reduce((sum, s) => sum + (s.questions?.length || 0), 0) + questionIndex + 1;
               
-              const isMultiple = question.multipleAllowed;
+              // Support both formats: multipleAllowed (old) or type === 'multiple' (new)
+              const isMultiple = question.multipleAllowed || question.type === 'multiple';
               const selectedAnswers = answers[question.id] || [];
+              
+              // Support both formats: choices (old) or options (new)
+              const choices = question.choices || question.options || [];
 
               return (
                 <div key={question.id} className="mb-8 last:mb-0 pb-8 border-b last:border-b-0">
@@ -270,12 +277,14 @@ const QuizRunner = () => {
                   </h3>
 
                   <div className="space-y-2">
-                    {question.choices.map((choice) => {
-                      const isSelected = selectedAnswers.includes(choice.key);
+                    {choices.map((choice) => {
+                      // Support both formats: key (old) or id (new)
+                      const choiceKey = choice.key || choice.id;
+                      const isSelected = selectedAnswers.includes(choiceKey);
                       
                       return (
                         <label
-                          key={choice.key}
+                          key={choiceKey}
                           className={`flex items-start p-3 rounded-lg border-2 cursor-pointer transition-all ${
                             isSelected
                               ? 'border-indigo-600 bg-indigo-50'
@@ -286,7 +295,7 @@ const QuizRunner = () => {
                             type={isMultiple ? 'checkbox' : 'radio'}
                             name={question.id}
                             checked={isSelected}
-                            onChange={() => handleAnswerChange(question.id, choice.key, isMultiple)}
+                            onChange={() => handleAnswerChange(question.id, choiceKey, isMultiple)}
                             className="mt-1 mr-3"
                           />
                           <span className="text-gray-700">
