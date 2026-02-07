@@ -74,6 +74,11 @@ export default function GestionnaireDashboard({ user, onLogout }) {
       positionnement: ['Test Informatique Général', 'Test Développement Web'],
       miParcours: ['Évaluation mi-parcours Informatique'],
       fin: ['Certification Informatique']
+    },
+    'Excel': {
+      positionnement: ['T1 – Test de positionnement Excel'],
+      miParcours: ['T2 – Test mi-parcours Excel'],
+      fin: ['T3 – Test fin de parcours Excel']
     }
   };
   
@@ -94,6 +99,10 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     'Informatique': {
       froid: ['Questionnaire Qualiopi Informatique'],
       chaud: ['Évaluation à chaud Informatique']
+    },
+    'Excel': {
+      froid: ['Q1 – Questionnaire d\'entrée Excel – Besoins et identification'],
+      chaud: ['Q3 – Questionnaire fin de formation Excel']
     }
   };
 
