@@ -236,6 +236,7 @@ class StudentResource(BaseModel):
     parcours: str
     category: str  # "TEST_PARCOURS" ou "QUESTIONNAIRE_QUALIOPI"
     sub_type: str  # "POSITIONNEMENT" | "MI_PARCOURS" | "FIN"
+    name: str = ""  # Nom affiché pour l'élève
     template_name: str  # Nom du modèle choisi
     template_id: Optional[str] = None  # ID du template dans test_templates
     resource_type: str = "FORM"  # "FILE" ou "FORM"
