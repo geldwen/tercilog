@@ -189,7 +189,7 @@ export default function FormationNeedsQuestionnaire({ open, onClose, studentId, 
             <h3 className="text-lg font-bold text-gray-900">2. Motivation et objectifs</h3>
             
             <div className="space-y-2">
-              <Label>Avez-vous déjà suivi une formation d'anglais ? *</Label>
+              <Label>Avez-vous déjà suivi une formation sur {getParcoursLabel()} ? *</Label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2">
                   <input
@@ -237,19 +237,35 @@ export default function FormationNeedsQuestionnaire({ open, onClose, studentId, 
             </div>
 
             <div className="space-y-2">
-              <Label>Dans quel cadre utiliserez-vous l'anglais ? *</Label>
+              <Label>Dans quel cadre utiliserez-vous {getParcoursLabel()} ? *</Label>
               <div className="space-y-2">
-                {['Travail quotidien', 'Communication client', 'Réunions', 'Voyages'].map(option => (
-                  <label key={option} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.cadre_utilisation.includes(option)}
-                      onChange={() => toggleCheckbox('cadre_utilisation', option)}
-                      className="w-4 h-4"
-                    />
-                    <span>{option}</span>
-                  </label>
-                ))}
+                {isExcel || isBureautique || isInformatique ? (
+                  // Options pour Excel/Bureautique/Informatique
+                  ['Travail quotidien', 'Reporting et analyse', 'Gestion de données', 'Automatisation de tâches'].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.cadre_utilisation.includes(option)}
+                        onChange={() => toggleCheckbox('cadre_utilisation', option)}
+                        className="w-4 h-4"
+                      />
+                      <span>{option}</span>
+                    </label>
+                  ))
+                ) : (
+                  // Options pour Anglais/Management
+                  ['Travail quotidien', 'Communication client', 'Réunions', 'Voyages'].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.cadre_utilisation.includes(option)}
+                        onChange={() => toggleCheckbox('cadre_utilisation', option)}
+                        className="w-4 h-4"
+                      />
+                      <span>{option}</span>
+                    </label>
+                  ))
+                )}
                 <div className="flex items-center gap-2">
                   <input type="checkbox" className="w-4 h-4" disabled />
                   <Input
