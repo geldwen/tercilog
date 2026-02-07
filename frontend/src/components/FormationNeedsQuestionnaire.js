@@ -281,22 +281,61 @@ export default function FormationNeedsQuestionnaire({ open, onClose, studentId, 
             <div className="space-y-2">
               <Label>Quels sont vos objectifs principaux ? *</Label>
               <div className="space-y-2">
-                {[
-                  'Gagner en aisance à l\'oral',
-                  'Améliorer la compréhension',
-                  'Rédiger des e-mails',
-                  'Préparer un examen (TOEIC, Bright, etc.)'
-                ].map(option => (
-                  <label key={option} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.objectifs_principaux.includes(option)}
-                      onChange={() => toggleCheckbox('objectifs_principaux', option)}
-                      className="w-4 h-4"
-                    />
-                    <span>{option}</span>
-                  </label>
-                ))}
+                {isExcel || isBureautique ? (
+                  // Objectifs Excel/Bureautique
+                  [
+                    'Maîtriser les formules de base',
+                    'Créer des graphiques professionnels',
+                    'Utiliser les tableaux croisés dynamiques',
+                    'Automatiser des tâches (macros)'
+                  ].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.objectifs_principaux.includes(option)}
+                        onChange={() => toggleCheckbox('objectifs_principaux', option)}
+                        className="w-4 h-4"
+                      />
+                      <span>{option}</span>
+                    </label>
+                  ))
+                ) : isInformatique ? (
+                  // Objectifs Informatique
+                  [
+                    'Maîtriser les bases de l\'informatique',
+                    'Naviguer efficacement sur Internet',
+                    'Gérer mes fichiers et dossiers',
+                    'Comprendre la sécurité informatique'
+                  ].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.objectifs_principaux.includes(option)}
+                        onChange={() => toggleCheckbox('objectifs_principaux', option)}
+                        className="w-4 h-4"
+                      />
+                      <span>{option}</span>
+                    </label>
+                  ))
+                ) : (
+                  // Objectifs Anglais/Management
+                  [
+                    'Gagner en aisance à l\'oral',
+                    'Améliorer la compréhension',
+                    'Rédiger des e-mails',
+                    'Préparer un examen (TOEIC, Bright, etc.)'
+                  ].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.objectifs_principaux.includes(option)}
+                        onChange={() => toggleCheckbox('objectifs_principaux', option)}
+                        className="w-4 h-4"
+                      />
+                      <span>{option}</span>
+                    </label>
+                  ))
+                )}
               </div>
             </div>
 
@@ -315,7 +354,9 @@ export default function FormationNeedsQuestionnaire({ open, onClose, studentId, 
 
           {/* 3. NIVEAU ET COMPÉTENCES */}
           <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-lg font-bold text-gray-900">3. Niveau et compétences linguistiques (auto-évaluation)</h3>
+            <h3 className="text-lg font-bold text-gray-900">
+              3. Niveau et compétences {isExcel || isBureautique || isInformatique ? 'techniques' : 'linguistiques'} (auto-évaluation)
+            </h3>
             
             <div className="grid grid-cols-4 gap-2">
               <div className="font-bold">Compétence</div>
@@ -324,28 +365,55 @@ export default function FormationNeedsQuestionnaire({ open, onClose, studentId, 
               <div className="font-bold text-center">Bon</div>
             </div>
 
-            {[
-              { key: 'comprehension_orale', label: 'Compréhension orale' },
-              { key: 'expression_orale', label: 'Expression orale' },
-              { key: 'comprehension_ecrite', label: 'Compréhension écrite' },
-              { key: 'expression_ecrite', label: 'Expression écrite' }
-            ].map(({ key, label }) => (
-              <div key={key} className="grid grid-cols-4 gap-2 items-center">
-                <div>{label}</div>
-                {['Faible', 'Moyen', 'Bon'].map(level => (
-                  <div key={level} className="flex justify-center">
-                    <input
-                      type="radio"
-                      name={key}
-                      value={level}
-                      checked={formData[key] === level}
-                      onChange={(e) => updateField(key, e.target.value)}
-                      className="w-4 h-4"
-                    />
-                  </div>
-                ))}
-              </div>
-            ))}
+            {isExcel || isBureautique ? (
+              // Compétences Excel/Bureautique
+              [
+                { key: 'comprehension_orale', label: 'Saisie et mise en forme' },
+                { key: 'expression_orale', label: 'Formules et calculs' },
+                { key: 'comprehension_ecrite', label: 'Graphiques' },
+                { key: 'expression_ecrite', label: 'Analyse de données' }
+              ].map(({ key, label }) => (
+                <div key={key} className="grid grid-cols-4 gap-2 items-center">
+                  <div>{label}</div>
+                  {['Faible', 'Moyen', 'Bon'].map(level => (
+                    <div key={level} className="flex justify-center">
+                      <input
+                        type="radio"
+                        name={key}
+                        value={level}
+                        checked={formData[key] === level}
+                        onChange={(e) => updateField(key, e.target.value)}
+                        className="w-4 h-4"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ))
+            ) : (
+              // Compétences linguistiques (Anglais)
+              [
+                { key: 'comprehension_orale', label: 'Compréhension orale' },
+                { key: 'expression_orale', label: 'Expression orale' },
+                { key: 'comprehension_ecrite', label: 'Compréhension écrite' },
+                { key: 'expression_ecrite', label: 'Expression écrite' }
+              ].map(({ key, label }) => (
+                <div key={key} className="grid grid-cols-4 gap-2 items-center">
+                  <div>{label}</div>
+                  {['Faible', 'Moyen', 'Bon'].map(level => (
+                    <div key={level} className="flex justify-center">
+                      <input
+                        type="radio"
+                        name={key}
+                        value={level}
+                        checked={formData[key] === level}
+                        onChange={(e) => updateField(key, e.target.value)}
+                        className="w-4 h-4"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ))
+            )}
           </div>
 
           {/* 4. BESOINS PROFESSIONNELS */}
@@ -353,7 +421,7 @@ export default function FormationNeedsQuestionnaire({ open, onClose, studentId, 
             <h3 className="text-lg font-bold text-gray-900">4. Besoins professionnels et attentes spécifiques</h3>
             
             <div className="space-y-2">
-              <Label>Dans votre fonction actuelle, quelles sont les situations professionnelles où l'anglais est nécessaire ou pourrait le devenir ?</Label>
+              <Label>Dans votre fonction actuelle, quelles sont les situations professionnelles où {getParcoursLabel()} est nécessaire ou pourrait le devenir ?</Label>
               <textarea
                 value={formData.situations_anglais_necessaire}
                 onChange={(e) => updateField('situations_anglais_necessaire', e.target.value)}
