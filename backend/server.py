@@ -13449,6 +13449,779 @@ async def update_ticketing_request_status(
     
     return {"success": True, "message": f"Statut mis à jour: {new_status}", "updated_at": timestamp.isoformat()}
 
+
+# ===== TEMPLATES EXCEL - Tests et Questionnaires =====
+@api_router.post("/init-excel-templates")
+async def init_excel_templates(current_user: User = Depends(get_current_user)):
+    """Initialiser les templates de tests et questionnaires pour le parcours Excel"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    templates = []
+    
+    # T1 - Test de positionnement Excel
+    t1_template = {
+        "id": str(uuid.uuid4()),
+        "template_name": "T1 – Test de positionnement Excel",
+        "parcours": "Excel",
+        "type": "TEST_PARCOURS",
+        "sub_type": "POSITIONNEMENT",
+        "description": "Test de positionnement pour évaluer votre niveau initial en Excel",
+        "sections": [
+            {
+                "title": "Connaissances de base",
+                "questions": [
+                    {
+                        "id": "T1_Q1",
+                        "text": "Quelle est l'extension par défaut d'un fichier Excel ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": ".doc"},
+                            {"id": "B", "text": ".xlsx"},
+                            {"id": "C", "text": ".ppt"},
+                            {"id": "D", "text": ".pdf"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T1_Q2",
+                        "text": "Comment s'appelle l'intersection d'une ligne et d'une colonne dans Excel ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Un bloc"},
+                            {"id": "B", "text": "Un champ"},
+                            {"id": "C", "text": "Une cellule"},
+                            {"id": "D", "text": "Une case"}
+                        ],
+                        "correctAnswers": ["C"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T1_Q3",
+                        "text": "Quelle touche permet de valider une formule dans Excel ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Tab"},
+                            {"id": "B", "text": "Espace"},
+                            {"id": "C", "text": "Échap"},
+                            {"id": "D", "text": "Entrée"}
+                        ],
+                        "correctAnswers": ["D"],
+                        "points": 1
+                    }
+                ]
+            },
+            {
+                "title": "Formules de base",
+                "questions": [
+                    {
+                        "id": "T1_Q4",
+                        "text": "Par quel caractère doit commencer une formule dans Excel ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "+"},
+                            {"id": "B", "text": "="},
+                            {"id": "C", "text": "#"},
+                            {"id": "D", "text": "@"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T1_Q5",
+                        "text": "Quelle fonction permet de calculer la somme d'une plage de cellules ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "TOTAL()"},
+                            {"id": "B", "text": "ADD()"},
+                            {"id": "C", "text": "SOMME()"},
+                            {"id": "D", "text": "PLUS()"}
+                        ],
+                        "correctAnswers": ["C"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T1_Q6",
+                        "text": "Que signifie la référence $A$1 dans Excel ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Référence relative"},
+                            {"id": "B", "text": "Référence absolue"},
+                            {"id": "C", "text": "Référence mixte"},
+                            {"id": "D", "text": "Référence externe"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    }
+                ]
+            },
+            {
+                "title": "Navigation et sélection",
+                "questions": [
+                    {
+                        "id": "T1_Q7",
+                        "text": "Quel raccourci clavier permet de sélectionner toute la feuille de calcul ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Ctrl + A"},
+                            {"id": "B", "text": "Ctrl + S"},
+                            {"id": "C", "text": "Ctrl + Z"},
+                            {"id": "D", "text": "Ctrl + F"}
+                        ],
+                        "correctAnswers": ["A"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T1_Q8",
+                        "text": "Comment appelle-t-on les onglets en bas d'un classeur Excel ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Pages"},
+                            {"id": "B", "text": "Feuilles"},
+                            {"id": "C", "text": "Tableaux"},
+                            {"id": "D", "text": "Sections"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T1_Q9",
+                        "text": "Quelle fonction affiche le nombre de cellules contenant des valeurs numériques ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "NB()"},
+                            {"id": "B", "text": "COMPTE()"},
+                            {"id": "C", "text": "TOTAL()"},
+                            {"id": "D", "text": "NB.SI()"}
+                        ],
+                        "correctAnswers": ["A"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T1_Q10",
+                        "text": "Quelle fonction permet de calculer la moyenne d'une plage de cellules ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "MOY()"},
+                            {"id": "B", "text": "MOYENNE()"},
+                            {"id": "C", "text": "AVG()"},
+                            {"id": "D", "text": "MEAN()"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    }
+                ]
+            }
+        ],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    templates.append(t1_template)
+    
+    # T2 - Test mi-parcours Excel
+    t2_template = {
+        "id": str(uuid.uuid4()),
+        "template_name": "T2 – Test mi-parcours Excel",
+        "parcours": "Excel",
+        "type": "TEST_PARCOURS",
+        "sub_type": "MI_PARCOURS",
+        "description": "Test intermédiaire pour évaluer votre progression en Excel",
+        "sections": [
+            {
+                "title": "Formules intermédiaires",
+                "questions": [
+                    {
+                        "id": "T2_Q1",
+                        "text": "Quelle fonction permet de rechercher une valeur dans une colonne et retourner une valeur correspondante ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "RECHERCHE()"},
+                            {"id": "B", "text": "TROUVE()"},
+                            {"id": "C", "text": "RECHERCHEV()"},
+                            {"id": "D", "text": "CHERCHE()"}
+                        ],
+                        "correctAnswers": ["C"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T2_Q2",
+                        "text": "Quelle fonction permet de tester une condition et retourner une valeur si vrai, une autre si faux ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "TEST()"},
+                            {"id": "B", "text": "CONDITION()"},
+                            {"id": "C", "text": "SI()"},
+                            {"id": "D", "text": "QUAND()"}
+                        ],
+                        "correctAnswers": ["C"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T2_Q3",
+                        "text": "Que retourne la formule =SOMME.SI(A1:A10;\">5\") ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Le nombre de cellules > 5"},
+                            {"id": "B", "text": "La somme des cellules > 5"},
+                            {"id": "C", "text": "La moyenne des cellules > 5"},
+                            {"id": "D", "text": "Le maximum des cellules > 5"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    }
+                ]
+            },
+            {
+                "title": "Mise en forme et graphiques",
+                "questions": [
+                    {
+                        "id": "T2_Q4",
+                        "text": "Quelle fonctionnalité permet d'appliquer automatiquement des couleurs selon les valeurs des cellules ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Mise en forme automatique"},
+                            {"id": "B", "text": "Mise en forme conditionnelle"},
+                            {"id": "C", "text": "Style de cellule"},
+                            {"id": "D", "text": "Format personnalisé"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T2_Q5",
+                        "text": "Quel type de graphique est le plus adapté pour montrer l'évolution d'une valeur dans le temps ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Camembert"},
+                            {"id": "B", "text": "Histogramme"},
+                            {"id": "C", "text": "Courbe"},
+                            {"id": "D", "text": "Radar"}
+                        ],
+                        "correctAnswers": ["C"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T2_Q6",
+                        "text": "Quelle fonction concatène plusieurs chaînes de texte ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "JOINDRE()"},
+                            {"id": "B", "text": "CONCATENER()"},
+                            {"id": "C", "text": "FUSION()"},
+                            {"id": "D", "text": "LIER()"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    }
+                ]
+            },
+            {
+                "title": "Gestion des données",
+                "questions": [
+                    {
+                        "id": "T2_Q7",
+                        "text": "Quelle fonctionnalité permet de filtrer les données d'un tableau selon des critères ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Tri"},
+                            {"id": "B", "text": "Filtre automatique"},
+                            {"id": "C", "text": "Recherche"},
+                            {"id": "D", "text": "Sélection"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T2_Q8",
+                        "text": "Que signifie l'erreur #REF! dans Excel ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Division par zéro"},
+                            {"id": "B", "text": "Référence de cellule invalide"},
+                            {"id": "C", "text": "Valeur non disponible"},
+                            {"id": "D", "text": "Nom non reconnu"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T2_Q9",
+                        "text": "Quelle fonction arrondit un nombre à l'entier inférieur ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "ARRONDI()"},
+                            {"id": "B", "text": "TRONQUE()"},
+                            {"id": "C", "text": "PLANCHER()"},
+                            {"id": "D", "text": "ENT()"}
+                        ],
+                        "correctAnswers": ["D"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T2_Q10",
+                        "text": "Quelle touche F permet de passer en mode édition dans une cellule ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "F1"},
+                            {"id": "B", "text": "F2"},
+                            {"id": "C", "text": "F4"},
+                            {"id": "D", "text": "F5"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    }
+                ]
+            }
+        ],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    templates.append(t2_template)
+    
+    # T3 - Test fin de parcours Excel
+    t3_template = {
+        "id": str(uuid.uuid4()),
+        "template_name": "T3 – Test fin de parcours Excel",
+        "parcours": "Excel",
+        "type": "TEST_PARCOURS",
+        "sub_type": "FIN",
+        "description": "Test final pour valider vos compétences en Excel",
+        "sections": [
+            {
+                "title": "Fonctions avancées",
+                "questions": [
+                    {
+                        "id": "T3_Q1",
+                        "text": "Quelle combinaison de fonctions remplace avantageusement RECHERCHEV pour plus de flexibilité ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "SI + ET"},
+                            {"id": "B", "text": "INDEX + EQUIV"},
+                            {"id": "C", "text": "NB.SI + SOMME"},
+                            {"id": "D", "text": "INDIRECT + ADRESSE"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T3_Q2",
+                        "text": "Quelle fonction permet de compter les cellules selon plusieurs critères ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "NB.SI()"},
+                            {"id": "B", "text": "NB.SI.ENS()"},
+                            {"id": "C", "text": "SOMME.SI()"},
+                            {"id": "D", "text": "COMPTE.SI()"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T3_Q3",
+                        "text": "Quelle fonction permet d'extraire une partie d'un texte en partant de la gauche ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "DEBUT()"},
+                            {"id": "B", "text": "STXT()"},
+                            {"id": "C", "text": "GAUCHE()"},
+                            {"id": "D", "text": "EXTRAIT()"}
+                        ],
+                        "correctAnswers": ["C"],
+                        "points": 1
+                    }
+                ]
+            },
+            {
+                "title": "Tableaux croisés dynamiques",
+                "questions": [
+                    {
+                        "id": "T3_Q4",
+                        "text": "Dans un tableau croisé dynamique, où place-t-on généralement les champs que l'on veut totaliser ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Lignes"},
+                            {"id": "B", "text": "Colonnes"},
+                            {"id": "C", "text": "Valeurs"},
+                            {"id": "D", "text": "Filtres"}
+                        ],
+                        "correctAnswers": ["C"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T3_Q5",
+                        "text": "Comment actualiser un tableau croisé dynamique après modification des données source ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Supprimer et recréer le TCD"},
+                            {"id": "B", "text": "Clic droit > Actualiser"},
+                            {"id": "C", "text": "Appuyer sur F5"},
+                            {"id": "D", "text": "Fermer et rouvrir Excel"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T3_Q6",
+                        "text": "Quelle fonction permet de vérifier si une cellule est vide ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "VIDE()"},
+                            {"id": "B", "text": "ESTVIDE()"},
+                            {"id": "C", "text": "CELLULE.VIDE()"},
+                            {"id": "D", "text": "TEST.VIDE()"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    }
+                ]
+            },
+            {
+                "title": "Automatisation et macros",
+                "questions": [
+                    {
+                        "id": "T3_Q7",
+                        "text": "Dans quel langage sont écrites les macros Excel ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "JavaScript"},
+                            {"id": "B", "text": "Python"},
+                            {"id": "C", "text": "VBA"},
+                            {"id": "D", "text": "C++"}
+                        ],
+                        "correctAnswers": ["C"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T3_Q8",
+                        "text": "Quel raccourci permet d'ouvrir l'éditeur VBA ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Alt + F8"},
+                            {"id": "B", "text": "Alt + F11"},
+                            {"id": "C", "text": "Ctrl + M"},
+                            {"id": "D", "text": "F12"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T3_Q9",
+                        "text": "Quelle fonction permet de gérer les erreurs dans une formule ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "ERREUR()"},
+                            {"id": "B", "text": "GERER.ERREUR()"},
+                            {"id": "C", "text": "SIERREUR()"},
+                            {"id": "D", "text": "ESSAI()"}
+                        ],
+                        "correctAnswers": ["C"],
+                        "points": 1
+                    },
+                    {
+                        "id": "T3_Q10",
+                        "text": "Quelle est la différence principale entre RECHERCHEV et RECHERCHEX ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "RECHERCHEX est plus lente"},
+                            {"id": "B", "text": "RECHERCHEX peut chercher vers la gauche"},
+                            {"id": "C", "text": "RECHERCHEV est plus récente"},
+                            {"id": "D", "text": "Il n'y a aucune différence"}
+                        ],
+                        "correctAnswers": ["B"],
+                        "points": 1
+                    }
+                ]
+            }
+        ],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    templates.append(t3_template)
+    
+    # Q1 - Questionnaire d'entrée Excel
+    q1_template = {
+        "id": str(uuid.uuid4()),
+        "template_name": "Q1 – Questionnaire d'entrée Excel – Besoins et identification",
+        "parcours": "Excel",
+        "type": "QUESTIONNAIRE_QUALIOPI",
+        "sub_type": "POSITIONNEMENT",
+        "description": "Questionnaire d'identification des besoins et du niveau initial",
+        "sections": [
+            {
+                "title": "Identification et contexte",
+                "questions": [
+                    {
+                        "id": "Q1_Q1",
+                        "text": "À quelle fréquence utilisez-vous Excel actuellement ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Jamais"},
+                            {"id": "B", "text": "Rarement (quelques fois par mois)"},
+                            {"id": "C", "text": "Régulièrement (plusieurs fois par semaine)"},
+                            {"id": "D", "text": "Quotidiennement"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    },
+                    {
+                        "id": "Q1_Q2",
+                        "text": "Dans quel contexte souhaitez-vous utiliser Excel ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Personnel (budget, organisation)"},
+                            {"id": "B", "text": "Professionnel - Administration"},
+                            {"id": "C", "text": "Professionnel - Comptabilité/Finance"},
+                            {"id": "D", "text": "Professionnel - Analyse de données"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    },
+                    {
+                        "id": "Q1_Q3",
+                        "text": "Quel est votre objectif principal avec cette formation ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Découvrir Excel"},
+                            {"id": "B", "text": "Consolider mes bases"},
+                            {"id": "C", "text": "Maîtriser les fonctions avancées"},
+                            {"id": "D", "text": "Automatiser mes tâches avec des macros"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    }
+                ]
+            },
+            {
+                "title": "Auto-évaluation du niveau",
+                "questions": [
+                    {
+                        "id": "Q1_Q4",
+                        "text": "Savez-vous créer et utiliser des formules de base (SOMME, MOYENNE) ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Non, pas du tout"},
+                            {"id": "B", "text": "Un peu, avec de l'aide"},
+                            {"id": "C", "text": "Oui, de manière autonome"},
+                            {"id": "D", "text": "Oui, et je maîtrise aussi les formules avancées"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    },
+                    {
+                        "id": "Q1_Q5",
+                        "text": "Avez-vous déjà créé des graphiques dans Excel ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Jamais"},
+                            {"id": "B", "text": "Des graphiques simples"},
+                            {"id": "C", "text": "Des graphiques personnalisés"},
+                            {"id": "D", "text": "Des graphiques dynamiques liés à des TCD"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    }
+                ]
+            }
+        ],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    templates.append(q1_template)
+    
+    # Q2 - Questionnaire mi-parcours Excel
+    q2_template = {
+        "id": str(uuid.uuid4()),
+        "template_name": "Q2 – Questionnaire mi-parcours Excel",
+        "parcours": "Excel",
+        "type": "QUESTIONNAIRE_QUALIOPI",
+        "sub_type": "MI_PARCOURS",
+        "description": "Questionnaire de suivi à mi-parcours de la formation",
+        "sections": [
+            {
+                "title": "Satisfaction et progression",
+                "questions": [
+                    {
+                        "id": "Q2_Q1",
+                        "text": "Comment évaluez-vous votre progression depuis le début de la formation ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Aucune progression"},
+                            {"id": "B", "text": "Légère progression"},
+                            {"id": "C", "text": "Bonne progression"},
+                            {"id": "D", "text": "Excellente progression"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    },
+                    {
+                        "id": "Q2_Q2",
+                        "text": "Le rythme de la formation vous convient-il ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Trop lent"},
+                            {"id": "B", "text": "Un peu lent"},
+                            {"id": "C", "text": "Adapté"},
+                            {"id": "D", "text": "Trop rapide"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    },
+                    {
+                        "id": "Q2_Q3",
+                        "text": "Les exercices pratiques sont-ils pertinents pour vos besoins ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Pas du tout"},
+                            {"id": "B", "text": "Partiellement"},
+                            {"id": "C", "text": "Assez bien"},
+                            {"id": "D", "text": "Parfaitement adaptés"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    }
+                ]
+            },
+            {
+                "title": "Points à approfondir",
+                "questions": [
+                    {
+                        "id": "Q2_Q4",
+                        "text": "Quels sujets aimeriez-vous approfondir ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Formules et fonctions"},
+                            {"id": "B", "text": "Graphiques et visualisation"},
+                            {"id": "C", "text": "Tableaux croisés dynamiques"},
+                            {"id": "D", "text": "Automatisation (macros)"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    },
+                    {
+                        "id": "Q2_Q5",
+                        "text": "Rencontrez-vous des difficultés particulières ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Non, tout est clair"},
+                            {"id": "B", "text": "Quelques points à revoir"},
+                            {"id": "C", "text": "Plusieurs notions difficiles"},
+                            {"id": "D", "text": "Je suis perdu(e)"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    }
+                ]
+            }
+        ],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    templates.append(q2_template)
+    
+    # Q3 - Questionnaire fin de formation Excel
+    q3_template = {
+        "id": str(uuid.uuid4()),
+        "template_name": "Q3 – Questionnaire fin de formation Excel",
+        "parcours": "Excel",
+        "type": "QUESTIONNAIRE_QUALIOPI",
+        "sub_type": "FIN",
+        "description": "Questionnaire de satisfaction et d'évaluation finale",
+        "sections": [
+            {
+                "title": "Évaluation de la formation",
+                "questions": [
+                    {
+                        "id": "Q3_Q1",
+                        "text": "Comment évaluez-vous la qualité globale de cette formation ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Insuffisante"},
+                            {"id": "B", "text": "Satisfaisante"},
+                            {"id": "C", "text": "Bonne"},
+                            {"id": "D", "text": "Excellente"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    },
+                    {
+                        "id": "Q3_Q2",
+                        "text": "Les objectifs de la formation ont-ils été atteints ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Pas du tout"},
+                            {"id": "B", "text": "Partiellement"},
+                            {"id": "C", "text": "En grande partie"},
+                            {"id": "D", "text": "Totalement"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    },
+                    {
+                        "id": "Q3_Q3",
+                        "text": "Comment évaluez-vous la pédagogie du formateur ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Insuffisante"},
+                            {"id": "B", "text": "Correcte"},
+                            {"id": "C", "text": "Bonne"},
+                            {"id": "D", "text": "Excellente"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    }
+                ]
+            },
+            {
+                "title": "Compétences acquises",
+                "questions": [
+                    {
+                        "id": "Q3_Q4",
+                        "text": "Vous sentez-vous capable d'utiliser Excel de manière autonome ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Non, j'ai encore besoin d'aide"},
+                            {"id": "B", "text": "Pour les tâches basiques uniquement"},
+                            {"id": "C", "text": "Pour la plupart des tâches"},
+                            {"id": "D", "text": "Oui, y compris les fonctions avancées"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    },
+                    {
+                        "id": "Q3_Q5",
+                        "text": "Recommanderiez-vous cette formation ?",
+                        "type": "single",
+                        "options": [
+                            {"id": "A", "text": "Non"},
+                            {"id": "B", "text": "Peut-être"},
+                            {"id": "C", "text": "Probablement"},
+                            {"id": "D", "text": "Oui, sans hésitation"}
+                        ],
+                        "correctAnswers": [],
+                        "points": 0
+                    }
+                ]
+            }
+        ],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    templates.append(q3_template)
+    
+    # Insérer les templates en base
+    inserted_count = 0
+    for template in templates:
+        # Vérifier si le template existe déjà
+        existing = await db.test_templates.find_one({"template_name": template["template_name"]}, {"_id": 0})
+        if not existing:
+            await db.test_templates.insert_one(template)
+            inserted_count += 1
+            logger.info(f"✅ Template créé: {template['template_name']}")
+        else:
+            logger.info(f"⏭️ Template existant: {template['template_name']}")
+    
+    return {
+        "success": True,
+        "message": f"{inserted_count} templates Excel créés",
+        "templates": [t["template_name"] for t in templates]
+    }
+
+
 # Include router
 app.include_router(api_router)
 
