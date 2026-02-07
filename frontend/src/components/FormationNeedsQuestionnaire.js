@@ -431,37 +431,40 @@ export default function FormationNeedsQuestionnaire({ open, onClose, studentId, 
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Quelles difficultés rencontrez-vous actuellement ?</Label>
+            {/* Section difficultés - uniquement pour les parcours linguistiques (pas Excel/Bureautique/Informatique) */}
+            {!isExcel && !isBureautique && !isInformatique && (
               <div className="space-y-2">
-                {[
-                  'Manque de vocabulaire',
-                  'Difficultés à comprendre',
-                  'Blocage à l\'oral',
-                  'Grammaire',
-                  'Prononciation'
-                ].map(option => (
-                  <label key={option} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.difficultes.includes(option)}
-                      onChange={() => toggleCheckbox('difficultes', option)}
-                      className="w-4 h-4"
+                <Label>Quelles difficultés rencontrez-vous actuellement ?</Label>
+                <div className="space-y-2">
+                  {[
+                    'Manque de vocabulaire',
+                    'Difficultés à comprendre',
+                    'Blocage à l\'oral',
+                    'Grammaire',
+                    'Prononciation'
+                  ].map(option => (
+                    <label key={option} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.difficultes.includes(option)}
+                        onChange={() => toggleCheckbox('difficultes', option)}
+                        className="w-4 h-4"
+                      />
+                      <span>{option}</span>
+                    </label>
+                  ))}
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" className="w-4 h-4" disabled />
+                    <Input
+                      value={formData.difficultes_autre}
+                      onChange={(e) => updateField('difficultes_autre', e.target.value)}
+                      placeholder="Autre (précisez)"
+                      className="flex-1"
                     />
-                    <span>{option}</span>
-                  </label>
-                ))}
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" className="w-4 h-4" disabled />
-                  <Input
-                    value={formData.difficultes_autre}
-                    onChange={(e) => updateField('difficultes_autre', e.target.value)}
-                    placeholder="Autre (précisez)"
-                    className="flex-1"
-                  />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <div className="space-y-2">
               <Label>Souhaitez-vous insister sur un type de contenu particulier ?</Label>
