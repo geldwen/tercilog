@@ -4401,12 +4401,14 @@ export default function TeacherDashboard({ user, onLogout }) {
                                         student.parcours === 'Bureautique' ? '#D1FAE5' :
                                         student.parcours === 'Management' ? '#DBEAFE' :
                                         student.parcours === 'Informatique' ? '#F3E8FF' :
+                                        student.parcours === 'Excel' ? '#DCFCE7' :
                                         '#F3F4F6',
                                       color: 
                                         student.parcours === 'Anglais' ? '#DB2777' :
                                         student.parcours === 'Bureautique' ? '#059669' :
                                         student.parcours === 'Management' ? '#2563EB' :
                                         student.parcours === 'Informatique' ? '#9333EA' :
+                                        student.parcours === 'Excel' ? '#16A34A' :
                                         '#6B7280'
                                     }}
                                   >
