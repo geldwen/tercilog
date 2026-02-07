@@ -1309,6 +1309,38 @@ export default function StudentDashboard({ user, onLogout }) {
             studentId={user?.id}
           />
         </>
+      ) : user?.parcours === 'Excel' ? (
+        <>
+          <FormationNeedsQuestionnaire
+            open={showNeedsDialog}
+            onClose={() => {
+              setShowNeedsDialog(false);
+              loadQuestionnairesStatus();
+            }}
+            studentId={user?.id}
+            parcours="Excel"
+          />
+          
+          <MidCourseQuestionnaire
+            open={showMidCourseDialog}
+            onClose={() => {
+              setShowMidCourseDialog(false);
+              loadQuestionnairesStatus();
+            }}
+            studentId={user?.id}
+            parcours="Excel"
+          />
+          
+          <EndCourseQuestionnaire
+            open={showEndCourseDialog}
+            onClose={() => {
+              setShowEndCourseDialog(false);
+              loadQuestionnairesStatus();
+            }}
+            studentId={user?.id}
+            parcours="Excel"
+          />
+        </>
       ) : (
         <>
           <FormationNeedsQuestionnaire
