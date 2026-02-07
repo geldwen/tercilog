@@ -2673,7 +2673,12 @@ async def get_test_template(
     if current_user.role not in ["student", "teacher"]:
         raise HTTPException(status_code=403, detail="Access denied")
     
+    # D'abord chercher par ID
     template = await db.test_templates.find_one({"id": template_id}, {"_id": 0})
+    
+    # Si pas trouvé, chercher par template_name (pour les nouveaux parcours comme Excel)
+    if not template:
+        template = await db.test_templates.find_one({"template_name": template_id}, {"_id": 0})
     
     if not template:
         raise HTTPException(status_code=404, detail="Test template not found")
