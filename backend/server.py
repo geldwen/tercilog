@@ -2738,6 +2738,19 @@ async def assign_tests_to_student(
                 "q3": "Q3 – Questionnaire fin de formation anglais"
             }
         }
+    elif parcours == "Excel":
+        resources = {
+            "tests": {
+                "positionnement": "T1 – Test de positionnement Excel",
+                "miParcours": "T2 – Test mi-parcours Excel",
+                "fin": "T3 – Test fin de parcours Excel"
+            },
+            "questionnaires": {
+                "q1": "Q1 – Questionnaire d'entrée Excel – Besoins et identification",
+                "q2": "Q2 – Questionnaire mi-parcours Excel",
+                "q3": "Q3 – Questionnaire fin de formation Excel"
+            }
+        }
     else:
         raise HTTPException(status_code=400, detail=f"Unknown parcours: {parcours}")
     
