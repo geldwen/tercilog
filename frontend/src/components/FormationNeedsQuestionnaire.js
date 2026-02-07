@@ -9,7 +9,23 @@ import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-export default function FormationNeedsQuestionnaire({ open, onClose, studentId }) {
+export default function FormationNeedsQuestionnaire({ open, onClose, studentId, parcours = "Anglais" }) {
+  // Déterminer si c'est un parcours Excel ou autre
+  const isExcel = parcours === "Excel";
+  const isInformatique = parcours === "Informatique";
+  const isBureautique = parcours === "Bureautique";
+  
+  // Labels dynamiques selon le parcours
+  const getParcoursLabel = () => {
+    switch(parcours) {
+      case "Excel": return "Excel";
+      case "Informatique": return "l'informatique";
+      case "Bureautique": return "la bureautique";
+      case "Management": return "le management";
+      default: return "l'anglais";
+    }
+  };
+
   const [formData, setFormData] = useState({
     // 1. Identification
     situation_professionnelle: [],
