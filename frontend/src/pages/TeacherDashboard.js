@@ -425,7 +425,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       .substring(0, 15);
     
     const roomName = `terciform-${dateStr}-${timeStr}-${subjectClean}`;
-    return `https://meet.jit.si/${roomName}`;
+    return `https://8x8.vc/terciform/${roomName}`;
   };
 
   useEffect(() => { if (selectedMonth) loadData(selectedMonth); }, [selectedMonth]);
