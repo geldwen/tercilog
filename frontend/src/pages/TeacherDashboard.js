@@ -3391,6 +3391,21 @@ export default function TeacherDashboard({ user, onLogout }) {
                 </DialogContent>
               </Dialog>
 
+              {/* Bouton Initialiser Excel */}
+              <button 
+                onClick={handleInitExcelTemplates}
+                disabled={initExcelLoading}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md disabled:opacity-50"
+                title="Créer les templates Excel et mettre à jour les élèves Excel existants"
+              >
+                {initExcelLoading ? (
+                  <span className="animate-spin">⏳</span>
+                ) : (
+                  <span>📊</span>
+                )}
+                Init Excel
+              </button>
+
               {/* Bouton Ajouter un élève */}
               <Dialog open={showCreateStudent} onOpenChange={setShowCreateStudent}>
                 <DialogTrigger asChild>
