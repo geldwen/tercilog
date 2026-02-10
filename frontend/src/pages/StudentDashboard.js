@@ -449,7 +449,7 @@ export default function StudentDashboard({ user, onLogout }) {
       .substring(0, 15);
     
     const roomName = `terciform-${dateStr}-${timeStr}-${subjectClean}`;
-    return `https://8x8.vc/terciform/${roomName}`;
+    return `https://meet.jit.si/${roomName}`;
   };
 
   // Fonction pour logger la connexion visio
