@@ -519,6 +519,22 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   const handleStudentChange = useCallback((value) => { setSessionForm(prev => ({ ...prev, student_id: value })); }, []);
 
+  // Fonction pour initialiser les templates Excel et mettre à jour les élèves existants
+  const handleInitExcelTemplates = async () => {
+    setInitExcelLoading(true);
+    try {
+      const response = await axios.post(`${API}/init-excel-templates`);
+      toast.success(`${response.data.message}`);
+      if (response.data.students_updated > 0) {
+        toast.success(`${response.data.students_updated} élève(s) Excel mis à jour avec les tests T1/T2/T3 et Q1/Q2/Q3`);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erreur lors de l'initialisation Excel");
+    } finally {
+      setInitExcelLoading(false);
+    }
+  };
+
   const handleCreateSession = async (e) => {
     e.preventDefault();
     try {
