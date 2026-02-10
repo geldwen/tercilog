@@ -71,6 +71,7 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [pdfStudent, setPdfStudent] = useState(null);
   const [pdfEmail, setPdfEmail] = useState('');
   const [isDrawing, setIsDrawing] = useState(false);
+  const [initExcelLoading, setInitExcelLoading] = useState(false);
   const canvasRef = useRef(null);
 
   // States pour la gestion des formateurs
