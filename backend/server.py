@@ -13742,10 +13742,55 @@ async def init_excel_templates(current_user: User = Depends(get_current_user)):
         else:
             logger.info(f"⏭️ Template existant: {template['template_name']}")
     
+    # Réassigner les ressources aux élèves Excel existants
+    excel_students = await db.users.find({"role": "student", "parcours": "Excel"}).to_list(1000)
+    students_updated = 0
+    
+    for student in excel_students:
+        student_id = student.get("id")
+        
+        # Vérifier si l'élève a déjà des ressources Excel
+        existing_resources = await db.student_resources.find({"student_id": student_id, "parcours": "Excel"}).to_list(100)
+        
+        if len(existing_resources) < 6:  # Moins de 6 ressources (3 tests + 3 questionnaires)
+            # Supprimer les anciennes ressources Excel
+            await db.student_resources.delete_many({"student_id": student_id, "parcours": "Excel"})
+            
+            # Créer les nouvelles ressources
+            resources_to_create = [
+                # Tests
+                {"student_id": student_id, "parcours": "Excel", "category": "TEST_PARCOURS", "sub_type": "POSITIONNEMENT", 
+                 "name": "T1 – Test de positionnement Excel", "template_name": "T1 – Test de positionnement Excel", 
+                 "resource_type": "FORM", "status": "NON_COMMENCE", "id": str(uuid.uuid4()), "created_at": datetime.now(timezone.utc).isoformat()},
+                {"student_id": student_id, "parcours": "Excel", "category": "TEST_PARCOURS", "sub_type": "MI_PARCOURS", 
+                 "name": "T2 – Test mi-parcours Excel", "template_name": "T2 – Test mi-parcours Excel", 
+                 "resource_type": "FORM", "status": "NON_COMMENCE", "id": str(uuid.uuid4()), "created_at": datetime.now(timezone.utc).isoformat()},
+                {"student_id": student_id, "parcours": "Excel", "category": "TEST_PARCOURS", "sub_type": "FIN", 
+                 "name": "T3 – Test fin de parcours Excel", "template_name": "T3 – Test fin de parcours Excel", 
+                 "resource_type": "FORM", "status": "NON_COMMENCE", "id": str(uuid.uuid4()), "created_at": datetime.now(timezone.utc).isoformat()},
+                # Questionnaires
+                {"student_id": student_id, "parcours": "Excel", "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "POSITIONNEMENT", 
+                 "name": "Q1 – Questionnaire d'entrée Excel – Besoins et identification", "template_name": "Q1 – Questionnaire d'entrée Excel – Besoins et identification", 
+                 "resource_type": "FORM", "status": "NON_COMMENCE", "id": str(uuid.uuid4()), "created_at": datetime.now(timezone.utc).isoformat()},
+                {"student_id": student_id, "parcours": "Excel", "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "MI_PARCOURS", 
+                 "name": "Q2 – Questionnaire mi-parcours Excel", "template_name": "Q2 – Questionnaire mi-parcours Excel", 
+                 "resource_type": "FORM", "status": "NON_COMMENCE", "id": str(uuid.uuid4()), "created_at": datetime.now(timezone.utc).isoformat()},
+                {"student_id": student_id, "parcours": "Excel", "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "FIN", 
+                 "name": "Q3 – Questionnaire fin de formation Excel", "template_name": "Q3 – Questionnaire fin de formation Excel", 
+                 "resource_type": "FORM", "status": "NON_COMMENCE", "id": str(uuid.uuid4()), "created_at": datetime.now(timezone.utc).isoformat()},
+            ]
+            
+            for resource in resources_to_create:
+                await db.student_resources.insert_one(resource)
+            
+            students_updated += 1
+            logger.info(f"✅ Ressources Excel assignées à l'élève {student.get('name')} ({student_id})")
+    
     return {
         "success": True,
-        "message": f"{inserted_count} templates Excel créés",
-        "templates": [t["template_name"] for t in templates]
+        "message": f"{inserted_count} templates Excel créés, {students_updated} élèves mis à jour",
+        "templates": [t["template_name"] for t in templates],
+        "students_updated": students_updated
     }
 
 
