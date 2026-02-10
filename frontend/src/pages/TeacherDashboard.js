@@ -360,6 +360,11 @@ export default function TeacherDashboard({ user, onLogout }) {
       positionnement: ["T1 – Test de positionnement informatique"],
       miParcours: ["T2 – Test mi parcours informatique"],
       fin: ["T3 – Test fin de parcours Informatique"]
+    },
+    "Excel": {
+      positionnement: ["T1 – Test de positionnement Excel"],
+      miParcours: ["T2 – Test mi-parcours Excel"],
+      fin: ["T3 – Test fin de parcours Excel"]
     }
   };
 
@@ -384,6 +389,11 @@ export default function TeacherDashboard({ user, onLogout }) {
       q1: ["Q1 – Questionnaire d'entrée informatique – Besoins et identification"],
       q2: ["Q2 – Questionnaire mi-parcours – Informatique"],
       q3: ["Q3 – Questionnaire fin de formation – Informatique"]
+    },
+    "Excel": {
+      q1: ["Q1 – Questionnaire d'entrée Excel – Besoins et identification"],
+      q2: ["Q2 – Questionnaire mi-parcours Excel"],
+      q3: ["Q3 – Questionnaire fin de formation Excel"]
     }
   };
 
