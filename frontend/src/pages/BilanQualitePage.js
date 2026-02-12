@@ -26,6 +26,11 @@ const PARCOURS_CONFIG = {
     bgLight: "#F3E8FF",
     textColor: "#9333EA",
     borderColor: "#C084FC"
+  },
+  "Excel": {
+    bgLight: "#DCFCE7",
+    textColor: "#16A34A",
+    borderColor: "#4ADE80"
   }
 };
 
