@@ -3745,12 +3745,18 @@ async def get_qualite_report(
             continue
         
         # Récupérer les 3 questionnaires selon le parcours de l'élève
-        if student_parcours in ["Bureautique", "Informatique"]:
-            # Pour Bureautique/Informatique : chercher dans les deux sources possibles
-            # 1) D'abord essayer les collections spécifiques bureautique
-            q1 = await db.bureautique_formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
-            q2 = await db.bureautique_mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
-            q3 = await db.bureautique_end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+        if student_parcours in ["Bureautique", "Informatique", "Excel"]:
+            # Pour Bureautique/Informatique/Excel : chercher dans les deux sources possibles
+            # 1) D'abord essayer les collections spécifiques bureautique (pour compatibilité)
+            if student_parcours in ["Bureautique", "Informatique"]:
+                q1 = await db.bureautique_formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+                q2 = await db.bureautique_mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+                q3 = await db.bureautique_end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+            else:
+                # Pour Excel, d'abord essayer les collections génériques
+                q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+                q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+                q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
             
             # 2) Si pas trouvé, chercher dans student_resources
             if not q1 or not q1.get("answers"):
