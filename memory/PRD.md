@@ -62,11 +62,14 @@ Build a comprehensive educational platform called "TerciForm" with:
 ## Pending Issues
 | Issue | Priority | Status |
 |-------|----------|--------|
+| Production deployment not serving latest frontend build | P0 | BLOCKER - Contact Emergent support |
 | Djibril Kante should be historized | P1 | Check production data |
 | Isleme Baghouz shows wrong hours | P1 | Check production data |
+| User volker@zepartner.com cannot login | P2 | Not Started |
 | Trainer documents disappear on edit | P2 | Not Started |
-| Refactor TeacherDashboard.js | P2 | Not Started |
-| Refactor server.py | P2 | Not Started |
+| Refactor TeacherDashboard.js (>7000 lines) | P2 | Not Started |
+| Refactor server.py (>14000 lines) | P2 | Not Started |
+| Jitsi instability on public server | P3 | Reverted to meet.jit.si |
 
 ## Key Files
 - `/app/backend/server.py` - Main backend
