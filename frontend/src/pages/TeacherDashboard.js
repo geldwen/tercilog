@@ -2503,12 +2503,13 @@ export default function TeacherDashboard({ user, onLogout }) {
               const todayFormatted = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
               
               // Vérifier s'il y a des séances en visio aujourd'hui
-              const hasVisioToday = todaySessions.some(session => 
+              const visioSessionsToday = todaySessions.filter(session => 
                 session.modality === 'distanciel' || 
                 session.meeting_link ||
                 session.visio_link
               );
-              const visioLinkToday = todaySessions.find(s => s.meeting_link || s.visio_link);
+              const hasVisioToday = visioSessionsToday.length > 0;
+              const visioLinkToday = visioSessionsToday[0];
               
               // Icône selon la matière
               const getSubjectIcon = (subject) => {
@@ -2537,7 +2538,7 @@ export default function TeacherDashboard({ user, onLogout }) {
               return (
                 <Card className="border-2 border-red-400 shadow-md bg-gradient-to-r from-red-50 to-orange-50">
                   <CardContent className="py-4 px-5">
-                    {/* En-tête compact */}
+                    {/* En-tête avec bouton Jitsi proéminent */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <CalendarDays className="w-5 h-5 text-red-500" />
@@ -2546,15 +2547,28 @@ export default function TeacherDashboard({ user, onLogout }) {
                           <span className="text-xs text-gray-500 ml-2 capitalize">({todayFormatted})</span>
                         </div>
                       </div>
+                      
+                      {/* Bouton Rejoindre la visio - en en-tête pour tous les élèves distanciels */}
                       {hasVisioToday && visioLinkToday && (
-                        <Button 
-                          size="sm" 
-                          className="bg-blue-600 hover:bg-blue-700 text-white gap-1 h-8 text-xs"
-                          onClick={() => window.open(visioLinkToday.meeting_link || visioLinkToday.visio_link, '_blank')}
+                        <a
+                          href={generateJitsiLink(visioLinkToday)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                          style={{ 
+                            backgroundColor: '#E91E63',
+                            boxShadow: '0 4px 14px 0 rgba(233, 30, 99, 0.39)'
+                          }}
+                          data-testid="join-visio-today"
                         >
-                          <Video className="w-3 h-3" />
-                          Rejoindre
-                        </Button>
+                          <Video className="w-4 h-4" />
+                          Rejoindre la visio
+                          {visioSessionsToday.length > 1 && (
+                            <span className="bg-white/20 text-white text-xs px-1.5 py-0.5 rounded">
+                              {visioSessionsToday.length} élèves
+                            </span>
+                          )}
+                        </a>
                       )}
                     </div>
                     
