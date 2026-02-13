@@ -2509,7 +2509,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                 session.visio_link
               );
               const hasVisioToday = visioSessionsToday.length > 0;
-              const visioLinkToday = visioSessionsToday[0];
+              // Utiliser la première séance visio, ou la première séance du jour pour générer le lien
+              const visioLinkToday = visioSessionsToday[0] || todaySessions[0];
               
               // Icône selon la matière
               const getSubjectIcon = (subject) => {
