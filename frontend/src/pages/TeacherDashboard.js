@@ -2671,133 +2671,148 @@ export default function TeacherDashboard({ user, onLogout }) {
               );
             })()}
 
+            {/* Module de Recherche des Séances - Bandeau intégré */}
+            <Card className="border-2 shadow-md" style={{ borderColor: TERCIFORM_BLUE }}>
+              <CardContent className="py-4 px-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <Search className="w-5 h-5" style={{ color: TERCIFORM_BLUE }} />
+                  <h2 className="text-lg font-bold text-gray-900">Rechercher une séance</h2>
+                  {isSearchActive && (
+                    <Button 
+                      onClick={() => {
+                        setFilteredSessionsSearch(null);
+                        setIsSearchActive(false);
+                        setSearchSessionYear(new Date().getFullYear());
+                        setSearchSessionMonth('');
+                        setSearchSessionDay('');
+                        setSearchSessionStudent('');
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="ml-auto gap-1 text-xs border-gray-400 text-gray-600 hover:bg-gray-100"
+                    >
+                      <XCircle className="w-3 h-3" />
+                      Réinitialiser
+                    </Button>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  {/* Année */}
+                  <div className="space-y-1">
+                    <Label className="text-xs text-gray-600">Année</Label>
+                    <select
+                      value={searchSessionYear}
+                      onChange={(e) => {
+                        setSearchSessionYear(parseInt(e.target.value));
+                        // Déclencher recherche automatique
+                        handleIntegratedSearch(parseInt(e.target.value), searchSessionMonth, searchSessionDay, searchSessionStudent);
+                      }}
+                      className="w-full h-9 px-2 py-1 text-sm border border-gray-300 rounded-md"
+                    >
+                      {yearsList.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* Mois */}
+                  <div className="space-y-1">
+                    <Label className="text-xs text-gray-600">Mois</Label>
+                    <select
+                      value={searchSessionMonth}
+                      onChange={(e) => {
+                        setSearchSessionMonth(e.target.value);
+                        setSearchSessionDay(''); // Reset jour
+                        handleIntegratedSearch(searchSessionYear, e.target.value, '', searchSessionStudent);
+                      }}
+                      className="w-full h-9 px-2 py-1 text-sm border border-gray-300 rounded-md"
+                    >
+                      <option value="">Tous</option>
+                      {monthNames.map(m => (
+                        <option key={m.num} value={m.num}>{m.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* Jour */}
+                  <div className="space-y-1">
+                    <Label className="text-xs text-gray-600">Jour</Label>
+                    <select
+                      value={searchSessionDay}
+                      onChange={(e) => {
+                        setSearchSessionDay(e.target.value);
+                        handleIntegratedSearch(searchSessionYear, searchSessionMonth, e.target.value, searchSessionStudent);
+                      }}
+                      className="w-full h-9 px-2 py-1 text-sm border border-gray-300 rounded-md"
+                      disabled={!searchSessionMonth}
+                    >
+                      <option value="">Tous</option>
+                      {searchSessionMonth && getDaysInMonth(searchSessionYear, parseInt(searchSessionMonth)).map(day => (
+                        <option key={day} value={day}>{day}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* Recherche par nom d'élève */}
+                  <div className="space-y-1 col-span-2 md:col-span-2">
+                    <Label className="text-xs text-gray-600">Nom de l'élève</Label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Rechercher par nom..."
+                        value={searchSessionStudent}
+                        onChange={(e) => {
+                          setSearchSessionStudent(e.target.value);
+                          handleIntegratedSearch(searchSessionYear, searchSessionMonth, searchSessionDay, e.target.value);
+                        }}
+                        className="w-full h-9 pl-8 pr-3 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                      {searchSessionStudent && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSearchSessionStudent('');
+                            handleIntegratedSearch(searchSessionYear, searchSessionMonth, searchSessionDay, '');
+                          }}
+                          className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Info sur les résultats */}
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  {isSearchActive ? (
+                    <p className="text-sm text-gray-600 flex items-center gap-2">
+                      <Filter className="w-4 h-4" style={{ color: TERCIFORM_BLUE }} />
+                      <span className="font-medium" style={{ color: TERCIFORM_BLUE }}>{filteredSessionsSearch?.length || 0} séance(s) trouvée(s)</span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-xs text-gray-500">
+                        Recherche : {searchSessionYear}
+                        {searchSessionMonth && ` / ${monthNames.find(m => m.num === searchSessionMonth)?.label}`}
+                        {searchSessionDay && ` / ${searchSessionDay}`}
+                        {searchSessionStudent && ` / "${searchSessionStudent}"`}
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500 flex items-center gap-2">
+                      <CalendarDays className="w-4 h-4" />
+                      Affichage par défaut : séances à venir et du mois en cours ({upcomingAndCurrentMonthSessions.length} séance(s))
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Liste des Séances */}
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-900">Liste des Séances</h2>
               <div className="flex items-center gap-3">
-                {/* Bouton pour réinitialiser la recherche si filtre actif */}
-                {filteredSessionsSearch !== null && (
-                  <Button 
-                    onClick={resetSessionSearch}
-                    variant="outline"
-                    className="gap-2 border-gray-400 text-gray-600 hover:bg-gray-100"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    Afficher toutes les séances
-                  </Button>
-                )}
-                
-                {/* Bouton Rechercher une séance */}
-                <Dialog open={showSearchSession} onOpenChange={(open) => {
-                  setShowSearchSession(open);
-                  if (!open) {
-                    setSearchSessionMonth('');
-                    setSearchSessionDay('');
-                    setSearchSessionError('');
-                  }
-                }}>
-                  <DialogTrigger asChild>
-                    <Button className="gap-2 text-white" style={{ backgroundColor: '#4A6FA5' }}>
-                      <Search className="w-4 h-4" />
-                      Rechercher une séance
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-2">
-                        <Search className="w-5 h-5" style={{ color: TERCIFORM_BLUE }} />
-                        Rechercher une séance
-                      </DialogTitle>
-                      <DialogDescription>
-                        Recherchez par date (année, mois, jour)
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      {/* Sélecteur Année */}
-                      <div className="space-y-2">
-                        <Label>Année *</Label>
-                        <select
-                          value={searchSessionYear}
-                          onChange={(e) => setSearchSessionYear(parseInt(e.target.value))}
-                          className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md"
-                        >
-                          {yearsList.map(year => (
-                            <option key={year} value={year}>{year}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Sélecteur Mois */}
-                      <div className="space-y-2">
-                        <Label>Mois *</Label>
-                        <select
-                          value={searchSessionMonth}
-                          onChange={(e) => {
-                            setSearchSessionMonth(e.target.value);
-                            setSearchSessionDay(''); // Reset jour quand mois change
-                            setSearchSessionError('');
-                          }}
-                          className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md"
-                        >
-                          <option value="">-- Sélectionner un mois --</option>
-                          {monthNames.map(m => (
-                            <option key={m.num} value={m.num}>{m.label}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {/* Sélecteur Jour (optionnel) */}
-                      <div className="space-y-2">
-                        <Label>Jour (optionnel)</Label>
-                        <select
-                          value={searchSessionDay}
-                          onChange={(e) => {
-                            setSearchSessionDay(e.target.value);
-                            setSearchSessionError('');
-                          }}
-                          className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md"
-                          disabled={!searchSessionMonth}
-                        >
-                          <option value="">-- Tous les jours du mois --</option>
-                          {getDaysInMonth(searchSessionYear, parseInt(searchSessionMonth)).map(day => (
-                            <option key={day} value={day}>{day}</option>
-                          ))}
-                        </select>
-                        <p className="text-xs text-gray-500">
-                          💡 Laissez vide pour afficher toutes les séances du mois
-                        </p>
-                      </div>
-                      
-                      {searchSessionError && (
-                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                          <p className="text-sm text-red-700 flex items-center gap-2">
-                            <XCircle className="w-4 h-4 flex-shrink-0" />
-                            {searchSessionError}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    <DialogFooter>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => setShowSearchSession(false)}
-                      >
-                        Annuler
-                      </Button>
-                      <Button 
-                        type="button"
-                        onClick={handleSearchSession}
-                        style={{ backgroundColor: TERCIFORM_BLUE }}
-                        className="text-white gap-2"
-                      >
-                        <Search className="w-4 h-4" />
-                        Soumettre
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-
                 {/* Bouton Créer une séance */}
                 <Dialog open={showCreateSession} onOpenChange={setShowCreateSession}>
                   <DialogTrigger asChild>
