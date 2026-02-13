@@ -87,6 +87,9 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **Feb 13, 2026**: Removed duplicate year/month filter banner above "Heures totales" (search module below is sufficient)
+- **Feb 13, 2026**: Added email notification to managers when documents are uploaded (`send_document_notification_to_gestionnaires`)
+- **Feb 13, 2026**: Added "DOCUMENTS" tab in manager dashboard to view/download all student documents
 - **Feb 13, 2026**: Upcoming sessions simplified: removed emargement buttons/status, shows only "Renvoyer/Modifier/Supprimer" buttons
 - **Feb 13, 2026**: Jitsi "Rejoindre la visio" button moved to "Séances du jour" header (allows joining all remote students at once)
 - **Feb 13, 2026**: Session display: only show upcoming sessions and today - past sessions (including current month) are archived
