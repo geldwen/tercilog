@@ -2196,47 +2196,52 @@ export default function TeacherDashboard({ user, onLogout }) {
     setSearchError('');
   };
 
-  // Fonction de recherche de séance par date
-  const handleSearchSession = () => {
-    setSearchSessionError('');
-    
-    if (!searchSessionMonth) {
-      setSearchSessionError('Veuillez sélectionner au moins un mois');
+  // Fonction de recherche intégrée de séance (temps réel)
+  const handleIntegratedSearch = (year, month, day, studentName) => {
+    // Si aucun filtre actif, afficher les séances par défaut
+    if (!month && !day && !studentName) {
+      setFilteredSessionsSearch(null);
+      setIsSearchActive(false);
       return;
     }
-
-    // Construire la date de recherche
-    const monthStr = searchSessionMonth.toString().padStart(2, '0');
-    let searchDate = `${searchSessionYear}-${monthStr}`;
-    let dateLabel = `${monthNames.find(m => m.num === parseInt(searchSessionMonth))?.label} ${searchSessionYear}`;
     
-    if (searchSessionDay) {
-      const dayStr = searchSessionDay.toString().padStart(2, '0');
-      searchDate = `${searchSessionYear}-${monthStr}-${dayStr}`;
-      dateLabel = `${searchSessionDay} ${monthNames.find(m => m.num === parseInt(searchSessionMonth))?.label} ${searchSessionYear}`;
-    }
-
-    // Filtrer les séances
-    const results = sessions.filter(session => {
-      if (searchSessionDay) {
-        // Recherche par jour précis
-        return session.date === searchDate;
+    setIsSearchActive(true);
+    
+    let results = sessions;
+    
+    // Filtrer par année/mois/jour
+    if (month) {
+      const monthStr = month.toString().padStart(2, '0');
+      let searchDate = `${year}-${monthStr}`;
+      
+      if (day) {
+        const dayStr = day.toString().padStart(2, '0');
+        searchDate = `${year}-${monthStr}-${dayStr}`;
+        results = results.filter(session => session.date === searchDate);
       } else {
-        // Recherche par mois
-        return session.date.startsWith(searchDate);
+        results = results.filter(session => session.date.startsWith(searchDate));
       }
-    });
-
-    if (results.length === 0) {
-      setSearchSessionError(`Aucune séance trouvée pour le ${dateLabel}. Cette séance n'existe pas ou a été supprimée.`);
-      return;
+    } else {
+      // Filtrer par année seulement
+      results = results.filter(session => session.date.startsWith(`${year}`));
     }
-
-    // Succès - fermer le modal et afficher les résultats
+    
+    // Filtrer par nom d'élève
+    if (studentName && studentName.trim()) {
+      const searchTerm = studentName.toLowerCase().trim();
+      results = results.filter(session => {
+        const student = students.find(st => st.id === session.student_id);
+        const fullName = `${student?.name || ''} ${student?.last_name || ''}`.toLowerCase();
+        return fullName.includes(searchTerm) || session.student_name?.toLowerCase().includes(searchTerm);
+      });
+    }
+    
     setFilteredSessionsSearch(results);
-    setShowSearchSession(false);
-    setSearchSessionMonth('');
-    setSearchSessionDay('');
+  };
+
+  // Fonction de recherche de séance par date (ancienne - gardée pour compatibilité)
+  const handleSearchSession = () => {
+    handleIntegratedSearch(searchSessionYear, searchSessionMonth, searchSessionDay, searchSessionStudent);
   };
 
   // Fonction pour réinitialiser la recherche de séances
