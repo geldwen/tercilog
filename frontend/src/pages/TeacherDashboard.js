@@ -3252,7 +3252,42 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 )}
                                 
                                 {/* Menu Actions compact */}
-                                <div className="flex justify-end mt-3 gap-2">
+                                <div className="flex justify-end mt-3 gap-2 flex-wrap">
+                                  {/* Boutons directs d'émargement pour les sessions du jour uniquement */}
+                                  {(() => {
+                                    const today = new Date().toISOString().split('T')[0];
+                                    const sessionDate = group.date;
+                                    const isToday = sessionDate === today;
+                                    
+                                    if (isToday) {
+                                      return (
+                                        <>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleResendAttendanceEmail(session.id)}
+                                            className="gap-2 bg-orange-50 hover:bg-orange-100 border-orange-300 text-orange-700"
+                                            data-testid={`emargement-eleve-btn-${session.id}`}
+                                          >
+                                            <PenTool className="w-4 h-4" />
+                                            Émargement élève
+                                          </Button>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => openTeacherSignatureDialog(session)}
+                                            className="gap-2 bg-purple-50 hover:bg-purple-100 border-purple-300 text-purple-700"
+                                            data-testid={`emargement-prof-btn-${session.id}`}
+                                          >
+                                            <PenTool className="w-4 h-4 rotate-180" />
+                                            Émargement professeur
+                                          </Button>
+                                        </>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
+                                  
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button 
@@ -3273,20 +3308,34 @@ export default function TeacherDashboard({ user, onLogout }) {
                                         <Mail className="w-4 h-4 mr-2 text-blue-600" />
                                         Renvoyer confirmation
                                       </DropdownMenuItem>
-                                      <DropdownMenuItem 
-                                        onClick={() => handleResendAttendanceEmail(session.id)}
-                                        className="cursor-pointer"
-                                      >
-                                        <PenTool className="w-4 h-4 mr-2 text-orange-600" />
-                                        Renvoyer émargement élève
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem 
-                                        onClick={() => openTeacherSignatureDialog(session)}
-                                        className="cursor-pointer"
-                                      >
-                                        <PenTool className="w-4 h-4 mr-2 rotate-180" style={{ color: '#6B2E6F' }} />
-                                        Émargement professeur
-                                      </DropdownMenuItem>
+                                      {/* Options émargement masquées si session du jour (boutons directs visibles) */}
+                                      {(() => {
+                                        const today = new Date().toISOString().split('T')[0];
+                                        const sessionDate = group.date;
+                                        const isToday = sessionDate === today;
+                                        
+                                        if (!isToday) {
+                                          return (
+                                            <>
+                                              <DropdownMenuItem 
+                                                onClick={() => handleResendAttendanceEmail(session.id)}
+                                                className="cursor-pointer"
+                                              >
+                                                <PenTool className="w-4 h-4 mr-2 text-orange-600" />
+                                                Renvoyer émargement élève
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem 
+                                                onClick={() => openTeacherSignatureDialog(session)}
+                                                className="cursor-pointer"
+                                              >
+                                                <PenTool className="w-4 h-4 mr-2 rotate-180" style={{ color: '#6B2E6F' }} />
+                                                Émargement professeur
+                                              </DropdownMenuItem>
+                                            </>
+                                          );
+                                        }
+                                        return null;
+                                      })()}
                                       <DropdownMenuSeparator />
                                       <DropdownMenuItem 
                                         onClick={() => handleEditSession(session)}
