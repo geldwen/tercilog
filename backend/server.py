@@ -4212,6 +4212,117 @@ async def relance_questionnaire(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.post("/teachers/relance-test")
+async def relance_test(
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Envoyer une relance par email pour un test non passé"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    student_id = data.get("student_id")
+    test_type = data.get("test_type")  # T1, T2, T3
+    student_email = data.get("student_email")
+    student_name = data.get("student_name")
+    
+    if not all([student_id, test_type, student_email, student_name]):
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    
+    # Labels des tests
+    test_labels = {
+        "T1": "Test de positionnement (T1)",
+        "T2": "Test intermédiaire (T2)",
+        "T3": "Test final (T3)"
+    }
+    
+    label = test_labels.get(test_type, test_type)
+    first_name = student_name.split()[0] if student_name else "Apprenant"
+    teacher_name = current_user.name or "votre formateur"
+    
+    # Récupérer le parcours de l'élève
+    student = await db.users.find_one({"id": student_id}, {"_id": 0})
+    parcours = student.get("parcours", "") if student else ""
+    
+    # URL de l'application
+    app_url = os.environ.get("FRONTEND_URL", "https://learn-terciform.emergent.host")
+    
+    # Créer l'email de relance
+    email_subject = f"🎯 Rappel : Votre {label} vous attend !"
+    email_html = f"""<html>
+<body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;">
+<div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <div style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 24px; text-align: center;">
+    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">🎯 Rappel Test</h1>
+  </div>
+  
+  <div style="padding: 32px 24px;">
+    <p style="margin: 0 0 20px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
+        Bonjour <strong>{first_name}</strong>,
+    </p>
+    
+    <p style="margin: 0 0 20px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
+        Votre formateur <strong>{teacher_name}</strong> vous invite à passer le test suivant :
+    </p>
+    
+    <div style="background-color: #eef2ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #6366f1;">
+      <p style="margin: 0; font-size: 18px; color: #4338ca; font-weight: bold;">
+        📝 {label}
+      </p>
+      {f'<p style="margin: 8px 0 0 0; font-size: 14px; color: #6366f1;">Parcours : {parcours}</p>' if parcours else ''}
+    </div>
+    
+    <p style="margin: 0 0 20px 0; font-size: 16px; color: #1f2937; line-height: 1.8;">
+        Ce test est important pour évaluer votre progression et adapter votre formation.
+    </p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="{app_url}" style="display: inline-block; background-color: #6366f1; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+        Accéder à mon test
+      </a>
+    </div>
+    
+    <p style="margin: 24px 0 0 0; font-size: 15px; color: #6b7280;">
+        Bonne chance ! 💪
+    </p>
+  </div>
+  
+  <div style="background-color: #f9fafb; padding: 20px 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+    <p style="margin: 0; font-size: 13px; color: #9ca3af;">
+        Terciform © 2026 - Formation professionnelle
+    </p>
+  </div>
+</div>
+</body>
+</html>"""
+    
+    try:
+        # Envoyer l'email
+        email_sent = send_email(student_email, email_subject, email_html)
+        
+        if email_sent:
+            # Enregistrer la relance
+            await db.test_relances.insert_one({
+                "id": str(uuid.uuid4()),
+                "student_id": student_id,
+                "student_name": student_name,
+                "test_type": test_type,
+                "parcours": parcours,
+                "teacher_id": current_user.id,
+                "teacher_name": current_user.name,
+                "sent_at": datetime.now(timezone.utc).isoformat(),
+                "email_sent_to": student_email
+            })
+            
+            logger.info(f"✅ Relance {test_type} envoyée à {student_email} par {current_user.name}")
+            return {"message": f"Relance envoyée avec succès à {student_name}", "test_type": test_type}
+        else:
+            raise HTTPException(status_code=500, detail="Erreur lors de l'envoi de l'email")
+    except Exception as e:
+        logger.error(f"❌ Erreur relance test: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ============================================================================
 # PHASE 2 - ACTIONS FORMATEUR QUALIOPI
 # ============================================================================
