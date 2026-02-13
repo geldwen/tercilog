@@ -535,6 +535,17 @@ export default function TeacherDashboard({ user, onLogout }) {
     }
   };
 
+  // Fonction pour recalculer toutes les durées de séances
+  const handleFixDurations = async () => {
+    try {
+      const response = await axios.post(`${API}/sessions/fix-durations`);
+      toast.success(`${response.data.message} (${response.data.total_checked} vérifiées)`);
+      loadData(selectedMonth);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Erreur lors du recalcul");
+    }
+  };
+
   const handleCreateSession = async (e) => {
     e.preventDefault();
     try {
