@@ -87,6 +87,10 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **Feb 13, 2026**: Complete redesign of "Séances du jour" section with signature/timestamp display and pending status badges
+- **Feb 13, 2026**: Integrated search module with filters: year, month, day, student name (replaces blue search button)
+- **Feb 13, 2026**: Auto-archiving past sessions - only show upcoming and current month sessions by default
+- **Feb 13, 2026**: Removed useless pen button from today's sessions
 - **Feb 13, 2026**: Added direct "Émargement élève" and "Émargement professeur" buttons for today's sessions only
 - **Feb 13, 2026**: Removed signing options from dropdown menu for today's sessions (available via direct buttons)
 - **Feb 13, 2026**: Created `/api/teachers/relance-test` endpoint for test reminders
