@@ -2478,13 +2478,12 @@ export default function TeacherDashboard({ user, onLogout }) {
                 </div>
               )}
 
-            {/* Bulle Séance du jour - Compacte avec icônes */}
+            {/* Bulle Séances du jour - Avec signatures et statuts d'émargement */}
             {(() => {
-              const today = new Date().toISOString().split('T')[0];
+              const todayDate = new Date().toISOString().split('T')[0];
               const todaySessions = sessions
-                .filter(s => s.date === today)
+                .filter(s => s.date === todayDate)
                 .sort((a, b) => {
-                  // Trier par heure de début (start_time)
                   const timeA = a.start_time || '00:00';
                   const timeB = b.start_time || '00:00';
                   return timeA.localeCompare(timeB);
@@ -2503,12 +2502,24 @@ export default function TeacherDashboard({ user, onLogout }) {
               const getSubjectIcon = (subject) => {
                 const subjectLower = (subject || '').toLowerCase();
                 if (subjectLower.includes('anglais')) return '🇬🇧';
-                if (subjectLower.includes('informatique') || subjectLower.includes('bureautique')) return '💻';
+                if (subjectLower.includes('informatique') || subjectLower.includes('bureautique') || subjectLower.includes('excel')) return '💻';
                 if (subjectLower.includes('français')) return '🇫🇷';
                 if (subjectLower.includes('math')) return '🔢';
                 if (subjectLower.includes('espagnol')) return '🇪🇸';
                 if (subjectLower.includes('allemand')) return '🇩🇪';
                 return '📚';
+              };
+              
+              // Formater l'horodatage
+              const formatSignatureTime = (dateString) => {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                return date.toLocaleString('fr-FR', { 
+                  day: '2-digit', 
+                  month: '2-digit', 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                });
               };
               
               return (
@@ -2541,48 +2552,118 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <p className="text-sm text-gray-600">Aucune séance aujourd'hui</p>
                       </div>
                     ) : (
-                      <div className="space-y-1.5">
-                        {todaySessions.slice(0, 4).map(session => {
+                      <div className="space-y-3">
+                        {todaySessions.map(session => {
                           const student = students.find(st => st.id === session.student_id);
                           const isVisio = session.modality === 'distanciel' || session.meeting_link;
+                          
+                          // Déterminer les statuts d'émargement
+                          const hasStudentSignature = session.signature && session.signed_at;
+                          const hasTeacherSignature = session.teacher_signature && session.teacher_signed_at;
+                          const awaitingStudentSignature = !session.signature;
+                          const awaitingTeacherSignature = !session.teacher_signature;
                           
                           return (
                             <div 
                               key={session.id} 
-                              className="flex items-center justify-between p-2 rounded bg-white border border-gray-100 text-sm"
+                              className="p-3 rounded-lg bg-white border border-gray-200 shadow-sm"
+                              data-testid={`today-session-${session.id}`}
                             >
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                              {/* Ligne principale: Élève, matière, horaire */}
+                              <div className="flex items-center gap-2 mb-2">
                                 <span className="text-lg">{getSubjectIcon(session.subject)}</span>
                                 {isVisio ? (
                                   <Monitor className="w-4 h-4 text-blue-500 flex-shrink-0" />
                                 ) : (
                                   <School className="w-4 h-4 text-amber-500 flex-shrink-0" />
                                 )}
-                                <span className="font-medium truncate">{student?.name || 'Élève'}</span>
+                                <span className="font-semibold text-gray-900">{student?.name || 'Élève'}</span>
                                 <span className="text-gray-400">•</span>
-                                <span className="text-gray-600 truncate">{session.subject}</span>
-                                <span className="text-gray-400 text-xs">({session.start_time}-{session.end_time})</span>
+                                <span className="text-gray-600">{session.subject}</span>
+                                <span className="text-gray-500 text-sm">({session.start_time}-{session.end_time})</span>
                               </div>
-                              <div className="flex items-center gap-1 flex-shrink-0">
-                                {session.signature ? (
-                                  <span className="text-green-500 text-xs">✓</span>
-                                ) : (
-                                  <Button 
-                                    size="sm" 
-                                    variant="ghost"
-                                    className="h-6 px-2 text-xs text-orange-600 hover:bg-orange-50"
-                                    onClick={() => setCurrentSessionToSign(session)}
+                              
+                              {/* Section Signatures et Statuts */}
+                              <div className="flex flex-wrap items-center gap-2 mt-2">
+                                {/* Signature Élève */}
+                                {hasStudentSignature ? (
+                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
+                                    <img 
+                                      src={session.signature} 
+                                      alt="Signature élève" 
+                                      className="h-6 object-contain"
+                                    />
+                                    <span className="text-xs text-green-700">
+                                      Élève - {formatSignatureTime(session.signed_at)}
+                                    </span>
+                                  </div>
+                                ) : awaitingStudentSignature && (
+                                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-lg">
+                                    <Clock className="w-4 h-4 text-orange-500" />
+                                    <span className="text-xs text-orange-700 font-medium">
+                                      En attente émargement élève
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {/* Signature Formateur */}
+                                {hasTeacherSignature ? (
+                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-lg">
+                                    <img 
+                                      src={session.teacher_signature} 
+                                      alt="Signature formateur" 
+                                      className="h-6 object-contain"
+                                    />
+                                    <span className="text-xs text-purple-700">
+                                      Formateur - {formatSignatureTime(session.teacher_signed_at)}
+                                    </span>
+                                  </div>
+                                ) : awaitingTeacherSignature && (
+                                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-lg">
+                                    <Clock className="w-4 h-4 text-purple-500" />
+                                    <span className="text-xs text-purple-700 font-medium">
+                                      En attente émargement formateur
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Boutons d'action */}
+                              <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
+                                {awaitingStudentSignature && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleResendAttendanceEmail(session.id)}
+                                    className="gap-1.5 text-xs bg-orange-50 hover:bg-orange-100 border-orange-300 text-orange-700"
+                                    data-testid={`today-emargement-eleve-${session.id}`}
                                   >
-                                    <Edit className="w-3 h-3" />
+                                    <PenTool className="w-3 h-3" />
+                                    Émargement élève
                                   </Button>
+                                )}
+                                {awaitingTeacherSignature && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openTeacherSignatureDialog(session)}
+                                    className="gap-1.5 text-xs bg-purple-50 hover:bg-purple-100 border-purple-300 text-purple-700"
+                                    data-testid={`today-emargement-prof-${session.id}`}
+                                  >
+                                    <PenTool className="w-3 h-3" />
+                                    Émargement formateur
+                                  </Button>
+                                )}
+                                {hasStudentSignature && hasTeacherSignature && (
+                                  <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                                    <CheckCircle className="w-4 h-4" />
+                                    Séance complètement émargée
+                                  </span>
                                 )}
                               </div>
                             </div>
                           );
                         })}
-                        {todaySessions.length > 4 && (
-                          <p className="text-xs text-gray-500 text-center">+{todaySessions.length - 4} autres séances</p>
-                        )}
                       </div>
                     )}
                   </CardContent>
