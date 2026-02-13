@@ -84,6 +84,13 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **Feb 13, 2026**: Added direct "Émargement élève" and "Émargement professeur" buttons for today's sessions only
+- **Feb 13, 2026**: Removed signing options from dropdown menu for today's sessions (available via direct buttons)
+- **Feb 13, 2026**: Created `/api/teachers/relance-test` endpoint for test reminders
+- **Feb 13, 2026**: Moved "Recalculer heures" button inside "Heures totales du mois" card
+- **Feb 2026**: Excel course path created with 6 templates (T1, T2, T3, Q1, Q2, Q3)
+- **Feb 2026**: "Init Excel" button added for production data seeding
+- **Feb 2026**: Fixed session duration calculation bug
 - **Jan 30, 2026**: Redesigned SÉANCES tab with search module and 2-week upcoming view
 - **Jan 30, 2026**: Changed PDF button to purple round "Télécharger planning élève PDF"
 - **Jan 30, 2026**: Fixed exit filters to show 2025-2027 and all months
