@@ -3252,19 +3252,11 @@ export default function TeacherDashboard({ user, onLogout }) {
               </Dialog>
             </div>
 
-            {/* Indicateur de recherche active */}
-            {filteredSessionsSearch !== null && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between">
-                <p className="text-sm text-emerald-700 flex items-center gap-2">
-                  <Search className="w-4 h-4" />
-                  <span className="font-medium">{filteredSessionsSearch.length} séance(s) trouvée(s)</span> pour votre recherche
-                </p>
-              </div>
-            )}
-
             <div className="grid gap-4">
               {groupedSessionsList.length === 0 ? (
-                <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">Aucune séance</CardContent></Card>
+                <Card className="border-0 shadow-md"><CardContent className="pt-6 text-center text-gray-500">
+                  {isSearchActive ? "Aucune séance trouvée pour cette recherche" : "Aucune séance à venir"}
+                </CardContent></Card>
               ) : (
                 groupedSessionsList.map((group, idx) => (
                   <Card key={idx} className="shadow-md card-hover border-2" style={{ borderColor: TERCIFORM_BLUE }}>
