@@ -2422,8 +2422,17 @@ export default function TeacherDashboard({ user, onLogout }) {
                       </p>
                       <p className="text-xs text-gray-500 mt-1">{filteredSessions.length} séance(s)</p>
                     </div>
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
-                      <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: TERCIFORM_BLUE_LIGHT }}>
+                        <Calendar className="w-6 h-6" style={{ color: TERCIFORM_BLUE }} />
+                      </div>
+                      <button 
+                        onClick={handleFixDurations}
+                        className="w-8 h-8 bg-orange-500 text-white rounded flex items-center justify-center hover:bg-orange-600 transition-colors"
+                        title="Recalculer toutes les durées"
+                      >
+                        <span className="text-sm">🔄</span>
+                      </button>
                     </div>
                   </div>
                 </CardContent>
