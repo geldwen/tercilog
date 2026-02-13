@@ -3281,21 +3281,12 @@ export default function TeacherDashboard({ user, onLogout }) {
                             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mt-1">
                               <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{new Date(group.date).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
                               <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{group.start_time} - {group.end_time} ({group.duration_hours}h)</span>
-                              {/* Bouton Visio pour toute la séance - affiché uniquement pour le distanciel */}
+                              {/* Indicateur distanciel */}
                               {group.sessions[0]?.modality === 'distanciel' && (
-                                <a
-                                  href={generateJitsiLink(group.sessions[0])}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-white transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                                  style={{ 
-                                    backgroundColor: '#E91E63',
-                                    boxShadow: '0 4px 14px 0 rgba(233, 30, 99, 0.39)'
-                                  }}
-                                >
-                                  <Video className="w-4 h-4" />
-                                  Rejoindre la visio
-                                </a>
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                                  <Video className="w-3 h-3" />
+                                  Distanciel
+                                </span>
                               )}
                             </div>
                           </div>
@@ -3304,175 +3295,61 @@ export default function TeacherDashboard({ user, onLogout }) {
                           <p className="text-sm font-medium text-gray-700 mb-2">Élèves :</p>
                           <div className="space-y-3">
                             {group.sessions.map(session => (
-                              <div key={session.id} className="flex flex-col gap-3 py-3 px-3 bg-gray-50 rounded-lg border" style={{ borderColor: TERCIFORM_BLUE }}>
-                                {/* Ligne d'en-tête: Nom + Statut confirmation */}
-                                <div className="flex items-center justify-between gap-2">
+                              <div key={session.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg border" style={{ borderColor: TERCIFORM_BLUE }}>
+                                {/* Partie gauche: Nom + Statut confirmation */}
+                                <div className="flex items-center gap-3">
                                   <span className="font-semibold text-gray-900">{session.student_name}</span>
-                                  {session.status === 'confirmed' && session.validated_at && (
-                                    <span className="text-sm text-green-700 font-medium italic">
-                                      Confirmée le {formatDateWithDay(session.validated_at)}
+                                  {session.status === 'confirmed' && (
+                                    <span className="text-xs text-green-700 font-medium bg-green-100 px-2 py-0.5 rounded">
+                                      ✓ Confirmée
                                     </span>
                                   )}
-                                  {session.status === 'rejected' && session.validated_at && (
-                                    <span className="text-sm text-red-700 font-medium italic">
-                                      Refusée le {formatDateWithDay(session.validated_at)}
+                                  {session.status === 'rejected' && (
+                                    <span className="text-xs text-red-700 font-medium bg-red-100 px-2 py-0.5 rounded">
+                                      ✗ Refusée
                                     </span>
                                   )}
                                   {session.status === 'pending' && (
-                                    <span className="text-sm text-yellow-700 font-medium flex items-center gap-1">
-                                      <AlertCircle className="w-4 h-4" />
-                                      En attente de validation
+                                    <span className="text-xs text-yellow-700 font-medium bg-yellow-100 px-2 py-0.5 rounded flex items-center gap-1">
+                                      <AlertCircle className="w-3 h-3" />
+                                      En attente
                                     </span>
                                   )}
                                 </div>
                                 
-                                {/* Ligne Signatures - badges plus grands et visibles */}
-                                {(session.signature || session.teacher_signature || session.signature_status === "pending" || session.signature_status === "expired") && (
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    {/* Badge signature élève */}
-                                    {session.signature && session.signed_at && (
-                                      <span className="inline-flex items-center gap-2 bg-green-100 text-green-800 border border-green-300 text-base px-4 py-2 rounded-md font-medium">
-                                        ✓ Émargé le {formatDateTimeWithDay(session.signed_at)} — par l'élève
-                                        {session.signature && (
-                                          <img 
-                                            src={session.signature} 
-                                            alt="Signature élève" 
-                                            className="max-h-6 object-contain"
-                                          />
-                                        )}
-                                      </span>
-                                    )}
-                                    
-                                    {/* Badge signature formateur */}
-                                    {session.teacher_signature && session.teacher_signed_at && (
-                                      <span className="inline-flex items-center gap-2 bg-purple-100 text-purple-800 border border-purple-300 text-base px-4 py-2 rounded-md font-medium">
-                                        ✓ Émargé le {formatDateTimeWithDay(session.teacher_signed_at)} — par le formateur
-                                        {session.teacher_signature && (
-                                          <img 
-                                            src={session.teacher_signature} 
-                                            alt="Signature formateur" 
-                                            className="max-h-6 object-contain"
-                                          />
-                                        )}
-                                      </span>
-                                    )}
-                                    
-                                    {/* Statuts en attente */}
-                                    {session.signature_status === "pending" && !session.signature && (
-                                      <span className="px-3 py-1.5 bg-orange-100 text-orange-700 border border-orange-300 rounded-md text-sm font-medium">
-                                        ⏳ En attente d'émargement élève
-                                      </span>
-                                    )}
-                                    {session.signature_status === "expired" && (
-                                      <span className="px-3 py-1.5 bg-red-100 text-red-700 border border-red-300 rounded-md text-sm font-medium">
-                                        ⚠️ Émargement élève expiré
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                                
-                                {/* Menu Actions compact */}
-                                <div className="flex justify-end mt-3 gap-2 flex-wrap">
-                                  {/* Boutons directs d'émargement pour les sessions du jour uniquement */}
-                                  {(() => {
-                                    const today = new Date().toISOString().split('T')[0];
-                                    const sessionDate = group.date;
-                                    const isToday = sessionDate === today;
-                                    
-                                    if (isToday) {
-                                      return (
-                                        <>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleResendAttendanceEmail(session.id)}
-                                            className="gap-2 bg-orange-50 hover:bg-orange-100 border-orange-300 text-orange-700"
-                                            data-testid={`emargement-eleve-btn-${session.id}`}
-                                          >
-                                            <PenTool className="w-4 h-4" />
-                                            Émargement élève
-                                          </Button>
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => openTeacherSignatureDialog(session)}
-                                            className="gap-2 bg-purple-50 hover:bg-purple-100 border-purple-300 text-purple-700"
-                                            data-testid={`emargement-prof-btn-${session.id}`}
-                                          >
-                                            <PenTool className="w-4 h-4 rotate-180" />
-                                            Émargement professeur
-                                          </Button>
-                                        </>
-                                      );
-                                    }
-                                    return null;
-                                  })()}
-                                  
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button 
-                                        variant="outline" 
-                                        size="sm"
-                                        className="gap-2"
-                                        style={{ borderColor: TERCIFORM_BLUE, color: TERCIFORM_BLUE }}
-                                      >
-                                        <MoreVertical className="w-4 h-4" />
-                                        Actions
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56">
-                                      <DropdownMenuItem 
-                                        onClick={() => handleResendEmail(session.id)}
-                                        className="cursor-pointer"
-                                      >
-                                        <Mail className="w-4 h-4 mr-2 text-blue-600" />
-                                        Renvoyer confirmation
-                                      </DropdownMenuItem>
-                                      {/* Options émargement masquées si session du jour (boutons directs visibles) */}
-                                      {(() => {
-                                        const today = new Date().toISOString().split('T')[0];
-                                        const sessionDate = group.date;
-                                        const isToday = sessionDate === today;
-                                        
-                                        if (!isToday) {
-                                          return (
-                                            <>
-                                              <DropdownMenuItem 
-                                                onClick={() => handleResendAttendanceEmail(session.id)}
-                                                className="cursor-pointer"
-                                              >
-                                                <PenTool className="w-4 h-4 mr-2 text-orange-600" />
-                                                Renvoyer émargement élève
-                                              </DropdownMenuItem>
-                                              <DropdownMenuItem 
-                                                onClick={() => openTeacherSignatureDialog(session)}
-                                                className="cursor-pointer"
-                                              >
-                                                <PenTool className="w-4 h-4 mr-2 rotate-180" style={{ color: '#6B2E6F' }} />
-                                                Émargement professeur
-                                              </DropdownMenuItem>
-                                            </>
-                                          );
-                                        }
-                                        return null;
-                                      })()}
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem 
-                                        onClick={() => handleEditSession(session)}
-                                        className="cursor-pointer"
-                                      >
-                                        <Edit className="w-4 h-4 mr-2 text-green-600" />
-                                        Modifier
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem 
-                                        onClick={() => handleDeleteSession(session.id)}
-                                        className="cursor-pointer text-red-600"
-                                      >
-                                        <Trash2 className="w-4 h-4 mr-2" />
-                                        Supprimer
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
+                                {/* Partie droite: Boutons d'action directs */}
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleResendEmail(session.id)}
+                                    className="gap-1.5 text-xs h-8"
+                                    style={{ borderColor: TERCIFORM_BLUE, color: TERCIFORM_BLUE }}
+                                    data-testid={`resend-confirm-btn-${session.id}`}
+                                  >
+                                    <Mail className="w-3 h-3" />
+                                    Renvoyer
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEditSession(session)}
+                                    className="gap-1.5 text-xs h-8 border-green-500 text-green-600 hover:bg-green-50"
+                                    data-testid={`edit-session-btn-${session.id}`}
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                    Modifier
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDeleteSession(session.id)}
+                                    className="gap-1.5 text-xs h-8 border-red-500 text-red-600 hover:bg-red-50"
+                                    data-testid={`delete-session-btn-${session.id}`}
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Supprimer
+                                  </Button>
                                 </div>
                               </div>
                             ))}
