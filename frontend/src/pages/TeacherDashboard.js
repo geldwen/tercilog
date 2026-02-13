@@ -3426,16 +3426,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                 Init Excel
               </button>
 
-              {/* Bouton Recalculer les heures */}
-              <button 
-                onClick={handleFixDurations}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors shadow-md"
-                title="Recalculer toutes les durées et montants des séances"
-              >
-                <span>🔄</span>
-                Recalculer heures
-              </button>
-
               {/* Bouton Ajouter un élève */}
               <Dialog open={showCreateStudent} onOpenChange={setShowCreateStudent}>
                 <DialogTrigger asChild>
