@@ -2465,9 +2465,18 @@ export default function TeacherDashboard({ user, onLogout }) {
                       </p>
                       <p className="text-xs text-gray-500 mt-1">{filteredSessions.filter(s => !s.signature).length} séance(s) non émargée(s)</p>
                     </div>
-                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-green-600" />
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <Clock className="w-6 h-6 text-green-600" />
                       </div>
+                      <button 
+                        onClick={handleFixDurations}
+                        className="w-8 h-8 bg-orange-500 text-white rounded flex items-center justify-center hover:bg-orange-600 transition-colors"
+                        title="Recalculer toutes les durées"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </button>
+                    </div>
                     </div>
                   </CardContent>
                 </Card>
