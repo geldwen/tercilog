@@ -2569,80 +2569,91 @@ export default function TeacherDashboard({ user, onLogout }) {
                           return (
                             <div 
                               key={session.id} 
-                              className="p-3 rounded-lg bg-white border border-gray-200 shadow-sm"
+                              className="flex items-center justify-between p-3 rounded-lg bg-white border border-gray-200 shadow-sm gap-3"
                               data-testid={`today-session-${session.id}`}
                             >
-                              {/* Ligne principale: Élève, matière, horaire */}
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-lg">{getSubjectIcon(session.subject)}</span>
-                                {isVisio ? (
-                                  <Monitor className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                                ) : (
-                                  <School className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                                )}
-                                <span className="font-semibold text-gray-900">{student?.name || 'Élève'}</span>
-                                <span className="text-gray-400">•</span>
-                                <span className="text-gray-600">{session.subject}</span>
-                                <span className="text-gray-500 text-sm">({session.start_time}-{session.end_time})</span>
-                              </div>
-                              
-                              {/* Section Signatures et Statuts */}
-                              <div className="flex flex-wrap items-center gap-2 mt-2">
-                                {/* Signature Élève */}
-                                {hasStudentSignature ? (
-                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
-                                    <img 
-                                      src={session.signature} 
-                                      alt="Signature élève" 
-                                      className="h-6 object-contain"
-                                    />
-                                    <span className="text-xs text-green-700">
-                                      Élève - {formatSignatureTime(session.signed_at)}
-                                    </span>
-                                  </div>
-                                ) : awaitingStudentSignature && (
-                                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-lg">
-                                    <Clock className="w-4 h-4 text-orange-500" />
-                                    <span className="text-xs text-orange-700 font-medium">
-                                      En attente émargement élève
-                                    </span>
-                                  </div>
-                                )}
+                              {/* Partie gauche: Info session + statuts */}
+                              <div className="flex-1 min-w-0">
+                                {/* Ligne principale: Élève, matière, horaire */}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-lg">{getSubjectIcon(session.subject)}</span>
+                                  {isVisio ? (
+                                    <Monitor className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                                  ) : (
+                                    <School className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                                  )}
+                                  <span className="font-semibold text-gray-900">{student?.name || 'Élève'}</span>
+                                  <span className="text-gray-400">•</span>
+                                  <span className="text-gray-600">{session.subject}</span>
+                                  <span className="text-gray-500 text-sm">({session.start_time}-{session.end_time})</span>
+                                </div>
                                 
-                                {/* Signature Formateur */}
-                                {hasTeacherSignature ? (
-                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-lg">
-                                    <img 
-                                      src={session.teacher_signature} 
-                                      alt="Signature formateur" 
-                                      className="h-6 object-contain"
-                                    />
-                                    <span className="text-xs text-purple-700">
-                                      Formateur - {formatSignatureTime(session.teacher_signed_at)}
+                                {/* Section Signatures et Statuts - sous le nom */}
+                                <div className="flex flex-wrap items-center gap-2 mt-2">
+                                  {/* Signature Élève */}
+                                  {hasStudentSignature ? (
+                                    <div className="flex items-center gap-2 px-2 py-1 bg-green-100 border border-green-300 rounded">
+                                      <img 
+                                        src={session.signature} 
+                                        alt="Signature élève" 
+                                        className="h-5 object-contain"
+                                      />
+                                      <span className="text-xs text-green-800 font-medium">
+                                        Élève - {formatSignatureTime(session.signed_at)}
+                                      </span>
+                                    </div>
+                                  ) : awaitingStudentSignature && (
+                                    <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 border border-orange-300 rounded">
+                                      <Clock className="w-3 h-3 text-orange-600" />
+                                      <span className="text-xs text-orange-800 font-medium">
+                                        Attente élève
+                                      </span>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Signature Formateur */}
+                                  {hasTeacherSignature ? (
+                                    <div className="flex items-center gap-2 px-2 py-1 bg-purple-100 border border-purple-300 rounded">
+                                      <img 
+                                        src={session.teacher_signature} 
+                                        alt="Signature formateur" 
+                                        className="h-5 object-contain"
+                                      />
+                                      <span className="text-xs text-purple-800 font-medium">
+                                        Formateur - {formatSignatureTime(session.teacher_signed_at)}
+                                      </span>
+                                    </div>
+                                  ) : awaitingTeacherSignature && (
+                                    <div className="flex items-center gap-1 px-2 py-1 bg-purple-100 border border-purple-300 rounded">
+                                      <Clock className="w-3 h-3 text-purple-600" />
+                                      <span className="text-xs text-purple-800 font-medium">
+                                        Attente formateur
+                                      </span>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Badge séance complète */}
+                                  {hasStudentSignature && hasTeacherSignature && (
+                                    <span className="text-xs text-green-700 font-medium flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-300 rounded">
+                                      <CheckCircle className="w-3 h-3" />
+                                      Complète
                                     </span>
-                                  </div>
-                                ) : awaitingTeacherSignature && (
-                                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-lg">
-                                    <Clock className="w-4 h-4 text-purple-500" />
-                                    <span className="text-xs text-purple-700 font-medium">
-                                      En attente émargement formateur
-                                    </span>
-                                  </div>
-                                )}
+                                  )}
+                                </div>
                               </div>
                               
-                              {/* Boutons d'action */}
-                              <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
+                              {/* Partie droite: Boutons d'action en bout de ligne */}
+                              <div className="flex items-center gap-2 flex-shrink-0">
                                 {awaitingStudentSignature && (
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleResendAttendanceEmail(session.id)}
-                                    className="gap-1.5 text-xs bg-orange-50 hover:bg-orange-100 border-orange-300 text-orange-700"
+                                    className="gap-1.5 text-xs bg-orange-200 hover:bg-orange-300 border-orange-400 text-orange-900"
                                     data-testid={`today-emargement-eleve-${session.id}`}
                                   >
                                     <PenTool className="w-3 h-3" />
-                                    Émargement élève
+                                    Élève
                                   </Button>
                                 )}
                                 {awaitingTeacherSignature && (
@@ -2650,18 +2661,12 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => openTeacherSignatureDialog(session)}
-                                    className="gap-1.5 text-xs bg-purple-50 hover:bg-purple-100 border-purple-300 text-purple-700"
+                                    className="gap-1.5 text-xs bg-purple-200 hover:bg-purple-300 border-purple-400 text-purple-900"
                                     data-testid={`today-emargement-prof-${session.id}`}
                                   >
                                     <PenTool className="w-3 h-3" />
-                                    Émargement formateur
+                                    Formateur
                                   </Button>
-                                )}
-                                {hasStudentSignature && hasTeacherSignature && (
-                                  <span className="text-xs text-green-600 font-medium flex items-center gap-1">
-                                    <CheckCircle className="w-4 h-4" />
-                                    Séance complètement émargée
-                                  </span>
                                 )}
                               </div>
                             </div>
