@@ -87,6 +87,9 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **Feb 13, 2026**: Session display: only show upcoming sessions and today - past sessions (including current month) are archived
+- **Feb 13, 2026**: "Séances du jour" redesigned - buttons aligned right, more opaque colors (bg-orange-200, bg-purple-200)
+- **Feb 13, 2026**: Added orange refresh button (RefreshCw icon) to "Heures restantes du mois" card
 - **Feb 13, 2026**: Complete redesign of "Séances du jour" section with signature/timestamp display and pending status badges
 - **Feb 13, 2026**: Integrated search module with filters: year, month, day, student name (replaces blue search button)
 - **Feb 13, 2026**: Auto-archiving past sessions - only show upcoming and current month sessions by default
