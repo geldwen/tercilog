@@ -134,6 +134,13 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     loadData();
   }, []);
 
+  // Charger les documents quand les élèves sont chargés
+  useEffect(() => {
+    if (students.length > 0) {
+      loadAllDocuments();
+    }
+  }, [students]);
+
   // Charger le compteur de tickets non lus
   const loadUnreadTicketCount = async (clientId) => {
     try {
