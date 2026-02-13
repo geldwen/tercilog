@@ -957,6 +957,18 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                 <Gift className="w-5 h-5 mr-3" />
                 FIDÉLITÉ
               </TabsTrigger>
+              <TabsTrigger 
+                value="documents" 
+                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-blue-500 data-[state=inactive]:text-white data-[state=active]:bg-blue-600 data-[state=active]:text-white hover:shadow-xl"
+              >
+                <FolderOpen className="w-5 h-5 mr-3" />
+                DOCUMENTS
+                {allDocuments.length > 0 && (
+                  <span className="ml-2 bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
+                    {allDocuments.length}
+                  </span>
+                )}
+              </TabsTrigger>
             </TabsList>
           </div>
 
