@@ -2232,6 +2232,132 @@ export default function GestionnaireDashboard({ user, onLogout }) {
               </p>
             </div>
           </TabsContent>
+
+          {/* ===== ONGLET DOCUMENTS ===== */}
+          <TabsContent value="documents" className="space-y-6">
+            {/* Barre d'actions */}
+            <div className="flex items-center justify-between p-4 bg-white rounded-2xl shadow-lg">
+              <h2 className="text-xl font-bold text-gray-800">
+                Documents partagés ({allDocuments.length})
+              </h2>
+              <div className="flex gap-3 items-center">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher un document..."
+                    value={documentSearchQuery}
+                    onChange={(e) => setDocumentSearchQuery(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 w-64"
+                  />
+                </div>
+                <Button 
+                  onClick={loadAllDocuments} 
+                  variant="outline" 
+                  className="gap-2"
+                  disabled={loadingDocuments}
+                >
+                  {loadingDocuments ? (
+                    <Clock className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  Actualiser
+                </Button>
+              </div>
+            </div>
+
+            {/* Liste des documents */}
+            {loadingDocuments ? (
+              <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                <Clock className="w-12 h-12 mx-auto text-blue-300 mb-4 animate-spin" />
+                <p className="text-gray-500">Chargement des documents...</p>
+              </div>
+            ) : allDocuments.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                <FolderOpen className="w-20 h-20 mx-auto text-blue-200 mb-6" />
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">Aucun document</h2>
+                <p className="text-gray-500 text-lg">
+                  Les documents partagés par votre formateur apparaîtront ici.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="divide-y divide-gray-100">
+                  {allDocuments
+                    .filter(doc => {
+                      if (!documentSearchQuery.trim()) return true;
+                      const query = documentSearchQuery.toLowerCase();
+                      return (
+                        doc.filename.toLowerCase().includes(query) ||
+                        doc.student_name?.toLowerCase().includes(query) ||
+                        doc.category?.toLowerCase().includes(query)
+                      );
+                    })
+                    .map((doc, idx) => {
+                      const categoryLabels = {
+                        administratif: { label: 'Administratif', color: 'bg-purple-100 text-purple-700' },
+                        pedagogique: { label: 'Pédagogique', color: 'bg-green-100 text-green-700' },
+                        facturation: { label: 'Facturation', color: 'bg-yellow-100 text-yellow-700' },
+                        autre: { label: 'Autre', color: 'bg-gray-100 text-gray-700' }
+                      };
+                      const catInfo = categoryLabels[doc.category] || categoryLabels.autre;
+                      const uploadDate = doc.uploaded_at 
+                        ? new Date(doc.uploaded_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                        : 'Date inconnue';
+                      
+                      return (
+                        <div key={doc.id || idx} className="p-4 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="p-3 bg-blue-100 rounded-lg">
+                                <FileText className="w-6 h-6 text-blue-600" />
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-gray-900">{doc.filename}</h4>
+                                <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+                                  <span className="flex items-center gap-1">
+                                    <Users className="w-3 h-3" />
+                                    {doc.student_name || 'Élève'}
+                                  </span>
+                                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${catInfo.color}`}>
+                                    {catInfo.label}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {uploadDate}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <a
+                                href={`${API}/students/${doc.student_id}/documents/download/${doc.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                              >
+                                <Download className="w-4 h-4" />
+                                Télécharger
+                              </a>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(`${API}/students/${doc.student_id}/documents/download/${doc.id}`, '_blank')}
+                                className="gap-2"
+                              >
+                                <Eye className="w-4 h-4" />
+                                Consulter
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </main>
 
