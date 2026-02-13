@@ -1946,11 +1946,25 @@ export default function TeacherDashboard({ user, onLogout }) {
     return `${dayName} ${formatted} à ${time}`;
   };
 
+  // Filtrer les séances : par défaut, uniquement les séances à venir + mois en cours
+  const today = new Date().toISOString().split('T')[0];
+  const currentMonth = today.substring(0, 7); // Format "YYYY-MM"
+  
+  // Sessions du mois sélectionné (pour les calculs)
   const filteredSessions = sessions.filter(s => s.date.startsWith(selectedMonth));
+  
+  // Sessions à afficher dans la liste : seulement à venir + mois en cours (sauf si recherche active)
+  const upcomingAndCurrentMonthSessions = sessions.filter(s => {
+    // Séance à venir (date >= aujourd'hui)
+    const isUpcoming = s.date >= today;
+    // OU séance du mois en cours
+    const isCurrentMonth = s.date.startsWith(currentMonth);
+    return isUpcoming || isCurrentMonth;
+  });
 
   // Grouper par date + matière + horaire
-  // Utiliser les résultats de recherche si disponibles, sinon les séances du mois sélectionné
-  const sessionsToDisplay = filteredSessionsSearch !== null ? filteredSessionsSearch : filteredSessions;
+  // Utiliser les résultats de recherche si disponibles, sinon les séances à venir + mois en cours
+  const sessionsToDisplay = filteredSessionsSearch !== null ? filteredSessionsSearch : upcomingAndCurrentMonthSessions;
   const groupedSessions = {};
   sessionsToDisplay.forEach(session => {
     const key = `${session.date}_${session.subject}_${session.start_time}_${session.end_time}`;
