@@ -2819,7 +2819,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                   ) : (
                     <p className="text-sm text-gray-500 flex items-center gap-2">
                       <CalendarDays className="w-4 h-4" />
-                      Affichage par défaut : séances à venir et du mois en cours ({upcomingAndCurrentMonthSessions.length} séance(s))
+                      Affichage par défaut : séances à venir et du jour ({upcomingAndCurrentMonthSessions.length} séance(s))
+                      <span className="text-xs text-gray-400 ml-2">• Les séances passées sont accessibles via la recherche</span>
                     </p>
                   )}
                 </div>
