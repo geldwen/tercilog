@@ -11745,6 +11745,92 @@ def send_new_student_notification_to_gestionnaires(student_name: str, student_or
     return emails_sent
 
 
+def send_document_notification_to_gestionnaires(document_name: str, student_name: str, category: str, gestionnaire_emails: list):
+    """Envoie une notification aux gestionnaires quand un document est créé/uploadé"""
+    
+    portal_url = os.environ.get('FRONTEND_URL', 'https://learn-path-excel.preview.emergentagent.com')
+    
+    # Traduction des catégories
+    category_labels = {
+        "administratif": "Administratif",
+        "pedagogique": "Pédagogique",
+        "facturation": "Facturation",
+        "autre": "Autre"
+    }
+    category_label = category_labels.get(category, category)
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+        <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <!-- Header avec logo TerciForm -->
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 35px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 600;">📄 Nouveau Document</h1>
+            </div>
+            
+            <!-- Contenu -->
+            <div style="padding: 35px;">
+                <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 12px; padding: 25px; margin: 20px 0; border: 1px solid #93c5fd;">
+                    <p style="margin: 0; font-size: 16px; color: #1e40af; font-weight: 500;">
+                        Votre formateur a créé un document.<br>
+                        Vous pouvez dès à présent le consulter dans votre espace gestion.
+                    </p>
+                </div>
+                
+                <div style="background-color: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500;">📁 Document :</td>
+                            <td style="padding: 10px 0; color: #1e293b; font-weight: 600;">{document_name}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500;">👤 Élève :</td>
+                            <td style="padding: 10px 0; color: #1e293b; font-weight: 600;">{student_name}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500;">📂 Catégorie :</td>
+                            <td style="padding: 10px 0; color: #1e293b; font-weight: 600;">{category_label}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="text-align: center; margin: 35px 0;">
+                    <a href="{portal_url}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 16px 35px; text-decoration: none; border-radius: 30px; display: inline-block; font-weight: 600; font-size: 15px; box-shadow: 0 4px 15px rgba(30,58,95,0.3);">
+                        Consulter le document
+                    </a>
+                </div>
+                
+                <p style="font-size: 16px; color: #374151; margin: 25px 0; text-align: center;">
+                    À bientôt !
+                </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f1f5f9; padding: 25px; text-align: center; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 13px; color: #64748b;">
+                    TerciForm - Formation Professionnelle<br>
+                    Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    emails_sent = []
+    for email in gestionnaire_emails:
+        if email:
+            success = send_email(email, f"TerciForm - Nouveau document : {document_name}", html_body)
+            if success:
+                emails_sent.append(email)
+                logger.info(f"✅ Notification document envoyée à {email}")
+            else:
+                logger.warning(f"⚠️ Échec envoi notification document à {email}")
+    
+    return emails_sent
+
+
 @api_router.put("/clients/{client_id}")
 async def update_client(
     client_id: str,
