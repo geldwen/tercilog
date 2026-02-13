@@ -244,13 +244,13 @@ export default function TeacherDashboard({ user, onLogout }) {
   const [filteredStudents, setFilteredStudents] = useState(null); // null = afficher tous, [] = aucun résultat, [...] = résultats filtrés
   const [searchError, setSearchError] = useState('');
 
-  // États pour la recherche de séance
-  const [showSearchSession, setShowSearchSession] = useState(false);
+  // États pour la recherche de séance - Module intégré
   const [searchSessionYear, setSearchSessionYear] = useState(new Date().getFullYear());
   const [searchSessionMonth, setSearchSessionMonth] = useState('');
   const [searchSessionDay, setSearchSessionDay] = useState('');
+  const [searchSessionStudent, setSearchSessionStudent] = useState(''); // Recherche par nom d'élève
   const [filteredSessionsSearch, setFilteredSessionsSearch] = useState(null); // null = utiliser filteredSessions par défaut
-  const [searchSessionError, setSearchSessionError] = useState('');
+  const [isSearchActive, setIsSearchActive] = useState(false); // Indique si une recherche est en cours
 
   // États pour le modal d'envoi de justificatifs signés
   const [attendanceStudent, setAttendanceStudent] = useState(null);
