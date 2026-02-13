@@ -87,6 +87,8 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **Feb 13, 2026**: Upcoming sessions simplified: removed emargement buttons/status, shows only "Renvoyer/Modifier/Supprimer" buttons
+- **Feb 13, 2026**: Jitsi "Rejoindre la visio" button moved to "Séances du jour" header (allows joining all remote students at once)
 - **Feb 13, 2026**: Session display: only show upcoming sessions and today - past sessions (including current month) are archived
 - **Feb 13, 2026**: "Séances du jour" redesigned - buttons aligned right, more opaque colors (bg-orange-200, bg-purple-200)
 - **Feb 13, 2026**: Added orange refresh button (RefreshCw icon) to "Heures restantes du mois" card
