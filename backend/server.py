@@ -8266,6 +8266,35 @@ async def upload_student_document(
     await db.student_documents.insert_one(doc_dict)
     
     logger.info(f"Document uploaded: {file.filename} for student {student_id} in category {category}")
+    
+    # NOTIFICATION AUX GESTIONNAIRES
+    try:
+        # Récupérer le client associé à l'élève
+        client_id = student.get('client_id')
+        if client_id:
+            client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+            if client:
+                # Collecter tous les emails de gestionnaires
+                gestionnaire_emails = []
+                if client.get('email_gestionnaire'):
+                    gestionnaire_emails.append(client.get('email_gestionnaire'))
+                gestionnaires = client.get('gestionnaires', [])
+                for g in gestionnaires:
+                    if g.get('email'):
+                        gestionnaire_emails.append(g.get('email'))
+                
+                if gestionnaire_emails:
+                    student_name = student.get('name', 'Élève')
+                    send_document_notification_to_gestionnaires(
+                        document_name=file.filename,
+                        student_name=student_name,
+                        category=category,
+                        gestionnaire_emails=gestionnaire_emails
+                    )
+                    logger.info(f"✅ Notification document envoyée aux gestionnaires: {gestionnaire_emails}")
+    except Exception as e:
+        logger.error(f"❌ Erreur envoi notification document aux gestionnaires: {e}")
+    
     return document
 
 
