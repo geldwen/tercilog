@@ -2549,8 +2549,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                         </div>
                       </div>
                       
-                      {/* Bouton Rejoindre la visio - en en-tête pour tous les élèves distanciels */}
-                      {hasVisioToday && visioLinkToday && (
+                      {/* Bouton Rejoindre la visio - en en-tête pour toutes les séances du jour */}
+                      {todaySessions.length > 0 && visioLinkToday && (
                         <a
                           href={generateJitsiLink(visioLinkToday)}
                           target="_blank"
@@ -2564,9 +2564,9 @@ export default function TeacherDashboard({ user, onLogout }) {
                         >
                           <Video className="w-4 h-4" />
                           Rejoindre la visio
-                          {visioSessionsToday.length > 1 && (
+                          {todaySessions.length > 1 && (
                             <span className="bg-white/20 text-white text-xs px-1.5 py-0.5 rounded">
-                              {visioSessionsToday.length} élèves
+                              {todaySessions.length} élèves
                             </span>
                           )}
                         </a>
