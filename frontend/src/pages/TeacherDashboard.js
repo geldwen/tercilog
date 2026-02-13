@@ -2448,7 +2448,7 @@ export default function TeacherDashboard({ user, onLogout }) {
                         className="w-8 h-8 bg-orange-500 text-white rounded flex items-center justify-center hover:bg-orange-600 transition-colors"
                         title="Recalculer toutes les durées"
                       >
-                        <span className="text-sm">🔄</span>
+                        <RefreshCw className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
