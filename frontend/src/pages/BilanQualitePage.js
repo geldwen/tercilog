@@ -905,28 +905,27 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     stars: "Étoiles",
   };
 
-  const ignoredFields = ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data', 'signed_at'];
+  const ignoredFields = ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data', 'signed_at', 'answers', 'responses'];
 
   const getResponses = () => {
     if (!data) return [];
     const responses = [];
     
-    const processValue = (key, value, parentLabel = "") => {
-      if (ignoredFields.includes(key)) return;
+    const processValue = (key, value, depth = 0) => {
+      // Protection contre récursion infinie
+      if (depth > 3) return;
+      
+      // Ignorer certains champs
+      if (ignoredFields.includes(key.toLowerCase())) return;
       if (value === null || value === undefined || value === "") return;
       
-      // Si c'est la clé 'answers' ou 'responses', parcourir ses enfants
-      if ((key === 'answers' || key === 'responses') && typeof value === 'object' && !Array.isArray(value)) {
-        Object.entries(value).forEach(([k, v]) => {
-          processValue(k, v);
-        });
-        return;
-      }
+      // Ignorer les signatures (base64)
+      if (typeof value === 'string' && value.startsWith('data:image')) return;
       
       // Si c'est un objet imbriqué (mais pas un array), le parcourir récursivement
       if (typeof value === 'object' && !Array.isArray(value)) {
         Object.entries(value).forEach(([k, v]) => {
-          processValue(k, v, fieldLabels[key] || key);
+          processValue(k, v, depth + 1);
         });
         return;
       }
@@ -939,7 +938,7 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
         displayValue = value ? 'Oui' : 'Non';
       } else if (typeof value === 'number') {
         // Pour les notes/étoiles
-        if (key.includes('stars') || key.includes('rating') || key.includes('note')) {
+        if (key.includes('stars') || key.includes('rating') || key.includes('note') || key.includes('overall')) {
           displayValue = `${value}/5 ⭐`;
         } else {
           displayValue = String(value);
@@ -948,12 +947,12 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
         displayValue = String(value);
       }
       
-      const label = fieldLabels[key] || key.replace(/_/g, ' ');
+      const label = fieldLabels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
       responses.push({ label, value: displayValue });
     };
     
     Object.entries(data).forEach(([key, value]) => {
-      processValue(key, value);
+      processValue(key, value, 0);
     });
     
     return responses;
