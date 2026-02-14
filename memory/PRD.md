@@ -87,6 +87,12 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **Feb 14, 2026**: Removed "Absent" button from student cards (Fiche élève) - now managed via checkboxes in daily sessions
+- **Feb 14, 2026**: Removed "Attente élève/formateur" badges from Séances du jour - only show signatures when signed
+- **Feb 14, 2026**: Added green checkbox (present) and red checkbox (absent) next to subject in Séances du jour
+- **Feb 14, 2026**: Session list now shows only current date to end of month (e.g., Feb 14-28) - use search for past/future
+- **Feb 14, 2026**: Past sessions (search results) show signatures, hide action buttons (Renvoyer/Modifier/Supprimer)
+- **Feb 14, 2026**: Emargement buttons stacked vertically with full text "Émargement élève" / "Émargement professeur"
 - **Feb 13, 2026**: Removed duplicate year/month filter banner above "Heures totales" (search module below is sufficient)
 - **Feb 13, 2026**: Added email notification to managers when documents are uploaded (`send_document_notification_to_gestionnaires`)
 - **Feb 13, 2026**: Added "DOCUMENTS" tab in manager dashboard to view/download all student documents
