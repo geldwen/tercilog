@@ -910,17 +910,52 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
   const getResponses = () => {
     if (!data) return [];
     const responses = [];
-    Object.entries(data).forEach(([key, value]) => {
+    
+    const processValue = (key, value, parentLabel = "") => {
       if (ignoredFields.includes(key)) return;
       if (value === null || value === undefined || value === "") return;
-      if (key === 'answers' && typeof value === 'object') {
+      
+      // Si c'est la clé 'answers' ou 'responses', parcourir ses enfants
+      if ((key === 'answers' || key === 'responses') && typeof value === 'object' && !Array.isArray(value)) {
         Object.entries(value).forEach(([k, v]) => {
-          if (v) responses.push({ label: fieldLabels[k] || k.replace(/_/g, ' '), value: String(v) });
+          processValue(k, v);
         });
-      } else {
-        responses.push({ label: fieldLabels[key] || key.replace(/_/g, ' '), value: Array.isArray(value) ? value.join(", ") : String(value) });
+        return;
       }
+      
+      // Si c'est un objet imbriqué (mais pas un array), le parcourir récursivement
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        Object.entries(value).forEach(([k, v]) => {
+          processValue(k, v, fieldLabels[key] || key);
+        });
+        return;
+      }
+      
+      // Formater la valeur
+      let displayValue;
+      if (Array.isArray(value)) {
+        displayValue = value.join(", ");
+      } else if (typeof value === 'boolean') {
+        displayValue = value ? 'Oui' : 'Non';
+      } else if (typeof value === 'number') {
+        // Pour les notes/étoiles
+        if (key.includes('stars') || key.includes('rating') || key.includes('note')) {
+          displayValue = `${value}/5 ⭐`;
+        } else {
+          displayValue = String(value);
+        }
+      } else {
+        displayValue = String(value);
+      }
+      
+      const label = fieldLabels[key] || key.replace(/_/g, ' ');
+      responses.push({ label, value: displayValue });
+    };
+    
+    Object.entries(data).forEach(([key, value]) => {
+      processValue(key, value);
     });
+    
     return responses;
   };
 
