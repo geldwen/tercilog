@@ -2542,12 +2542,12 @@ export default function TeacherDashboard({ user, onLogout }) {
                           return (
                             <div 
                               key={session.id} 
-                              className="flex items-center justify-between p-3 rounded-lg bg-white border border-gray-200 shadow-sm gap-3"
+                              className={`flex items-center justify-between p-3 rounded-lg bg-white border shadow-sm gap-3 ${session.is_absent ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}
                               data-testid={`today-session-${session.id}`}
                             >
                               {/* Partie gauche: Info session + statuts */}
                               <div className="flex-1 min-w-0">
-                                {/* Ligne principale: Élève, matière, horaire */}
+                                {/* Ligne principale: Élève, matière, horaire + checkboxes présence */}
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className="text-lg">{getSubjectIcon(session.subject)}</span>
                                   {isVisio ? (
@@ -2559,12 +2559,61 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   <span className="text-gray-400">•</span>
                                   <span className="text-gray-600">{session.subject}</span>
                                   <span className="text-gray-500 text-sm">({session.start_time}-{session.end_time})</span>
+                                  
+                                  {/* Checkboxes Présent/Absent */}
+                                  <div className="flex items-center gap-1 ml-2">
+                                    <button
+                                      onClick={async () => {
+                                        if (session.is_absent) {
+                                          // Remettre présent (annuler absence)
+                                          try {
+                                            await axios.patch(`${API}/sessions/${session.id}/mark-absent`, {}, {
+                                              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                            });
+                                            loadData(selectedMonth);
+                                            toast.success('Élève marqué présent');
+                                          } catch (e) {
+                                            toast.error('Erreur');
+                                          }
+                                        }
+                                        // Si déjà présent, ne rien faire
+                                      }}
+                                      className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${!session.is_absent ? 'bg-green-500 border-green-600 text-white' : 'bg-white border-green-400 hover:bg-green-100'}`}
+                                      title="Présent"
+                                    >
+                                      {!session.is_absent && <CheckCircle className="w-4 h-4" />}
+                                    </button>
+                                    <button
+                                      onClick={async () => {
+                                        if (!session.is_absent) {
+                                          // Marquer absent
+                                          try {
+                                            await axios.patch(`${API}/sessions/${session.id}/mark-absent`, {}, {
+                                              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                            });
+                                            loadData(selectedMonth);
+                                            toast.success('Élève marqué absent');
+                                          } catch (e) {
+                                            toast.error('Erreur');
+                                          }
+                                        }
+                                        // Si déjà absent, ne rien faire
+                                      }}
+                                      className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${session.is_absent ? 'bg-red-500 border-red-600 text-white' : 'bg-white border-red-400 hover:bg-red-100'}`}
+                                      title="Absent"
+                                    >
+                                      {session.is_absent && <XCircle className="w-4 h-4" />}
+                                    </button>
+                                  </div>
+                                  {session.is_absent && (
+                                    <span className="text-xs text-red-600 font-medium ml-1">ABSENT</span>
+                                  )}
                                 </div>
                                 
-                                {/* Section Signatures et Statuts - sous le nom */}
+                                {/* Section Signatures uniquement (plus de badges "Attente") */}
                                 <div className="flex flex-wrap items-center gap-2 mt-2">
-                                  {/* Signature Élève */}
-                                  {hasStudentSignature ? (
+                                  {/* Signature Élève - affichée seulement si signée */}
+                                  {hasStudentSignature && (
                                     <div className="flex items-center gap-2 px-2 py-1 bg-green-100 border border-green-300 rounded">
                                       <img 
                                         src={session.signature} 
@@ -2575,17 +2624,10 @@ export default function TeacherDashboard({ user, onLogout }) {
                                         Élève - {formatSignatureTime(session.signed_at)}
                                       </span>
                                     </div>
-                                  ) : awaitingStudentSignature && (
-                                    <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 border border-orange-300 rounded">
-                                      <Clock className="w-3 h-3 text-orange-600" />
-                                      <span className="text-xs text-orange-800 font-medium">
-                                        Attente élève
-                                      </span>
-                                    </div>
                                   )}
                                   
-                                  {/* Signature Formateur */}
-                                  {hasTeacherSignature ? (
+                                  {/* Signature Formateur - affichée seulement si signée */}
+                                  {hasTeacherSignature && (
                                     <div className="flex items-center gap-2 px-2 py-1 bg-purple-100 border border-purple-300 rounded">
                                       <img 
                                         src={session.teacher_signature} 
@@ -2594,13 +2636,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                                       />
                                       <span className="text-xs text-purple-800 font-medium">
                                         Formateur - {formatSignatureTime(session.teacher_signed_at)}
-                                      </span>
-                                    </div>
-                                  ) : awaitingTeacherSignature && (
-                                    <div className="flex items-center gap-1 px-2 py-1 bg-purple-100 border border-purple-300 rounded">
-                                      <Clock className="w-3 h-3 text-purple-600" />
-                                      <span className="text-xs text-purple-800 font-medium">
-                                        Attente formateur
                                       </span>
                                     </div>
                                   )}
@@ -2615,30 +2650,30 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 </div>
                               </div>
                               
-                              {/* Partie droite: Boutons d'action en bout de ligne */}
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                {awaitingStudentSignature && (
+                              {/* Partie droite: Boutons d'émargement empilés verticalement */}
+                              <div className="flex flex-col gap-1 flex-shrink-0">
+                                {awaitingStudentSignature && !session.is_absent && (
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleResendAttendanceEmail(session.id)}
-                                    className="gap-1.5 text-xs bg-orange-200 hover:bg-orange-300 border-orange-400 text-orange-900"
+                                    className="gap-1.5 text-xs bg-orange-200 hover:bg-orange-300 border-orange-400 text-orange-900 w-full justify-start"
                                     data-testid={`today-emargement-eleve-${session.id}`}
                                   >
                                     <PenTool className="w-3 h-3" />
-                                    Élève
+                                    Émargement élève
                                   </Button>
                                 )}
-                                {awaitingTeacherSignature && (
+                                {awaitingTeacherSignature && !session.is_absent && (
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => openTeacherSignatureDialog(session)}
-                                    className="gap-1.5 text-xs bg-purple-200 hover:bg-purple-300 border-purple-400 text-purple-900"
+                                    className="gap-1.5 text-xs bg-purple-200 hover:bg-purple-300 border-purple-400 text-purple-900 w-full justify-start"
                                     data-testid={`today-emargement-prof-${session.id}`}
                                   >
                                     <PenTool className="w-3 h-3" />
-                                    Formateur
+                                    Émargement professeur
                                   </Button>
                                 )}
                               </div>
