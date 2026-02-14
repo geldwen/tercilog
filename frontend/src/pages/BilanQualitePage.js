@@ -1351,17 +1351,29 @@ const DefinirActionModal = ({ eleve, qType, qData, needStatus, onClose, onSave, 
 
         {/* Footer */}
         {hasNeed && (
-          <div className="p-4 bg-gray-100 border-t flex justify-between items-center rounded-b-xl">
-            <p className="text-xs text-gray-500">Le formateur reste décisionnaire.</p>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={onClose}>Annuler</Button>
-              <Button 
-                onClick={handleSave} 
-                disabled={saving || selectedActions.length === 0 || !signatureData}
-                className="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
-              >
-                {saving ? "Enregistrement..." : "Signer et Valider"}
-              </Button>
+          <div className="p-4 bg-gray-100 border-t rounded-b-xl">
+            {/* Messages d'aide pour activer le bouton */}
+            {(selectedActions.length === 0 || !signatureData) && (
+              <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                <p className="font-medium">Pour valider, veuillez :</p>
+                <ul className="list-disc ml-5 mt-1">
+                  {selectedActions.length === 0 && <li>Sélectionner au moins un besoin ci-dessus</li>}
+                  {!signatureData && <li>Apposer votre signature dans le cadre prévu</li>}
+                </ul>
+              </div>
+            )}
+            <div className="flex justify-between items-center">
+              <p className="text-xs text-gray-500">Le formateur reste décisionnaire.</p>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={onClose}>Annuler</Button>
+                <Button 
+                  onClick={handleSave} 
+                  disabled={saving || selectedActions.length === 0 || !signatureData}
+                  className="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
+                >
+                  {saving ? "Enregistrement..." : "Signer et Valider"}
+                </Button>
+              </div>
             </div>
           </div>
         )}
