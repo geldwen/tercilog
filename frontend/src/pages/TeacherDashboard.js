@@ -2824,8 +2824,8 @@ export default function TeacherDashboard({ user, onLogout }) {
                   ) : (
                     <p className="text-sm text-gray-500 flex items-center gap-2">
                       <CalendarDays className="w-4 h-4" />
-                      Affichage par défaut : séances à venir et du jour ({upcomingAndCurrentMonthSessions.length} séance(s))
-                      <span className="text-xs text-gray-400 ml-2">• Les séances passées sont accessibles via la recherche</span>
+                      Affichage : du {new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' })} au {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' })} ({upcomingAndCurrentMonthSessions.length} séance(s))
+                      <span className="text-xs text-gray-400 ml-2">• Utilisez la recherche pour les séances passées ou futures</span>
                     </p>
                   )}
                 </div>
