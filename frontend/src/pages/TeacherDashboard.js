@@ -1946,22 +1946,28 @@ export default function TeacherDashboard({ user, onLogout }) {
     return `${dayName} ${formatted} à ${time}`;
   };
 
-  // Filtrer les séances : par défaut, uniquement les séances à venir (date >= aujourd'hui)
+  // Filtrer les séances : par défaut, uniquement du jour jusqu'à la fin du mois en cours
   const today = new Date().toISOString().split('T')[0];
   const currentMonth = today.substring(0, 7); // Format "YYYY-MM"
+  
+  // Calculer la fin du mois en cours
+  const todayDate = new Date();
+  const lastDayOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 0);
+  const endOfMonth = lastDayOfMonth.toISOString().split('T')[0];
   
   // Sessions du mois sélectionné (pour les calculs)
   const filteredSessions = sessions.filter(s => s.date.startsWith(selectedMonth));
   
-  // Sessions à afficher dans la liste : seulement à venir (date >= aujourd'hui)
-  // Les séances passées (même du mois en cours) sont historisées et n'apparaissent que via recherche
+  // Sessions à afficher dans la liste : du jour jusqu'à la fin du mois en cours
+  // Exemple: si on est le 14 février, on affiche du 14 au 28 février
+  // Les séances passées ou futures (autres mois) n'apparaissent que via recherche
   const upcomingAndCurrentMonthSessions = sessions.filter(s => {
-    // Séance à venir ou du jour (date >= aujourd'hui)
-    return s.date >= today;
+    // Séance entre aujourd'hui et fin du mois en cours
+    return s.date >= today && s.date <= endOfMonth;
   });
 
   // Grouper par date + matière + horaire
-  // Utiliser les résultats de recherche si disponibles, sinon les séances à venir + mois en cours
+  // Utiliser les résultats de recherche si disponibles, sinon les séances du jour à fin de mois
   const sessionsToDisplay = filteredSessionsSearch !== null ? filteredSessionsSearch : upcomingAndCurrentMonthSessions;
   const groupedSessions = {};
   sessionsToDisplay.forEach(session => {
