@@ -3276,13 +3276,24 @@ export default function TeacherDashboard({ user, onLogout }) {
                   {isSearchActive ? "Aucune séance trouvée pour cette recherche" : "Aucune séance à venir"}
                 </CardContent></Card>
               ) : (
-                groupedSessionsList.map((group, idx) => (
-                  <Card key={idx} className="shadow-md card-hover border-2" style={{ borderColor: TERCIFORM_BLUE }}>
+                groupedSessionsList.map((group, idx) => {
+                  // Déterminer si c'est une séance passée
+                  const isPastSession = group.date < today;
+                  
+                  return (
+                  <Card key={idx} className={`shadow-md card-hover border-2 ${isPastSession ? 'bg-gray-50' : ''}`} style={{ borderColor: isPastSession ? '#9CA3AF' : TERCIFORM_BLUE }}>
                     <CardContent className="pt-6">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900">{group.subject}</h3>
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-lg font-semibold text-gray-900">{group.subject}</h3>
+                              {isPastSession && (
+                                <span className="text-xs text-gray-500 font-medium bg-gray-200 px-2 py-0.5 rounded">
+                                  Passée
+                                </span>
+                              )}
+                            </div>
                             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mt-1">
                               <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{new Date(group.date).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
                               <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{group.start_time} - {group.end_time} ({group.duration_hours}h)</span>
@@ -3299,71 +3310,120 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <div className="border-t pt-3">
                           <p className="text-sm font-medium text-gray-700 mb-2">Élèves :</p>
                           <div className="space-y-3">
-                            {group.sessions.map(session => (
-                              <div key={session.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg border" style={{ borderColor: TERCIFORM_BLUE }}>
-                                {/* Partie gauche: Nom + Statut confirmation */}
-                                <div className="flex items-center gap-3">
-                                  <span className="font-semibold text-gray-900">{session.student_name}</span>
-                                  {session.status === 'confirmed' && (
-                                    <span className="text-xs text-green-700 font-medium bg-green-100 px-2 py-0.5 rounded">
-                                      ✓ Confirmée
-                                    </span>
-                                  )}
-                                  {session.status === 'rejected' && (
-                                    <span className="text-xs text-red-700 font-medium bg-red-100 px-2 py-0.5 rounded">
-                                      ✗ Refusée
-                                    </span>
-                                  )}
-                                  {session.status === 'pending' && (
-                                    <span className="text-xs text-yellow-700 font-medium bg-yellow-100 px-2 py-0.5 rounded flex items-center gap-1">
-                                      <AlertCircle className="w-3 h-3" />
-                                      En attente
-                                    </span>
+                            {group.sessions.map(session => {
+                              const hasStudentSig = session.signature && session.signed_at;
+                              const hasTeacherSig = session.teacher_signature && session.teacher_signed_at;
+                              
+                              return (
+                              <div key={session.id} className={`py-2 px-3 rounded-lg border ${session.is_absent ? 'bg-red-50 border-red-300' : 'bg-gray-50'}`} style={{ borderColor: session.is_absent ? undefined : TERCIFORM_BLUE }}>
+                                {/* Ligne principale: Nom + Statut */}
+                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                  <div className="flex items-center gap-3 flex-wrap">
+                                    <span className="font-semibold text-gray-900">{session.student_name}</span>
+                                    {session.is_absent && (
+                                      <span className="text-xs text-red-700 font-medium bg-red-100 px-2 py-0.5 rounded">
+                                        ABSENT
+                                      </span>
+                                    )}
+                                    {!session.is_absent && session.status === 'confirmed' && (
+                                      <span className="text-xs text-green-700 font-medium bg-green-100 px-2 py-0.5 rounded">
+                                        ✓ Confirmée
+                                      </span>
+                                    )}
+                                    {!session.is_absent && session.status === 'rejected' && (
+                                      <span className="text-xs text-red-700 font-medium bg-red-100 px-2 py-0.5 rounded">
+                                        ✗ Refusée
+                                      </span>
+                                    )}
+                                    {!session.is_absent && session.status === 'pending' && (
+                                      <span className="text-xs text-yellow-700 font-medium bg-yellow-100 px-2 py-0.5 rounded flex items-center gap-1">
+                                        <AlertCircle className="w-3 h-3" />
+                                        En attente
+                                      </span>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Boutons d'action - uniquement pour les séances à venir */}
+                                  {!isPastSession && (
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleResendEmail(session.id)}
+                                        className="gap-1.5 text-xs h-8"
+                                        style={{ borderColor: TERCIFORM_BLUE, color: TERCIFORM_BLUE }}
+                                        data-testid={`resend-confirm-btn-${session.id}`}
+                                      >
+                                        <Mail className="w-3 h-3" />
+                                        Renvoyer
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleEditSession(session)}
+                                        className="gap-1.5 text-xs h-8 border-green-500 text-green-600 hover:bg-green-50"
+                                        data-testid={`edit-session-btn-${session.id}`}
+                                      >
+                                        <Edit className="w-3 h-3" />
+                                        Modifier
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleDeleteSession(session.id)}
+                                        className="gap-1.5 text-xs h-8 border-red-500 text-red-600 hover:bg-red-50"
+                                        data-testid={`delete-session-btn-${session.id}`}
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                        Supprimer
+                                      </Button>
+                                    </div>
                                   )}
                                 </div>
                                 
-                                {/* Partie droite: Boutons d'action directs */}
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleResendEmail(session.id)}
-                                    className="gap-1.5 text-xs h-8"
-                                    style={{ borderColor: TERCIFORM_BLUE, color: TERCIFORM_BLUE }}
-                                    data-testid={`resend-confirm-btn-${session.id}`}
-                                  >
-                                    <Mail className="w-3 h-3" />
-                                    Renvoyer
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleEditSession(session)}
-                                    className="gap-1.5 text-xs h-8 border-green-500 text-green-600 hover:bg-green-50"
-                                    data-testid={`edit-session-btn-${session.id}`}
-                                  >
-                                    <Edit className="w-3 h-3" />
-                                    Modifier
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleDeleteSession(session.id)}
-                                    className="gap-1.5 text-xs h-8 border-red-500 text-red-600 hover:bg-red-50"
-                                    data-testid={`delete-session-btn-${session.id}`}
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                    Supprimer
-                                  </Button>
-                                </div>
+                                {/* Signatures - affichées pour les séances passées (résultats de recherche) */}
+                                {isPastSession && (hasStudentSig || hasTeacherSig) && (
+                                  <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-gray-200">
+                                    {hasStudentSig && (
+                                      <div className="flex items-center gap-2 px-2 py-1 bg-green-100 border border-green-300 rounded">
+                                        <img 
+                                          src={session.signature} 
+                                          alt="Signature élève" 
+                                          className="h-5 object-contain"
+                                        />
+                                        <span className="text-xs text-green-800 font-medium">
+                                          Élève - {new Date(session.signed_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {hasTeacherSig && (
+                                      <div className="flex items-center gap-2 px-2 py-1 bg-purple-100 border border-purple-300 rounded">
+                                        <img 
+                                          src={session.teacher_signature} 
+                                          alt="Signature formateur" 
+                                          className="h-5 object-contain"
+                                        />
+                                        <span className="text-xs text-purple-800 font-medium">
+                                          Formateur - {new Date(session.teacher_signed_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {hasStudentSig && hasTeacherSig && (
+                                      <span className="text-xs text-green-700 font-medium flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-300 rounded">
+                                        <CheckCircle className="w-3 h-3" />
+                                        Complète
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                            ))}
+                            )})}
                           </div>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-                ))
+                )})
               )}
             </div>
           </TabsContent>
