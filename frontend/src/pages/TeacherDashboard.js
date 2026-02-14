@@ -4744,30 +4744,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                                                   ⏳ En attente d'émargement
                                                 </span>
                                               )}
-                                              {/* Bouton Absent rond */}
-                                              <button
-                                                onClick={async (e) => {
-                                                  e.stopPropagation();
-                                                  try {
-                                                    const token = localStorage.getItem('token');
-                                                    await axios.patch(`${API}/sessions/${session.id}/mark-absent`, {}, {
-                                                      headers: { Authorization: `Bearer ${token}` }
-                                                    });
-                                                    toast.success('Statut de présence mis à jour');
-                                                    loadData();
-                                                  } catch (error) {
-                                                    toast.error('Erreur lors de la mise à jour');
-                                                  }
-                                                }}
-                                                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all flex-shrink-0 ${
-                                                  session.is_absent 
-                                                    ? 'bg-red-500 text-white hover:bg-red-600' 
-                                                    : 'bg-gray-200 text-gray-600 hover:bg-red-100 hover:text-red-600'
-                                                }`}
-                                                title={session.is_absent ? 'Annuler absence' : 'Marquer absent'}
-                                              >
-                                                {session.is_absent ? '✓' : 'A'}
-                                              </button>
                                             </div>
                                           </div>
                                         );
