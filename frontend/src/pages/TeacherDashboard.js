@@ -2494,7 +2494,7 @@ export default function TeacherDashboard({ user, onLogout }) {
               return (
                 <Card className="border-2 border-red-400 shadow-md bg-gradient-to-r from-red-50 to-orange-50">
                   <CardContent className="py-4 px-5">
-                    {/* En-tête avec bouton Jitsi proéminent */}
+                    {/* En-tête */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <CalendarDays className="w-5 h-5 text-red-500" />
@@ -2503,29 +2503,6 @@ export default function TeacherDashboard({ user, onLogout }) {
                           <span className="text-xs text-gray-500 ml-2 capitalize">({todayFormatted})</span>
                         </div>
                       </div>
-                      
-                      {/* Bouton Rejoindre la visio - en en-tête pour toutes les séances du jour */}
-                      {todaySessions.length > 0 && visioLinkToday && (
-                        <a
-                          href={generateJitsiLink(visioLinkToday)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                          style={{ 
-                            backgroundColor: '#E91E63',
-                            boxShadow: '0 4px 14px 0 rgba(233, 30, 99, 0.39)'
-                          }}
-                          data-testid="join-visio-today"
-                        >
-                          <Video className="w-4 h-4" />
-                          Rejoindre la visio
-                          {todaySessions.length > 1 && (
-                            <span className="bg-white/20 text-white text-xs px-1.5 py-0.5 rounded">
-                              {todaySessions.length} élèves
-                            </span>
-                          )}
-                        </a>
-                      )}
                     </div>
                     
                     {todaySessions.length === 0 ? (
@@ -2534,16 +2511,214 @@ export default function TeacherDashboard({ user, onLogout }) {
                         <p className="text-sm text-gray-600">Aucune séance aujourd'hui</p>
                       </div>
                     ) : (
-                      <div className="space-y-3">
-                        {todaySessions.map(session => {
-                          const student = students.find(st => st.id === session.student_id);
-                          const isVisio = session.modality === 'distanciel' || session.meeting_link;
+                      <div className="space-y-4">
+                        {/* Grouper les séances par créneau horaire */}
+                        {(() => {
+                          // Créer les groupes par horaire
+                          const timeSlotGroups = {};
+                          todaySessions.forEach(session => {
+                            const slotKey = `${session.start_time}-${session.end_time}`;
+                            if (!timeSlotGroups[slotKey]) {
+                              timeSlotGroups[slotKey] = {
+                                start_time: session.start_time,
+                                end_time: session.end_time,
+                                sessions: []
+                              };
+                            }
+                            timeSlotGroups[slotKey].sessions.push(session);
+                          });
                           
-                          // Déterminer les statuts d'émargement
-                          const hasStudentSignature = session.signature && session.signed_at;
-                          const hasTeacherSignature = session.teacher_signature && session.teacher_signed_at;
-                          const awaitingStudentSignature = !session.signature;
-                          const awaitingTeacherSignature = !session.teacher_signature;
+                          // Trier par heure de début
+                          const sortedGroups = Object.values(timeSlotGroups).sort((a, b) => 
+                            a.start_time.localeCompare(b.start_time)
+                          );
+                          
+                          return sortedGroups.map((group, groupIdx) => {
+                            // Vérifier s'il y a des séances visio dans ce groupe
+                            const visioSessionsInGroup = group.sessions.filter(s => 
+                              s.modality === 'distanciel' || s.meeting_link || s.visio_link
+                            );
+                            const hasVisioInGroup = visioSessionsInGroup.length > 0;
+                            const visioLinkForGroup = visioSessionsInGroup[0] || group.sessions[0];
+                            
+                            return (
+                              <div key={groupIdx} className="border border-gray-300 rounded-lg overflow-hidden">
+                                {/* En-tête du groupe horaire avec bouton Jitsi */}
+                                <div className="flex items-center justify-between bg-gray-100 px-3 py-2">
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="w-4 h-4 text-gray-600" />
+                                    <span className="font-semibold text-gray-800">
+                                      {group.start_time} - {group.end_time}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      ({group.sessions.length} élève{group.sessions.length > 1 ? 's' : ''})
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Bouton Jitsi pour ce créneau horaire */}
+                                  {hasVisioInGroup && (
+                                    <a
+                                      href={generateJitsiLink(visioLinkForGroup)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium text-white text-sm transition-all shadow-md hover:shadow-lg"
+                                      style={{ 
+                                        backgroundColor: '#E91E63',
+                                        boxShadow: '0 4px 14px 0 rgba(233, 30, 99, 0.39)'
+                                      }}
+                                      data-testid={`join-visio-${group.start_time}`}
+                                    >
+                                      <Video className="w-4 h-4" />
+                                      Rejoindre
+                                      {visioSessionsInGroup.length > 1 && (
+                                        <span className="bg-white/20 text-white text-xs px-1.5 py-0.5 rounded">
+                                          {visioSessionsInGroup.length}
+                                        </span>
+                                      )}
+                                    </a>
+                                  )}
+                                </div>
+                                
+                                {/* Liste des élèves dans ce créneau */}
+                                <div className="divide-y divide-gray-100">
+                                  {group.sessions.map(session => {
+                                    const student = students.find(st => st.id === session.student_id);
+                                    const isVisio = session.modality === 'distanciel' || session.meeting_link;
+                                    
+                                    const hasStudentSignature = session.signature && session.signed_at;
+                                    const hasTeacherSignature = session.teacher_signature && session.teacher_signed_at;
+                                    const awaitingStudentSignature = !session.signature;
+                                    const awaitingTeacherSignature = !session.teacher_signature;
+                                    
+                                    return (
+                                      <div 
+                                        key={session.id} 
+                                        className={`flex items-center justify-between p-3 bg-white gap-3 ${session.is_absent ? 'bg-red-50' : ''}`}
+                                        data-testid={`today-session-${session.id}`}
+                                      >
+                                        {/* Partie gauche: Info session */}
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="text-lg">{getSubjectIcon(session.subject)}</span>
+                                            {isVisio ? (
+                                              <Monitor className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                                            ) : (
+                                              <School className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                                            )}
+                                            <span className="font-semibold text-gray-900">{student?.name || 'Élève'}</span>
+                                            <span className="text-gray-400">•</span>
+                                            <span className="text-gray-600">{session.subject}</span>
+                                            
+                                            {/* Checkboxes Présent/Absent */}
+                                            <div className="flex items-center gap-1 ml-2">
+                                              <button
+                                                onClick={async () => {
+                                                  if (session.is_absent) {
+                                                    try {
+                                                      await axios.patch(`${API}/sessions/${session.id}/mark-absent`, {}, {
+                                                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                                      });
+                                                      loadData(selectedMonth);
+                                                      toast.success('Élève marqué présent');
+                                                    } catch (e) {
+                                                      toast.error('Erreur');
+                                                    }
+                                                  }
+                                                }}
+                                                className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${!session.is_absent ? 'bg-green-500 border-green-600 text-white' : 'bg-white border-green-400 hover:bg-green-100'}`}
+                                                title="Présent"
+                                              >
+                                                {!session.is_absent && <CheckCircle className="w-4 h-4" />}
+                                              </button>
+                                              <button
+                                                onClick={async () => {
+                                                  if (!session.is_absent) {
+                                                    try {
+                                                      await axios.patch(`${API}/sessions/${session.id}/mark-absent`, {}, {
+                                                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                                                      });
+                                                      loadData(selectedMonth);
+                                                      toast.success('Élève marqué absent');
+                                                    } catch (e) {
+                                                      toast.error('Erreur');
+                                                    }
+                                                  }
+                                                }}
+                                                className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${session.is_absent ? 'bg-red-500 border-red-600 text-white' : 'bg-white border-red-400 hover:bg-red-100'}`}
+                                                title="Absent"
+                                              >
+                                                {session.is_absent && <XCircle className="w-4 h-4" />}
+                                              </button>
+                                            </div>
+                                            {session.is_absent && (
+                                              <span className="text-xs text-red-600 font-medium ml-1">ABSENT</span>
+                                            )}
+                                          </div>
+                                          
+                                          {/* Signatures */}
+                                          <div className="flex flex-wrap items-center gap-2 mt-2">
+                                            {hasStudentSignature && (
+                                              <div className="flex items-center gap-2 px-2 py-1 bg-green-100 border border-green-300 rounded">
+                                                <img src={session.signature} alt="Signature élève" className="h-5 object-contain" />
+                                                <span className="text-xs text-green-800 font-medium">
+                                                  Élève - {formatSignatureTime(session.signed_at)}
+                                                </span>
+                                              </div>
+                                            )}
+                                            {hasTeacherSignature && (
+                                              <div className="flex items-center gap-2 px-2 py-1 bg-purple-100 border border-purple-300 rounded">
+                                                <img src={session.teacher_signature} alt="Signature formateur" className="h-5 object-contain" />
+                                                <span className="text-xs text-purple-800 font-medium">
+                                                  Formateur - {formatSignatureTime(session.teacher_signed_at)}
+                                                </span>
+                                              </div>
+                                            )}
+                                            {hasStudentSignature && hasTeacherSignature && (
+                                              <span className="text-xs text-green-700 font-medium flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-300 rounded">
+                                                <CheckCircle className="w-3 h-3" />
+                                                Complète
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        
+                                        {/* Partie droite: Boutons émargement */}
+                                        <div className="flex flex-col gap-1 flex-shrink-0">
+                                          {awaitingStudentSignature && !session.is_absent && (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => handleResendAttendanceEmail(session.id)}
+                                              className="gap-1.5 text-xs bg-orange-200 hover:bg-orange-300 border-orange-400 text-orange-900 w-full justify-start"
+                                              data-testid={`today-emargement-eleve-${session.id}`}
+                                            >
+                                              <PenTool className="w-3 h-3" />
+                                              Émargement élève
+                                            </Button>
+                                          )}
+                                          {awaitingTeacherSignature && !session.is_absent && (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => openTeacherSignatureDialog(session)}
+                                              className="gap-1.5 text-xs bg-purple-200 hover:bg-purple-300 border-purple-400 text-purple-900 w-full justify-start"
+                                              data-testid={`today-emargement-prof-${session.id}`}
+                                            >
+                                              <PenTool className="w-3 h-3" />
+                                              Émargement professeur
+                                            </Button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    )}
                           
                           return (
                             <div 
