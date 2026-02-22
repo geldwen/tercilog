@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   LogOut, Users, Calendar, Search, Plus, PenTool,
-  Mail, Phone, Clock, CheckCircle, Eye, Building, XCircle, Gift, FolderOpen, ChevronDown, ChevronUp, Download, FileText, Award, MessageSquare, X
+  Mail, Phone, Clock, CheckCircle, Eye, Building, XCircle, Gift, ChevronDown, ChevronUp, Download, FileText, Award, MessageSquare, X
 } from "lucide-react";
 import TicketingModal from "@/components/TicketingModal";
 
@@ -19,12 +19,18 @@ const API = process.env.REACT_APP_BACKEND_URL + '/api';
 const TERCIFORM_BLUE = '#0D2040';
 const TERCIFORM_BLUE_LIGHT = '#E8EEF4';
 
-export default function GestionnaireDashboard({ user, onLogout }) {
-  const [activeTab, setActiveTab] = useState('eleves');
+// Dashboard Espace Client (pour les Sociétés)
+// Différences avec GestionnaireDashboard:
+// - "Élèves" devient "Participants"
+// - Pas d'onglet "Documents"
+// - Dans Échanges: pas de "Salle", "Organisation", "Accueil"
+
+export default function ClientDashboard({ user, onLogout }) {
+  const [activeTab, setActiveTab] = useState('participants');
   const [loading, setLoading] = useState(true);
   
   // Données
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState([]); // "participants" mais gardé students pour compatibilité API
   const [sessions, setSessions] = useState([]);
   const [formateurs, setFormateurs] = useState([]);
   const [client, setClient] = useState(null);
