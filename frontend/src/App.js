@@ -153,7 +153,7 @@ function App() {
             path="/gestionnaire"
             element={
               user && user.role === "gestionnaire" ? (
-                <GestionnaireDashboard user={user} onLogout={handleLogout} />
+                <GestionnaireWrapper user={user} onLogout={handleLogout} />
               ) : (
                 <Navigate to="/login" replace />
               )
