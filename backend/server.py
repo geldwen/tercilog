@@ -11486,6 +11486,7 @@ async def create_client(
     password: str = Form(""),
     gestionnaires: str = Form("[]"),  # JSON string de la liste des gestionnaires
     formateur_id: str = Form(""),
+    client_type: str = Form("organisme_formation"),  # Type de client: organisme_formation ou societe
     photo: UploadFile = FastAPIFile(None),
     current_user: User = Depends(get_current_user)
 ):
