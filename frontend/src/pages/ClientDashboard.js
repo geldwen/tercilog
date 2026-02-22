@@ -174,6 +174,24 @@ export default function ClientDashboard({ user, onLogout }) {
       } catch (e) {
         console.log('Debug endpoint not available');
       }
+      
+      setClient(clientRes.data);
+      setStudents(studentsRes.data || []);
+      
+      // Charger le compteur de tickets non lus
+      if (clientRes.data?.id) {
+        loadUnreadTicketCount(clientRes.data.id);
+      }
+      setSessions(sessionsRes.data || []);
+      setFormateurs(formateursRes.data || []);
+    } catch (error) {
+      console.error('Erreur chargement:', error);
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        toast.error('Session expirée');
+        onLogout();
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
