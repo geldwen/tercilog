@@ -922,6 +922,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       formData.append('siret', newClientData.siret);
       formData.append('nom_responsable', newClientData.nom_responsable);
       formData.append('email_responsable', newClientData.email_responsable);
+      formData.append('client_type', newClientData.client_type); // Type de client
       
       // Envoyer la liste des gestionnaires en JSON
       const validGestionnaires = newClientData.gestionnaires.filter(g => g.email.trim());
