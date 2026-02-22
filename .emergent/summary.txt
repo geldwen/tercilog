@@ -1,222 +1,210 @@
-<analysis>An analysis of the user's problem statement, conversation, and the actions taken by the AI engineer.
+<analysis>**original_problem_statement**:
+The user, a French-speaking administrator of an educational platform, has a continuous stream of feature requests and UI/UX improvements.
 
-**original_problem_statement**:
-The user, a French-speaking administrator of an educational platform, initially faced deployment failures and data sync issues. While those were mitigated, a long list of features and bugs were introduced throughout the session.
+Initial requests from the previous session included:
+*   Fixing email notifications, session duration calculations, and test reminder emails.
+*   Creating a complete Excel learning path with tests, questionnaires, and admin tools.
+*   Addressing Jitsi video conferencing instability.
 
-**Core requirements implemented in this session:**
-1.  **Absence Tracking:**
-    *   Add an absent button to each session in both the Admin () and Manager () dashboards.
-    *   Clicking the button marks the student as absent, updates the UI to show a red Élève absent de la séance status. The action is reversible.
-    *   The absent status must be reflected in PDF exports.
-2.  **PDF Generation Fixes & Enhancements:**
-    *   **Critical Fix:** Manual signature drawings (base64 images) must appear in all PDF exports instead of the text émargé or signé.
-    *   The absent status must appear as bold, red text (ABSENT) in the PDF.
-    *   PDF exports from the Manager dashboard should include upcoming/future sessions, not just completed ones.
-3.  **Manager Dashboard () Overhaul:**
-    *   **UI/UX:**
-        *   Rename the PDF export button to Telecharger le planning eleve pdf and style it to be round and violet.
-        *   Redesign the Séances tab to only show sessions for the current day and the next two weeks.
-        *   Add a session search module to the Séances tab (search by student name, date, month, hour).
-    *   **Data & Filters:**
-        *   Fix incorrect remaining hours calculation. The logic is now dynamic:  - hours of signed sessions.
-        *   Update the Sorties de parcours (archived students) filters to include years 2025, 2026, and 2027.
-    *   **Archiving:**
-        *   Add a discrete Historiser élève (Archive Student) button to each active student's card.
-        *   Clicking this button moves the student to the Sorties de parcours section.
-        *   The Sorties de parcours view must be a detailed summary card for each student, including all session history and a button to download their full PDF record.
-4.  **Admin Dashboard () Improvements:**
-    *   Improve the student selection modal for session creation by adding a search bar and allowing cumulative selection of students using badges.
-5.  **Email Notifications (Critical Regressions & New Features):**
-    *   **FIX:** Ensure a notification email is sent to all relevant managers when an admin creates a new student.
-    *   Send a notification email to managers when a session is created.
-    *   Send a notification email to the student when a session is deleted.
-    *   Send a notification email to managers when a session is modified or deleted.
+In the current session, the user has requested numerous and rapid UI/UX changes to the Teacher and Admin dashboards, including:
+1.  **Session Management UI Overhaul**:
+    *   Adding direct signing buttons (émargement) for daily sessions.
+    *   Implementing a new, comprehensive, and integrated search module for sessions.
+    *   Changing the default session list to hide past sessions and only show current/future ones for the month.
+    *   Adding status indicators (present/absent checkboxes, visible signatures for past sessions).
+    *   Refactoring the Jitsi Rejoindre la visio button to group by time slot, creating a separate button for each group.
+2.  **Bug Fixes**:
+    *   Resolving critical bugs in the Qualiopi questionnaire viewer where  was displayed, signatures were shown as raw text, and submission buttons were confusingly disabled.
+3.  **Client Management**:
+    *   Differentiating between client types: organisme de formation (training organization) and societe (company).
+    *   Creating a new, distinct Espace Client dashboard for societe clients, which is a modified version of the existing Espace Gestion dashboard.
+    *   Adding email notifications to managers when a new document is uploaded for a student.
 
 **User's preferred language**: French
 
 **what currently exists?**
-The application is a full-stack educational platform with a React frontend and a FastAPI backend using MongoDB. It features two main interfaces: an Admin dashboard () for administrative tasks like creating students and sessions, and a Manager dashboard () for client-side managers to track their students' progress.
+The application is a full-stack educational platform with a React frontend and a monolithic FastAPI backend using MongoDB.
 
-A significant amount of work was done to add features and fix critical bugs:
-- Absence tracking is now present on both dashboards.
-- PDF generation was critically broken (missing signatures) and is now fixed; PDFs now correctly render base64 signature images and ABSENT status.
-- Multiple email notification triggers (session creation/modification/deletion, student creation) have been added or fixed.
-- The Manager dashboard has been significantly overhauled with new UI for session viewing/searching, student archiving, and improved PDF exports.
-- The Admin dashboard has an improved student selection UI for creating sessions.
+The agent has implemented a series of significant UI/UX enhancements on the  page, completely revamping how sessions are displayed, searched, and managed. This includes a new integrated search module, revised default filtering logic, and dynamic action buttons based on session date.
 
-However, the codebase remains fragile, with , , and  being extremely large and monolithic, which led to several bugs and regressions during development.
+The agent also attempted to fix a critical bug in the questionnaire viewer () and added email notifications for document uploads on the backend.
+
+Work has just begun on a major new feature: differentiating client types. This involves backend model changes ( collection), updates to the admin interface (), and the creation of a new  by copying and modifying the existing . The codebase, particularly , has become even more complex and fragile due to these rapid, successive changes.
+
+A critical, unresolved issue from the previous session persists: the production deployment pipeline does not serve the latest frontend build, making all new frontend features invisible to the user in production.
 
 **Last working item**:
--   **Last item agent was working**: Implementing email notifications for managers when a new session is created. This involved creating a new email template function and calling it from both the single and bulk session creation endpoints ( and ).
--   **Status**: USER VERIFICATION PENDING
--   **Agent Testing Done**: N
--   **Which testing method agent to use?**: backend testing agent
--   **User Testing Done**: N
+- Last item agent was working: Implementing the distinction between organisme de formation and societe clients and creating a new Espace Client dashboard. The agent had:
+    1.  Added  to the  model in .
+    2.  Added a type selector to the Create Client form in .
+    3.  Created a new file  by copying .
+    4.  Begun modifying  to remove the Documents tab and its related data-loading logic. The agent was in the middle of these edits.
+- Status: IN PROGRESS
+- Agent Testing Done: N
+- Which testing method agent to use?: both
+- User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: Incorrect remaining hours for specific students in production (P0).
--   Issue 2: User  cannot log in (P1).
--   Issue 3: Trainer documents disappear when editing a trainer profile (P2, Recurring).
+-   Issue 1: (P0) Complete the new Espace Client dashboard implementation.
+-   Issue 2: (P0, CRITICAL BLOCKER) Production deployment does not serve the latest frontend build.
+-   Issue 3: (P1) The questionnaire viewer bug fix needs user verification.
+-   Issue 4: (P1, Recurring) Trainer documents disappear when editing a trainer profile.
+-   Issue 5: (P2) User  cannot log in.
+-   Issue 6: (P2) Jitsi video conferencing instability on the public server.
 
 **Issues Detail**:
--   **Issue 1: Incorrect remaining hours for specific students in production**
-    -   **Attempted fixes**: The agent changed the frontend logic in  to dynamically calculate remaining hours as . While the logic seems correct, the user reported that for student Isleme Baghouz, the result is still wrong in production (shows 2h instead of the expected 6h). This points to a data discrepancy in the production database (e.g., incorrect  or signed session data) rather than a simple calculation error.
+-   **Issue 1: Complete the new Espace Client dashboard implementation**
+    -   **Attempted fixes**: Agent created the new file and started removing/modifying sections as per user request.
     -   **Next debug checklist**:
-        1.  Create a temporary diagnostic endpoint in  that, given a student ID, fetches their  and aggregates the duration of all their signed sessions directly from the database.
-        2.  Call this endpoint for Isleme Baghouz and Djibril Kante to get the raw data from production and understand why the calculation is not matching the user's expectation.
-        3.  Provide the raw data to the user for clarification or guide them on how to correct the base data in the Admin dashboard if it's wrong.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical data integrity issue that erodes trust in the platform's financial and progress tracking.
+        1.  In , finish removing the Documents tab ( and ).
+        2.  Globally replace the term élèves with participants within the component.
+        3.  In the Échanges avec le formateur section, remove the salle, organisation, and accueil tabs.
+        4.  Ensure the new dashboard correctly loads data for a societe type client.
+        5.  Verify the login flow directs societe managers to this new dashboard.
+    -   **Why fix this issue and what will be achieved with the fix?**: This is a core business requirement to support a new type of customer.
     -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: backend
-    -   **Blocked on other issue**: None
-
--   **Issue 2: User  cannot log in**
-    -   **Attempted fixes**: None in this session. This is a carry-over from the previous handoff. The agent previously confirmed the user doesn't exist in the preview DB.
-    -   **Next debug checklist**:
-        1.  The multi-manager logic in  is supposed to create user accounts. The user's admin needs to be instructed to go to the client Zepartner in the Admin dashboard, verify  is listed as a manager, and click Save. This should trigger the user creation and welcome email flow.
-        2.  If that fails, check the backend logs during the  call to see why the user is not being created.
-    -   **Why fix this issue and what will be achieved with the fix?**: Allows all designated client contacts to access the system as requested.
-    -   **Status**: NOT STARTED
     -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: backend
+    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Blocked on other issue**: Blocked by Production deployment issue for user visibility.
+
+-   **Issue 2: Production deployment does not serve the latest frontend build**
+    -   **Attempted fixes**: The agent previously diagnosed this as a platform/infrastructure issue, not a code issue. In this session, the user confirmed it's still happening (le bouton jitsi ne remonte pas en prob).
+    -   **Next debug checklist**: This cannot be fixed with code. The agent's first action should be to advise the user to contact Emergent support about the frontend build not synchronizing in production, providing the Job ID.
+    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical blocker preventing the user from using *any* of the newly developed frontend features in their production environment.
+    -   **Status**: BLOCKED
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: NA
     -   **Blocked on other issue**: None
 
--   **Issue 3: Trainer documents disappear when editing a trainer profile**
-    -   **Attempted fixes**: None in this session. This is a carry-over issue.
-    -   **Next debug checklist**: Review  in  and the  endpoint in . The issue is likely that the update payload is missing existing document URLs, causing the backend to overwrite them with null/empty values. The frontend must ensure it includes existing file URLs in the update payload.
-    -   **Why fix this issue and what will be achieved with the fix?**: Fixes a critical data loss bug for trainer profiles.
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on other issue**: None
+-   **Issue 3: The questionnaire viewer bug fix needs user verification**
+    -   **Attempted fixes**: The agent modified  to correctly parse nested objects (to fix  display), ignore signature data in the text view, and add UX hints to the submission modal.
+    -   **Next debug checklist**: The agent was unable to find submitted questionnaires in the preview environment to verify the fix. The next step is to either ask the user to test this in production (after the deployment issue is fixed) or create test data to validate the fix in the preview environment.
+    -   **Why fix this issue and what will be achieved with the fix?**: The bug makes Qualiopi quality questionnaires unusable, which is a critical failure for the platform.
+    -   **Status**: USER VERIFICATION PENDING
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Blocked on other issue**: Blocked by Production deployment issue.
 
 **In progress Task List**:
-None. All requested tasks were completed, pending user verification.
+-   Task 1: Complete the implementation of the new .
+    -   **Where to resume**: . The agent had just corrected a mistake while removing document-related logic and was about to remove the Documents tab from the JSX and rename élèves to participants.
+    -   **What will be achieved with this?**: A new, distinct dashboard for societe type clients.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Blocked on something**: Production deployment issue.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   P1: Delete test students (Nathalie Langmann, Monique Haddad, Ghighi) from production.
+    -   P0: **(CRITICAL)** Refactor  and . The number of rapid, complex changes has made these files extremely fragile and difficult to maintain. They must be broken down into smaller, manageable modules (routes, services, components).
 -   **Future Tasks**:
-    -   P0: Refactor , , and  to break them into smaller, maintainable modules. Technical debt is critically high.
+    -   P1: Delete test students (Nathalie Langmann, Monique Haddad, Ghighi) from production.
     -   P2: Implement Fidélité (Loyalty) program functionality.
     -   P2: Implement SMS notifications.
     -   P3: Implement  type resource uploads/downloads for students.
     -   P4: Build a full CRUD interface for quiz templates.
 
 **Completed work in this session**
--   **Critical Bug Fix (Data Loss)**: Fixed a bug where missing  or  in a session document would crash the  endpoint, making all data disappear from the UI. Made fields optional in the Pydantic model.
--   **Critical Bug Fix (PDF Signatures)**: Resolved a major, recurring issue where manual signatures were not appearing in backend-generated PDFs. The root cause was a missing  in .
--   **Regression Fix (Email Notifications)**: Fixed a regression where email notifications for new student creation were not being sent by adding the missing function call in the  endpoint.
--   **Absence Tracking Feature**: Implemented the mark as absent feature (UI button, backend endpoint, PDF status) on both the Admin and Manager dashboards.
--   **Manager Dashboard Overhaul**:
-    -   Completely redesigned the Séances tab with a search module and filtered views (today + next 2 weeks).
-    -   Implemented a student archiving (Historiser) feature, moving students to a detailed Sorties de parcours section with a PDF summary download.
-    -   Updated PDF exports to include future sessions.
-    -   Corrected remaining hours calculation to be dynamic.
-    -   Updated UI elements (filters, buttons) as per user request.
--   **Admin Dashboard UI Improvement**: Implemented a more user-friendly student selector in the session creation form with search and cumulative selection badges.
--   **New Email Notifications**:
-    -   For managers upon session creation.
-    -   For students upon session deletion.
-    -   For managers upon session modification or deletion.
--   **PRD.md Updated**: The product requirements document was updated.
+-   **Session Management UI Overhaul ()**:
+    -   Implemented direct signing buttons (Émargement élève/professeur) for daily sessions and removed them from the dropdown.
+    -   Completely replaced the old session search with a new integrated search module (by year, month, day, student name).
+    -   Changed default session list to show only from today to the end of the month, hiding past sessions unless searched for.
+    -   Added Présent/Absent checkboxes for daily sessions, with visual feedback upon marking a student absent.
+    -   Refactored the Rejoindre la visio (Jitsi) button to group daily sessions by time slot, providing a unique join button for each slot.
+    -   Dynamically displayed action buttons (Renvoyer, Modifier, Supprimer) for upcoming sessions while showing signatures for past sessions.
+    -   Removed a redundant search filter bar from the top of the page.
+    -   Added a refresh button to the Heures restantes du mois card.
+-   **Questionnaire Bug Fix (Attempted)**:
+    -   In , fixed a data rendering issue that showed  and raw signature data.
+    -   Improved UX on the Définir une action modal to clarify why the submit button might be disabled.
+-   **Document & Client Management**:
+    -   **Backend**: Modified the  endpoint in  to send an email notification to all associated managers.
+    -   **Frontend**: Added a new DOCUMENTS tab to the  to view all documents shared with that client's students.
+    -   **Backend**: Began client-type implementation by adding a  field to the  model in .
+-   **PRD Updates**: Maintained and updated  with completed tasks.
 
 **Earlier issues found/mentioned but not fixed**
--   The recurring bug where trainer documents disappear upon editing a profile remains unfixed from previous sessions.
+-   The recurring bug where trainer documents disappear upon editing a profile remains unfixed.
+-   The login issue for user  has not been addressed.
 
 **Known issue recurrence from previous fork**
--   **PDF Signatures**: This issue recurred multiple times and was a major focus of this session. It was finally resolved by finding a missing  import in .
--   **Monolithic Files**: The core problem of massive files (, ) persists and caused several bugs (e.g., syntax errors from malformed HTML, regressions from missed function calls).
--   **Production Data Discrepancies**: The issue of data being incorrect in production (e.g., remaining hours) continues to be a problem, requiring fixes that account for real-world data issues.
+-   **Monolithic Files**: This issue has become critical. The constant, complex modifications to  (now >7000 lines) and  make the system extremely prone to regression and difficult to debug. Refactoring is no longer a future task but a high-priority necessity.
+-   **Production Deployment Discrepancy**: This is a recurring, critical blocker. The user explicitly confirmed new features are not appearing in production, which points to a persistent infrastructure or build pipeline problem.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend PDF Generation**: Using  in  to generate complex PDFs with tables, images (from base64), and conditional formatting.
--   **Frontend PDF Generation**: Using  and  in  for client-side PDF generation.
--   **Pydantic Model Validation**: Encountered and fixed a critical server crash caused by strict validation failing on inconsistent database documents.
--   **React State Management**: Extensive use of , , and  to manage complex UI states, filters, and dynamic data calculations in large components.
--   **Monolith Debugging**: The session involved significant time spent debugging issues caused by the monolithic nature of , including syntax errors from broken HTML templates and  from missing imports.
+-   **Complex Conditional Rendering (React)**: Extensive use of date logic (, comparisons) to dynamically alter the UI for daily, upcoming, and past sessions.
+-   **Data Aggregation on Frontend**: Grouping sessions by time slot () directly in the  component to render separate Jitsi buttons.
+-   **Component-based UI logic**: The session list is now a complex, stateful part of the TeacherDashboard that manages its own display logic based on user interaction (search) and time.
+-   **Backend Email Integration**: Triggering  functions from API endpoints () based on application events.
+-   **Fork-and-Specialize Component Strategy**: Creating the  by copying and then modifying the , a fast but potentially technical-debt-inducing approach.
 
 **key DB schema**
--   **users** (collection): Contains students () and other user types.
-    -    (New): Added to mark a student as archived/historized.
--   **sessions** (collection):
-    -    (New): Added to mark a student's absence for a session.
-    -   , : Made optional to prevent crashes from legacy data.
+-   **clients** (collection): Added  with possible values organisme_formation or societe.
 
 **All files of reference**
--   : The heart of all business logic, database interaction, PDF generation, and notifications. Was the source of and solution to most critical bugs.
--   : Target of the majority of new features, including the archiving flow and UI overhaul.
--   : Target for the absent feature and the improved student selection UI.
+-   : Modified for client types and email notifications.
+-   : The target of the vast majority of changes in this session.
+-   : Modified to add the Documents tab.
+-   : New file, currently being modified.
+-   : Modified to fix rendering bugs.
+-   : Updated regularly.
 
 **Areas that need refactoring**:
--   ****: **(CRITICAL)** This file is unmaintainably large. It must be broken down. At a minimum, , , , and  should be separated into their own modules.
--   ** and **: **(CRITICAL)** Both components are massive and handle too much state and logic. They should be broken down into smaller, focused components (e.g., , , , ). The PDF generation logic in  should be moved to a utility file.
+-   ** (CRITICAL, P0)**: This file is unmaintainable. The session list, search module, daily session cards, and client management sections must be extracted into their own components with well-defined props.
+-   ** (CRITICAL, P0)**: At over 14,000 lines, this is a major liability. It needs to be broken down into a proper structure with separate files for routes, models, and services (e.g., , , ).
+-    & : These are large and will benefit from being broken down into smaller components to avoid becoming the next .
 
 **key api endpoints**
--   **Added**:
-    -   : Toggles the  flag for a session.
-    -   : Sets the  flag for a student.
 -   **Modified**:
-    -   : Now triggers .
-    -    & : Now trigger .
-    -   : Now triggers email notifications to both the student and managers.
-    -   : Now triggers an additional email notification to managers.
-    -   : The response model () was modified to make  and  optional, fixing a critical crash.
--   **Backend PDF Generation**: The logic in  (called by admin) was heavily modified to correctly embed base64 signature images and display ABSENT status.
+    -   : Now triggers an email notification to the client's managers.
+    -   : Implicitly updated to handle the new  field.
+    -   : Implicitly updated to return the new  field.
 
 **Critical Info for New Agent**
--   **Priority #1 is Data Integrity**: The user's primary concern is now data accuracy. The remaining hours calculation is a P0 issue. Do not trust the UI calculation alone; you must investigate the raw data in the database for the specific students mentioned (Isleme Baghouz, Djibril Kante) to find the source of the discrepancy.
--   **Code Fragility**: Be extremely careful when editing . It is over 11,000 lines long. A simple syntax error or a forgotten import caused critical bugs in this session. Any change must be followed by a backend restart and a health check.
--   **Two PDF Systems**: Remember there are two distinct PDF generation mechanisms. The Admin dashboard triggers a backend one ( in ), while the Manager dashboard uses a frontend one ( in ). The signature bug was in the backend  implementation.
--   **User Verification is Key**: The agent made assumptions that features were working without verifying the final output (e.g., checking the content of a downloaded PDF). You must test end-to-end. For PDFs, generate and inspect the file. For data issues, query the database.
+-   **PRODUCTION DEPLOYMENT IS THE #1 BLOCKER**: The user cannot see any new frontend features in production. The user confirmed this again in this session. Your first step must be to guide the user to contact Emergent support to resolve this infrastructure issue. Do not attempt to code further frontend features until this is confirmed fixed.
+-   **CODE FRAGILITY**: The  file has undergone massive, rapid changes and is extremely brittle. Be extra cautious when making edits. Proposing a refactoring plan to the user is highly recommended as the next major task after the current one is finished.
+-   **VERIFY BUG FIXES**: The fix for the questionnaire bug was done blind without test data. It needs to be validated. Do not assume it is resolved.
 
 **documents and test reports created in this job**
--   /app/memory/PRD.md: Updated with completed tasks.
+-   : Updated multiple times.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Requested email notifications for session creation for managers. (Implemented)
-2.  **User**: Requested UI improvement for student selection (search + cumulative select) in Admin dashboard. (Implemented)
-3.  **User**: Requested email notifications for session modification/deletion to students and managers. (Implemented)
-4.  **User**: **(REGRESSION)** Reported that new student email notifications stopped working. (Fixed)
-5.  **User**: Requested student archiving feature (Historiser) and detailed PDF summary for archived students. (Implemented)
-6.  **User**: Provided a large batch of 6 new features/fixes for the Manager dashboard (filters, UI changes, remaining hours fix, PDF content). (Implemented)
-7.  **User**: **(FRUSTRATED)** Reported that PDF signatures are still not working after a supposed fix. Provided screenshot. (Finally fixed by finding missing import)
-8.  **User**: **(CRITICAL INCIDENT)** Reported all data disappeared from the production admin dashboard. (Fixed by making Pydantic model fields optional)
-9.  **User**: Corrected the agent, stating the absent feature was for the Admin dashboard, not the Manager one. (Agent re-did the work on the correct page)
-10. **User**: Clarified initial requirements: absent button, absent status in PDF, and *manual signatures* in PDF. (Triggered the main work of the session)
+1.  **User**: Remove the old search bar above the hours cards. Add email notifications for document uploads. Add a Documents tab to the manager dashboard. (Implemented)
+2.  **User**: Remove the Absent button from the student details view. Change daily session UI: remove waiting for signature badges, add present/absent checkboxes, and stack the signing buttons vertically. (Implemented)
+3.  **User**: Change session list filter to show from today to end-of-month. For past sessions found via search, show signatures instead of action buttons. (Implemented)
+4.  **User**: Critical bug in questionnaire viewer: shows  and raw signature, and submit button is confusingly disabled. (Fix Attempted)
+5.  **User**: You misunderstood the Jitsi button. It should be one button per time slot, not one for the whole day. (Fixed)
+6.  **User**: Start differentiating between organisme de formation and societe clients. Add a type selector in the admin UI. (In Progress)
+7.  **User**: Create a new Espace Client dashboard for societe clients. (In Progress)
+8.  **User**: The new client dashboard should be like the manager one, but rename élèves to participants. (In Progress)
+9.  **User**: On the new client dashboard, remove the Documents tab. (In Progress)
+10. **User**: In the Échanges section of the new client dashboard, remove the salle, organisation, and accueil tabs. (In Progress)
 
 **Project Health Check:**
 -   **Broken**:
-    -   Data accuracy for student remaining hours in production does not match user expectations.
--   **Mocked**:
-    -   The Fidélité (Loyalty) tab in the Manager dashboard is still a UI placeholder.
--   **At Risk**:
-    -   **Maintainability**: The codebase is critically fragile due to monolithic files (, , ). This is the biggest risk for future development and will continue to cause regressions.
-    -   **Data Integrity**: The discrepancy in remaining hours highlights a potential for more data issues between what the system calculates and what is true in production.
+    -   The production deployment pipeline for the frontend is confirmed to be serving stale files, rendering all UI work useless for the end-user.
+-   **At Risk / Fragile**:
+    -   **Maintainability**: The  and  monoliths are a severe liability. The risk of regression with any new change is extremely high. The copy-paste approach for new dashboards is adding to the technical debt.
 
 **3rd Party Integrations**
--   **Jitsi Meet**: Video conferencing.
+-   **Jitsi Meet**: Video conferencing, pointing to . Logic for generating room names is in .
 -   **Gmail SMTP**: Used for all transactional emails.
--   **jsPDF / jsPDF-AutoTable**: Client-side PDF generation in .
--   **ReportLab**: Server-side PDF generation in .
+-   **jsPDF / jsPDF-AutoTable**: Client-side PDF generation.
+-   **ReportLab**: Server-side PDF generation.
 
 **Testing status**
 -   **Testing agent used after significant changes**: NO
 -   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: None. The agent created temporary test scripts but did not save them as permanent test files.
--   **Known regressions**:
-    -   A regression where new student email notifications stopped working was introduced and fixed. The high complexity and lack of automated tests mean regressions are a constant risk.
+-   **Test files created**: None
+-   **Known regressions**: None identified, but the risk is extremely high.
 
 **Credentials to test flow:**
 -   **Teacher/Admin**:  / 
--   **Manager (Zepartner)**:  /  (Has test data like Isleme BAGHOUZ)
+-   **Manager (Zepartner)**:  / 
 
 **What agent forgot to execute**
--   Delete test students (Nathalie Langmann, etc.) from the initial problem statement.
--   Resolve the  login issue.
--   Fix the bug where trainer documents disappear on profile edit.
--   The agent did not create any permanent regression tests (e.g., using pytest) despite the high number of critical bugs and regressions encountered.</analysis>
+-   The agent has consistently failed to address the long-standing issues from the previous handoff: the  login issue and the disappearing trainer documents bug.
+-   No regression tests (e.g., using pytest or React Testing Library) have been created, which is a critical omission given the codebase's fragility and the volume of changes.
+-   The test sessions created for UI verification were not deleted, leaving test data in the database.</analysis>
