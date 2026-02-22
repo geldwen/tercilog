@@ -214,7 +214,7 @@ export default function ClientDashboard({ user, onLogout }) {
     } else {
       setFilteredStudents(results);
       setShowSearchStudent(false);
-      toast.success(`${results.length} élève(s) trouvé(s)`);
+      toast.success(`${results.length} participant(s) trouvé(s)`);
     }
   };
 
@@ -254,7 +254,7 @@ export default function ClientDashboard({ user, onLogout }) {
       };
       
       await axios.post(`${API}/gestionnaire/students`, studentData);
-      toast.success('Élève créé avec succès');
+      toast.success('Participant créé avec succès');
       setShowCreateStudent(false);
       setStudentForm({ 
         name: '', email: '', phone: '', parcours: 'Anglais', 
@@ -463,7 +463,7 @@ export default function ClientDashboard({ user, onLogout }) {
     );
     
     if (allStudentSessions.length === 0) {
-      toast.warning('Aucune séance pour cet élève');
+      toast.warning('Aucune séance pour ce participant');
       return;
     }
 
@@ -849,7 +849,7 @@ export default function ClientDashboard({ user, onLogout }) {
                 <span className="font-semibold text-yellow-800">🔍 Diagnostic Production:</span>
                 <span>Client ID: <strong>{debugInfo.gestionnaire?.client_id || 'NON DÉFINI'}</strong></span>
                 <span>Centre: <strong>{debugInfo.client?.nom_centre || 'NON TROUVÉ'}</strong></span>
-                <span>Élèves trouvés: <strong className="text-blue-600">{debugInfo.students_count}</strong></span>
+                <span>Participants trouvés: <strong className="text-blue-600">{debugInfo.students_count}</strong></span>
                 <span>Séances: <strong className="text-green-600">{debugInfo.sessions_count}</strong></span>
               </div>
               {debugInfo.gestionnaire?.client_id === 'NON DÉFINI' && (
@@ -944,7 +944,7 @@ export default function ClientDashboard({ user, onLogout }) {
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Rechercher un élève</DialogTitle>
+                      <DialogTitle>Rechercher un participant</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <Input
@@ -973,7 +973,7 @@ export default function ClientDashboard({ user, onLogout }) {
                   <DialogTrigger asChild>
                     <button className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors shadow-md">
                       <Plus className="w-4 h-4" />
-                      Créer un élève
+                      Créer un participant
                     </button>
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
