@@ -35,16 +35,13 @@ export default function ClientDashboard({ user, onLogout }) {
   const [formateurs, setFormateurs] = useState([]);
   const [client, setClient] = useState(null);
   const [debugInfo, setDebugInfo] = useState(null);
-  const [allDocuments, setAllDocuments] = useState([]); // Documents de tous les élèves
-  const [loadingDocuments, setLoadingDocuments] = useState(false);
   
   // Recherche
   const [showSearchStudent, setShowSearchStudent] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredStudents, setFilteredStudents] = useState(null);
-  const [documentSearchQuery, setDocumentSearchQuery] = useState(''); // Recherche documents
   
-  // Création élève
+  // Création participant
   const [showCreateStudent, setShowCreateStudent] = useState(false);
   const [studentForm, setStudentForm] = useState({
     name: '', email: '', phone: '', parcours: 'Anglais', 
