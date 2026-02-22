@@ -895,7 +895,7 @@ export default function ClientDashboard({ user, onLogout }) {
                 className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-violet-500 data-[state=inactive]:text-white data-[state=active]:bg-violet-600 data-[state=active]:text-white hover:shadow-xl"
               >
                 <Users className="w-5 h-5 mr-3" />
-                ÉLÈVES
+                PARTICIPANTS
               </TabsTrigger>
               <TabsTrigger 
                 value="seances" 
@@ -918,26 +918,14 @@ export default function ClientDashboard({ user, onLogout }) {
                 <Gift className="w-5 h-5 mr-3" />
                 FIDÉLITÉ
               </TabsTrigger>
-              <TabsTrigger 
-                value="documents" 
-                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-blue-500 data-[state=inactive]:text-white data-[state=active]:bg-blue-600 data-[state=active]:text-white hover:shadow-xl"
-              >
-                <FolderOpen className="w-5 h-5 mr-3" />
-                DOCUMENTS
-                {allDocuments.length > 0 && (
-                  <span className="ml-2 bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">
-                    {allDocuments.length}
-                  </span>
-                )}
-              </TabsTrigger>
             </TabsList>
           </div>
 
-          {/* ===== ONGLET ÉLÈVES ===== */}
-          <TabsContent value="eleves" className="space-y-6">
+          {/* ===== ONGLET PARTICIPANTS ===== */}
+          <TabsContent value="participants" className="space-y-6">
             {/* Barre d'actions style admin */}
             <div className="flex items-center justify-between p-4 bg-white rounded-2xl shadow-lg">
-              <h2 className="text-xl font-bold text-gray-800">Élèves actifs ({activeStudents.length})</h2>
+              <h2 className="text-xl font-bold text-gray-800">Participants actifs ({activeStudents.length})</h2>
               <div className="flex gap-3">
                 {filteredStudents && (
                   <Button onClick={resetSearch} variant="outline" className="gap-2">
