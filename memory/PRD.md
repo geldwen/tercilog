@@ -74,8 +74,9 @@ Build a comprehensive educational platform called "TerciForm" with:
 ## Key Files
 - `/app/backend/server.py` - Main backend
 - `/app/frontend/src/pages/TeacherDashboard.js` - Admin dashboard
-- `/app/frontend/src/pages/GestionnaireDashboard.js` - Manager dashboard
-- `/app/frontend/src/App.js` - Router configuration
+- `/app/frontend/src/pages/GestionnaireDashboard.js` - Manager dashboard (organisme_formation)
+- `/app/frontend/src/pages/ClientDashboard.js` - Client dashboard (société) **NEW**
+- `/app/frontend/src/App.js` - Router configuration (with GestionnaireWrapper)
 
 ## Test Credentials
 - **Admin**: `terciform@gmail.com` / `Geldwen1982*+`
