@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
   LogOut, Users, Calendar, Search, Plus, PenTool,
-  Mail, Phone, Clock, CheckCircle, Eye, Building, XCircle, Gift, ChevronDown, ChevronUp, Download, FileText, Award, MessageSquare, X
+  Mail, Phone, Clock, CheckCircle, Eye, Building, XCircle, Gift, ChevronDown, ChevronUp, Download, FileText, Award, MessageSquare, X, FolderOpen
 } from "lucide-react";
 import TicketingModal from "@/components/TicketingModal";
 
