@@ -5113,6 +5113,18 @@ export default function TeacherDashboard({ user, onLogout }) {
                       
                       {/* Informations du client */}
                       <div className="px-4 pb-4">
+                        {/* Badge Type de client */}
+                        <div className="flex items-center gap-2 mb-2">
+                          {client.client_type === 'societe' ? (
+                            <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
+                              🏢 Société / Client
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-xs font-medium rounded-full">
+                              🎓 Organisme de formation
+                            </span>
+                          )}
+                        </div>
                         <h3 className="text-lg font-bold text-gray-800 mb-2">{client.nom_centre}</h3>
                         
                         {client.adresse_siege && (
