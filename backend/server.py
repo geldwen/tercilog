@@ -11538,6 +11538,7 @@ async def create_client(
         "formateur_id": formateur_id,
         "formateur_name": formateur_data.get("name", "") if formateur_data else "",
         "formateur_email": formateur_data.get("email", "") if formateur_data else "",
+        "client_type": client_type,  # Type de client: organisme_formation ou societe
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc)
     }
