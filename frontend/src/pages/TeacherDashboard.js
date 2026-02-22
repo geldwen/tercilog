@@ -122,7 +122,8 @@ export default function TeacherDashboard({ user, onLogout }) {
     gestionnaires: [{ nom: '', email: '', password: '' }], // Liste de gestionnaires
     photo: null,
     photoName: '',
-    formateur_id: ''
+    formateur_id: '',
+    client_type: 'organisme_formation' // 'organisme_formation' ou 'societe'
   });
   const [showClientHistoryDialog, setShowClientHistoryDialog] = useState(false);
   const [showClientActionsDialog, setShowClientActionsDialog] = useState(false);
