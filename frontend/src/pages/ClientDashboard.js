@@ -1508,7 +1508,7 @@ export default function ClientDashboard({ user, onLogout }) {
                 <Users className="w-20 h-20 mx-auto text-violet-200 mb-4" />
                 <p className="text-gray-500 text-lg">Aucun participant pour le moment</p>
                 <Button onClick={() => setShowCreateStudent(true)} variant="link" className="mt-2 text-violet-600">
-                  Créer votre premier élève
+                  Créer votre premier participant
                 </Button>
               </div>
             ) : (
@@ -1520,7 +1520,7 @@ export default function ClientDashboard({ user, onLogout }) {
                       {/* Bouton Historiser en haut à gauche */}
                       <button
                         onClick={async () => {
-                          if (window.confirm(`Voulez-vous historiser l'élève "${student.name}" ? Il sera déplacé dans les sorties de parcours.`)) {
+                          if (window.confirm(`Voulez-vous historiser le participant "${student.name}" ? Il sera déplacé dans les sorties de parcours.`)) {
                             try {
                               await axios.patch(`${API}/students/${student.id}/archive`);
                               toast.success(`${student.name} a été historisé`);
@@ -1531,7 +1531,7 @@ export default function ClientDashboard({ user, onLogout }) {
                           }
                         }}
                         className="absolute top-2 left-2 px-3 py-1 bg-gray-400 hover:bg-gray-500 text-white text-xs font-medium rounded-full transition-colors flex items-center gap-1 z-10"
-                        title="Historiser cet élève (le déplacer dans les sorties de parcours)"
+                        title="Historiser ce participant (le déplacer dans les sorties de parcours)"
                       >
                         <FolderOpen className="w-3 h-3" />
                         Historiser
@@ -1575,14 +1575,14 @@ export default function ClientDashboard({ user, onLogout }) {
                                 <button
                                   onClick={() => exportStudentAttendancePDF(student)}
                                   className="ml-auto flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium transition-colors shadow-md"
-                                  title="Télécharger le planning de l'élève en PDF"
+                                  title="Télécharger le planning du participant en PDF"
                                 >
                                   <Download className="w-4 h-4" />
-                                  Télécharger planning élève PDF
+                                  Télécharger planning participant PDF
                                 </button>
                               </div>
                               
-                              {/* Séances de l'élève */}
+                              {/* Séances du participant */}
                               {(() => {
                                 const today = new Date().toISOString().split('T')[0];
                                 const studentSessions = sessions.filter(s => s.student_id === student.id);
