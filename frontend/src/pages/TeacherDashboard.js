@@ -6765,6 +6765,49 @@ export default function TeacherDashboard({ user, onLogout }) {
               </label>
             </div>
 
+            {/* Type de client */}
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Type de client <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-4">
+                <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition-all ${newClientData.client_type === 'organisme_formation' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                  <input
+                    type="radio"
+                    name="client_type"
+                    value="organisme_formation"
+                    checked={newClientData.client_type === 'organisme_formation'}
+                    onChange={(e) => setNewClientData(prev => ({ ...prev, client_type: e.target.value }))}
+                    className="sr-only"
+                  />
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🎓</span>
+                    <div>
+                      <p className="font-semibold text-gray-900">Organisme de formation</p>
+                      <p className="text-xs text-gray-500">Accès au Dashboard Gestion</p>
+                    </div>
+                  </div>
+                </label>
+                <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition-all ${newClientData.client_type === 'societe' ? 'border-amber-500 bg-amber-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                  <input
+                    type="radio"
+                    name="client_type"
+                    value="societe"
+                    checked={newClientData.client_type === 'societe'}
+                    onChange={(e) => setNewClientData(prev => ({ ...prev, client_type: e.target.value }))}
+                    className="sr-only"
+                  />
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🏢</span>
+                    <div>
+                      <p className="font-semibold text-gray-900">Société / Client</p>
+                      <p className="text-xs text-gray-500">Accès à l'Espace Client</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             {/* Informations du centre */}
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
