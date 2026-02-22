@@ -978,8 +978,8 @@ export default function ClientDashboard({ user, onLogout }) {
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>Nouvel Élève</DialogTitle>
-                      <DialogDescription>Créer un compte élève pour {client?.nom_centre}</DialogDescription>
+                      <DialogTitle>Nouveau Participant</DialogTitle>
+                      <DialogDescription>Créer un compte participant pour {client?.nom_centre}</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleCreateStudent} className="space-y-4">
                       {/* Informations de base */}
@@ -1040,7 +1040,7 @@ export default function ClientDashboard({ user, onLogout }) {
                           <PenTool className="w-5 h-5" />
                           Assigner un formateur
                         </h4>
-                        <p className="text-sm text-gray-600">Sélectionnez le formateur qui sera en charge de cet élève.</p>
+                        <p className="text-sm text-gray-600">Sélectionnez le formateur qui sera en charge de ce participant.</p>
                         
                         <div className="space-y-2">
                           <Label className="text-amber-700">Formateur référent</Label>
@@ -1198,7 +1198,7 @@ export default function ClientDashboard({ user, onLogout }) {
                       
                       <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setShowCreateStudent(false)}>Annuler</Button>
-                        <Button type="submit" style={{ backgroundColor: TERCIFORM_BLUE }} className="text-white">Créer l'élève</Button>
+                        <Button type="submit" style={{ backgroundColor: TERCIFORM_BLUE }} className="text-white">Créer le participant</Button>
                       </DialogFooter>
                     </form>
                   </DialogContent>
@@ -1220,7 +1220,7 @@ export default function ClientDashboard({ user, onLogout }) {
                     </div>
                     <div className="text-left">
                       <h3 className="font-bold text-blue-900">Sorties de parcours</h3>
-                      <p className="text-sm text-blue-600">{exitedStudents.length} élève(s) ayant terminé leur formation</p>
+                      <p className="text-sm text-blue-600">{exitedStudents.length} participant(s) ayant terminé leur formation</p>
                     </div>
                   </div>
                   {showExitBanner ? (
@@ -1281,7 +1281,7 @@ export default function ClientDashboard({ user, onLogout }) {
                       {filteredExitedStudents.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
                           <FolderOpen className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                          <p>Aucun élève trouvé</p>
+                          <p>Aucun participant trouvé</p>
                         </div>
                       ) : (
                         <div className="divide-y divide-gray-100">
@@ -1359,7 +1359,7 @@ export default function ClientDashboard({ user, onLogout }) {
                                   </div>
                                 </summary>
                                 
-                                {/* Détails complets de l'élève */}
+                                {/* Détails complets du participant */}
                                 <div className="px-4 pb-4 bg-gray-50 border-t">
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
                                     {/* Informations générales */}
