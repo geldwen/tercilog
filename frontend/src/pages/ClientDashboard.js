@@ -1621,7 +1621,7 @@ export default function ClientDashboard({ user, onLogout }) {
                                               <span>{s.start_time} - {s.end_time}</span>
                                               <span className={s.is_absent ? 'text-red-600' : 'text-green-600'}>{s.duration_hours}h</span>
                                               {s.is_absent ? (
-                                                <span className="text-red-600 font-medium">Élève absent de la séance</span>
+                                                <span className="text-red-600 font-medium">Participant absent de la séance</span>
                                               ) : (s.signature || s.teacher_signature) ? (
                                                 <span className="text-green-700 font-medium flex items-center gap-1">
                                                   <CheckCircle className="w-3 h-3" />
@@ -1695,7 +1695,7 @@ export default function ClientDashboard({ user, onLogout }) {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input
                   type="text"
-                  placeholder="Nom de l'élève..."
+                  placeholder="Nom du participant..."
                   value={sessionSearchName}
                   onChange={(e) => setSessionSearchName(e.target.value)}
                   className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -1764,7 +1764,7 @@ export default function ClientDashboard({ user, onLogout }) {
                       <div className="text-xs">{searchedSession.start_time} - {searchedSession.end_time}</div>
                     </div>
                     <div>
-                      <div className="font-semibold">{students.find(s => s.id === searchedSession.student_id)?.name || 'Élève'}</div>
+                      <div className="font-semibold">{students.find(s => s.id === searchedSession.student_id)?.name || 'Participant'}</div>
                       <div className="text-sm text-gray-600">{searchedSession.subject} • {searchedSession.duration_hours}h</div>
                     </div>
                     <div className="ml-auto flex items-center gap-2">
@@ -1820,7 +1820,7 @@ export default function ClientDashboard({ user, onLogout }) {
                               <div className="text-xs text-green-600">{session.end_time}</div>
                             </div>
                             <div>
-                              <div className="font-semibold text-gray-900">{student?.name || 'Élève'}</div>
+                              <div className="font-semibold text-gray-900">{student?.name || 'Participant'}</div>
                               <div className="text-sm text-gray-500">{session.subject} • {session.duration_hours}h</div>
                               {session.modality && (
                                 <span className={`text-xs px-2 py-0.5 rounded ${session.modality === 'distanciel' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
@@ -1917,7 +1917,7 @@ export default function ClientDashboard({ user, onLogout }) {
                                 </div>
                               </div>
                               <div>
-                                <div className="font-semibold text-gray-900">{student?.name || 'Élève'}</div>
+                                <div className="font-semibold text-gray-900">{student?.name || 'Participant'}</div>
                                 <div className="text-sm text-gray-500">
                                   {session.start_time} - {session.end_time} • {session.subject} • {session.duration_hours}h
                                 </div>
