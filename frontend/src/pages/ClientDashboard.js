@@ -2131,24 +2131,12 @@ export default function ClientDashboard({ user, onLogout }) {
                         
                         <div className="flex flex-wrap gap-3 justify-center mb-6">
                           <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
-                            <div className="w-3 h-3 rounded-full bg-blue-300"></div>
-                            Salles
-                          </span>
-                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
                             <div className="w-3 h-3 rounded-full bg-orange-300"></div>
                             Matériel
                           </span>
                           <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
                             <div className="w-3 h-3 rounded-full bg-purple-300"></div>
                             Supports
-                          </span>
-                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
-                            <div className="w-3 h-3 rounded-full bg-green-300"></div>
-                            Organisation
-                          </span>
-                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
-                            <div className="w-3 h-3 rounded-full bg-pink-300"></div>
-                            Accueil
                           </span>
                           <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
                             <div className="w-3 h-3 rounded-full bg-gray-300"></div>
