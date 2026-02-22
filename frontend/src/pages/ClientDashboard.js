@@ -174,63 +174,10 @@ export default function ClientDashboard({ user, onLogout }) {
       } catch (e) {
         console.log('Debug endpoint not available');
       }
-      
-      setClient(clientRes.data);
-      setStudents(studentsRes.data || []);
-      
-      // Charger le compteur de tickets non lus
-      if (clientRes.data?.id) {
-        loadUnreadTicketCount(clientRes.data.id);
-      }
-      setSessions(sessionsRes.data || []);
-      setFormateurs(formateursRes.data || []);
-    } catch (error) {
-      console.error('Erreur chargement:', error);
-      if (error.response?.status === 403 || error.response?.status === 401) {
-        toast.error('Session expirée');
-        onLogout();
-      }
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Charger les documents de tous les élèves
-  const loadAllDocuments = async () => {
-    setLoadingDocuments(true);
-    try {
-      const docs = [];
-      for (const student of students) {
-        // Charger les documents pour chaque catégorie
-        const categories = ['administratif', 'pedagogique', 'facturation', 'autre'];
-        for (const category of categories) {
-          try {
-            const res = await axios.get(`${API}/students/${student.id}/documents/${category}`);
-            if (res.data && res.data.length > 0) {
-              res.data.forEach(doc => {
-                docs.push({
-                  ...doc,
-                  student_name: student.name,
-                  student_id: student.id
-                });
-              });
-            }
-          } catch (e) {
-            // Catégorie vide ou erreur, ignorer
-          }
-        }
-      }
-      // Trier par date décroissante
-      docs.sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
-      setAllDocuments(docs);
-    } catch (error) {
-      console.error('Erreur chargement documents:', error);
-    } finally {
-      setLoadingDocuments(false);
-    }
-  };
-
-  // Recherche élève
+  // Recherche participant
   const handleSearchStudent = () => {
     if (!searchQuery.trim()) {
       toast.error('Veuillez entrer un terme de recherche');
@@ -245,7 +192,7 @@ export default function ClientDashboard({ user, onLogout }) {
     });
     
     if (results.length === 0) {
-      toast.error('Aucun élève trouvé');
+      toast.error('Aucun participant trouvé');
     } else {
       setFilteredStudents(results);
       setShowSearchStudent(false);
