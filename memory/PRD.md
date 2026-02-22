@@ -87,6 +87,17 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **Feb 22, 2026**: Created `ClientDashboard.js` - new dashboard for "société" type clients
+  - Renamed "élèves" to "participants" throughout the UI
+  - Removed "DOCUMENTS" tab (not needed for sociétés)
+  - Removed "Salles", "Organisation", "Accueil" from Échanges categories
+  - Header shows "Espace Client" instead of "Espace Gestion"
+- **Feb 22, 2026**: Added client type distinction in backend
+  - Added `client_type` field to `/api/clients` POST endpoint (organisme_formation | societe)
+  - `client_type` is stored in clients collection
+- **Feb 22, 2026**: Added `GestionnaireWrapper` in App.js
+  - Automatically routes "société" clients to ClientDashboard
+  - Routes "organisme_formation" clients to GestionnaireDashboard
 - **Feb 14, 2026**: Removed "Absent" button from student cards (Fiche élève) - now managed via checkboxes in daily sessions
 - **Feb 14, 2026**: Removed "Attente élève/formateur" badges from Séances du jour - only show signatures when signed
 - **Feb 14, 2026**: Added green checkbox (present) and red checkbox (absent) next to subject in Séances du jour
