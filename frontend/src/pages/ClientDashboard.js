@@ -811,7 +811,7 @@ export default function ClientDashboard({ user, onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header identique à l'admin */}
+      {/* Header - Espace Client pour les Sociétés */}
       <header className="text-white shadow-lg" style={{ backgroundColor: TERCIFORM_BLUE }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
@@ -822,8 +822,8 @@ export default function ClientDashboard({ user, onLogout }) {
                 className="h-12"
               />
               <div>
-                <h1 className="text-xl font-bold">Espace Gestion</h1>
-                <p className="text-sm text-gray-300">{client?.nom_centre || 'Mon centre'}</p>
+                <h1 className="text-xl font-bold">Espace Client</h1>
+                <p className="text-sm text-gray-300">{client?.nom_centre || 'Ma société'}</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
