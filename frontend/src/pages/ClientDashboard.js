@@ -1366,7 +1366,7 @@ export default function ClientDashboard({ user, onLogout }) {
                                     <div className="bg-white p-4 rounded-lg shadow-sm">
                                       <h5 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
                                         <Users className="w-4 h-4" />
-                                        Informations élève
+                                        Informations participant
                                       </h5>
                                       <div className="space-y-2 text-sm">
                                         <p><span className="text-gray-500">Email:</span> {student.email}</p>
@@ -1468,12 +1468,12 @@ export default function ClientDashboard({ user, onLogout }) {
                                     )}
                                   </div>
                                   
-                                  {/* Bouton pour réactiver l'élève */}
+                                  {/* Bouton pour réactiver le participant */}
                                   {student.is_archived && (
                                     <div className="mt-4 flex justify-end">
                                       <button
                                         onClick={async () => {
-                                          if (window.confirm(`Voulez-vous réactiver l'élève "${student.name}" ? Il retournera dans les élèves actifs.`)) {
+                                          if (window.confirm(`Voulez-vous réactiver le participant "${student.name}" ? Il retournera dans les participants actifs.`)) {
                                             try {
                                               await axios.patch(`${API}/students/${student.id}/unarchive`);
                                               toast.success(`${student.name} a été réactivé`);
@@ -1486,7 +1486,7 @@ export default function ClientDashboard({ user, onLogout }) {
                                         className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
                                       >
                                         <Users className="w-4 h-4" />
-                                        Réactiver cet élève
+                                        Réactiver ce participant
                                       </button>
                                     </div>
                                   )}
@@ -1502,11 +1502,11 @@ export default function ClientDashboard({ user, onLogout }) {
               </div>
             )}
 
-            {/* Liste des élèves actifs - style admin */}
+            {/* Liste des participants actifs - style admin */}
             {(filteredStudents || activeStudents).length === 0 ? (
               <div className="text-center py-16 bg-white rounded-2xl shadow-lg">
                 <Users className="w-20 h-20 mx-auto text-violet-200 mb-4" />
-                <p className="text-gray-500 text-lg">Aucun élève pour le moment</p>
+                <p className="text-gray-500 text-lg">Aucun participant pour le moment</p>
                 <Button onClick={() => setShowCreateStudent(true)} variant="link" className="mt-2 text-violet-600">
                   Créer votre premier élève
                 </Button>
