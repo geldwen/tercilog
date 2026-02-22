@@ -10990,6 +10990,7 @@ class ClientBase(BaseModel):
     email_responsable: str = ""
     nom_gestionnaire: str = ""
     email_gestionnaire: str = ""
+    client_type: str = "organisme_formation"  # "organisme_formation" ou "societe"
 
 class ClientCreate(ClientBase):
     password: str = ""  # Mot de passe commun pour les accès gestionnaire/responsable
@@ -10999,6 +11000,7 @@ class Client(ClientBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     photo_url: str = ""
     password_hash: str = ""  # Hash du mot de passe
+    client_type: str = "organisme_formation"  # "organisme_formation" ou "societe"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
