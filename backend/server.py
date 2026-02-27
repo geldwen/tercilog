@@ -1904,16 +1904,9 @@ async def create_student(data: dict, current_user: User = Depends(get_current_us
         
         if client:
             # Collecter tous les emails de gestionnaires (ancien champ + nouveau tableau)
-            gestionnaire_emails = []
-            if client.get('email_gestionnaire'):
-                gestionnaire_emails.append(client.get('email_gestionnaire'))
-            gestionnaires = client.get('gestionnaires', [])
-            for g in gestionnaires:
-                email = g.get('email') if isinstance(g, dict) else None
-                if email and email not in gestionnaire_emails:
-                    gestionnaire_emails.append(email)
+            gestionnaire_emails = get_all_client_emails(client)
             
-            logger.info(f"📧 Client trouvé: {client.get('nom_centre')} avec gestionnaires: {gestionnaire_emails}")
+            logger.info(f"📧 Client trouvé: {client.get('nom_centre')} avec contacts: {gestionnaire_emails}")
             
             if gestionnaire_emails:
                 # Envoyer la notification
