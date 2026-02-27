@@ -1290,6 +1290,37 @@ def send_session_deleted_email(to_email: str, student_name: str, subject: str, d
     return email_sent
 
 
+def get_all_client_emails(client: dict) -> list:
+    """
+    Récupère TOUS les emails d'un client (responsable + gestionnaires).
+    Utilisé pour envoyer les notifications à tous les contacts.
+    """
+    emails = []
+    
+    # 1. Email du responsable
+    if client.get('email_responsable'):
+        email = client.get('email_responsable').strip()
+        if email and email not in emails:
+            emails.append(email)
+    
+    # 2. Email gestionnaire principal (ancien champ)
+    if client.get('email_gestionnaire'):
+        email = client.get('email_gestionnaire').strip()
+        if email and email not in emails:
+            emails.append(email)
+    
+    # 3. Liste des gestionnaires
+    gestionnaires = client.get('gestionnaires', [])
+    for g in gestionnaires:
+        email = g.get('email') if isinstance(g, dict) else None
+        if email:
+            email = email.strip()
+            if email and email not in emails:
+                emails.append(email)
+    
+    return emails
+
+
 def send_gestionnaire_session_notification(gestionnaire_emails: list, student_name: str, teacher_name: str, subject: str, date: str, start_time: str, end_time: str, action: str = "modifiee"):
     """Envoyer un email de notification de modification/suppression de seance au gestionnaire"""
     
