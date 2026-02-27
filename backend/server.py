@@ -8266,14 +8266,8 @@ async def upload_student_document(
         if client_id:
             client = await db.clients.find_one({"id": client_id}, {"_id": 0})
             if client:
-                # Collecter tous les emails de gestionnaires
-                gestionnaire_emails = []
-                if client.get('email_gestionnaire'):
-                    gestionnaire_emails.append(client.get('email_gestionnaire'))
-                gestionnaires = client.get('gestionnaires', [])
-                for g in gestionnaires:
-                    if g.get('email'):
-                        gestionnaire_emails.append(g.get('email'))
+                # Collecter tous les emails (responsable + gestionnaires)
+                gestionnaire_emails = get_all_client_emails(client)
                 
                 if gestionnaire_emails:
                     student_name = student.get('name', 'Élève')
@@ -8283,7 +8277,7 @@ async def upload_student_document(
                         category=category,
                         gestionnaire_emails=gestionnaire_emails
                     )
-                    logger.info(f"✅ Notification document envoyée aux gestionnaires: {gestionnaire_emails}")
+                    logger.info(f"✅ Notification document envoyée aux contacts: {gestionnaire_emails}")
     except Exception as e:
         logger.error(f"❌ Erreur envoi notification document aux gestionnaires: {e}")
     
