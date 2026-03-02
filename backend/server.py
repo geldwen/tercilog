@@ -13547,7 +13547,12 @@ async def get_unread_ticket_count_by_category(client_id: str, current_user: User
 # Marquer les tickets comme lus
 @api_router.post("/tickets/mark-read/{client_id}")
 async def mark_tickets_as_read(client_id: str, current_user: User = Depends(get_current_user)):
-    """Marquer tous les tickets d'un centre comme lus"""
+    """Marquer tous les tickets d'un centre comme lus - AVEC ISOLATION STRICTE"""
+    # ISOLATION STRICTE : Un gestionnaire ne peut marquer que ses propres tickets
+    if current_user.role != "teacher" and current_user.client_id != client_id:
+        logger.warning(f"⚠️ SECURITY: User {current_user.email} tried to mark tickets of client {client_id}")
+        return {"message": "Accès refusé"}
+    
     if current_user.role == "teacher":
         # Formateur marque comme lu
         await db.tickets.update_many(
@@ -13555,9 +13560,9 @@ async def mark_tickets_as_read(client_id: str, current_user: User = Depends(get_
             {"$set": {"read_by_trainer": True}}
         )
     else:
-        # Gestionnaire marque comme lu
+        # Gestionnaire marque comme lu - UNIQUEMENT son propre client
         await db.tickets.update_many(
-            {"assigned_center_id": client_id},
+            {"assigned_center_id": current_user.client_id},
             {"$set": {"read_by_center": True}}
         )
     return {"message": "Tickets marqués comme lus"}
