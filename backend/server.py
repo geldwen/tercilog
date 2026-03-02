@@ -12338,6 +12338,59 @@ async def link_gestionnaire_to_client(
         "client_name": client.get("nom_centre")
     }
 
+
+@api_router.post("/gestionnaires/reset-password")
+async def reset_gestionnaire_password(
+    email: str = Form(...),
+    new_password: str = Form(...),
+    send_email: bool = Form(True),
+    current_user: User = Depends(get_current_user)
+):
+    """Réinitialise le mot de passe d'un gestionnaire et envoie un email avec les nouveaux identifiants"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    # Vérifier que le gestionnaire existe
+    gestionnaire = await db.users.find_one({"email": email})
+    if not gestionnaire:
+        raise HTTPException(status_code=404, detail=f"Utilisateur {email} non trouvé")
+    
+    # Hasher le nouveau mot de passe
+    password_hash = pwd_context.hash(new_password)
+    
+    # Mettre à jour le mot de passe
+    await db.users.update_one(
+        {"email": email},
+        {"$set": {"password_hash": password_hash, "updated_at": datetime.now(timezone.utc)}}
+    )
+    
+    logger.info(f"✅ Mot de passe réinitialisé pour {email}")
+    
+    email_sent = False
+    if send_email:
+        # Envoyer un email avec les nouveaux identifiants
+        client_name = gestionnaire.get("client_name", "TerciForm")
+        user_name = gestionnaire.get("name", email.split('@')[0])
+        
+        email_sent = send_gestionnaire_welcome_email(
+            to_email=email,
+            name=user_name,
+            centre_name=client_name,
+            password=new_password
+        )
+        
+        if email_sent:
+            logger.info(f"✅ Email avec nouveaux identifiants envoyé à {email}")
+        else:
+            logger.warning(f"⚠️ Échec envoi email à {email}")
+    
+    return {
+        "message": f"Mot de passe réinitialisé pour {email}",
+        "email_sent": email_sent,
+        "email": email
+    }
+
+
 # ===== ENDPOINTS DEMANDES DE SALLE =====
 @api_router.get("/clients/{client_id}/room-requests")
 async def get_room_requests(client_id: str, current_user: User = Depends(get_current_user)):
