@@ -189,41 +189,6 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     }
   };
 
-  // Charger les documents de tous les élèves
-  const loadAllDocuments = async () => {
-    setLoadingDocuments(true);
-    try {
-      const docs = [];
-      for (const student of students) {
-        // Charger les documents pour chaque catégorie
-        const categories = ['administratif', 'pedagogique', 'facturation', 'autre'];
-        for (const category of categories) {
-          try {
-            const res = await axios.get(`${API}/students/${student.id}/documents/${category}`);
-            if (res.data && res.data.length > 0) {
-              res.data.forEach(doc => {
-                docs.push({
-                  ...doc,
-                  student_name: student.name,
-                  student_id: student.id
-                });
-              });
-            }
-          } catch (e) {
-            // Catégorie vide ou erreur, ignorer
-          }
-        }
-      }
-      // Trier par date décroissante
-      docs.sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
-      setAllDocuments(docs);
-    } catch (error) {
-      console.error('Erreur chargement documents:', error);
-    } finally {
-      setLoadingDocuments(false);
-    }
-  };
-
   // Recherche élève
   const handleSearchStudent = () => {
     if (!searchQuery.trim()) {
