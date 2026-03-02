@@ -12536,6 +12536,86 @@ async def send_welcome_email_manual(
     }
 
 
+@api_router.post("/admin/fix-user-client")
+async def fix_user_client(
+    user_email: str = Form(...),
+    correct_client_id: str = Form(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Corrige le client_id d'un utilisateur (admin uniquement)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    # Vérifier que le client existe
+    client = await db.clients.find_one({"id": correct_client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail=f"Client {correct_client_id} non trouvé")
+    
+    # Mettre à jour l'utilisateur
+    result = await db.users.update_one(
+        {"email": user_email},
+        {"$set": {
+            "client_id": correct_client_id,
+            "client_name": client.get("nom_centre", ""),
+            "updated_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail=f"Utilisateur {user_email} non trouvé")
+    
+    logger.info(f"✅ Client corrigé pour {user_email}: {correct_client_id} ({client.get('nom_centre')})")
+    
+    return {
+        "success": True,
+        "message": f"Client corrigé pour {user_email}",
+        "client_id": correct_client_id,
+        "client_name": client.get("nom_centre")
+    }
+
+
+@api_router.post("/admin/assign-formateur-to-client")
+async def assign_formateur_to_client(
+    client_id: str = Form(...),
+    formateur_id: str = Form(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Assigne un formateur à un client (admin uniquement)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    # Vérifier que le formateur existe
+    formateur = await db.formateurs.find_one({"id": formateur_id}, {"_id": 0})
+    if not formateur:
+        raise HTTPException(status_code=404, detail=f"Formateur {formateur_id} non trouvé")
+    
+    formateur_name = f"{formateur.get('prenom', '')} {formateur.get('nom', '')}".strip()
+    
+    # Mettre à jour le client
+    result = await db.clients.update_one(
+        {"id": client_id},
+        {"$set": {
+            "formateur_id": formateur_id,
+            "formateur_name": formateur_name,
+            "formateur_email": formateur.get("email", ""),
+            "updated_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail=f"Client {client_id} non trouvé")
+    
+    logger.info(f"✅ Formateur {formateur_name} assigné au client {client_id}")
+    
+    return {
+        "success": True,
+        "message": f"Formateur {formateur_name} assigné au client",
+        "client_id": client_id,
+        "formateur_id": formateur_id,
+        "formateur_name": formateur_name
+    }
+
+
 # ===== ENDPOINTS DEMANDES DE SALLE =====
 @api_router.get("/clients/{client_id}/room-requests")
 async def get_room_requests(client_id: str, current_user: User = Depends(get_current_user)):
