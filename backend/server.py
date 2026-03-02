@@ -11534,6 +11534,12 @@ async def create_client(
     # Créer les comptes utilisateurs pour tous les contacts (responsable + gestionnaires)
     emails_sent = []
     
+    # Mot de passe COMMUN pour tous les contacts (responsable + gestionnaires)
+    common_password = password.strip() if password else f"Terci{nom_centre[:4]}2024!"
+    common_password_hash = pwd_context.hash(common_password)
+    
+    logger.info(f"📧 Création client {nom_centre} - Mot de passe commun configuré")
+    
     # 1. Créer le compte pour le RESPONSABLE s'il a un email
     if email_responsable and email_responsable.strip():
         resp_email = email_responsable.strip()
@@ -11543,57 +11549,48 @@ async def create_client(
         existing_resp = await db.users.find_one({"email": resp_email})
         
         if not existing_resp:
-            # Générer un mot de passe pour le responsable
-            resp_password = f"Terci{nom_centre[:4]}Resp2024!"
-            resp_password_hash = pwd_context.hash(resp_password)
-            
             resp_user_data = {
                 "id": str(uuid.uuid4()),
                 "email": resp_email,
                 "name": resp_name,
-                "password_hash": resp_password_hash,
-                "role": "gestionnaire",  # Même rôle que gestionnaire
+                "password_hash": common_password_hash,
+                "role": "gestionnaire",
                 "client_id": client_id,
                 "client_name": nom_centre,
-                "is_responsable": True,  # Flag pour identifier le responsable
+                "is_responsable": True,
                 "created_at": datetime.now(timezone.utc)
             }
             await db.users.insert_one(resp_user_data)
-            
-            # Envoyer l'email de bienvenue au responsable
-            email_sent = send_gestionnaire_welcome_email(
-                to_email=resp_email,
-                name=resp_name,
-                centre_name=nom_centre,
-                password=resp_password
-            )
-            if email_sent:
-                emails_sent.append(resp_email)
-                logger.info(f"✅ Email de bienvenue envoyé au responsable {resp_email}")
+            logger.info(f"✅ Compte responsable créé pour {resp_email}")
         else:
-            # Utilisateur existe déjà - mettre à jour le client_id si nécessaire
-            if not existing_resp.get("client_id"):
-                await db.users.update_one(
-                    {"email": resp_email},
-                    {"$set": {"client_id": client_id, "client_name": nom_centre, "is_responsable": True}}
-                )
-            # Envoyer quand même un email de notification (sans mot de passe)
-            email_sent = send_new_client_assignment_email(
-                to_email=resp_email,
-                name=resp_name,
-                centre_name=nom_centre
+            # Utilisateur existe - mettre à jour le mot de passe et le client_id
+            await db.users.update_one(
+                {"email": resp_email},
+                {"$set": {
+                    "password_hash": common_password_hash,
+                    "client_id": client_id,
+                    "client_name": nom_centre,
+                    "is_responsable": True,
+                    "updated_at": datetime.now(timezone.utc)
+                }}
             )
-            if email_sent:
-                emails_sent.append(resp_email)
-                logger.info(f"✅ Email notification nouveau centre envoyé au responsable existant {resp_email}")
-            else:
-                logger.info(f"ℹ️ Responsable {resp_email} existe déjà (email non envoyé)")
+            logger.info(f"✅ Compte responsable mis à jour pour {resp_email}")
+        
+        # Envoyer l'email de bienvenue au responsable
+        email_sent = send_gestionnaire_welcome_email(
+            to_email=resp_email,
+            name=resp_name,
+            centre_name=nom_centre,
+            password=common_password
+        )
+        if email_sent:
+            emails_sent.append(resp_email)
+            logger.info(f"✅ Email de bienvenue envoyé au responsable {resp_email}")
     
-    # 2. Créer les comptes pour tous les GESTIONNAIRES
+    # 2. Créer les comptes pour tous les GESTIONNAIRES (même mot de passe)
     for g in gestionnaires_list:
         g_email = g.get("email", "").strip()
         g_name = g.get("nom", "").strip()
-        g_password = g.get("password", "").strip()
         
         if not g_email:
             continue
@@ -11607,54 +11604,41 @@ async def create_client(
         existing_user = await db.users.find_one({"email": g_email})
         
         if not existing_user:
-            # Créer le compte utilisateur avec mot de passe (ou un par défaut)
-            if g_password:
-                password_hash = pwd_context.hash(g_password)
-            else:
-                # Générer un mot de passe par défaut
-                g_password = f"Terci{nom_centre[:4]}2024!"
-                password_hash = pwd_context.hash(g_password)
-            
             user_data = {
                 "id": str(uuid.uuid4()),
                 "email": g_email,
                 "name": g_name or g_email.split('@')[0],
-                "password_hash": password_hash,
+                "password_hash": common_password_hash,
                 "role": "gestionnaire",
                 "client_id": client_id,
                 "client_name": nom_centre,
                 "created_at": datetime.now(timezone.utc)
             }
             await db.users.insert_one(user_data)
-            
-            # Envoyer l'email de bienvenue
-            email_sent = send_gestionnaire_welcome_email(
-                to_email=g_email,
-                name=g_name or g_email.split('@')[0],
-                centre_name=nom_centre,
-                password=g_password
-            )
-            if email_sent:
-                emails_sent.append(g_email)
-                logger.info(f"✅ Email de bienvenue envoyé au gestionnaire {g_email}")
+            logger.info(f"✅ Compte gestionnaire créé pour {g_email}")
         else:
-            # Utilisateur existe déjà - mettre à jour le client_id si nécessaire
-            if not existing_user.get("client_id"):
-                await db.users.update_one(
-                    {"email": g_email},
-                    {"$set": {"client_id": client_id, "client_name": nom_centre}}
-                )
-            # Envoyer quand même un email de notification (sans mot de passe)
-            email_sent = send_new_client_assignment_email(
-                to_email=g_email,
-                name=g_name or g_email.split('@')[0],
-                centre_name=nom_centre
+            # Utilisateur existe - mettre à jour le mot de passe et le client_id
+            await db.users.update_one(
+                {"email": g_email},
+                {"$set": {
+                    "password_hash": common_password_hash,
+                    "client_id": client_id,
+                    "client_name": nom_centre,
+                    "updated_at": datetime.now(timezone.utc)
+                }}
             )
-            if email_sent:
-                emails_sent.append(g_email)
-                logger.info(f"✅ Email notification nouveau centre envoyé au gestionnaire existant {g_email}")
-            else:
-                logger.info(f"ℹ️ Gestionnaire {g_email} existe déjà (email non envoyé)")
+            logger.info(f"✅ Compte gestionnaire mis à jour pour {g_email}")
+        
+        # Envoyer l'email de bienvenue
+        email_sent = send_gestionnaire_welcome_email(
+            to_email=g_email,
+            name=g_name or g_email.split('@')[0],
+            centre_name=nom_centre,
+            password=common_password
+        )
+        if email_sent:
+            emails_sent.append(g_email)
+            logger.info(f"✅ Email de bienvenue envoyé au gestionnaire {g_email}")
     
     # Retourner sans _id
     client_data.pop("_id", None)
