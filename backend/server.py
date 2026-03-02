@@ -11644,7 +11644,17 @@ async def create_client(
                     {"email": g_email},
                     {"$set": {"client_id": client_id, "client_name": nom_centre}}
                 )
-            logger.info(f"ℹ️ Gestionnaire {g_email} existe déjà")
+            # Envoyer quand même un email de notification (sans mot de passe)
+            email_sent = send_new_client_assignment_email(
+                to_email=g_email,
+                name=g_name or g_email.split('@')[0],
+                centre_name=nom_centre
+            )
+            if email_sent:
+                emails_sent.append(g_email)
+                logger.info(f"✅ Email notification nouveau centre envoyé au gestionnaire existant {g_email}")
+            else:
+                logger.info(f"ℹ️ Gestionnaire {g_email} existe déjà (email non envoyé)")
     
     # Retourner sans _id
     client_data.pop("_id", None)
