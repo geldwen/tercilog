@@ -13392,12 +13392,26 @@ async def add_ticket_message(
     message_data: TicketMessageCreate,
     current_user: User = Depends(get_current_user)
 ):
-    """Ajouter un message à un ticket"""
+    """Ajouter un message à un ticket - AVEC ISOLATION STRICTE"""
     ticket = await db.tickets.find_one({"id": ticket_id}, {"_id": 0})
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket non trouvé")
     
+    # ISOLATION STRICTE : Vérifier l'accès
     user_role = TicketRole.TRAINER if current_user.role == "teacher" else TicketRole.CENTER
+    
+    if user_role == TicketRole.CENTER:
+        if not current_user.client_id or ticket.get("assigned_center_id") != current_user.client_id:
+            logger.warning(f"⚠️ SECURITY BREACH ATTEMPT: User {current_user.email} tried to message ticket {ticket_id} of another client")
+            raise HTTPException(status_code=403, detail="Accès non autorisé")
+    else:
+        has_access = (
+            ticket["created_by_user_id"] == current_user.id or
+            ticket.get("assigned_trainer_id") == current_user.id
+        )
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
     now = datetime.now(timezone.utc)
     
     message_id = str(uuid.uuid4())
