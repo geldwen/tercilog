@@ -13458,10 +13458,16 @@ async def update_ticket_status(
     status_update: TicketStatusUpdate,
     current_user: User = Depends(get_current_user)
 ):
-    """Mettre à jour le statut d'un ticket"""
+    """Mettre à jour le statut d'un ticket - AVEC ISOLATION STRICTE"""
     ticket = await db.tickets.find_one({"id": ticket_id}, {"_id": 0})
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket non trouvé")
+    
+    # ISOLATION STRICTE
+    user_role = TicketRole.TRAINER if current_user.role == "teacher" else TicketRole.CENTER
+    if user_role == TicketRole.CENTER:
+        if not current_user.client_id or ticket.get("assigned_center_id") != current_user.client_id:
+            raise HTTPException(status_code=403, detail="Accès non autorisé")
     
     now = datetime.now(timezone.utc)
     old_status = ticket["status"]
@@ -13485,7 +13491,12 @@ async def update_ticket_status(
 # Compter les tickets non lus pour un client/centre
 @api_router.get("/tickets/unread-count/{client_id}")
 async def get_unread_ticket_count(client_id: str, current_user: User = Depends(get_current_user)):
-    """Compter les tickets non lus pour un centre donné"""
+    """Compter les tickets non lus pour un centre donné - AVEC ISOLATION STRICTE"""
+    # ISOLATION STRICTE : Un gestionnaire ne peut voir que les compteurs de son propre client
+    if current_user.role != "teacher" and current_user.client_id != client_id:
+        logger.warning(f"⚠️ SECURITY: User {current_user.email} tried to access unread count of client {client_id}")
+        return {"unread_count": 0}
+    
     if current_user.role == "teacher":
         # Formateur: compter les tickets qu'il n'a pas lus (envoyés par le centre)
         count = await db.tickets.count_documents({
@@ -13505,7 +13516,12 @@ async def get_unread_ticket_count(client_id: str, current_user: User = Depends(g
 # Compter les tickets non lus par catégorie
 @api_router.get("/tickets/unread-count-by-category/{client_id}")
 async def get_unread_ticket_count_by_category(client_id: str, current_user: User = Depends(get_current_user)):
-    """Compter les tickets non lus par catégorie pour un centre donné"""
+    """Compter les tickets non lus par catégorie pour un centre donné - AVEC ISOLATION STRICTE"""
+    # ISOLATION STRICTE : Un gestionnaire ne peut voir que les compteurs de son propre client
+    if current_user.role != "teacher" and current_user.client_id != client_id:
+        logger.warning(f"⚠️ SECURITY: User {current_user.email} tried to access category count of client {client_id}")
+        return {}
+    
     categories = ['SALLES', 'MATERIEL', 'SUPPORTS', 'ORGANISATION', 'ACCUEIL', 'EMAIL']
     result = {}
     
