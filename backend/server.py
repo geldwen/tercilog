@@ -11739,6 +11739,80 @@ def send_gestionnaire_welcome_email(to_email: str, name: str, centre_name: str, 
         return False
 
 
+def send_new_client_assignment_email(to_email: str, name: str, centre_name: str):
+    """Envoie un email de notification quand un utilisateur existant est assigné à un nouveau client"""
+    
+    portal_url = os.environ.get('FRONTEND_URL', 'https://learning-sessions.preview.emergentagent.com')
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+        <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <!-- Header avec logo -->
+            <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 35px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 26px; font-weight: 600;">Nouveau Centre Associé</h1>
+            </div>
+            
+            <!-- Contenu -->
+            <div style="padding: 35px;">
+                <p style="font-size: 17px; color: #2d3748;">Bonjour <strong>{name}</strong>,</p>
+                
+                <div style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); border-radius: 12px; padding: 25px; margin: 25px 0; border: 1px solid #7dd3fc;">
+                    <p style="margin: 0 0 15px 0; font-size: 16px; color: #0369a1; font-weight: 500;">
+                        🎉 Vous avez été ajouté(e) comme contact pour un nouveau centre !
+                    </p>
+                    <p style="margin: 0; font-size: 15px; color: #0c4a6e;">
+                        Vous pouvez désormais accéder aux informations de ce centre depuis votre espace TerciForm.
+                    </p>
+                    <p style="margin: 15px 0 0 0; font-size: 15px; color: #0c4a6e;">
+                        <strong>Centre associé :</strong> {centre_name}
+                    </p>
+                </div>
+                
+                <div style="text-align: center; margin: 35px 0;">
+                    <a href="{portal_url}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 16px 35px; text-decoration: none; border-radius: 30px; display: inline-block; font-weight: 600; font-size: 15px; box-shadow: 0 4px 15px rgba(30,58,95,0.3);">
+                        Accéder à mon espace
+                    </a>
+                </div>
+                
+                <p style="margin: 25px 0; font-size: 15px; color: #475569; text-align: center; font-style: italic;">
+                    Utilisez vos identifiants habituels pour vous connecter.
+                </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 13px; color: #64748b;">
+                    TerciForm - Propulsez vos competences
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f"TerciForm - Nouveau centre associé : {centre_name}"
+        msg['From'] = os.environ.get('SMTP_FROM', 'terciform@gmail.com')
+        msg['To'] = to_email
+        
+        part = MIMEText(html_body, 'html')
+        msg.attach(part)
+        
+        with smtplib.SMTP(os.environ.get('SMTP_HOST', 'smtp.gmail.com'), int(os.environ.get('SMTP_PORT', '587'))) as server:
+            server.starttls()
+            server.login(os.environ.get('SMTP_USER', 'terciform@gmail.com'), os.environ.get('SMTP_PASS', ''))
+            server.send_message(msg)
+        
+        logger.info(f"Email notification nouveau centre envoye a {to_email}")
+        return True
+    except Exception as e:
+        logger.error(f"Erreur envoi email notification centre {to_email}: {e}")
+        return False
+
+
 def send_new_student_notification_to_gestionnaires(student_name: str, student_organism: str, gestionnaire_emails: list):
     """Envoie une notification aux gestionnaires quand un nouvel élève est créé"""
     
