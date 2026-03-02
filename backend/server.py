@@ -12375,6 +12375,167 @@ async def reset_gestionnaire_password(
     }
 
 
+@api_router.get("/smtp/diagnostic")
+async def smtp_diagnostic(current_user: User = Depends(get_current_user)):
+    """Diagnostic de la configuration SMTP - vérifie que les variables d'environnement sont présentes"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    gmail_user = os.environ.get('GMAIL_USER')
+    gmail_password = os.environ.get('GMAIL_PASSWORD')
+    
+    diagnostic = {
+        "GMAIL_USER": gmail_user if gmail_user else "❌ NON CONFIGURÉ",
+        "GMAIL_PASSWORD": "✅ Configuré" if gmail_password else "❌ NON CONFIGURÉ",
+        "GMAIL_PASSWORD_LENGTH": len(gmail_password) if gmail_password else 0,
+        "smtp_host": "smtp.gmail.com",
+        "smtp_port": 465,
+        "smtp_protocol": "SSL",
+        "status": "ready" if (gmail_user and gmail_password) else "missing_credentials"
+    }
+    
+    logger.info(f"📧 SMTP Diagnostic: {diagnostic}")
+    
+    return diagnostic
+
+
+@api_router.post("/smtp/test-email")
+async def test_smtp_email(
+    to_email: str = Form(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Envoie un email de test pour vérifier que SMTP fonctionne"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    gmail_user = os.environ.get('GMAIL_USER')
+    gmail_password = os.environ.get('GMAIL_PASSWORD')
+    
+    if not gmail_user or not gmail_password:
+        return {
+            "success": False,
+            "error": "Credentials SMTP non configurés",
+            "GMAIL_USER": gmail_user or "NON DÉFINI",
+            "GMAIL_PASSWORD": "CONFIGURÉ" if gmail_password else "NON DÉFINI"
+        }
+    
+    try:
+        logger.info(f"📧 Test SMTP - Envoi à {to_email}")
+        logger.info(f"📧 Test SMTP - User: {gmail_user}")
+        
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = "TerciForm - Test SMTP"
+        msg['From'] = gmail_user
+        msg['To'] = to_email
+        
+        html_body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2 style="color: #1e3a5f;">✅ Test SMTP Réussi</h2>
+            <p>Cet email confirme que la configuration SMTP fonctionne correctement.</p>
+            <p><strong>Serveur:</strong> smtp.gmail.com:465 (SSL)</p>
+            <p><strong>Expéditeur:</strong> {gmail_user}</p>
+            <p><strong>Date:</strong> {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+            <hr>
+            <p style="color: #666;">TerciForm - Propulsez vos compétences</p>
+        </body>
+        </html>
+        """
+        
+        part = MIMEText(html_body, 'html')
+        msg.attach(part)
+        
+        logger.info(f"📧 Test SMTP - Connexion SSL à smtp.gmail.com:465...")
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        
+        logger.info(f"📧 Test SMTP - Authentification...")
+        server.login(gmail_user, gmail_password)
+        
+        logger.info(f"📧 Test SMTP - Envoi du message...")
+        server.sendmail(gmail_user, to_email, msg.as_string())
+        server.quit()
+        
+        logger.info(f"✅ Test SMTP - Email envoyé avec succès à {to_email}")
+        
+        return {
+            "success": True,
+            "message": f"Email de test envoyé à {to_email}",
+            "smtp_user": gmail_user,
+            "smtp_host": "smtp.gmail.com",
+            "smtp_port": 465
+        }
+        
+    except smtplib.SMTPAuthenticationError as e:
+        logger.error(f"❌ Test SMTP - Erreur authentification: {e}")
+        return {
+            "success": False,
+            "error": "Erreur authentification SMTP",
+            "detail": str(e),
+            "hint": "Vérifiez que GMAIL_PASSWORD est un mot de passe d'application Gmail valide"
+        }
+    except Exception as e:
+        logger.error(f"❌ Test SMTP - Erreur: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@api_router.post("/smtp/send-welcome-email")
+async def send_welcome_email_manual(
+    email: str = Form(...),
+    name: str = Form(...),
+    password: str = Form(...),
+    centre_name: str = Form("TerciForm"),
+    current_user: User = Depends(get_current_user)
+):
+    """Envoie manuellement un email de bienvenue avec identifiants"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    # Vérifier si l'utilisateur existe, sinon le créer
+    existing_user = await db.users.find_one({"email": email})
+    
+    if not existing_user:
+        # Créer le compte utilisateur
+        password_hash = pwd_context.hash(password)
+        user_data = {
+            "id": str(uuid.uuid4()),
+            "email": email,
+            "name": name,
+            "password_hash": password_hash,
+            "role": "gestionnaire",
+            "client_name": centre_name,
+            "created_at": datetime.now(timezone.utc)
+        }
+        await db.users.insert_one(user_data)
+        logger.info(f"✅ Compte créé pour {email}")
+    else:
+        # Mettre à jour le mot de passe
+        password_hash = pwd_context.hash(password)
+        await db.users.update_one(
+            {"email": email},
+            {"$set": {"password_hash": password_hash, "updated_at": datetime.now(timezone.utc)}}
+        )
+        logger.info(f"✅ Mot de passe mis à jour pour {email}")
+    
+    # Envoyer l'email de bienvenue
+    email_sent = send_gestionnaire_welcome_email(
+        to_email=email,
+        name=name,
+        centre_name=centre_name,
+        password=password
+    )
+    
+    return {
+        "success": email_sent,
+        "message": f"Email de bienvenue {'envoyé' if email_sent else 'NON envoyé'} à {email}",
+        "email": email,
+        "password": password,
+        "account_created": not existing_user
+    }
+
+
 # ===== ENDPOINTS DEMANDES DE SALLE =====
 @api_router.get("/clients/{client_id}/room-requests")
 async def get_room_requests(client_id: str, current_user: User = Depends(get_current_user)):
