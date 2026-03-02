@@ -13277,33 +13277,43 @@ async def get_tickets(
     direction: Optional[str] = None,  # sent, received, all
     current_user: User = Depends(get_current_user)
 ):
-    """Récupérer les tickets de l'utilisateur"""
+    """Récupérer les tickets de l'utilisateur - AVEC ISOLATION STRICTE PAR CLIENT"""
     user_role = TicketRole.TRAINER if current_user.role == "teacher" else TicketRole.CENTER
     
     # Construire le filtre de base
     query = {"is_archived": False}
     
-    # Filtre par direction (envoyés/reçus)
-    if direction == "sent":
-        query["created_by_user_id"] = current_user.id
-    elif direction == "received":
-        if user_role == TicketRole.TRAINER:
+    # ISOLATION STRICTE : Pour les gestionnaires, TOUJOURS filtrer par client_id
+    if user_role == TicketRole.CENTER:
+        if not current_user.client_id:
+            logger.warning(f"⚠️ SECURITY: User {current_user.email} has no client_id - returning empty list")
+            return []
+        
+        # Filtre STRICT par client_id - le gestionnaire ne voit QUE les tickets de son client
+        client_filter = {"assigned_center_id": current_user.client_id}
+        
+        if direction == "sent":
+            # Tickets envoyés par ce gestionnaire pour son client
+            query["created_by_user_id"] = current_user.id
+            query["assigned_center_id"] = current_user.client_id
+        elif direction == "received":
+            # Tickets reçus par ce client (créés par quelqu'un d'autre)
+            query["assigned_center_id"] = current_user.client_id
+            query["created_by_user_id"] = {"$ne": current_user.id}
+        else:
+            # Tous les tickets de ce client UNIQUEMENT
+            query["assigned_center_id"] = current_user.client_id
+    else:
+        # Pour les formateurs (teacher), filtrer par leur ID
+        if direction == "sent":
+            query["created_by_user_id"] = current_user.id
+        elif direction == "received":
             query["assigned_trainer_id"] = current_user.id
             query["created_by_user_id"] = {"$ne": current_user.id}
         else:
-            query["assigned_center_id"] = current_user.client_id
-            query["created_by_user_id"] = {"$ne": current_user.id}
-    else:
-        # Tous les tickets liés à l'utilisateur
-        if user_role == TicketRole.TRAINER:
             query["$or"] = [
                 {"created_by_user_id": current_user.id},
                 {"assigned_trainer_id": current_user.id}
-            ]
-        else:
-            query["$or"] = [
-                {"created_by_user_id": current_user.id},
-                {"assigned_center_id": current_user.client_id}
             ]
     
     # Filtre par statut
@@ -13313,6 +13323,8 @@ async def get_tickets(
     # Filtre par catégorie
     if category and category != "all":
         query["category"] = category
+    
+    logger.info(f"🔒 TICKETS QUERY for {current_user.email} (client_id={current_user.client_id}): {query}")
     
     tickets = await db.tickets.find(query, {"_id": 0}).sort("last_message_at", -1).to_list(500)
     
