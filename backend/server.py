@@ -11741,21 +11741,44 @@ def send_gestionnaire_welcome_email(to_email: str, name: str, centre_name: str, 
     try:
         msg = MIMEMultipart('alternative')
         msg['Subject'] = f"Bienvenue sur TerciForm - {centre_name}"
-        msg['From'] = os.environ.get('SMTP_FROM', 'terciform@gmail.com')
+        msg['From'] = os.environ.get('GMAIL_USER', 'terciform@gmail.com')
         msg['To'] = to_email
         
         part = MIMEText(html_body, 'html')
         msg.attach(part)
         
-        with smtplib.SMTP(os.environ.get('SMTP_HOST', 'smtp.gmail.com'), int(os.environ.get('SMTP_PORT', '587'))) as server:
-            server.starttls()
-            server.login(os.environ.get('SMTP_USER', 'terciform@gmail.com'), os.environ.get('SMTP_PASS', ''))
-            server.send_message(msg)
+        # Utilisation de SSL (port 465) - plus fiable que TLS/STARTTLS
+        gmail_user = os.environ.get('GMAIL_USER')
+        gmail_password = os.environ.get('GMAIL_PASSWORD')
         
-        logger.info(f"Email de bienvenue gestionnaire envoye a {to_email}")
+        logger.info(f"📧 SMTP Debug - Tentative envoi email bienvenue à {to_email}")
+        logger.info(f"📧 SMTP Debug - User: {gmail_user}, Password configuré: {'Oui' if gmail_password else 'Non'}")
+        
+        if not gmail_user or not gmail_password:
+            logger.error("📧 SMTP Debug - Credentials Gmail non configurés!")
+            return False
+        
+        logger.info(f"📧 SMTP Debug - Connexion SSL à smtp.gmail.com:465...")
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        
+        logger.info(f"📧 SMTP Debug - Authentification...")
+        server.login(gmail_user, gmail_password)
+        
+        logger.info(f"📧 SMTP Debug - Envoi du message...")
+        server.sendmail(gmail_user, to_email, msg.as_string())
+        server.quit()
+        
+        logger.info(f"✅ Email de bienvenue gestionnaire envoyé à {to_email}")
         return True
+    except smtplib.SMTPAuthenticationError as e:
+        logger.error(f"❌ SMTP Auth Error - Échec authentification pour {to_email}: {e}")
+        logger.error(f"❌ Vérifiez: 1) Mot de passe d'application Gmail 2) 2FA activé sur le compte")
+        return False
+    except smtplib.SMTPException as e:
+        logger.error(f"❌ SMTP Error - Erreur SMTP pour {to_email}: {e}")
+        return False
     except Exception as e:
-        logger.error(f"Erreur envoi email gestionnaire {to_email}: {e}")
+        logger.error(f"❌ Email Error - Erreur envoi email gestionnaire {to_email}: {e}")
         return False
 
 
