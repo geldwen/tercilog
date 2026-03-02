@@ -13349,21 +13349,31 @@ async def get_tickets(
 # Récupérer un ticket spécifique avec ses messages
 @api_router.get("/tickets/{ticket_id}")
 async def get_ticket(ticket_id: str, current_user: User = Depends(get_current_user)):
-    """Récupérer un ticket avec tous ses messages"""
+    """Récupérer un ticket avec tous ses messages - AVEC ISOLATION STRICTE"""
     ticket = await db.tickets.find_one({"id": ticket_id}, {"_id": 0})
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket non trouvé")
     
-    # Vérifier l'accès
+    # ISOLATION STRICTE : Vérifier l'accès
     user_role = TicketRole.TRAINER if current_user.role == "teacher" else TicketRole.CENTER
-    has_access = (
-        ticket["created_by_user_id"] == current_user.id or
-        (user_role == TicketRole.TRAINER and ticket.get("assigned_trainer_id") == current_user.id) or
-        (user_role == TicketRole.CENTER and ticket.get("assigned_center_id") == current_user.client_id)
-    )
     
-    if not has_access:
-        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    if user_role == TicketRole.CENTER:
+        # Pour les gestionnaires : UNIQUEMENT les tickets de leur client
+        if not current_user.client_id:
+            logger.warning(f"⚠️ SECURITY: User {current_user.email} has no client_id")
+            raise HTTPException(status_code=403, detail="Accès non autorisé - client_id manquant")
+        
+        if ticket.get("assigned_center_id") != current_user.client_id:
+            logger.warning(f"⚠️ SECURITY BREACH ATTEMPT: User {current_user.email} tried to access ticket {ticket_id} of another client")
+            raise HTTPException(status_code=403, detail="Accès non autorisé")
+    else:
+        # Pour les formateurs : tickets créés par eux ou assignés à eux
+        has_access = (
+            ticket["created_by_user_id"] == current_user.id or
+            ticket.get("assigned_trainer_id") == current_user.id
+        )
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Accès non autorisé")
     
     # Récupérer les messages
     messages = await db.ticket_messages.find(
