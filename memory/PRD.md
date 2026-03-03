@@ -26,6 +26,13 @@ Build a comprehensive educational platform called "TerciForm" with:
 - ✅ Quality reports with AI analysis
 - ✅ PDF generation for student records
 - ✅ Quiz/questionnaire system
+- ✅ **Meeting Scheduling with Jitsi** (NEW - March 2026)
+  - Admin can create/modify/delete meetings
+  - Multi-client invitations
+  - Clients receive email invitations
+  - Accept/Refuse meeting responses
+  - Automatic 15-minute reminders
+  - Jitsi room URLs auto-generated
 
 ### Gestionnaire Dashboard (Complete)
 - ✅ Manager-specific view filtered by center/client_id
@@ -75,12 +82,15 @@ Build a comprehensive educational platform called "TerciForm" with:
 - `/app/backend/server.py` - Main backend
 - `/app/frontend/src/pages/TeacherDashboard.js` - Admin dashboard
 - `/app/frontend/src/pages/GestionnaireDashboard.js` - Manager dashboard (organisme_formation)
-- `/app/frontend/src/pages/ClientDashboard.js` - Client dashboard (société) **NEW**
+- `/app/frontend/src/pages/ClientDashboard.js` - Client dashboard (société)
+- `/app/frontend/src/components/MeetingManager.js` - Admin meeting management component **NEW**
+- `/app/frontend/src/components/MeetingTab.js` - Client/Manager meeting view component **NEW**
 - `/app/frontend/src/App.js` - Router configuration (with GestionnaireWrapper)
 
 ## Test Credentials
 - **Admin**: `terciform@gmail.com` / `Geldwen1982*+`
 - **Manager (Zepartner)**: `mounarezgui.pro@gmail.com` / `zepart648`
+- **Client (societe)**: `gestionnaire@testsociete.com` / `TestSociete2024!`
 
 ## 3rd Party Integrations
 - Jitsi Meet (video conferencing)
@@ -88,6 +98,15 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 3, 2026**: Completed Meeting Scheduling Feature with Jitsi Integration
+  - Added RÉUNIONS tab to TeacherDashboard (admin), GestionnaireDashboard, and ClientDashboard
+  - Created MeetingManager.js - Admin UI for creating/modifying/deleting meetings
+  - Created MeetingTab.js - Client/Manager UI for viewing and responding to invitations
+  - Backend APIs: POST/GET/PUT/DELETE /api/meetings, POST /api/meetings/{id}/respond
+  - Automatic Jitsi room URL generation
+  - Email notifications on invitation and response
+  - 15-minute reminder scheduler (apscheduler)
+  - Fixed ClientDashboard tab value mismatch (eleves vs participants)
 - **Feb 22, 2026**: Created `ClientDashboard.js` - new dashboard for "société" type clients
   - Renamed "élèves" to "participants" throughout the UI
   - Removed "DOCUMENTS" tab (not needed for sociétés)
