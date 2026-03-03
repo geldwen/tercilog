@@ -30,8 +30,8 @@ class TestMeetingAPIs:
         })
         assert response.status_code == 200, f"Admin login failed: {response.text}"
         data = response.json()
-        assert "token" in data, "No token in admin login response"
-        return data["token"]
+        assert "access_token" in data, "No access_token in admin login response"
+        return data["access_token"]
     
     @pytest.fixture(scope="class")
     def gestionnaire_token(self):
@@ -42,8 +42,8 @@ class TestMeetingAPIs:
         })
         assert response.status_code == 200, f"Gestionnaire login failed: {response.text}"
         data = response.json()
-        assert "token" in data, "No token in gestionnaire login response"
-        return data["token"]
+        assert "access_token" in data, "No access_token in gestionnaire login response"
+        return data["access_token"]
     
     @pytest.fixture(scope="class")
     def client_token(self):
@@ -54,8 +54,8 @@ class TestMeetingAPIs:
         })
         assert response.status_code == 200, f"Client login failed: {response.text}"
         data = response.json()
-        assert "token" in data, "No token in client login response"
-        return data["token"]
+        assert "access_token" in data, "No access_token in client login response"
+        return data["access_token"]
     
     @pytest.fixture(scope="class")
     def admin_headers(self, admin_token):
