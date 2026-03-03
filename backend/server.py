@@ -102,6 +102,14 @@ async def startup_event():
             name='Vérification des rappels de séances (15 min avant)',
             replace_existing=True
         )
+        # Vérifier les rappels de réunions toutes les 2 minutes
+        scheduler.add_job(
+            send_meeting_reminders,
+            trigger=IntervalTrigger(minutes=2),
+            id='meeting_reminders',
+            name='Vérification des rappels de réunions (15 min avant)',
+            replace_existing=True
+        )
         scheduler.start()
         logger.info("✅ Scheduler de rappels 15min démarré - Vérification toutes les 2 minutes")
     except Exception as e:
