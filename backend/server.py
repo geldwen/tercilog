@@ -14103,6 +14103,502 @@ async def send_ticketing_mail(request: MailRequest, current_user: User = Depends
     
     return {"success": True, "id": request_id, "message": "Mail envoyé avec succès", "created_at": timestamp.isoformat()}
 
+
+# ===== ENDPOINTS RÉUNIONS =====
+
+def generate_jitsi_room_name(meeting_id: str, title: str) -> str:
+    """Génère un nom de salle Jitsi unique"""
+    clean_title = "".join(c for c in title if c.isalnum() or c == " ")[:20].replace(" ", "-")
+    return f"TerciForm-{clean_title}-{meeting_id[:8]}"
+
+
+def send_meeting_invitation_email(to_emails: list, meeting: dict, formateur_name: str):
+    """Envoie un email d'invitation à une réunion"""
+    
+    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-edu.emergent.host')
+    
+    date_formatted = meeting.get('date', '')
+    start_time = meeting.get('start_time', '')
+    end_time = meeting.get('end_time', '')
+    title = meeting.get('title', 'Réunion')
+    description = meeting.get('description', '')
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+        <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 35px; text-align: center;">
+                <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 50px; margin-bottom: 15px;">
+                <h1 style="color: white; margin: 0; font-size: 26px;">📅 Invitation à une réunion</h1>
+            </div>
+            
+            <!-- Contenu -->
+            <div style="padding: 35px;">
+                <p style="font-size: 17px; color: #2d3748;">Bonjour,</p>
+                
+                <p style="font-size: 16px; color: #4a5568;">
+                    <strong>{formateur_name}</strong> vous propose une réunion :
+                </p>
+                
+                <div style="background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%); border-radius: 12px; padding: 25px; margin: 25px 0; border-left: 4px solid #8b5cf6;">
+                    <h2 style="margin: 0 0 15px 0; color: #6d28d9; font-size: 20px;">{title}</h2>
+                    <p style="margin: 10px 0; font-size: 16px;">
+                        <strong>📆 Date :</strong> {date_formatted}
+                    </p>
+                    <p style="margin: 10px 0; font-size: 16px;">
+                        <strong>🕐 Horaire :</strong> {start_time} - {end_time}
+                    </p>
+                    {f'<p style="margin: 10px 0; font-size: 15px; color: #6b7280;">{description}</p>' if description else ''}
+                </div>
+                
+                <p style="font-size: 15px; color: #4a5568; text-align: center;">
+                    Veuillez vous connecter à votre espace pour <strong>accepter</strong> ou <strong>refuser</strong> cette invitation.
+                </p>
+                
+                <div style="text-align: center; margin: 35px 0;">
+                    <a href="{portal_url}" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 16px 35px; text-decoration: none; border-radius: 30px; display: inline-block; font-weight: 600; font-size: 15px; box-shadow: 0 4px 15px rgba(139,92,246,0.3);">
+                        Accéder à mon espace
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div style="background-color: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 13px; color: #64748b;">
+                    TerciForm - Propulsez vos compétences
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    gmail_user = os.environ.get('GMAIL_USER')
+    gmail_password = os.environ.get('GMAIL_PASSWORD')
+    
+    if not gmail_user or not gmail_password:
+        logger.error("❌ Credentials Gmail non configurés pour invitation réunion")
+        return False
+    
+    success_count = 0
+    for to_email in to_emails:
+        try:
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = f"TerciForm - Invitation réunion : {title}"
+            msg['From'] = gmail_user
+            msg['To'] = to_email
+            
+            part = MIMEText(html_body, 'html')
+            msg.attach(part)
+            
+            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+            server.login(gmail_user, gmail_password)
+            server.sendmail(gmail_user, to_email, msg.as_string())
+            server.quit()
+            
+            logger.info(f"✅ Email invitation réunion envoyé à {to_email}")
+            success_count += 1
+        except Exception as e:
+            logger.error(f"❌ Erreur envoi email invitation à {to_email}: {e}")
+    
+    return success_count > 0
+
+
+def send_meeting_response_email(to_email: str, meeting: dict, responder_name: str, accepted: bool):
+    """Envoie un email de confirmation de réponse à une réunion"""
+    
+    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-edu.emergent.host')
+    
+    title = meeting.get('title', 'Réunion')
+    date_formatted = meeting.get('date', '')
+    start_time = meeting.get('start_time', '')
+    
+    status_text = "accepté" if accepted else "refusé"
+    status_color = "#10b981" if accepted else "#ef4444"
+    status_emoji = "✅" if accepted else "❌"
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+        <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <div style="background: {status_color}; padding: 35px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 26px;">{status_emoji} Réponse à votre invitation</h1>
+            </div>
+            
+            <div style="padding: 35px;">
+                <p style="font-size: 17px; color: #2d3748;">
+                    <strong>{responder_name}</strong> a <strong style="color: {status_color};">{status_text}</strong> votre invitation à la réunion :
+                </p>
+                
+                <div style="background-color: #f8fafc; border-radius: 12px; padding: 20px; margin: 25px 0;">
+                    <h3 style="margin: 0 0 10px 0; color: #1e3a5f;">{title}</h3>
+                    <p style="margin: 5px 0; color: #6b7280;">📆 {date_formatted} à {start_time}</p>
+                </div>
+                
+                <div style="text-align: center; margin: 35px 0;">
+                    <a href="{portal_url}/teacher" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 30px; display: inline-block; font-weight: 600;">
+                        Voir les détails
+                    </a>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    gmail_user = os.environ.get('GMAIL_USER')
+    gmail_password = os.environ.get('GMAIL_PASSWORD')
+    
+    if not gmail_user or not gmail_password:
+        return False
+    
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f"TerciForm - {responder_name} a {status_text} la réunion : {title}"
+        msg['From'] = gmail_user
+        msg['To'] = to_email
+        
+        part = MIMEText(html_body, 'html')
+        msg.attach(part)
+        
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.login(gmail_user, gmail_password)
+        server.sendmail(gmail_user, to_email, msg.as_string())
+        server.quit()
+        
+        logger.info(f"✅ Email réponse réunion envoyé à {to_email}")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Erreur envoi email réponse réunion: {e}")
+        return False
+
+
+def send_meeting_reminder_email(to_emails: list, meeting: dict):
+    """Envoie un rappel 15 minutes avant la réunion"""
+    
+    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-edu.emergent.host')
+    jitsi_room = meeting.get('jitsi_room', '')
+    jitsi_url = f"https://meet.jit.si/{jitsi_room}"
+    
+    title = meeting.get('title', 'Réunion')
+    start_time = meeting.get('start_time', '')
+    
+    html_body = f"""
+    <html>
+    <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f0f4f8; margin: 0; padding: 20px;">
+        <div style="max-width: 650px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 35px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 26px;">⏰ Rappel - Réunion dans 15 minutes !</h1>
+            </div>
+            
+            <div style="padding: 35px; text-align: center;">
+                <h2 style="color: #1e3a5f; margin-bottom: 20px;">{title}</h2>
+                <p style="font-size: 18px; color: #4a5568; margin-bottom: 30px;">
+                    Début à <strong>{start_time}</strong>
+                </p>
+                
+                <a href="{jitsi_url}" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 18px 40px; text-decoration: none; border-radius: 30px; display: inline-block; font-weight: 600; font-size: 18px; box-shadow: 0 4px 15px rgba(16,185,129,0.3);">
+                    🎥 Rejoindre la réunion
+                </a>
+                
+                <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">
+                    Ou connectez-vous à votre espace TerciForm
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    gmail_user = os.environ.get('GMAIL_USER')
+    gmail_password = os.environ.get('GMAIL_PASSWORD')
+    
+    if not gmail_user or not gmail_password:
+        return False
+    
+    for to_email in to_emails:
+        try:
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = f"⏰ Rappel TerciForm - Réunion dans 15 minutes : {title}"
+            msg['From'] = gmail_user
+            msg['To'] = to_email
+            
+            part = MIMEText(html_body, 'html')
+            msg.attach(part)
+            
+            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+            server.login(gmail_user, gmail_password)
+            server.sendmail(gmail_user, to_email, msg.as_string())
+            server.quit()
+            
+            logger.info(f"✅ Rappel réunion envoyé à {to_email}")
+        except Exception as e:
+            logger.error(f"❌ Erreur envoi rappel réunion à {to_email}: {e}")
+
+
+@api_router.post("/meetings")
+async def create_meeting(meeting_data: MeetingCreate, current_user: User = Depends(get_current_user)):
+    """Créer une nouvelle réunion (admin uniquement)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Seuls les formateurs peuvent créer des réunions")
+    
+    meeting_id = str(uuid.uuid4())
+    jitsi_room = generate_jitsi_room_name(meeting_id, meeting_data.title)
+    
+    # Récupérer les infos des clients invités
+    clients_info = []
+    all_emails = []
+    
+    for client_id in meeting_data.client_ids:
+        client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+        if client:
+            client_emails = get_all_client_emails(client)
+            clients_info.append({
+                "client_id": client_id,
+                "client_name": client.get("nom_centre", ""),
+                "emails": client_emails,
+                "response": None,  # pending
+                "responded_by": None,
+                "responded_at": None
+            })
+            all_emails.extend(client_emails)
+    
+    meeting = {
+        "id": meeting_id,
+        "title": meeting_data.title,
+        "description": meeting_data.description,
+        "date": meeting_data.date,
+        "start_time": meeting_data.start_time,
+        "end_time": meeting_data.end_time,
+        "jitsi_room": jitsi_room,
+        "created_by_id": current_user.id,
+        "created_by_name": current_user.name,
+        "clients": clients_info,
+        "status": MeetingStatus.PENDING,
+        "reminder_sent": False,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    await db.meetings.insert_one(meeting)
+    
+    # Envoyer les invitations par email
+    if all_emails:
+        send_meeting_invitation_email(all_emails, meeting, current_user.name)
+    
+    logger.info(f"✅ Réunion créée: {meeting_data.title} - Invitations envoyées à {len(all_emails)} personnes")
+    
+    # Retourner sans _id
+    meeting.pop("_id", None)
+    meeting["created_at"] = meeting["created_at"].isoformat()
+    meeting["updated_at"] = meeting["updated_at"].isoformat()
+    
+    return meeting
+
+
+@api_router.get("/meetings")
+async def get_meetings(
+    status: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupérer les réunions selon le rôle de l'utilisateur"""
+    
+    query = {}
+    
+    if current_user.role == "teacher":
+        # Admin voit toutes ses réunions
+        query["created_by_id"] = current_user.id
+    else:
+        # Gestionnaire voit uniquement les réunions de son client
+        if not current_user.client_id:
+            return []
+        query["clients.client_id"] = current_user.client_id
+    
+    if status and status != "all":
+        query["status"] = status
+    
+    meetings = await db.meetings.find(query, {"_id": 0}).sort("date", -1).to_list(500)
+    
+    # Formater les dates
+    for m in meetings:
+        if isinstance(m.get("created_at"), datetime):
+            m["created_at"] = m["created_at"].isoformat()
+        if isinstance(m.get("updated_at"), datetime):
+            m["updated_at"] = m["updated_at"].isoformat()
+    
+    return meetings
+
+
+@api_router.get("/meetings/{meeting_id}")
+async def get_meeting(meeting_id: str, current_user: User = Depends(get_current_user)):
+    """Récupérer une réunion spécifique"""
+    
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Réunion non trouvée")
+    
+    # Vérifier l'accès
+    if current_user.role != "teacher":
+        # Gestionnaire ne peut voir que les réunions de son client
+        client_ids = [c["client_id"] for c in meeting.get("clients", [])]
+        if current_user.client_id not in client_ids:
+            raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    # Formater les dates
+    if isinstance(meeting.get("created_at"), datetime):
+        meeting["created_at"] = meeting["created_at"].isoformat()
+    if isinstance(meeting.get("updated_at"), datetime):
+        meeting["updated_at"] = meeting["updated_at"].isoformat()
+    
+    return meeting
+
+
+@api_router.put("/meetings/{meeting_id}")
+async def update_meeting(meeting_id: str, update_data: MeetingUpdate, current_user: User = Depends(get_current_user)):
+    """Modifier une réunion (admin uniquement)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Seuls les formateurs peuvent modifier des réunions")
+    
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Réunion non trouvée")
+    
+    if meeting["created_by_id"] != current_user.id:
+        raise HTTPException(status_code=403, detail="Vous ne pouvez modifier que vos propres réunions")
+    
+    update_dict = {"updated_at": datetime.now(timezone.utc)}
+    
+    if update_data.title is not None:
+        update_dict["title"] = update_data.title
+    if update_data.description is not None:
+        update_dict["description"] = update_data.description
+    if update_data.date is not None:
+        update_dict["date"] = update_data.date
+    if update_data.start_time is not None:
+        update_dict["start_time"] = update_data.start_time
+    if update_data.end_time is not None:
+        update_dict["end_time"] = update_data.end_time
+    if update_data.status is not None:
+        update_dict["status"] = update_data.status
+    
+    # Si les clients changent, mettre à jour la liste
+    if update_data.client_ids is not None:
+        clients_info = []
+        for client_id in update_data.client_ids:
+            client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+            if client:
+                # Garder l'ancienne réponse si le client était déjà invité
+                old_response = None
+                for old_client in meeting.get("clients", []):
+                    if old_client["client_id"] == client_id:
+                        old_response = old_client
+                        break
+                
+                if old_response:
+                    clients_info.append(old_response)
+                else:
+                    client_emails = get_all_client_emails(client)
+                    clients_info.append({
+                        "client_id": client_id,
+                        "client_name": client.get("nom_centre", ""),
+                        "emails": client_emails,
+                        "response": None,
+                        "responded_by": None,
+                        "responded_at": None
+                    })
+        update_dict["clients"] = clients_info
+    
+    await db.meetings.update_one({"id": meeting_id}, {"$set": update_dict})
+    
+    # Récupérer la réunion mise à jour
+    updated_meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if isinstance(updated_meeting.get("created_at"), datetime):
+        updated_meeting["created_at"] = updated_meeting["created_at"].isoformat()
+    if isinstance(updated_meeting.get("updated_at"), datetime):
+        updated_meeting["updated_at"] = updated_meeting["updated_at"].isoformat()
+    
+    return updated_meeting
+
+
+@api_router.delete("/meetings/{meeting_id}")
+async def delete_meeting(meeting_id: str, current_user: User = Depends(get_current_user)):
+    """Supprimer une réunion (admin uniquement)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Seuls les formateurs peuvent supprimer des réunions")
+    
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Réunion non trouvée")
+    
+    if meeting["created_by_id"] != current_user.id:
+        raise HTTPException(status_code=403, detail="Vous ne pouvez supprimer que vos propres réunions")
+    
+    await db.meetings.delete_one({"id": meeting_id})
+    
+    logger.info(f"✅ Réunion supprimée: {meeting.get('title')}")
+    
+    return {"message": "Réunion supprimée"}
+
+
+@api_router.post("/meetings/{meeting_id}/respond")
+async def respond_to_meeting(meeting_id: str, response: MeetingResponse, current_user: User = Depends(get_current_user)):
+    """Répondre à une invitation de réunion (accepter/refuser)"""
+    if current_user.role == "teacher":
+        raise HTTPException(status_code=403, detail="Les formateurs ne peuvent pas répondre aux invitations")
+    
+    if not current_user.client_id:
+        raise HTTPException(status_code=400, detail="Client ID manquant")
+    
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Réunion non trouvée")
+    
+    # Vérifier que le client est invité
+    client_found = False
+    for client_info in meeting.get("clients", []):
+        if client_info["client_id"] == current_user.client_id:
+            client_info["response"] = "accepted" if response.accepted else "refused"
+            client_info["responded_by"] = current_user.name
+            client_info["responded_at"] = datetime.now(timezone.utc).isoformat()
+            client_found = True
+            break
+    
+    if not client_found:
+        raise HTTPException(status_code=403, detail="Vous n'êtes pas invité à cette réunion")
+    
+    # Mettre à jour le statut global si au moins une personne a accepté
+    any_accepted = any(c.get("response") == "accepted" for c in meeting.get("clients", []))
+    new_status = MeetingStatus.CONFIRMED if any_accepted else MeetingStatus.PENDING
+    
+    await db.meetings.update_one(
+        {"id": meeting_id},
+        {"$set": {
+            "clients": meeting["clients"],
+            "status": new_status,
+            "updated_at": datetime.now(timezone.utc)
+        }}
+    )
+    
+    # Envoyer un email au créateur de la réunion
+    creator = await db.users.find_one({"id": meeting["created_by_id"]}, {"_id": 0, "email": 1})
+    if creator and creator.get("email"):
+        send_meeting_response_email(
+            creator["email"],
+            meeting,
+            current_user.name,
+            response.accepted
+        )
+    
+    logger.info(f"✅ Réponse réunion: {current_user.name} a {'accepté' if response.accepted else 'refusé'} {meeting.get('title')}")
+    
+    return {
+        "message": f"Vous avez {'accepté' if response.accepted else 'refusé'} l'invitation",
+        "meeting_id": meeting_id,
+        "response": "accepted" if response.accepted else "refused"
+    }
+
+
 # ========== ENDPOINT: RÉCUPÉRER LES DEMANDES ==========
 @api_router.get("/ticketing/requests")
 async def get_ticketing_requests(
