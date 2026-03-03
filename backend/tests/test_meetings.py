@@ -98,7 +98,7 @@ class TestMeetingAPIs:
         })
         assert response.status_code == 200
         data = response.json()
-        assert "token" in data
+        assert "access_token" in data
         assert "user" in data
         assert data["user"]["role"] == "teacher"
         print(f"✓ Admin login successful - role: {data['user']['role']}")
@@ -111,7 +111,7 @@ class TestMeetingAPIs:
         })
         assert response.status_code == 200
         data = response.json()
-        assert "token" in data
+        assert "access_token" in data
         assert "user" in data
         assert data["user"]["role"] == "gestionnaire"
         print(f"✓ Gestionnaire login successful - role: {data['user']['role']}")
@@ -124,7 +124,7 @@ class TestMeetingAPIs:
         })
         assert response.status_code == 200
         data = response.json()
-        assert "token" in data
+        assert "access_token" in data
         assert "user" in data
         # Client type societe should have gestionnaire role
         print(f"✓ Client login successful - role: {data['user']['role']}")
