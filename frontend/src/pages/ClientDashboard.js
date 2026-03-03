@@ -922,6 +922,13 @@ export default function ClientDashboard({ user, onLogout }) {
                 <Gift className="w-5 h-5 mr-3" />
                 FIDÉLITÉ
               </TabsTrigger>
+              <TabsTrigger 
+                value="reunions" 
+                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-purple-500 data-[state=inactive]:text-white data-[state=active]:bg-purple-600 data-[state=active]:text-white hover:shadow-xl"
+              >
+                <Video className="w-5 h-5 mr-3" />
+                RÉUNIONS
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -2179,6 +2186,11 @@ export default function ClientDashboard({ user, onLogout }) {
                 Gagnez des points et profitez d&apos;avantages exclusifs.
               </p>
             </div>
+          </TabsContent>
+
+          {/* ===== ONGLET RÉUNIONS ===== */}
+          <TabsContent value="reunions" className="space-y-6">
+            <MeetingTab clientId={user?.client_id} userName={user?.name} />
           </TabsContent>
         </Tabs>
       </main>
