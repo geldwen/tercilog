@@ -13726,6 +13726,35 @@ class MailRequest(BaseModel):
     sujet: str
     message: str
 
+
+# ===== MODÈLES RÉUNIONS =====
+class MeetingStatus(str, Enum):
+    PENDING = "pending"  # En attente de réponses
+    CONFIRMED = "confirmed"  # Au moins une personne a accepté
+    CANCELLED = "cancelled"  # Annulée
+    COMPLETED = "completed"  # Terminée
+
+class MeetingCreate(BaseModel):
+    title: str
+    description: str = ""
+    date: str  # Format YYYY-MM-DD
+    start_time: str  # Format HH:MM
+    end_time: str  # Format HH:MM
+    client_ids: List[str]  # Liste des clients invités
+
+class MeetingUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    date: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    client_ids: Optional[List[str]] = None
+    status: Optional[str] = None
+
+class MeetingResponse(BaseModel):
+    accepted: bool
+
+
 # Fonction pour envoyer les notifications email de ticketing
 async def send_ticketing_notification(
     request_type: str,
