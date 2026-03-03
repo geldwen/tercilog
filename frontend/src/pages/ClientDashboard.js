@@ -895,7 +895,7 @@ export default function ClientDashboard({ user, onLogout }) {
           <div className="flex justify-center mb-8">
             <TabsList className="bg-transparent border-0 shadow-none p-0 h-auto gap-6">
               <TabsTrigger 
-                value="eleves" 
+                value="participants" 
                 className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-violet-500 data-[state=inactive]:text-white data-[state=active]:bg-violet-600 data-[state=active]:text-white hover:shadow-xl"
               >
                 <Users className="w-5 h-5 mr-3" />
