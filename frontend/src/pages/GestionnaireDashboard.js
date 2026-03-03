@@ -2304,6 +2304,24 @@ export default function GestionnaireDashboard({ user, onLogout }) {
         userId={user?.id}
         clientId={user?.client_id}
       />
+
+      {/* Modal Réunion */}
+      <Dialog open={showMeetingModal} onOpenChange={setShowMeetingModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Video className="w-6 h-6 text-purple-600" />
+              </div>
+              Mes Réunions
+            </DialogTitle>
+            <DialogDescription>
+              Gérez vos invitations et rejoignez vos réunions vidéo
+            </DialogDescription>
+          </DialogHeader>
+          <MeetingTab clientId={user?.client_id} userName={user?.name} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
