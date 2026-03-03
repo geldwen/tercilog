@@ -861,6 +861,83 @@ async def send_session_reminders():
         logger.error(f"Erreur lors de la vérification des rappels 15min: {e}")
 
 
+async def send_meeting_reminders():
+    """
+    Fonction qui vérifie les réunions qui commencent dans 15 minutes
+    et envoie des rappels par email à tous les participants.
+    """
+    try:
+        logger.info("🔔 Vérification des rappels de réunions (15 min)...")
+        
+        # Utiliser le fuseau horaire de Paris
+        paris_tz = pytz.timezone('Europe/Paris')
+        now_paris = datetime.now(paris_tz)
+        today = now_paris.strftime('%Y-%m-%d')
+        
+        # Chercher les réunions d'aujourd'hui qui n'ont pas encore eu de rappel
+        meetings = await db.meetings.find({
+            "reminder_sent": {"$ne": True},
+            "status": {"$in": ["pending", "confirmed"]},
+            "date": today
+        }).to_list(100)
+        
+        reminders_sent = 0
+        
+        for meeting in meetings:
+            try:
+                meeting_date = meeting.get("date")
+                meeting_time = meeting.get("start_time")
+                
+                if not meeting_date or not meeting_time:
+                    continue
+                
+                # Parser la date et l'heure
+                meeting_datetime_str = f"{meeting_date} {meeting_time}"
+                meeting_datetime_naive = datetime.strptime(meeting_datetime_str, "%Y-%m-%d %H:%M")
+                meeting_datetime = paris_tz.localize(meeting_datetime_naive)
+                
+                # Calculer la différence
+                time_until = meeting_datetime - now_paris
+                minutes_until = time_until.total_seconds() / 60
+                
+                # Si entre 13 et 17 minutes, envoyer le rappel
+                if 13 <= minutes_until <= 17:
+                    # Collecter tous les emails des participants qui ont accepté
+                    all_emails = []
+                    
+                    # Email du créateur (formateur)
+                    creator = await db.users.find_one({"id": meeting.get("created_by_id")}, {"_id": 0, "email": 1})
+                    if creator and creator.get("email"):
+                        all_emails.append(creator["email"])
+                    
+                    # Emails des clients qui ont accepté
+                    for client_info in meeting.get("clients", []):
+                        if client_info.get("response") == "accepted":
+                            all_emails.extend(client_info.get("emails", []))
+                    
+                    if all_emails:
+                        # Envoyer les rappels
+                        send_meeting_reminder_email(all_emails, meeting)
+                        
+                        # Marquer comme envoyé
+                        await db.meetings.update_one(
+                            {"id": meeting.get("id")},
+                            {"$set": {"reminder_sent": True, "reminder_sent_at": datetime.now(timezone.utc).isoformat()}}
+                        )
+                        
+                        reminders_sent += 1
+                        logger.info(f"✅ Rappel réunion envoyé pour '{meeting.get('title')}' à {len(all_emails)} personnes")
+                        
+            except Exception as e:
+                logger.error(f"Erreur traitement rappel réunion {meeting.get('id')}: {e}")
+        
+        if reminders_sent > 0:
+            logger.info(f"📬 {reminders_sent} rappel(s) de réunion envoyé(s)")
+        
+    except Exception as e:
+        logger.error(f"Erreur lors de la vérification des rappels de réunions: {e}")
+
+
 def send_attendance_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str):
     """Envoyer l'email d'émargement après la fin de séance"""
     
