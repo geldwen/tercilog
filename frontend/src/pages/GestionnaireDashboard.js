@@ -54,6 +54,9 @@ export default function GestionnaireDashboard({ user, onLogout }) {
     froid: '', chaud: ''
   });
   
+  // Modal réunion
+  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  
   // Modèles de tests par parcours
   const testModels = {
     'Anglais': {
