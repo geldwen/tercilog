@@ -2144,6 +2144,13 @@ export default function GestionnaireDashboard({ user, onLogout }) {
                             <div className="w-3 h-3 rounded-full bg-pink-300"></div>
                             Accueil
                           </span>
+                          <span 
+                            className="flex items-center gap-2 text-base font-semibold bg-gradient-to-r from-violet-500 to-purple-600 px-4 py-2 rounded-full cursor-pointer hover:from-violet-600 hover:to-purple-700 transition-all shadow-lg"
+                            onClick={() => setShowMeetingModal(true)}
+                          >
+                            <div className="w-3 h-3 rounded-full bg-white"></div>
+                            Réunion
+                          </span>
                           <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
                             <div className="w-3 h-3 rounded-full bg-gray-300"></div>
                             Email
