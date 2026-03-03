@@ -13,6 +13,7 @@ import PlanningView from "@/components/PlanningView";
 import BillingView from "@/components/BillingView";
 import ParcoursEleveModal from "@/components/ParcoursEleveModal";
 import TicketingModal from "@/components/TicketingModal";
+import MeetingManager from "@/components/MeetingManager";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -5272,6 +5273,11 @@ export default function TeacherDashboard({ user, onLogout }) {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* ===== ONGLET RÉUNIONS ===== */}
+          <TabsContent value="meetings" className="space-y-6">
+            <MeetingManager clients={clients} />
           </TabsContent>
           </Tabs>
           </>
