@@ -5962,13 +5962,30 @@ async def update_session(session_id: str, data: dict, background_tasks: Backgrou
         update_data["organism"] = data["organism"]
     if "hourly_rate" in data:
         update_data["hourly_rate"] = data["hourly_rate"]
-        # Recalculer amount si hourly_rate change
-        if session_doc.get('duration_hours'):
-            update_data["amount"] = round(session_doc['duration_hours'] * data["hourly_rate"], 2)
+        update_data["hourly_rate_source"] = data.get("hourly_rate_source", "manual")
     if "hourly_rate_source" in data:
         update_data["hourly_rate_source"] = data["hourly_rate_source"]
     if "modality" in data:
         update_data["modality"] = data["modality"]
+    
+    # Recalculer la durée si les horaires changent
+    new_start = data.get("start_time", session_doc.get("start_time"))
+    new_end = data.get("end_time", session_doc.get("end_time"))
+    if new_start and new_end:
+        try:
+            start_h, start_m = map(int, new_start.split(':'))
+            end_h, end_m = map(int, new_end.split(':'))
+            duration = round((end_h * 60 + end_m - start_h * 60 - start_m) / 60.0, 2)
+            update_data["duration_hours"] = duration
+        except:
+            duration = session_doc.get('duration_hours', 0)
+    else:
+        duration = session_doc.get('duration_hours', 0)
+    
+    # Recalculer le montant avec le nouveau prix et/ou la nouvelle durée
+    hourly_rate = data.get("hourly_rate", session_doc.get("hourly_rate", 0))
+    if duration and hourly_rate:
+        update_data["amount"] = round(duration * hourly_rate, 2)
     
     # Mettre à jour la séance
     await db.sessions.update_one({"id": session_id}, {"$set": update_data})
