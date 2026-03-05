@@ -98,6 +98,10 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 5, 2026**: Fixed critical bug where session price (hourly_rate) was not saved
+  - Bug was in `/sessions/{session_id}/times` endpoint - hourly_rate was calculated but not persisted to database
+  - Also improved `/sessions/{session_id}` endpoint to recalculate duration_hours when times change
+  - Both endpoints now correctly save hourly_rate, hourly_rate_source, duration_hours and amount
 - **March 3, 2026**: Completed Meeting Scheduling Feature with Jitsi Integration
   - Added RÉUNIONS tab to TeacherDashboard (admin), GestionnaireDashboard, and ClientDashboard
   - Created MeetingManager.js - Admin UI for creating/modifying/deleting meetings
