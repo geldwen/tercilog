@@ -10947,18 +10947,35 @@ async def update_session_times(
         hourly_rate = data.get('hourly_rate', session.get('hourly_rate', 0))
         amount = round(duration * hourly_rate, 2)
         
+        # Construire les données à mettre à jour
+        update_data = {
+            "start_time": slot['start_time'],
+            "end_time": slot['end_time'],
+            "duration_hours": duration,
+            "hourly_rate": hourly_rate,
+            "hourly_rate_source": "manual" if 'hourly_rate' in data else session.get('hourly_rate_source', 'auto'),
+            "amount": amount
+        }
+        
+        # Ajouter les autres champs si fournis
+        if 'subject' in data:
+            update_data['subject'] = data['subject']
+        if 'date' in data:
+            update_data['date'] = data['date']
+        if 'meeting_link' in data:
+            update_data['meeting_link'] = data['meeting_link']
+        if 'modality' in data:
+            update_data['modality'] = data['modality']
+        if 'organism' in data:
+            update_data['organism'] = data['organism']
+        
         # Mettre à jour la séance
         await db.sessions.update_one(
             {"id": session_id},
-            {"$set": {
-                "start_time": slot['start_time'],
-                "end_time": slot['end_time'],
-                "duration_hours": duration,
-                "amount": amount
-            }}
+            {"$set": update_data}
         )
         
-        return {"message": "Horaires mis à jour avec succès", "sessions_created": 1}
+        return {"message": "Séance mise à jour avec succès", "sessions_created": 1}
     
     # Si plusieurs créneaux, supprimer la séance actuelle et créer de nouvelles séances
     else:
