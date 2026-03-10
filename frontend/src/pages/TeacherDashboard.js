@@ -3457,6 +3457,53 @@ export default function TeacherDashboard({ user, onLogout }) {
                                     )}
                                   </div>
                                 )}
+                                
+                                {/* Boutons d'émargement pour séances passées non émargées */}
+                                {isPastSession && (!hasStudentSig || !hasTeacherSig) && (
+                                  <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-gray-200">
+                                    {/* Afficher les signatures existantes */}
+                                    {hasStudentSig && (
+                                      <div className="flex items-center gap-2 px-2 py-1 bg-green-100 border border-green-300 rounded">
+                                        <img src={session.signature} alt="Signature élève" className="h-5 object-contain" />
+                                        <span className="text-xs text-green-800 font-medium">Élève ✓</span>
+                                      </div>
+                                    )}
+                                    {hasTeacherSig && (
+                                      <div className="flex items-center gap-2 px-2 py-1 bg-purple-100 border border-purple-300 rounded">
+                                        <img src={session.teacher_signature} alt="Signature formateur" className="h-5 object-contain" />
+                                        <span className="text-xs text-purple-800 font-medium">Formateur ✓</span>
+                                      </div>
+                                    )}
+                                    
+                                    {/* Bouton émargement élève si manquant */}
+                                    {!hasStudentSig && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleResendAttendanceEmail(session.id)}
+                                        className="gap-1.5 text-xs h-8 bg-orange-50 border-orange-400 text-orange-600 hover:bg-orange-100"
+                                        data-testid={`past-attendance-student-${session.id}`}
+                                      >
+                                        <Mail className="w-3 h-3" />
+                                        Envoyer émargement élève
+                                      </Button>
+                                    )}
+                                    
+                                    {/* Bouton émargement prof si manquant */}
+                                    {!hasTeacherSig && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => openTeacherSignatureDialog(session)}
+                                        className="gap-1.5 text-xs h-8 bg-purple-50 border-purple-400 text-purple-600 hover:bg-purple-100"
+                                        data-testid={`past-attendance-teacher-${session.id}`}
+                                      >
+                                        <PenTool className="w-3 h-3" />
+                                        Émargement prof
+                                      </Button>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             )})}
                           </div>
