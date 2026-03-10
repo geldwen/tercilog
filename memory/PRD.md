@@ -98,6 +98,10 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 10, 2026**: Added signature buttons for past sessions without signatures
+  - Past sessions now show "Envoyer émargement élève" (orange) button if student signature is missing
+  - Past sessions now show "Émargement prof" (violet) button if teacher signature is missing
+  - Allows recovery of missed signatures on historical sessions
 - **March 5, 2026**: Fixed critical bug where session price (hourly_rate) was not saved
   - Bug was in `/sessions/{session_id}/times` endpoint - hourly_rate was calculated but not persisted to database
   - Also improved `/sessions/{session_id}` endpoint to recalculate duration_hours when times change
