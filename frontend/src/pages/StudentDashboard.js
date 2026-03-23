@@ -1222,29 +1222,6 @@ export default function StudentDashboard({ user, onLogout }) {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Bandeau ROUGE : Mon avis sur la formation */}
-            <Card className="shadow-lg border-2 border-red-200">
-              <CardHeader style={{backgroundColor: '#FDE7F3'}}>
-                <CardTitle className="text-xl flex items-center gap-2" style={{color: TERCIFORM_BLUE}}>
-                  <MessageSquare size={24} />
-                  Mon avis sur la formation
-                </CardTitle>
-                <p className="text-sm text-gray-600 mt-1">
-                  Votre retour est précieux pour améliorer nos formations
-                </p>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <Button 
-                  onClick={() => setShowFeedbackDialog(true)} 
-                  style={{backgroundColor: TERCIFORM_BLUE}}
-                  className="w-full"
-                >
-                  <MessageSquare size={16} className="mr-2" />
-                  Donner mon avis
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         )}
       </main>

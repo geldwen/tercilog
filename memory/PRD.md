@@ -98,6 +98,15 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 23, 2026 (Session 2)**: UI improvements and document templates
+  - Removed "Mon avis sur la formation" banner from Student Dashboard (was redundant)
+  - Enhanced PDF header/footer: Logo now appears on EVERY page (not just first page)
+  - Added quick PDF/Email buttons directly in Bilan Qualité table (Q1/Q2/Q3 columns)
+  - Created comprehensive improvements document: `/app/memory/AMELIORATIONS_TERCIFORM.md`
+    - Includes Qualiopi compliance gaps
+    - Billing/invoicing module suggestions
+    - Digiformat-style recommendations
+    - Technical debt analysis
 - **March 23, 2026**: Professional PDF branding with TerciForm logo and footer
   - Added `add_terciform_footer` global function for all PDF exports
   - All PDFs now include:

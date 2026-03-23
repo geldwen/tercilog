@@ -7279,7 +7279,8 @@ def build_header(title: str):
 def add_terciform_footer(canvas, doc):
     """
     Ajoute un pied de page professionnel TerciForm avec :
-    - Liseré bleu marine
+    - Logo en en-tête
+    - Liseré bleu marine en pied de page
     - Informations légales (adresse, SIRET, NDA)
     - Numéro de page
     """
@@ -7294,6 +7295,32 @@ def add_terciform_footer(canvas, doc):
     margin_right = 36
     footer_y = 50  # Position Y du pied de page
     
+    # ============ EN-TÊTE AVEC LOGO ============
+    logo_path = ROOT_DIR / 'assets' / 'logo_terciform.png'
+    if logo_path.exists():
+        try:
+            # Charger l'image pour obtenir ses dimensions
+            pil_img = PILImage.open(str(logo_path))
+            original_width, original_height = pil_img.size
+            
+            # Contraintes: max-height=40px, conserver ratio
+            max_height = 40
+            ratio = max_height / original_height
+            new_width = original_width * ratio
+            new_height = max_height
+            
+            # Position en haut à gauche
+            logo_x = margin_left
+            logo_y = page_height - 50  # 50px du haut
+            
+            canvas.drawImage(str(logo_path), logo_x, logo_y, width=new_width, height=new_height, preserveAspectRatio=True)
+        except Exception as e:
+            # Fallback texte si erreur avec l'image
+            canvas.setFont('Helvetica-Bold', 14)
+            canvas.setFillColor(navy_blue)
+            canvas.drawString(margin_left, page_height - 40, "TerciForm")
+    
+    # ============ PIED DE PAGE ============
     # Liseré bleu marine (ligne horizontale complète)
     canvas.setStrokeColor(navy_blue)
     canvas.setLineWidth(2)
