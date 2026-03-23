@@ -1182,7 +1182,7 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate, onDownloadPDF,
         <div className="p-4 bg-gray-100 border-t flex justify-between">
           <div className="flex gap-2">
             <Button 
-              onClick={() => handleDownloadQuestionnairePDF(questionnaire)} 
+              onClick={() => onDownloadPDF && onDownloadPDF(questionnaire)} 
               variant="outline"
               className="border-green-600 text-green-600 hover:bg-green-50"
             >
@@ -1190,7 +1190,7 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate, onDownloadPDF,
               Télécharger PDF
             </Button>
             <Button 
-              onClick={() => handleSendQuestionnaireEmail(questionnaire)} 
+              onClick={() => onSendEmail && onSendEmail(questionnaire)} 
               variant="outline"
               className="border-blue-600 text-blue-600 hover:bg-blue-50"
             >
