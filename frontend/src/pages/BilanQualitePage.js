@@ -1029,7 +1029,7 @@ const ActionDetailModal = ({ action, qType, eleve, onClose, onDelete }) => {
 // ============================================================================
 // MODAL CONSULTATION QUESTIONNAIRE
 // ============================================================================
-const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
+const QuestionnaireModal = ({ questionnaire, onClose, formatDate, onDownloadPDF, onSendEmail }) => {
   const { eleve, type, data, submittedAt } = questionnaire;
   
   const fieldLabels = {
