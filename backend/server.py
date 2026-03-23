@@ -4205,6 +4205,77 @@ async def debug_qualite_report(
     }
 
 
+@api_router.get("/teachers/qualite-report/debug-informatique/{student_id}")
+async def debug_informatique_questionnaires(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Debug endpoint pour vérifier les données d'un élève Informatique"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    result = {
+        "student_id": student_id,
+        "sources_checked": []
+    }
+    
+    # 1. Vérifier les collections bureautique
+    q1_bureautique = await db.bureautique_formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    result["bureautique_formation_needs"] = {
+        "found": q1_bureautique is not None,
+        "keys": list(q1_bureautique.keys()) if q1_bureautique else [],
+        "submitted_at": q1_bureautique.get("submitted_at") if q1_bureautique else None
+    }
+    result["sources_checked"].append("bureautique_formation_needs_questionnaires")
+    
+    q2_bureautique = await db.bureautique_mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    result["bureautique_mid_course"] = {
+        "found": q2_bureautique is not None,
+        "keys": list(q2_bureautique.keys()) if q2_bureautique else [],
+        "submitted_at": q2_bureautique.get("submitted_at") if q2_bureautique else None
+    }
+    result["sources_checked"].append("bureautique_mid_course_questionnaires")
+    
+    q3_bureautique = await db.bureautique_end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    result["bureautique_end_course"] = {
+        "found": q3_bureautique is not None,
+        "keys": list(q3_bureautique.keys()) if q3_bureautique else [],
+        "submitted_at": q3_bureautique.get("submitted_at") if q3_bureautique else None
+    }
+    result["sources_checked"].append("bureautique_end_course_questionnaires")
+    
+    # 2. Vérifier les collections génériques
+    q1_generic = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+    result["generic_formation_needs"] = {
+        "found": q1_generic is not None,
+        "keys": list(q1_generic.keys()) if q1_generic else [],
+        "submitted_at": q1_generic.get("submitted_at") if q1_generic else None
+    }
+    result["sources_checked"].append("formation_needs_questionnaires")
+    
+    # 3. Vérifier student_resources
+    resources = await db.student_resources.find({"student_id": student_id}).to_list(None)
+    result["student_resources"] = {
+        "total_count": len(resources),
+        "questionnaires": []
+    }
+    for r in resources:
+        if "QUESTIONNAIRE" in r.get("category", "") or "questionnaire" in r.get("type", "").lower():
+            result["student_resources"]["questionnaires"].append({
+                "id": r.get("id"),
+                "category": r.get("category"),
+                "type": r.get("type"),
+                "sub_type": r.get("sub_type"),
+                "status": r.get("status"),
+                "submitted_at": r.get("submitted_at"),
+                "has_answers": "answers" in r,
+                "answers_keys": list(r.get("answers", {}).keys())[:10] if r.get("answers") else []
+            })
+    result["sources_checked"].append("student_resources")
+    
+    return result
+
+
 @api_router.delete("/teachers/qualite-report/{student_id}")
 async def remove_student_from_report(
     student_id: str,
