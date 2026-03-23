@@ -327,6 +327,8 @@ function InteractiveTestsDisplaySection({ studentId, studentName, studentEmail }
         <TestCorrectionModal
           test={selectedTest}
           template={testTemplate}
+          studentName={studentName}
+          studentEmail={studentEmail}
           onClose={() => {
             setShowDetailModal(false);
             setSelectedTest(null);
