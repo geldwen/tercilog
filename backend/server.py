@@ -4522,6 +4522,316 @@ async def relance_test(
 
 
 # ============================================================================
+# ENDPOINTS POUR PDF ET EMAIL DES TESTS / QUESTIONNAIRES
+# ============================================================================
+
+@api_router.post("/tests/generate-pdf")
+async def generate_test_pdf(
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Générer un PDF des résultats d'un test avec correction"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    try:
+        test_id = data.get("test_id")
+        template_id = data.get("template_id")
+        student_name = data.get("student_name", "Élève")
+        student_answers = data.get("student_answers", {})
+        score = data.get("score", 0)
+        submitted_at = data.get("submitted_at")
+        
+        # Récupérer le template du test
+        template = await db.test_templates.find_one({"id": template_id}, {"_id": 0})
+        if not template:
+            raise HTTPException(status_code=404, detail="Template non trouvé")
+        
+        # Créer le PDF
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
+        
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#4F46E5'), alignment=TA_CENTER, spaceAfter=20)
+        heading_style = ParagraphStyle('CustomHeading', parent=styles['Heading2'], fontSize=14, textColor=colors.HexColor('#1F2937'), spaceBefore=15, spaceAfter=10)
+        question_style = ParagraphStyle('QuestionStyle', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor('#374151'), spaceBefore=10, spaceAfter=5)
+        correct_style = ParagraphStyle('CorrectStyle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#059669'), leftIndent=20)
+        incorrect_style = ParagraphStyle('IncorrectStyle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#DC2626'), leftIndent=20)
+        neutral_style = ParagraphStyle('NeutralStyle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#6B7280'), leftIndent=20)
+        
+        elements = []
+        
+        # Titre
+        elements.append(Paragraph(f"Résultats du Test - {template.get('title', 'Test')}", title_style))
+        elements.append(Spacer(1, 10))
+        
+        # Informations
+        info_data = [
+            ["Élève:", student_name],
+            ["Score:", f"{score}%"],
+            ["Date:", datetime.fromisoformat(submitted_at.replace('Z', '+00:00')).strftime('%d/%m/%Y à %H:%M') if submitted_at else "N/A"],
+        ]
+        info_table = Table(info_data, colWidths=[100, 350])
+        info_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#374151')),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(info_table)
+        elements.append(Spacer(1, 20))
+        
+        # Sections et questions
+        question_num = 0
+        for section in template.get('sections', []):
+            elements.append(Paragraph(section.get('title', 'Section'), heading_style))
+            
+            for question in section.get('questions', []):
+                question_num += 1
+                q_id = question.get('id')
+                correct_answers = question.get('correctAnswers', [])
+                student_answer = student_answers.get(q_id, [])
+                if not isinstance(student_answer, list):
+                    student_answer = [student_answer] if student_answer else []
+                
+                # Vérifier si correct
+                is_correct = sorted(student_answer) == sorted(correct_answers)
+                status_emoji = "✓" if is_correct else "✗"
+                status_color = "#059669" if is_correct else "#DC2626"
+                
+                elements.append(Paragraph(f"<b>Q{question_num}.</b> {question.get('text', '')} <font color='{status_color}'>{status_emoji}</font>", question_style))
+                
+                # Afficher les choix
+                for choice in question.get('choices', []):
+                    choice_key = choice.get('key')
+                    choice_label = choice.get('label')
+                    is_selected = choice_key in student_answer
+                    is_correct_choice = choice_key in correct_answers
+                    
+                    if is_correct_choice and is_selected:
+                        elements.append(Paragraph(f"✓ {choice_key}. {choice_label} (Bonne réponse)", correct_style))
+                    elif is_correct_choice and not is_selected:
+                        elements.append(Paragraph(f"○ {choice_key}. {choice_label} (Bonne réponse non sélectionnée)", correct_style))
+                    elif not is_correct_choice and is_selected:
+                        elements.append(Paragraph(f"✗ {choice_key}. {choice_label} (Erreur)", incorrect_style))
+                    else:
+                        elements.append(Paragraph(f"○ {choice_key}. {choice_label}", neutral_style))
+                
+                elements.append(Spacer(1, 5))
+        
+        # Pied de page
+        elements.append(Spacer(1, 30))
+        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor('#9CA3AF'), alignment=TA_CENTER)
+        elements.append(Paragraph(f"Généré par Terciform le {datetime.now().strftime('%d/%m/%Y à %H:%M')}", footer_style))
+        
+        doc.build(elements)
+        buffer.seek(0)
+        
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=Test_{student_name.replace(' ', '_')}.pdf"}
+        )
+    except Exception as e:
+        logger.error(f"❌ Erreur génération PDF test: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/tests/send-email")
+async def send_test_results_email(
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Envoyer les résultats d'un test par email avec PDF en pièce jointe"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    try:
+        test_id = data.get("test_id")
+        template_id = data.get("template_id")
+        student_name = data.get("student_name", "Élève")
+        student_answers = data.get("student_answers", {})
+        score = data.get("score", 0)
+        submitted_at = data.get("submitted_at")
+        recipient_email = data.get("recipient_email")
+        
+        if not recipient_email or '@' not in recipient_email:
+            raise HTTPException(status_code=400, detail="Email invalide")
+        
+        # Récupérer le template
+        template = await db.test_templates.find_one({"id": template_id}, {"_id": 0})
+        if not template:
+            raise HTTPException(status_code=404, detail="Template non trouvé")
+        
+        # Générer le PDF (même logique que generate-pdf)
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
+        
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#4F46E5'), alignment=TA_CENTER, spaceAfter=20)
+        heading_style = ParagraphStyle('CustomHeading', parent=styles['Heading2'], fontSize=14, textColor=colors.HexColor('#1F2937'), spaceBefore=15, spaceAfter=10)
+        question_style = ParagraphStyle('QuestionStyle', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor('#374151'), spaceBefore=10, spaceAfter=5)
+        correct_style = ParagraphStyle('CorrectStyle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#059669'), leftIndent=20)
+        incorrect_style = ParagraphStyle('IncorrectStyle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#DC2626'), leftIndent=20)
+        neutral_style = ParagraphStyle('NeutralStyle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#6B7280'), leftIndent=20)
+        
+        elements = []
+        elements.append(Paragraph(f"Résultats du Test - {template.get('title', 'Test')}", title_style))
+        elements.append(Spacer(1, 10))
+        
+        info_data = [
+            ["Élève:", student_name],
+            ["Score:", f"{score}%"],
+            ["Date:", datetime.fromisoformat(submitted_at.replace('Z', '+00:00')).strftime('%d/%m/%Y à %H:%M') if submitted_at else "N/A"],
+        ]
+        info_table = Table(info_data, colWidths=[100, 350])
+        info_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(info_table)
+        elements.append(Spacer(1, 20))
+        
+        question_num = 0
+        for section in template.get('sections', []):
+            elements.append(Paragraph(section.get('title', 'Section'), heading_style))
+            for question in section.get('questions', []):
+                question_num += 1
+                q_id = question.get('id')
+                correct_answers = question.get('correctAnswers', [])
+                student_answer = student_answers.get(q_id, [])
+                if not isinstance(student_answer, list):
+                    student_answer = [student_answer] if student_answer else []
+                
+                is_correct = sorted(student_answer) == sorted(correct_answers)
+                status_emoji = "✓" if is_correct else "✗"
+                status_color = "#059669" if is_correct else "#DC2626"
+                
+                elements.append(Paragraph(f"<b>Q{question_num}.</b> {question.get('text', '')} <font color='{status_color}'>{status_emoji}</font>", question_style))
+                
+                for choice in question.get('choices', []):
+                    choice_key = choice.get('key')
+                    choice_label = choice.get('label')
+                    is_selected = choice_key in student_answer
+                    is_correct_choice = choice_key in correct_answers
+                    
+                    if is_correct_choice and is_selected:
+                        elements.append(Paragraph(f"✓ {choice_key}. {choice_label} (Bonne réponse)", correct_style))
+                    elif is_correct_choice and not is_selected:
+                        elements.append(Paragraph(f"○ {choice_key}. {choice_label} (Bonne réponse non sélectionnée)", correct_style))
+                    elif not is_correct_choice and is_selected:
+                        elements.append(Paragraph(f"✗ {choice_key}. {choice_label} (Erreur)", incorrect_style))
+                    else:
+                        elements.append(Paragraph(f"○ {choice_key}. {choice_label}", neutral_style))
+                elements.append(Spacer(1, 5))
+        
+        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor('#9CA3AF'), alignment=TA_CENTER)
+        elements.append(Spacer(1, 30))
+        elements.append(Paragraph(f"Généré par Terciform le {datetime.now().strftime('%d/%m/%Y à %H:%M')}", footer_style))
+        
+        doc.build(elements)
+        buffer.seek(0)
+        pdf_data = buffer.getvalue()
+        
+        # Préparer et envoyer l'email
+        test_title = template.get('title', 'Test')
+        subject = f"Résultats du test - {student_name}"
+        
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f3f4f6;">
+<div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 12px; overflow: hidden; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  <div style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; padding: 30px; text-align: center;">
+    <h1 style="margin: 0; font-size: 24px;">Résultats du Test</h1>
+  </div>
+  <div style="padding: 30px;">
+    <p style="margin: 0 0 15px 0; font-size: 16px; color: #374151;">
+      Bonjour,
+    </p>
+    <p style="margin: 0 0 20px 0; font-size: 16px; color: #374151;">
+      Veuillez trouver ci-joint les résultats du test <strong>{test_title}</strong> pour <strong>{student_name}</strong>.
+    </p>
+    <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+      <p style="margin: 0 0 10px 0; font-size: 14px; color: #6B7280;">Score obtenu</p>
+      <p style="margin: 0; font-size: 42px; font-weight: bold; color: {'#059669' if score >= 70 else '#F59E0B' if score >= 50 else '#DC2626'};">{score}%</p>
+    </div>
+    <p style="margin: 20px 0 0 0; font-size: 14px; color: #6B7280;">
+      Le détail des réponses est disponible dans le PDF en pièce jointe.
+    </p>
+  </div>
+  <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+    <p style="margin: 0; font-size: 13px; color: #9ca3af;">
+      Terciform © 2026 - Formation professionnelle
+    </p>
+  </div>
+</div>
+</body>
+</html>"""
+        
+        # Envoyer avec pièce jointe
+        success = await send_email_with_attachment_async(
+            to_email=recipient_email,
+            subject=subject,
+            html_content=html_content,
+            attachment_data=pdf_data,
+            attachment_filename=f"Resultats_Test_{student_name.replace(' ', '_')}.pdf"
+        )
+        
+        if success:
+            logger.info(f"✅ Résultats test envoyés à {recipient_email} par {current_user.name}")
+            return {"message": f"Résultats envoyés avec succès à {recipient_email}"}
+        else:
+            raise HTTPException(status_code=500, detail="Erreur lors de l'envoi de l'email")
+    except Exception as e:
+        logger.error(f"❌ Erreur envoi email test: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def send_email_with_attachment_async(to_email: str, subject: str, html_content: str, attachment_data: bytes, attachment_filename: str) -> bool:
+    """Envoyer un email avec pièce jointe PDF"""
+    try:
+        import smtplib
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+        from email.mime.base import MIMEBase
+        from email import encoders
+        import ssl
+        
+        gmail_user = os.environ.get("GMAIL_USER", "terciform@gmail.com")
+        gmail_password = os.environ.get("GMAIL_PASSWORD")
+        
+        if not gmail_password:
+            logger.error("❌ GMAIL_PASSWORD non défini")
+            return False
+        
+        msg = MIMEMultipart()
+        msg['From'] = gmail_user
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        
+        msg.attach(MIMEText(html_content, 'html'))
+        
+        # Ajouter la pièce jointe
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload(attachment_data)
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', f'attachment; filename="{attachment_filename}"')
+        msg.attach(part)
+        
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as server:
+            server.login(gmail_user, gmail_password)
+            server.sendmail(gmail_user, to_email, msg.as_string())
+        
+        return True
+    except Exception as e:
+        logger.error(f"❌ Erreur envoi email avec pièce jointe: {e}")
+        return False
+
+
+# ============================================================================
 # PHASE 2 - ACTIONS FORMATEUR QUALIOPI
 # ============================================================================
 
