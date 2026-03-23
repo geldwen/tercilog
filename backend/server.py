@@ -3962,6 +3962,12 @@ async def get_qualite_report(
             **({k: v for k, v in q1.items() if k not in ['_id', 'student_id']} if q1 else {})
         }
         
+        # DEBUG LOG pour Informatique
+        if student_parcours == "Informatique" and q1:
+            logger.info(f"[INFORMATIQUE Q1 DATA] Student {student_name}: keys in q1_data = {list(q1_data.keys())[:10]}")
+            if 'answers' in q1_data:
+                logger.info(f"[INFORMATIQUE Q1 DATA] answers keys = {list(q1_data.get('answers', {}).keys())[:10]}")
+        
         q2_data = {
             "submitted": q2 is not None,
             "submitted_at": q2.get("submitted_at") if q2 else None,
