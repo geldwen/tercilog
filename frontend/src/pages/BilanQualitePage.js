@@ -635,7 +635,51 @@ const BilanQualitePage = () => {
 
       {/* Modal consultation */}
       {selectedQuestionnaire && (
-        <QuestionnaireModal questionnaire={selectedQuestionnaire} onClose={() => setSelectedQuestionnaire(null)} formatDate={formatDate} />
+        <QuestionnaireModal 
+          questionnaire={selectedQuestionnaire} 
+          onClose={() => setSelectedQuestionnaire(null)} 
+          formatDate={formatDate}
+          onDownloadPDF={handleDownloadQuestionnairePDF}
+          onSendEmail={handleSendQuestionnaireEmail}
+        />
+      )}
+
+      {/* Modal d'envoi par email */}
+      {emailModalData && (
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="p-6 border-b">
+              <h3 className="text-lg font-bold text-gray-900">Envoyer par email</h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <Label>Adresse email du destinataire</Label>
+                <Input
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="exemple@email.com"
+                  className="mt-1"
+                />
+              </div>
+              <p className="text-sm text-gray-500">
+                Le PDF du questionnaire {emailModalData.type} sera envoyé à cette adresse.
+              </p>
+            </div>
+            <div className="p-4 bg-gray-50 border-t flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEmailModalData(null)}>
+                Annuler
+              </Button>
+              <Button 
+                onClick={handleConfirmSendEmail}
+                disabled={sending}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {sending ? 'Envoi...' : 'Envoyer'}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Modal définir action */}
