@@ -905,11 +905,14 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     stars: "Étoiles",
   };
 
-  const ignoredFields = ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data', 'signed_at', 'answers', 'responses'];
+  const ignoredFields = ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data', 'signed_at', 'responses'];
 
   const getResponses = () => {
     if (!data) return [];
     const responses = [];
+    
+    // Si les données ont un champ 'answers', traiter ce champ d'abord
+    const dataToProcess = data.answers ? { ...data.answers, ...data } : data;
     
     const processValue = (key, value, depth = 0) => {
       // Protection contre récursion infinie
@@ -917,6 +920,8 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
       
       // Ignorer certains champs
       if (ignoredFields.includes(key.toLowerCase())) return;
+      // Ignorer 'answers' car on l'a déjà traité
+      if (key === 'answers') return;
       if (value === null || value === undefined || value === "") return;
       
       // Ignorer les signatures (base64)
