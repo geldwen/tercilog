@@ -181,8 +181,77 @@ const BilanQualitePage = () => {
   const [actionModal, setActionModal] = useState(null);
   const [relanceLoading, setRelanceLoading] = useState(null);
   const [needStatuses, setNeedStatuses] = useState({});
+  const [emailModalData, setEmailModalData] = useState(null);
+  const [emailInput, setEmailInput] = useState('');
+  const [sending, setSending] = useState(false);
 
   const parcoursColors = PARCOURS_CONFIG[activeParcours] || PARCOURS_CONFIG["Anglais"];
+
+  // Fonction pour télécharger le PDF d'un questionnaire
+  const handleDownloadQuestionnairePDF = async (questionnaire) => {
+    try {
+      const response = await axios.post(`${API}/api/questionnaires/generate-pdf`, {
+        student_name: questionnaire.eleve,
+        questionnaire_type: questionnaire.type,
+        data: questionnaire.data,
+        submitted_at: questionnaire.submittedAt,
+        parcours: activeParcours
+      }, {
+        headers: getAuthHeaders(),
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${questionnaire.type}_${questionnaire.eleve.replace(/\s/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      toast.success('PDF téléchargé avec succès');
+    } catch (error) {
+      console.error('Erreur téléchargement PDF:', error);
+      toast.error('Erreur lors du téléchargement du PDF');
+    }
+  };
+
+  // Fonction pour ouvrir le modal d'envoi email
+  const handleSendQuestionnaireEmail = (questionnaire) => {
+    setEmailModalData(questionnaire);
+    setEmailInput('');
+  };
+
+  // Fonction pour envoyer l'email
+  const handleConfirmSendEmail = async () => {
+    if (!emailInput || !emailInput.includes('@')) {
+      toast.error('Veuillez saisir une adresse email valide');
+      return;
+    }
+    
+    setSending(true);
+    try {
+      await axios.post(`${API}/api/questionnaires/send-email`, {
+        student_name: emailModalData.eleve,
+        questionnaire_type: emailModalData.type,
+        data: emailModalData.data,
+        submitted_at: emailModalData.submittedAt,
+        parcours: activeParcours,
+        recipient_email: emailInput
+      }, {
+        headers: getAuthHeaders()
+      });
+      
+      toast.success(`Questionnaire envoyé à ${emailInput}`);
+      setEmailModalData(null);
+    } catch (error) {
+      console.error('Erreur envoi email:', error);
+      toast.error('Erreur lors de l\'envoi de l\'email');
+    } finally {
+      setSending(false);
+    }
+  };
 
   // Charger les données
   useEffect(() => {
