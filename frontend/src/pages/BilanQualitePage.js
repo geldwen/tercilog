@@ -963,14 +963,14 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     stars: "Étoiles",
   };
 
-  const ignoredFields = ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data', 'signed_at', 'responses'];
+  const ignoredFields = ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data', 'signed_at', 'responses', 'parcours'];
 
   const getResponses = () => {
     if (!data) return [];
     const responses = [];
     
     // DEBUG: Log what data contains
-    console.log("[BilanQualite] QuestionnaireModal data:", data);
+    console.log("[BilanQualite] QuestionnaireModal data:", JSON.stringify(data, null, 2));
     console.log("[BilanQualite] Data keys:", Object.keys(data));
     
     // Si les données ont un champ 'answers', traiter ce champ d'abord
