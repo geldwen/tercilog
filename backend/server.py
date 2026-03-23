@@ -4594,6 +4594,12 @@ def detect_need_in_questionnaire(questionnaire_data: dict, parcours: str = "Angl
     if not questionnaire_data:
         return {"has_need": False, "detected_keywords": [], "reasons": []}
     
+    # Si les données sont dans un champ 'answers', les extraire
+    data_to_analyze = questionnaire_data
+    if 'answers' in questionnaire_data and isinstance(questionnaire_data['answers'], dict):
+        # Fusionner les answers avec les métadonnées
+        data_to_analyze = {**questionnaire_data['answers'], **questionnaire_data}
+    
     # Sélectionner la grille selon le parcours
     if parcours == "Informatique":
         keywords_config = KEYWORDS_INFORMATIQUE
@@ -4608,8 +4614,8 @@ def detect_need_in_questionnaire(questionnaire_data: dict, parcours: str = "Angl
     
     # Convertir toutes les valeurs en texte pour l'analyse
     all_text = ""
-    for key, value in questionnaire_data.items():
-        if key in ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data']:
+    for key, value in data_to_analyze.items():
+        if key in ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data', 'answers']:
             continue
         
         if isinstance(value, str):
