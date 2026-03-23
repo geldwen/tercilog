@@ -4831,6 +4831,278 @@ async def send_email_with_attachment_async(to_email: str, subject: str, html_con
         return False
 
 
+@api_router.post("/questionnaires/generate-pdf")
+async def generate_questionnaire_pdf(
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Générer un PDF d'un questionnaire Qualiopi (Q1/Q2/Q3)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    try:
+        student_name = data.get("student_name", "Élève")
+        questionnaire_type = data.get("questionnaire_type", "Questionnaire")
+        q_data = data.get("data", {})
+        submitted_at = data.get("submitted_at")
+        parcours = data.get("parcours", "Formation")
+        
+        # Créer le PDF
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
+        
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#4F46E5'), alignment=TA_CENTER, spaceAfter=20)
+        heading_style = ParagraphStyle('CustomHeading', parent=styles['Heading2'], fontSize=14, textColor=colors.HexColor('#1F2937'), spaceBefore=15, spaceAfter=10)
+        label_style = ParagraphStyle('LabelStyle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#6B7280'), spaceBefore=8)
+        value_style = ParagraphStyle('ValueStyle', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor('#1F2937'), leftIndent=10, spaceAfter=5)
+        
+        elements = []
+        
+        # Titre
+        type_labels = {
+            "Q1": "Questionnaire d'entrée - Besoins",
+            "Q2": "Questionnaire mi-parcours",
+            "Q3": "Questionnaire de fin de parcours"
+        }
+        title_text = type_labels.get(questionnaire_type, questionnaire_type)
+        elements.append(Paragraph(f"{title_text}", title_style))
+        elements.append(Paragraph(f"Parcours {parcours}", heading_style))
+        elements.append(Spacer(1, 10))
+        
+        # Informations
+        info_data = [
+            ["Apprenant:", student_name],
+            ["Date:", datetime.fromisoformat(submitted_at.replace('Z', '+00:00')).strftime('%d/%m/%Y') if submitted_at else "N/A"],
+        ]
+        info_table = Table(info_data, colWidths=[100, 350])
+        info_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(info_table)
+        elements.append(Spacer(1, 20))
+        
+        # Labels pour les champs
+        field_labels = {
+            "niveau_initial": "Niveau initial",
+            "objectifs": "Objectifs",
+            "attentes": "Attentes",
+            "besoins_specifiques": "Besoins spécifiques",
+            "progression_ressentie": "Progression ressentie",
+            "satisfaction_accompagnement": "Satisfaction",
+            "points_positifs": "Points positifs",
+            "points_ameliorer": "Points à améliorer",
+            "difficulties": "Difficultés rencontrées",
+            "mastered_skills": "Compétences acquises",
+            "score_ressenti_progression": "Score de progression ressenti",
+            "score_satisfaction": "Score de satisfaction",
+            "overallStars": "Note globale",
+        }
+        
+        # Extraire les données (gérer le cas où elles sont dans 'answers')
+        data_to_display = q_data.get('answers', q_data) if isinstance(q_data.get('answers'), dict) else q_data
+        
+        # Champs à ignorer
+        ignored_fields = ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data', 'signed_at', 'answers', 'responses', 'parcours']
+        
+        for key, value in data_to_display.items():
+            if key.lower() in ignored_fields:
+                continue
+            if value is None or value == "" or (isinstance(value, str) and value.startswith('data:image')):
+                continue
+            
+            label = field_labels.get(key, key.replace('_', ' ').title())
+            
+            # Formater la valeur
+            if isinstance(value, list):
+                display_value = ", ".join(str(v) for v in value) if value else "Non renseigné"
+            elif isinstance(value, bool):
+                display_value = "Oui" if value else "Non"
+            elif isinstance(value, (int, float)):
+                if 'score' in key.lower() or 'stars' in key.lower():
+                    display_value = f"{value}%"if 'score' in key.lower() else f"{value}/5"
+                else:
+                    display_value = str(value)
+            else:
+                display_value = str(value) if value else "Non renseigné"
+            
+            elements.append(Paragraph(f"<b>{label}</b>", label_style))
+            elements.append(Paragraph(display_value, value_style))
+        
+        # Pied de page
+        elements.append(Spacer(1, 30))
+        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor('#9CA3AF'), alignment=TA_CENTER)
+        elements.append(Paragraph(f"Généré par Terciform le {datetime.now().strftime('%d/%m/%Y à %H:%M')}", footer_style))
+        
+        doc.build(elements)
+        buffer.seek(0)
+        
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={questionnaire_type}_{student_name.replace(' ', '_')}.pdf"}
+        )
+    except Exception as e:
+        logger.error(f"❌ Erreur génération PDF questionnaire: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/questionnaires/send-email")
+async def send_questionnaire_email(
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Envoyer un questionnaire par email avec PDF en pièce jointe"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    try:
+        student_name = data.get("student_name", "Élève")
+        questionnaire_type = data.get("questionnaire_type", "Questionnaire")
+        q_data = data.get("data", {})
+        submitted_at = data.get("submitted_at")
+        parcours = data.get("parcours", "Formation")
+        recipient_email = data.get("recipient_email")
+        
+        if not recipient_email or '@' not in recipient_email:
+            raise HTTPException(status_code=400, detail="Email invalide")
+        
+        # Générer le PDF (réutiliser la logique)
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
+        
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#4F46E5'), alignment=TA_CENTER, spaceAfter=20)
+        heading_style = ParagraphStyle('CustomHeading', parent=styles['Heading2'], fontSize=14, textColor=colors.HexColor('#1F2937'), spaceBefore=15, spaceAfter=10)
+        label_style = ParagraphStyle('LabelStyle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#6B7280'), spaceBefore=8)
+        value_style = ParagraphStyle('ValueStyle', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor('#1F2937'), leftIndent=10, spaceAfter=5)
+        
+        elements = []
+        
+        type_labels = {
+            "Q1": "Questionnaire d'entrée - Besoins",
+            "Q2": "Questionnaire mi-parcours",
+            "Q3": "Questionnaire de fin de parcours"
+        }
+        title_text = type_labels.get(questionnaire_type, questionnaire_type)
+        elements.append(Paragraph(f"{title_text}", title_style))
+        elements.append(Paragraph(f"Parcours {parcours}", heading_style))
+        elements.append(Spacer(1, 10))
+        
+        info_data = [
+            ["Apprenant:", student_name],
+            ["Date:", datetime.fromisoformat(submitted_at.replace('Z', '+00:00')).strftime('%d/%m/%Y') if submitted_at else "N/A"],
+        ]
+        info_table = Table(info_data, colWidths=[100, 350])
+        info_table.setStyle(TableStyle([
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(info_table)
+        elements.append(Spacer(1, 20))
+        
+        field_labels = {
+            "niveau_initial": "Niveau initial",
+            "objectifs": "Objectifs",
+            "attentes": "Attentes",
+            "besoins_specifiques": "Besoins spécifiques",
+            "progression_ressentie": "Progression ressentie",
+            "satisfaction_accompagnement": "Satisfaction",
+            "points_positifs": "Points positifs",
+            "points_ameliorer": "Points à améliorer",
+            "difficulties": "Difficultés rencontrées",
+            "mastered_skills": "Compétences acquises",
+            "score_ressenti_progression": "Score de progression ressenti",
+            "score_satisfaction": "Score de satisfaction",
+            "overallStars": "Note globale",
+        }
+        
+        data_to_display = q_data.get('answers', q_data) if isinstance(q_data.get('answers'), dict) else q_data
+        ignored_fields = ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data', 'signed_at', 'answers', 'responses', 'parcours']
+        
+        for key, value in data_to_display.items():
+            if key.lower() in ignored_fields:
+                continue
+            if value is None or value == "" or (isinstance(value, str) and value.startswith('data:image')):
+                continue
+            
+            label = field_labels.get(key, key.replace('_', ' ').title())
+            
+            if isinstance(value, list):
+                display_value = ", ".join(str(v) for v in value) if value else "Non renseigné"
+            elif isinstance(value, bool):
+                display_value = "Oui" if value else "Non"
+            elif isinstance(value, (int, float)):
+                if 'score' in key.lower() or 'stars' in key.lower():
+                    display_value = f"{value}%" if 'score' in key.lower() else f"{value}/5"
+                else:
+                    display_value = str(value)
+            else:
+                display_value = str(value) if value else "Non renseigné"
+            
+            elements.append(Paragraph(f"<b>{label}</b>", label_style))
+            elements.append(Paragraph(display_value, value_style))
+        
+        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor('#9CA3AF'), alignment=TA_CENTER)
+        elements.append(Spacer(1, 30))
+        elements.append(Paragraph(f"Généré par Terciform le {datetime.now().strftime('%d/%m/%Y à %H:%M')}", footer_style))
+        
+        doc.build(elements)
+        buffer.seek(0)
+        pdf_data = buffer.getvalue()
+        
+        # Email HTML
+        subject = f"{questionnaire_type} - {student_name} - Parcours {parcours}"
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f3f4f6;">
+<div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 12px; overflow: hidden; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+  <div style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; padding: 30px; text-align: center;">
+    <h1 style="margin: 0; font-size: 24px;">{title_text}</h1>
+    <p style="margin: 10px 0 0 0; opacity: 0.9;">Parcours {parcours}</p>
+  </div>
+  <div style="padding: 30px;">
+    <p style="margin: 0 0 15px 0; font-size: 16px; color: #374151;">
+      Bonjour,
+    </p>
+    <p style="margin: 0 0 20px 0; font-size: 16px; color: #374151;">
+      Veuillez trouver ci-joint le questionnaire <strong>{questionnaire_type}</strong> complété par <strong>{student_name}</strong>.
+    </p>
+    <p style="margin: 20px 0 0 0; font-size: 14px; color: #6B7280;">
+      Le détail complet est disponible dans le PDF en pièce jointe.
+    </p>
+  </div>
+  <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+    <p style="margin: 0; font-size: 13px; color: #9ca3af;">
+      Terciform © 2026 - Formation professionnelle
+    </p>
+  </div>
+</div>
+</body>
+</html>"""
+        
+        success = await send_email_with_attachment_async(
+            to_email=recipient_email,
+            subject=subject,
+            html_content=html_content,
+            attachment_data=pdf_data,
+            attachment_filename=f"{questionnaire_type}_{student_name.replace(' ', '_')}.pdf"
+        )
+        
+        if success:
+            logger.info(f"✅ Questionnaire {questionnaire_type} envoyé à {recipient_email}")
+            return {"message": f"Questionnaire envoyé avec succès à {recipient_email}"}
+        else:
+            raise HTTPException(status_code=500, detail="Erreur lors de l'envoi de l'email")
+    except Exception as e:
+        logger.error(f"❌ Erreur envoi email questionnaire: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ============================================================================
 # PHASE 2 - ACTIONS FORMATEUR QUALIOPI
 # ============================================================================
