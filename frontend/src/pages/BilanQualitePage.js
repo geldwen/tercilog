@@ -956,7 +956,7 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
       responses.push({ label, value: displayValue });
     };
     
-    Object.entries(data).forEach(([key, value]) => {
+    Object.entries(dataToProcess).forEach(([key, value]) => {
       processValue(key, value, 0);
     });
     
