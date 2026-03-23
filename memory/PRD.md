@@ -98,6 +98,11 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 23, 2026**: Fixed critical Bilan Qualité issues for Informatique/Excel
+  - Fixed questionnaire responses display: `answers` field now properly extracted and displayed in QuestionnaireModal
+  - Added "Progression Moyenne" KPI banner showing: avg progression %, satisfaction %, star rating, and completion count
+  - Backend `detect_need_in_questionnaire` now correctly processes data in `answers` field
+  - Moved "Réunions" from main admin tabs to client card badges (with Salles, Matériel, Supports, etc.)
 - **March 10, 2026**: Added signature buttons for past sessions without signatures
   - Past sessions now show "Envoyer émargement élève" (orange) button if student signature is missing
   - Past sessions now show "Émargement prof" (violet) button if teacher signature is missing
