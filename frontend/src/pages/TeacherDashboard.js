@@ -5308,6 +5308,10 @@ export default function TeacherDashboard({ user, onLogout }) {
                             <div className="w-3 h-3 rounded-full bg-gray-300"></div>
                             Email
                           </span>
+                          <span className="flex items-center gap-2 text-base font-semibold bg-white/15 px-4 py-2 rounded-full">
+                            <div className="w-3 h-3 rounded-full bg-violet-300"></div>
+                            Réunions
+                          </span>
                         </div>
                       </div>
                       
