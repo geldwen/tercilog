@@ -198,7 +198,7 @@ function MagicReportSection({ studentId, studentName }) {
 
 
 // Composant pour afficher TOUS les tests interactifs soumis (toutes catégories)
-function InteractiveTestsDisplaySection({ studentId }) {
+function InteractiveTestsDisplaySection({ studentId, studentName, studentEmail }) {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTest, setSelectedTest] = useState(null);
