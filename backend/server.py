@@ -4644,8 +4644,8 @@ def detect_need_in_questionnaire(questionnaire_data: dict, parcours: str = "Angl
     # 3. Vérifier les champs spécifiques de difficultés
     difficulties_fields = ['difficulties', 'difficultes', 'difficultes_rencontrees', 'points_ameliorer']
     for field in difficulties_fields:
-        if field in questionnaire_data:
-            value = questionnaire_data[field]
+        if field in data_to_analyze:
+            value = data_to_analyze[field]
             if value and (isinstance(value, list) and len(value) > 0) or (isinstance(value, str) and value.strip()):
                 has_need = True
                 reasons.append(f"Difficultés signalées dans '{field}'")
@@ -4653,8 +4653,8 @@ def detect_need_in_questionnaire(questionnaire_data: dict, parcours: str = "Angl
     # 4. Vérifier objectifs non atteints
     objectives_fields = ['objectifs_atteints', 'objectifs']
     for field in objectives_fields:
-        if field in questionnaire_data:
-            value = str(questionnaire_data[field]).lower()
+        if field in data_to_analyze:
+            value = str(data_to_analyze[field]).lower()
             if any(neg in value for neg in ['partiel', 'non', 'pas']):
                 has_need = True
                 reasons.append("Objectifs partiellement ou non atteints")
