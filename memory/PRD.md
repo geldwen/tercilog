@@ -98,6 +98,11 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 23, 2026**: Added PDF generation and email sending for tests and questionnaires
+  - Tests (T1/T2/T3): Can now download PDF with correction (green=correct, red=incorrect) and send by email
+  - Questionnaires (Q1/Q2/Q3): Can now download PDF and send by email with modal to enter recipient address
+  - Backend endpoints: POST /api/tests/generate-pdf, POST /api/tests/send-email, POST /api/questionnaires/generate-pdf, POST /api/questionnaires/send-email
+  - Professional PDF formatting with Terciform branding
 - **March 23, 2026 (FIX 2)**: Critical fix for Informatique/Bureautique questionnaire data retrieval
   - **Root cause**: Backend condition `if not q1 or not q1.get("answers")` was incorrectly triggering fallback to `student_resources`
   - **Problem**: `bureautique_formation_needs_questionnaires` stores data at root (not in `answers` field), but condition expected `answers` field
