@@ -969,13 +969,8 @@ const QuestionnaireModal = ({ questionnaire, onClose, formatDate }) => {
     if (!data) return [];
     const responses = [];
     
-    // DEBUG: Log what data contains
-    console.log("[BilanQualite] QuestionnaireModal data:", JSON.stringify(data, null, 2));
-    console.log("[BilanQualite] Data keys:", Object.keys(data));
-    
     // Si les données ont un champ 'answers', traiter ce champ d'abord
     const dataToProcess = data.answers ? { ...data.answers, ...data } : data;
-    console.log("[BilanQualite] dataToProcess keys:", Object.keys(dataToProcess));
     
     const processValue = (key, value, depth = 0) => {
       // Protection contre récursion infinie
