@@ -3856,11 +3856,20 @@ async def get_qualite_report(
         # Récupérer les 3 questionnaires selon le parcours de l'élève
         if student_parcours in ["Bureautique", "Informatique", "Excel"]:
             # Pour Bureautique/Informatique/Excel : chercher dans les deux sources possibles
-            # 1) D'abord essayer les collections spécifiques bureautique (pour compatibilité)
+            
             if student_parcours in ["Bureautique", "Informatique"]:
+                # 1) D'abord essayer les collections spécifiques bureautique
                 q1 = await db.bureautique_formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
                 q2 = await db.bureautique_mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
                 q3 = await db.bureautique_end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+                
+                # 2) Si pas trouvé dans bureautique, essayer les collections génériques
+                if not q1:
+                    q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+                if not q2:
+                    q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
+                if not q3:
+                    q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
             else:
                 # Pour Excel, d'abord essayer les collections génériques
                 q1 = await db.formation_needs_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
@@ -3873,7 +3882,7 @@ async def get_qualite_report(
                 if q1:
                     logger.info(f"[QUALITE DEBUG INFORMATIQUE] Q1 keys: {list(q1.keys())[:10]}")
             
-            # 2) Si pas trouvé du tout, chercher dans student_resources
+            # 3) Si toujours pas trouvé, chercher dans student_resources
             if not q1:
                 q1_resource = await db.student_resources.find_one(
                     {"student_id": student_id, "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "POSITIONNEMENT"},
