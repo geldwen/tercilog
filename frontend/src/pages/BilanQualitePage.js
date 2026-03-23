@@ -375,7 +375,7 @@ const BilanQualitePage = () => {
             </div>
 
             {/* Cartes Q1/Q2/Q3 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {["q1", "q2", "q3"].map((q, idx) => {
                 const colors = ["blue", "orange", "purple"][idx];
                 const labels = ["Q1 - Besoins", "Q2 - Mi-parcours", "Q3 - Fin"];
@@ -402,6 +402,64 @@ const BilanQualitePage = () => {
                 );
               })}
             </div>
+
+            {/* Bandeau Progression Moyenne */}
+            {(() => {
+              // Calculer les moyennes de progression et satisfaction
+              const q3Completed = lignes.filter(e => e.q3?.submitted && e.q3?.score_ressenti_progression != null);
+              const avgProgression = q3Completed.length > 0 
+                ? Math.round(q3Completed.reduce((sum, e) => sum + (e.q3?.score_ressenti_progression || 0), 0) / q3Completed.length)
+                : null;
+              const avgSatisfaction = q3Completed.length > 0 
+                ? Math.round(q3Completed.reduce((sum, e) => sum + (e.q3?.score_satisfaction || 0), 0) / q3Completed.length)
+                : null;
+              const avgStars = q3Completed.filter(e => e.q3?.overallStars).length > 0
+                ? (q3Completed.filter(e => e.q3?.overallStars).reduce((sum, e) => sum + (e.q3?.overallStars || 0), 0) / q3Completed.filter(e => e.q3?.overallStars).length).toFixed(1)
+                : null;
+              
+              if (q3Completed.length === 0) return null;
+              
+              return (
+                <Card className="mb-6 border-2" style={{ borderColor: parcoursColors.borderColor, backgroundColor: `${parcoursColors.bgLight}50` }}>
+                  <CardContent className="py-4">
+                    <div className="flex flex-wrap items-center justify-center gap-8">
+                      <div className="text-center">
+                        <p className="text-sm font-medium text-gray-600 mb-1">Progression Moyenne</p>
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
+                            style={{ backgroundColor: avgProgression >= 70 ? '#22C55E' : avgProgression >= 50 ? '#F59E0B' : '#EF4444' }}>
+                            {avgProgression}%
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-medium text-gray-600 mb-1">Satisfaction Moyenne</p>
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
+                            style={{ backgroundColor: avgSatisfaction >= 70 ? '#22C55E' : avgSatisfaction >= 50 ? '#F59E0B' : '#EF4444' }}>
+                            {avgSatisfaction}%
+                          </div>
+                        </div>
+                      </div>
+                      {avgStars && (
+                        <div className="text-center">
+                          <p className="text-sm font-medium text-gray-600 mb-1">Note Moyenne</p>
+                          <div className="flex items-center justify-center gap-1">
+                            <span className="text-2xl font-bold" style={{ color: parcoursColors.textColor }}>{avgStars}</span>
+                            <span className="text-yellow-500 text-2xl">★</span>
+                            <span className="text-gray-400 text-sm">/5</span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="text-center">
+                        <p className="text-sm font-medium text-gray-600 mb-1">Parcours Complétés</p>
+                        <p className="text-2xl font-bold" style={{ color: parcoursColors.textColor }}>{q3Completed.length} / {lignes.length}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {/* Tableau */}
             <Card>
