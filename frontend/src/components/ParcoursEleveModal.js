@@ -478,10 +478,80 @@ function InteractiveTestsDisplay({ studentId, subType }) {
 }
 
 // Modal pour afficher la correction d'un test
-function TestCorrectionModal({ test, template, onClose }) {
+function TestCorrectionModal({ test, template, onClose, studentName, studentEmail }) {
   const studentAnswers = test.student_answers || {};
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailInput, setEmailInput] = useState(studentEmail || '');
+  const [sending, setSending] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  
+  // Fonction pour télécharger le PDF
+  const handleDownloadPDF = async () => {
+    setDownloading(true);
+    try {
+      const response = await axios.post(`${API}/api/tests/generate-pdf`, {
+        test_id: test.id,
+        template_id: template.id,
+        student_name: studentName,
+        student_answers: studentAnswers,
+        score: test.score,
+        submitted_at: test.submitted_at
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Test_${test.template_name}_${studentName.replace(/\s/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      toast.success('PDF téléchargé avec succès');
+    } catch (error) {
+      console.error('Erreur téléchargement PDF:', error);
+      toast.error('Erreur lors du téléchargement du PDF');
+    } finally {
+      setDownloading(false);
+    }
+  };
+  
+  // Fonction pour envoyer par email
+  const handleSendEmail = async () => {
+    if (!emailInput || !emailInput.includes('@')) {
+      toast.error('Veuillez saisir une adresse email valide');
+      return;
+    }
+    
+    setSending(true);
+    try {
+      await axios.post(`${API}/api/tests/send-email`, {
+        test_id: test.id,
+        template_id: template.id,
+        student_name: studentName,
+        student_answers: studentAnswers,
+        score: test.score,
+        submitted_at: test.submitted_at,
+        recipient_email: emailInput
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      toast.success(`Résultats envoyés à ${emailInput}`);
+      setShowEmailModal(false);
+    } catch (error) {
+      console.error('Erreur envoi email:', error);
+      toast.error('Erreur lors de l\'envoi de l\'email');
+    } finally {
+      setSending(false);
+    }
+  };
   
   return (
+    <>
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -573,13 +643,69 @@ function TestCorrectionModal({ test, template, onClose }) {
           ))}
         </div>
 
-        <div className="flex justify-end gap-2 mt-4">
+        <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
+          <Button 
+            onClick={handleDownloadPDF} 
+            variant="outline"
+            disabled={downloading}
+            className="border-green-600 text-green-600 hover:bg-green-50"
+          >
+            <Download className="w-4 h-4 mr-1" />
+            {downloading ? 'Génération...' : 'Télécharger PDF'}
+          </Button>
+          <Button 
+            onClick={() => setShowEmailModal(true)} 
+            variant="outline"
+            className="border-blue-600 text-blue-600 hover:bg-blue-50"
+          >
+            <Mail className="w-4 h-4 mr-1" />
+            Envoyer par email
+          </Button>
           <Button onClick={onClose} variant="outline">
             Fermer
           </Button>
         </div>
       </DialogContent>
     </Dialog>
+    
+    {/* Modal d'envoi par email */}
+    {showEmailModal && (
+      <Dialog open={true} onOpenChange={() => setShowEmailModal(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Envoyer les résultats par email</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Adresse email du destinataire</Label>
+              <Input
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="exemple@email.com"
+                className="mt-1"
+              />
+            </div>
+            <p className="text-sm text-gray-500">
+              Le PDF des résultats du test sera envoyé à cette adresse.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowEmailModal(false)}>
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleSendEmail}
+              disabled={sending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {sending ? 'Envoi...' : 'Envoyer'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )}
+    </>
   );
 }
 
