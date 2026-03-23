@@ -5318,11 +5318,6 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
             )}
           </TabsContent>
-
-          {/* ===== ONGLET RÉUNIONS ===== */}
-          <TabsContent value="meetings" className="space-y-6">
-            <MeetingManager clients={clients} />
-          </TabsContent>
           </Tabs>
           </>
         )}
