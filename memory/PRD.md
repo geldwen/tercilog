@@ -98,6 +98,11 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 23, 2026 (FIX 2)**: Critical fix for Informatique/Bureautique questionnaire data retrieval
+  - **Root cause**: Backend condition `if not q1 or not q1.get("answers")` was incorrectly triggering fallback to `student_resources`
+  - **Problem**: `bureautique_formation_needs_questionnaires` stores data at root (not in `answers` field), but condition expected `answers` field
+  - **Fix**: Changed condition to `if not q1` only - now correctly keeps data from bureautique collections
+  - Added debug logging for Informatique parcours
 - **March 23, 2026**: Fixed critical Bilan Qualité issues for Informatique/Excel
   - Fixed questionnaire responses display: `answers` field now properly extracted and displayed in QuestionnaireModal
   - Added "Progression Moyenne" KPI banner showing: avg progression %, satisfaction %, star rating, and completion count
