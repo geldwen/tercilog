@@ -3867,8 +3867,14 @@ async def get_qualite_report(
                 q2 = await db.mid_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
                 q3 = await db.end_course_questionnaires.find_one({"student_id": student_id}, {"_id": 0})
             
-            # 2) Si pas trouvé, chercher dans student_resources
-            if not q1 or not q1.get("answers"):
+            # Log debug pour Informatique
+            if student_parcours == "Informatique":
+                logger.info(f"[QUALITE DEBUG INFORMATIQUE] Student {student_name}: q1={q1 is not None}, q2={q2 is not None}, q3={q3 is not None}")
+                if q1:
+                    logger.info(f"[QUALITE DEBUG INFORMATIQUE] Q1 keys: {list(q1.keys())[:10]}")
+            
+            # 2) Si pas trouvé du tout, chercher dans student_resources
+            if not q1:
                 q1_resource = await db.student_resources.find_one(
                     {"student_id": student_id, "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "POSITIONNEMENT"},
                     {"_id": 0}
@@ -3876,7 +3882,7 @@ async def get_qualite_report(
                 if q1_resource and q1_resource.get("status") == "SOUMIS":
                     q1 = {"submitted_at": q1_resource.get("submitted_at"), "answers": q1_resource.get("answers")}
             
-            if not q2 or not q2.get("answers"):
+            if not q2:
                 q2_resource = await db.student_resources.find_one(
                     {"student_id": student_id, "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "MI_PARCOURS"},
                     {"_id": 0}
@@ -3884,7 +3890,7 @@ async def get_qualite_report(
                 if q2_resource and q2_resource.get("status") == "SOUMIS":
                     q2 = {"submitted_at": q2_resource.get("submitted_at"), "answers": q2_resource.get("answers")}
             
-            if not q3 or not q3.get("answers"):
+            if not q3:
                 q3_resource = await db.student_resources.find_one(
                     {"student_id": student_id, "category": "QUESTIONNAIRE_QUALIOPI", "sub_type": "FIN"},
                     {"_id": 0}
