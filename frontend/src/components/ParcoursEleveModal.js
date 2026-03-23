@@ -341,7 +341,7 @@ function InteractiveTestsDisplaySection({ studentId, studentName, studentEmail }
 }
 
 // Composant pour afficher les tests interactifs soumis
-function InteractiveTestsDisplay({ studentId, subType }) {
+function InteractiveTestsDisplay({ studentId, subType, studentName, studentEmail }) {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTest, setSelectedTest] = useState(null);
