@@ -3371,7 +3371,7 @@ async def generate_magic_report(
     ))
     
     # Générer le PDF
-    doc.build(story)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     
     # Nom du fichier avec date et nom de l'élève
@@ -3521,7 +3521,7 @@ async def send_magic_report_email(
         analysis_style = ParagraphStyle('Analysis', parent=styles['Normal'], fontSize=10, leading=14)
         story.append(Paragraph(ai_analysis.replace('\n', '<br/>'), analysis_style))
         
-        doc.build(story)
+        doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
         buffer.seek(0)
         pdf_content = buffer.getvalue()
         
@@ -4624,7 +4624,7 @@ async def generate_test_pdf(
         footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor('#9CA3AF'), alignment=TA_CENTER)
         elements.append(Paragraph(f"Généré par Terciform le {datetime.now().strftime('%d/%m/%Y à %H:%M')}", footer_style))
         
-        doc.build(elements)
+        doc.build(elements, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
         buffer.seek(0)
         
         return StreamingResponse(
@@ -4730,7 +4730,7 @@ async def send_test_results_email(
         elements.append(Spacer(1, 30))
         elements.append(Paragraph(f"Généré par Terciform le {datetime.now().strftime('%d/%m/%Y à %H:%M')}", footer_style))
         
-        doc.build(elements)
+        doc.build(elements, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
         buffer.seek(0)
         pdf_data = buffer.getvalue()
         
@@ -4936,7 +4936,7 @@ async def generate_questionnaire_pdf(
         footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor('#9CA3AF'), alignment=TA_CENTER)
         elements.append(Paragraph(f"Généré par Terciform le {datetime.now().strftime('%d/%m/%Y à %H:%M')}", footer_style))
         
-        doc.build(elements)
+        doc.build(elements, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
         buffer.seek(0)
         
         return StreamingResponse(
@@ -5050,7 +5050,7 @@ async def send_questionnaire_email(
         elements.append(Spacer(1, 30))
         elements.append(Paragraph(f"Généré par Terciform le {datetime.now().strftime('%d/%m/%Y à %H:%M')}", footer_style))
         
-        doc.build(elements)
+        doc.build(elements, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
         buffer.seek(0)
         pdf_data = buffer.getvalue()
         
@@ -7276,6 +7276,50 @@ def build_header(title: str):
     return header_table
 
 
+def add_terciform_footer(canvas, doc):
+    """
+    Ajoute un pied de page professionnel TerciForm avec :
+    - Liseré bleu marine
+    - Informations légales (adresse, SIRET, NDA)
+    - Numéro de page
+    """
+    canvas.saveState()
+    
+    # Couleur bleu marine TerciForm
+    navy_blue = colors.HexColor('#1a2d4d')
+    
+    # Dimensions
+    page_width, page_height = A4
+    margin_left = 36
+    margin_right = 36
+    footer_y = 50  # Position Y du pied de page
+    
+    # Liseré bleu marine (ligne horizontale complète)
+    canvas.setStrokeColor(navy_blue)
+    canvas.setLineWidth(2)
+    canvas.line(margin_left, footer_y + 30, page_width - margin_right, footer_y + 30)
+    
+    # Informations légales TerciForm
+    canvas.setFont('Helvetica', 7)
+    canvas.setFillColor(navy_blue)
+    
+    # Ligne 1: Nom et adresse
+    line1 = "TerciForm — 12 rue Marcel Sembat, 93400 Saint-Ouen-sur-Seine"
+    canvas.drawCentredString(page_width / 2, footer_y + 18, line1)
+    
+    # Ligne 2: SIRET et NDA
+    line2 = "SIRET : 94786549900018 — NDA : 11931005093"
+    canvas.drawCentredString(page_width / 2, footer_y + 8, line2)
+    
+    # Numéro de page
+    page_num = canvas.getPageNumber()
+    canvas.setFont('Helvetica', 8)
+    canvas.setFillColor(colors.grey)
+    canvas.drawCentredString(page_width / 2, 20, f"Page {page_num}")
+    
+    canvas.restoreState()
+
+
 def generate_student_planning_pdf(student: dict, sessions: list, month: str, month_label: str):
     """Générer un PDF du planning de l'élève pour TOUT le parcours avec signatures si disponibles"""
     buffer = io.BytesIO()
@@ -7537,18 +7581,7 @@ def generate_student_planning_pdf(student: dict, sessions: list, month: str, mon
     else:
         story.append(Paragraph("Aucune séance programmée", normal_style))
     
-    # Footer avec numéro de page
-    def add_page_number(canvas, doc):
-        canvas.saveState()
-        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey, alignment=1)
-        page_num = canvas.getPageNumber()
-        text = f"Page {page_num}"
-        canvas.setFont('Helvetica', 8)
-        canvas.setFillColor(colors.grey)
-        canvas.drawCentredString(A4[0]/2, 30, text)
-        canvas.restoreState()
-    
-    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     return buffer
 
@@ -7633,21 +7666,7 @@ def generate_attendance_pdf_single_session(session: dict) -> io.BytesIO:
     
     story.append(Spacer(1, 0.3*inch))
     
-    # Footer avec numéro de page
-    def add_page_number(canvas, doc):
-        canvas.saveState()
-        # Generation time
-        generation_time = datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M')
-        canvas.setFont('Helvetica-Oblique', 8)
-        canvas.setFillColor(colors.grey)
-        canvas.drawRightString(A4[0] - 36, 30, f"Document généré le {generation_time} (UTC)")
-        # Page number
-        page_num = canvas.getPageNumber()
-        canvas.setFont('Helvetica', 8)
-        canvas.drawCentredString(A4[0]/2, 30, f"Page {page_num}")
-        canvas.restoreState()
-    
-    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     return buffer
 
@@ -7805,16 +7824,7 @@ def generate_attendance_pdf_month(student: dict, sessions: list, month: str, inc
         ]))
         story.append(sessions_table)
     
-    # Footer avec numéro de page
-    def add_page_number(canvas, doc):
-        canvas.saveState()
-        page_num = canvas.getPageNumber()
-        canvas.setFont('Helvetica', 8)
-        canvas.setFillColor(colors.grey)
-        canvas.drawCentredString(A4[0]/2, 30, f"Page {page_num}")
-        canvas.restoreState()
-    
-    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     return buffer
 
@@ -7862,16 +7872,7 @@ def generate_feedback_pdf(student: dict, feedback: dict) -> io.BytesIO:
     story.append(Paragraph(feedback.get('recommendation', 'Non renseigné'), normal_style))
     story.append(Spacer(0, 20))
     
-    # Footer
-    def add_page_number(canvas, doc):
-        canvas.saveState()
-        page_num = canvas.getPageNumber()
-        canvas.setFont('Helvetica', 8)
-        canvas.setFillColor(colors.grey)
-        canvas.drawCentredString(A4[0]/2, 30, f"Page {page_num}")
-        canvas.restoreState()
-    
-    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     return buffer
 
@@ -8068,16 +8069,7 @@ def generate_formation_needs_pdf(student: dict, questionnaire: dict) -> bytes:
     story.append(Paragraph("Je certifie l'exactitude des données et transmets mes informations à TerciForm", normal_style))
     story.append(Spacer(0, 10))
     
-    # Footer
-    def add_page_number(canvas, doc):
-        canvas.saveState()
-        page_num = canvas.getPageNumber()
-        canvas.setFont('Helvetica', 8)
-        canvas.setFillColor(colors.grey)
-        canvas.drawCentredString(A4[0]/2, 30, f"Page {page_num}")
-        canvas.restoreState()
-    
-    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -8205,16 +8197,7 @@ def generate_mid_course_questionnaire_pdf(student: dict, questionnaire: dict) ->
     story.append(Spacer(0, 8))
     story.append(Paragraph(f"Questionnaire soumis le {formatted_date if submitted_at else 'N/A'}", normal_style))
     
-    # Footer
-    def add_page_number(canvas, doc):
-        canvas.saveState()
-        page_num = canvas.getPageNumber()
-        canvas.setFont('Helvetica', 8)
-        canvas.setFillColor(colors.grey)
-        canvas.drawCentredString(A4[0]/2, 30, f"Page {page_num}")
-        canvas.restoreState()
-    
-    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -8357,16 +8340,7 @@ def generate_end_course_questionnaire_pdf(student: dict, questionnaire: dict) ->
     story.append(Spacer(0, 8))
     story.append(Paragraph(f"Questionnaire soumis le {formatted_date if submitted_at else 'N/A'}", normal_style))
     
-    # Footer
-    def add_page_number(canvas, doc):
-        canvas.saveState()
-        page_num = canvas.getPageNumber()
-        canvas.setFont('Helvetica', 8)
-        canvas.setFillColor(colors.grey)
-        canvas.drawCentredString(A4[0]/2, 30, f"Page {page_num}")
-        canvas.restoreState()
-    
-    doc.build(story, onFirstPage=add_page_number, onLaterPages=add_page_number)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -9475,7 +9449,7 @@ async def generate_category_pdf(
     story.append(footer_table)
     
     # Build PDF
-    doc.build(story)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     
     # Retourner le PDF
@@ -9741,7 +9715,7 @@ async def send_category_pdf_by_email(
         footer_text = f"Document généré le {datetime.now(timezone.utc).strftime('%d/%m/%Y à %H:%M')} - TerciForm"
         story.append(Paragraph(f"<para align=center fontSize=8 textColor='grey'>{footer_text}</para>", styles['Normal']))
         
-        doc_pdf.build(story)
+        doc_pdf.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
         buffer.seek(0)
         pdf_bytes = buffer.getvalue()
         
@@ -10142,7 +10116,7 @@ def generate_planning_grid_pdf(events: list, sessions: list, month: str, month_l
     story.append(Paragraph(f"Document généré le {generation_date} — Terciform", footer_style))
     
     # Construire le PDF
-    doc.build(story)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     return buffer
 
@@ -10343,7 +10317,7 @@ def generate_archived_students_pdf(students: list, month_filter: str = None):
     generation_date = datetime.now().strftime('%d/%m/%Y à %H:%M')
     story.append(Paragraph(f"Document généré le {generation_date} — Terciform", footer_style))
     
-    doc.build(story)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     return buffer
 
@@ -10744,7 +10718,7 @@ async def preview_pdf(
     story.append(footer_table)
     
     # Build PDF
-    doc_pdf.build(story)
+    doc_pdf.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     
     # Nettoyer les fichiers temporaires
@@ -11082,7 +11056,7 @@ async def generate_bilan_tests_pdf(
     ))
     
     # Générer
-    doc.build(story)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     
     filename = f"Bilan_Tests_{parcours}_{mois}_{annee}.pdf"
@@ -12447,7 +12421,7 @@ async def create_client(
 def send_gestionnaire_welcome_email(to_email: str, name: str, centre_name: str, password: str):
     """Envoie un email de bienvenue à un gestionnaire/responsable"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://edumeeting-hub.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
     
     html_body = f"""
     <html>
@@ -12565,7 +12539,7 @@ def send_gestionnaire_welcome_email(to_email: str, name: str, centre_name: str, 
 def send_new_client_assignment_email(to_email: str, name: str, centre_name: str):
     """Envoie un email de notification quand un utilisateur existant est assigné à un nouveau client"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://edumeeting-hub.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
     
     html_body = f"""
     <html>
@@ -12660,7 +12634,7 @@ def send_new_client_assignment_email(to_email: str, name: str, centre_name: str)
 def send_new_student_notification_to_gestionnaires(student_name: str, student_organism: str, gestionnaire_emails: list):
     """Envoie une notification aux gestionnaires quand un nouvel élève est créé"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://edumeeting-hub.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
     
     html_body = f"""
     <html>
@@ -12736,7 +12710,7 @@ def send_new_student_notification_to_gestionnaires(student_name: str, student_or
 def send_document_notification_to_gestionnaires(document_name: str, student_name: str, category: str, gestionnaire_emails: list):
     """Envoie une notification aux gestionnaires quand un document est créé/uploadé"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://edumeeting-hub.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
     
     # Traduction des catégories
     category_labels = {
@@ -13546,7 +13520,7 @@ def send_room_request_email(to_email: str, recipient_name: str, client_name: str
         """
     
     # URL du portail de gestion (à personnaliser)
-    portal_url = os.environ.get('FRONTEND_URL', 'https://edumeeting-hub.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
     
     html_body = f"""
     <html>
@@ -14398,7 +14372,7 @@ async def get_ticket_recipient_trainers(current_user: User = Depends(get_current
 async def send_ticket_notification_email(ticket: dict, message: dict, notification_type: str, old_status: str = None):
     """Envoyer notification email pour les tickets"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://edumeeting-hub.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
     ticket_link = f"{portal_url}?ticket={ticket['id']}"
     
     # Déterminer le destinataire
@@ -14560,7 +14534,7 @@ async def send_ticketing_notification(
 ):
     """Envoyer une notification email pour les demandes de ticketing"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://edumeeting-hub.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
     timestamp = datetime.now(timezone.utc).strftime("%d/%m/%Y à %H:%M:%S")
     
     sender_name = sender_user.get('name', 'Utilisateur')
@@ -15475,7 +15449,7 @@ async def update_ticketing_request_status(
             if client:
                 validator_name = client.get("nom_centre", validator_name)
         
-        portal_url = os.environ.get('FRONTEND_URL', 'https://edumeeting-hub.preview.emergentagent.com')
+        portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
         
         subject = f"[TerciForm] Votre demande de {category_label} a été {status_label}"
         
@@ -16060,7 +16034,7 @@ def generate_bilan_eleve_pdf(student: dict, q_besoins: dict, q_mi_parcours: dict
     story.append(Paragraph(footer_text, ParagraphStyle('Footer', fontSize=9, textColor=colors.grey, alignment=TA_CENTER)))
     
     # Construire le PDF
-    doc.build(story)
+    doc.build(story, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
     buffer.seek(0)
     return buffer.getvalue()
 

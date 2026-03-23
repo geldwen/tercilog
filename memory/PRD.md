@@ -98,6 +98,16 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 23, 2026**: Professional PDF branding with TerciForm logo and footer
+  - Added `add_terciform_footer` global function for all PDF exports
+  - All PDFs now include:
+    - TerciForm logo in header (from `/app/backend/assets/logo_terciform.png`)
+    - Navy blue separator line in footer
+    - Company info: TerciForm, 12 rue Marcel Sembat, 93400 Saint-Ouen-sur-Seine
+    - SIRET: 94786549900018 | NDA: 11931005093
+    - Page numbers
+  - Updated 20+ PDF generation functions to use new footer
+  - Affected documents: Planning, Attendance, Questionnaires, Tests, Quality Reports, etc.
 - **March 23, 2026**: Added PDF generation and email sending for tests and questionnaires
   - Tests (T1/T2/T3): Can now download PDF with correction (green=correct, red=incorrect) and send by email
   - Questionnaires (Q1/Q2/Q3): Can now download PDF and send by email with modal to enter recipient address
