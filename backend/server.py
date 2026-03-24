@@ -4544,16 +4544,35 @@ async def generate_test_pdf(
         
         # Récupérer le template du test
         template = await db.test_templates.find_one({"id": template_id}, {"_id": 0})
-        if not template:
-            raise HTTPException(status_code=404, detail="Template non trouvé")
+        
+        # Si pas de template, en chercher un par défaut selon le parcours
+        if not template and template_id:
+            # Essayer de trouver un template par parcours
+            parcours_mapping = {
+                'excel': 'test-bureautique-positionnement-v1',
+                'bureautique': 'test-bureautique-positionnement-v1',
+                'anglais': 'test-anglais-positionnement-v1',
+                'informatique': 'test-bureautique-positionnement-v1'
+            }
+            for key, default_id in parcours_mapping.items():
+                if key in template_id.lower():
+                    template = await db.test_templates.find_one({"id": default_id}, {"_id": 0})
+                    if template:
+                        break
         
         # Créer le PDF
         buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=50, leftMargin=50, topMargin=80, bottomMargin=80)
         
         styles = getSampleStyleSheet()
-        title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#4F46E5'), alignment=TA_CENTER, spaceAfter=20)
-        heading_style = ParagraphStyle('CustomHeading', parent=styles['Heading2'], fontSize=14, textColor=colors.HexColor('#1F2937'), spaceBefore=15, spaceAfter=10)
+        
+        # Couleurs TerciForm
+        navy_blue = colors.HexColor('#1a2d4d')
+        terciform_teal = colors.HexColor('#0D9488')
+        
+        title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=20, textColor=navy_blue, alignment=TA_CENTER, spaceAfter=5, fontName='Helvetica-Bold')
+        subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'], fontSize=14, textColor=terciform_teal, alignment=TA_CENTER, spaceAfter=20, fontName='Helvetica-Bold')
+        heading_style = ParagraphStyle('CustomHeading', parent=styles['Heading2'], fontSize=14, textColor=navy_blue, spaceBefore=15, spaceAfter=10)
         question_style = ParagraphStyle('QuestionStyle', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor('#374151'), spaceBefore=10, spaceAfter=5)
         correct_style = ParagraphStyle('CorrectStyle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#059669'), leftIndent=20)
         incorrect_style = ParagraphStyle('IncorrectStyle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#DC2626'), leftIndent=20)
@@ -4561,68 +4580,134 @@ async def generate_test_pdf(
         
         elements = []
         
-        # Titre
-        elements.append(Paragraph(f"Résultats du Test - {template.get('title', 'Test')}", title_style))
-        elements.append(Spacer(1, 10))
+        # Déterminer le type de test pour le titre
+        test_type_labels = {
+            't1': 'Test de Positionnement (T1)',
+            't2': 'Test Intermédiaire (T2)',
+            't3': 'Test Final (T3)',
+            'positionnement': 'Test de Positionnement',
+            'intermediaire': 'Test Intermédiaire',
+            'final': 'Test Final'
+        }
+        test_type_key = template_id.lower().split('-')[-1] if template_id else 't1'
+        test_title = test_type_labels.get(test_type_key, template.get('title', 'Résultat du Test') if template else 'Résultat du Test')
         
-        # Informations
+        # Titre
+        if template:
+            elements.append(Paragraph(f"Résultats du Test", title_style))
+            elements.append(Paragraph(template.get('title', test_title), subtitle_style))
+        else:
+            elements.append(Paragraph(test_title, title_style))
+            elements.append(Spacer(1, 15))
+        
+        # Ligne séparatrice
+        line_table = Table([[""]], colWidths=[doc.width])
+        line_table.setStyle(TableStyle([
+            ('LINEBELOW', (0, 0), (-1, -1), 2, terciform_teal),
+        ]))
+        elements.append(line_table)
+        elements.append(Spacer(1, 15))
+        
+        # Informations de l'élève dans un tableau stylé
+        date_str = "N/A"
+        if submitted_at:
+            try:
+                date_str = datetime.fromisoformat(submitted_at.replace('Z', '+00:00')).strftime('%d/%m/%Y')
+            except:
+                date_str = str(submitted_at)[:10] if submitted_at else "N/A"
+        
+        # Déterminer le niveau selon le score
+        def get_level(pct):
+            if pct >= 80: return ("Excellent", "🌟", "#22c55e")
+            if pct >= 60: return ("Bon", "👍", "#3b82f6")
+            if pct >= 40: return ("À renforcer", "📈", "#f97316")
+            return ("À travailler", "📚", "#ef4444")
+        
+        level_label, level_emoji, level_color = get_level(score) if score else ("N/A", "", "#666")
+        
         info_data = [
-            ["Élève:", student_name],
-            ["Score:", f"{score}%"],
-            ["Date:", datetime.fromisoformat(submitted_at.replace('Z', '+00:00')).strftime('%d/%m/%Y à %H:%M') if submitted_at else "N/A"],
+            ["Apprenant", student_name, "Date", date_str],
+            ["Score", f"{score}%", "Niveau", f"{level_emoji} {level_label}"],
         ]
-        info_table = Table(info_data, colWidths=[100, 350])
+        info_table = Table(info_data, colWidths=[80, 180, 80, 140])
         info_table.setStyle(TableStyle([
             ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 11),
-            ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#374151')),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#6B7280')),
+            ('TEXTCOLOR', (2, 0), (2, -1), colors.HexColor('#6B7280')),
+            ('TEXTCOLOR', (1, 0), (1, -1), colors.HexColor('#374151')),
+            ('TEXTCOLOR', (3, 0), (3, -1), colors.HexColor('#374151')),
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F3F4F6')),
+            ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB')),
+            ('PADDING', (0, 0), (-1, -1), 10),
         ]))
         elements.append(info_table)
         elements.append(Spacer(1, 20))
         
-        # Sections et questions
-        question_num = 0
-        for section in template.get('sections', []):
-            elements.append(Paragraph(section.get('title', 'Section'), heading_style))
-            
-            for question in section.get('questions', []):
-                question_num += 1
-                q_id = question.get('id')
-                correct_answers = question.get('correctAnswers', [])
-                student_answer = student_answers.get(q_id, [])
-                if not isinstance(student_answer, list):
-                    student_answer = [student_answer] if student_answer else []
-                
-                # Vérifier si correct
-                is_correct = sorted(student_answer) == sorted(correct_answers)
-                status_emoji = "✓" if is_correct else "✗"
-                status_color = "#059669" if is_correct else "#DC2626"
-                
-                elements.append(Paragraph(f"<b>Q{question_num}.</b> {question.get('text', '')} <font color='{status_color}'>{status_emoji}</font>", question_style))
-                
-                # Afficher les choix
-                for choice in question.get('choices', []):
-                    choice_key = choice.get('key')
-                    choice_label = choice.get('label')
-                    is_selected = choice_key in student_answer
-                    is_correct_choice = choice_key in correct_answers
-                    
-                    if is_correct_choice and is_selected:
-                        elements.append(Paragraph(f"✓ {choice_key}. {choice_label} (Bonne réponse)", correct_style))
-                    elif is_correct_choice and not is_selected:
-                        elements.append(Paragraph(f"○ {choice_key}. {choice_label} (Bonne réponse non sélectionnée)", correct_style))
-                    elif not is_correct_choice and is_selected:
-                        elements.append(Paragraph(f"✗ {choice_key}. {choice_label} (Erreur)", incorrect_style))
-                    else:
-                        elements.append(Paragraph(f"○ {choice_key}. {choice_label}", neutral_style))
-                
+        # Si template existe, afficher les questions avec correction
+        if template:
+            question_num = 0
+            for section in template.get('sections', []):
+                # Section header
+                section_table = Table([[section.get('title', 'Section')]], colWidths=[doc.width])
+                section_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, -1), navy_blue),
+                    ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
+                    ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 11),
+                    ('PADDING', (0, 0), (-1, -1), 8),
+                ]))
+                elements.append(section_table)
                 elements.append(Spacer(1, 5))
+                
+                for question in section.get('questions', []):
+                    question_num += 1
+                    q_id = question.get('id')
+                    correct_answers = question.get('correctAnswers', [])
+                    student_answer = student_answers.get(q_id, [])
+                    if not isinstance(student_answer, list):
+                        student_answer = [student_answer] if student_answer else []
+                    
+                    # Vérifier si correct
+                    is_correct = sorted(student_answer) == sorted(correct_answers)
+                    status_emoji = "✓" if is_correct else "✗"
+                    status_color = "#059669" if is_correct else "#DC2626"
+                    
+                    elements.append(Paragraph(f"<b>Q{question_num}.</b> {question.get('text', '')} <font color='{status_color}'><b>{status_emoji}</b></font>", question_style))
+                    
+                    # Afficher les choix
+                    for choice in question.get('choices', []):
+                        choice_key = choice.get('key')
+                        choice_label = choice.get('label')
+                        is_selected = choice_key in student_answer
+                        is_correct_choice = choice_key in correct_answers
+                        
+                        if is_correct_choice and is_selected:
+                            elements.append(Paragraph(f"✓ {choice_key}. {choice_label} (Bonne réponse)", correct_style))
+                        elif is_correct_choice and not is_selected:
+                            elements.append(Paragraph(f"○ {choice_key}. {choice_label} (Bonne réponse non sélectionnée)", correct_style))
+                        elif not is_correct_choice and is_selected:
+                            elements.append(Paragraph(f"✗ {choice_key}. {choice_label} (Erreur)", incorrect_style))
+                        else:
+                            elements.append(Paragraph(f"○ {choice_key}. {choice_label}", neutral_style))
+                    
+                    elements.append(Spacer(1, 5))
+        else:
+            # Pas de template - afficher un résumé simple
+            elements.append(Paragraph("Résumé du Test", heading_style))
+            summary_text = f"""
+            Ce document atteste que l'apprenant <b>{student_name}</b> a passé un test d'évaluation 
+            et a obtenu un score de <b>{score}%</b>.
+            <br/><br/>
+            Niveau atteint : <b>{level_label}</b>
+            """
+            elements.append(Paragraph(summary_text, styles['Normal']))
         
-        # Pied de page
+        # Date de génération
         elements.append(Spacer(1, 30))
-        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor('#9CA3AF'), alignment=TA_CENTER)
-        elements.append(Paragraph(f"Généré par Terciform le {datetime.now().strftime('%d/%m/%Y à %H:%M')}", footer_style))
+        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.HexColor('#9CA3AF'), alignment=TA_CENTER)
+        elements.append(Paragraph(f"Document généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}", footer_style))
         
         doc.build(elements, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
         buffer.seek(0)
