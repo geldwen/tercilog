@@ -4836,7 +4836,7 @@ async def generate_questionnaire_pdf(
     data: dict,
     current_user: User = Depends(get_current_user)
 ):
-    """Générer un PDF d'un questionnaire Qualiopi (Q1/Q2/Q3)"""
+    """Générer un PDF d'un questionnaire Qualiopi (Q1/Q2/Q3) - Mise en page professionnelle"""
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
@@ -4847,94 +4847,301 @@ async def generate_questionnaire_pdf(
         submitted_at = data.get("submitted_at")
         parcours = data.get("parcours", "Formation")
         
-        # Créer le PDF
+        # Créer le PDF avec marges optimisées
         buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
+        doc = SimpleDocTemplate(
+            buffer, 
+            pagesize=A4, 
+            rightMargin=40, 
+            leftMargin=40, 
+            topMargin=80,  # Espace pour le logo
+            bottomMargin=80  # Espace pour le footer
+        )
         
         styles = getSampleStyleSheet()
-        title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#4F46E5'), alignment=TA_CENTER, spaceAfter=20)
-        heading_style = ParagraphStyle('CustomHeading', parent=styles['Heading2'], fontSize=14, textColor=colors.HexColor('#1F2937'), spaceBefore=15, spaceAfter=10)
-        label_style = ParagraphStyle('LabelStyle', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#6B7280'), spaceBefore=8)
-        value_style = ParagraphStyle('ValueStyle', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor('#1F2937'), leftIndent=10, spaceAfter=5)
+        
+        # Couleurs TerciForm
+        navy_blue = colors.HexColor('#1a2d4d')
+        terciform_teal = colors.HexColor('#0D9488')
+        light_gray = colors.HexColor('#F3F4F6')
+        dark_gray = colors.HexColor('#374151')
+        
+        # Styles personnalisés
+        title_style = ParagraphStyle(
+            'CustomTitle', 
+            parent=styles['Heading1'], 
+            fontSize=20, 
+            textColor=navy_blue, 
+            alignment=TA_CENTER, 
+            spaceAfter=5,
+            fontName='Helvetica-Bold'
+        )
+        subtitle_style = ParagraphStyle(
+            'Subtitle', 
+            parent=styles['Normal'], 
+            fontSize=14, 
+            textColor=terciform_teal, 
+            alignment=TA_CENTER, 
+            spaceAfter=20,
+            fontName='Helvetica-Bold'
+        )
+        section_style = ParagraphStyle(
+            'Section', 
+            parent=styles['Heading2'], 
+            fontSize=12, 
+            textColor=colors.white,
+            backColor=navy_blue,
+            spaceBefore=15, 
+            spaceAfter=10,
+            leftIndent=10,
+            rightIndent=10,
+            borderPadding=8,
+            fontName='Helvetica-Bold'
+        )
+        label_style = ParagraphStyle(
+            'Label', 
+            parent=styles['Normal'], 
+            fontSize=10, 
+            textColor=colors.HexColor('#6B7280'),
+            fontName='Helvetica-Bold'
+        )
+        value_style = ParagraphStyle(
+            'Value', 
+            parent=styles['Normal'], 
+            fontSize=11, 
+            textColor=dark_gray,
+            spaceBefore=3,
+            spaceAfter=8,
+            fontName='Helvetica'
+        )
         
         elements = []
         
-        # Titre
+        # Titre principal
         type_labels = {
-            "Q1": "Questionnaire d'entrée - Besoins",
-            "Q2": "Questionnaire mi-parcours",
-            "Q3": "Questionnaire de fin de parcours"
+            "Q1": "Questionnaire d'entrée - Analyse des Besoins",
+            "Q2": "Questionnaire Mi-Parcours",
+            "Q3": "Questionnaire de Fin de Parcours"
         }
         title_text = type_labels.get(questionnaire_type, questionnaire_type)
-        elements.append(Paragraph(f"{title_text}", title_style))
-        elements.append(Paragraph(f"Parcours {parcours}", heading_style))
-        elements.append(Spacer(1, 10))
+        elements.append(Paragraph(title_text, title_style))
+        elements.append(Paragraph(f"Parcours {parcours}", subtitle_style))
         
-        # Informations
+        # Ligne séparatrice
+        elements.append(Spacer(1, 5))
+        line_table = Table([[""]], colWidths=[doc.width])
+        line_table.setStyle(TableStyle([
+            ('LINEBELOW', (0, 0), (-1, -1), 2, terciform_teal),
+        ]))
+        elements.append(line_table)
+        elements.append(Spacer(1, 15))
+        
+        # Informations de l'apprenant dans un tableau stylé
+        date_str = "N/A"
+        if submitted_at:
+            try:
+                date_str = datetime.fromisoformat(submitted_at.replace('Z', '+00:00')).strftime('%d/%m/%Y')
+            except:
+                date_str = str(submitted_at)[:10] if submitted_at else "N/A"
+        
         info_data = [
-            ["Apprenant:", student_name],
-            ["Date:", datetime.fromisoformat(submitted_at.replace('Z', '+00:00')).strftime('%d/%m/%Y') if submitted_at else "N/A"],
+            ["Apprenant", student_name, "Date de soumission", date_str],
         ]
-        info_table = Table(info_data, colWidths=[100, 350])
+        info_table = Table(info_data, colWidths=[90, 170, 120, 100])
         info_table.setStyle(TableStyle([
             ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 11),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#6B7280')),
+            ('TEXTCOLOR', (2, 0), (2, -1), colors.HexColor('#6B7280')),
+            ('TEXTCOLOR', (1, 0), (1, -1), dark_gray),
+            ('TEXTCOLOR', (3, 0), (3, -1), dark_gray),
+            ('BACKGROUND', (0, 0), (-1, -1), light_gray),
+            ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB')),
+            ('PADDING', (0, 0), (-1, -1), 10),
         ]))
         elements.append(info_table)
         elements.append(Spacer(1, 20))
         
-        # Labels pour les champs
-        field_labels = {
-            "niveau_initial": "Niveau initial",
-            "objectifs": "Objectifs",
-            "attentes": "Attentes",
-            "besoins_specifiques": "Besoins spécifiques",
-            "progression_ressentie": "Progression ressentie",
-            "satisfaction_accompagnement": "Satisfaction",
-            "points_positifs": "Points positifs",
-            "points_ameliorer": "Points à améliorer",
-            "difficulties": "Difficultés rencontrées",
-            "mastered_skills": "Compétences acquises",
-            "score_ressenti_progression": "Score de progression ressenti",
-            "score_satisfaction": "Score de satisfaction",
-            "overallStars": "Note globale",
-        }
-        
         # Extraire les données (gérer le cas où elles sont dans 'answers')
         data_to_display = q_data.get('answers', q_data) if isinstance(q_data.get('answers'), dict) else q_data
         
+        # Organisation des champs par sections
+        sections_config = {
+            "Q1": {
+                "Situation Initiale": ["niveau_initial", "experience_prealable", "logiciels_utilises"],
+                "Objectifs et Attentes": ["objectifs", "attentes", "besoins_specifiques", "motivations"],
+                "Informations Complémentaires": ["disponibilites", "contraintes", "materiel_disponible"]
+            },
+            "Q2": {
+                "Progression": ["progression_ressentie", "score_ressenti_progression", "objectifs_atteints"],
+                "Évaluation de la Formation": ["satisfaction_accompagnement", "score_satisfaction", "qualite_contenu"],
+                "Retour d'Expérience": ["points_positifs", "points_ameliorer", "difficulties", "suggestions"]
+            },
+            "Q3": {
+                "Bilan de la Formation": ["progression_ressentie", "score_ressenti_progression", "objectifs_atteints", "objectifs_formation"],
+                "Compétences Acquises": ["mastered_skills", "competences_acquises", "maitrise_logiciel"],
+                "Satisfaction Globale": ["score_satisfaction", "satisfaction_formateur", "qualite_pedagogie", "rythme_formation"],
+                "Évaluation Finale": ["overallStars", "recommandation", "commentaire_libre", "avis_formation", "remarques_formateur"]
+            }
+        }
+        
+        # Labels pour les champs
+        field_labels = {
+            "niveau_initial": "Niveau initial",
+            "experience_prealable": "Expérience préalable",
+            "logiciels_utilises": "Logiciels utilisés",
+            "objectifs": "Objectifs de formation",
+            "objectifs_formation": "Objectifs de la formation",
+            "attentes": "Attentes",
+            "besoins_specifiques": "Besoins spécifiques",
+            "motivations": "Motivations",
+            "disponibilites": "Disponibilités",
+            "contraintes": "Contraintes",
+            "materiel_disponible": "Matériel disponible",
+            "progression_ressentie": "Progression ressentie",
+            "score_ressenti_progression": "Score de progression",
+            "objectifs_atteints": "Objectifs atteints",
+            "satisfaction_accompagnement": "Satisfaction de l'accompagnement",
+            "score_satisfaction": "Score de satisfaction",
+            "qualite_contenu": "Qualité du contenu",
+            "points_positifs": "Points positifs",
+            "points_ameliorer": "Points à améliorer",
+            "difficulties": "Difficultés rencontrées",
+            "suggestions": "Suggestions d'amélioration",
+            "mastered_skills": "Compétences maîtrisées",
+            "competences_acquises": "Compétences acquises",
+            "maitrise_logiciel": "Maîtrise du logiciel",
+            "satisfaction_formateur": "Satisfaction du formateur",
+            "qualite_pedagogie": "Qualité pédagogique",
+            "rythme_formation": "Rythme de la formation",
+            "overallStars": "Note globale",
+            "recommandation": "Recommandation",
+            "commentaire_libre": "Commentaire libre",
+            "avis_formation": "Avis sur la formation",
+            "remarques_formateur": "Remarques sur le formateur"
+        }
+        
         # Champs à ignorer
-        ignored_fields = ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data', 'signed_at', 'answers', 'responses', 'parcours']
+        ignored_fields = ['submitted', 'submitted_at', 'student_id', 'id', '_id', 'signature', 'signature_data', 'signed_at', 'answers', 'responses', 'parcours', 'signature_formateur', 'trainer_signature']
         
-        for key, value in data_to_display.items():
-            if key.lower() in ignored_fields:
-                continue
-            if value is None or value == "" or (isinstance(value, str) and value.startswith('data:image')):
-                continue
-            
-            label = field_labels.get(key, key.replace('_', ' ').title())
-            
-            # Formater la valeur
+        # Fonction pour formater une valeur
+        def format_value(value, key):
+            if value is None or value == "":
+                return "Non renseigné"
+            if isinstance(value, str) and value.startswith('data:image'):
+                return "[Signature présente]"
             if isinstance(value, list):
-                display_value = ", ".join(str(v) for v in value) if value else "Non renseigné"
-            elif isinstance(value, bool):
-                display_value = "Oui" if value else "Non"
-            elif isinstance(value, (int, float)):
-                if 'score' in key.lower() or 'stars' in key.lower():
-                    display_value = f"{value}%"if 'score' in key.lower() else f"{value}/5"
+                return ", ".join(str(v) for v in value) if value else "Non renseigné"
+            if isinstance(value, bool):
+                return "Oui" if value else "Non"
+            if isinstance(value, (int, float)):
+                if 'score' in key.lower():
+                    return f"{value}%"
+                elif 'stars' in key.lower():
+                    return f"{'★' * int(value)}{'☆' * (5 - int(value))} ({value}/5)"
                 else:
-                    display_value = str(value)
-            else:
-                display_value = str(value) if value else "Non renseigné"
-            
-            elements.append(Paragraph(f"<b>{label}</b>", label_style))
-            elements.append(Paragraph(display_value, value_style))
+                    return str(value)
+            return str(value)
         
-        # Pied de page
+        # Utiliser la configuration de sections si disponible
+        sections = sections_config.get(questionnaire_type, {})
+        displayed_keys = set()
+        
+        if sections:
+            for section_name, section_fields in sections.items():
+                section_has_data = False
+                section_content = []
+                
+                for field_key in section_fields:
+                    if field_key in data_to_display and field_key.lower() not in ignored_fields:
+                        value = data_to_display[field_key]
+                        if value is not None and value != "" and not (isinstance(value, str) and value.startswith('data:image')):
+                            section_has_data = True
+                            displayed_keys.add(field_key)
+                            label = field_labels.get(field_key, field_key.replace('_', ' ').title())
+                            formatted_value = format_value(value, field_key)
+                            section_content.append([label + " :", formatted_value])
+                
+                if section_has_data:
+                    # Ajouter le titre de section avec fond coloré
+                    section_table = Table([[section_name]], colWidths=[doc.width])
+                    section_table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (-1, -1), navy_blue),
+                        ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
+                        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+                        ('FONTSIZE', (0, 0), (-1, -1), 11),
+                        ('PADDING', (0, 0), (-1, -1), 8),
+                        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                    ]))
+                    elements.append(section_table)
+                    elements.append(Spacer(1, 5))
+                    
+                    # Ajouter les champs de la section dans un tableau
+                    content_table = Table(section_content, colWidths=[150, doc.width - 160])
+                    content_table.setStyle(TableStyle([
+                        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                        ('FONTSIZE', (0, 0), (-1, -1), 10),
+                        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#6B7280')),
+                        ('TEXTCOLOR', (1, 0), (1, -1), dark_gray),
+                        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                        ('TOPPADDING', (0, 0), (-1, -1), 4),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                        ('LINEBELOW', (0, 0), (-1, -2), 0.5, colors.HexColor('#E5E7EB')),
+                    ]))
+                    elements.append(content_table)
+                    elements.append(Spacer(1, 10))
+        
+        # Ajouter les champs non traités dans une section "Autres informations"
+        other_fields = []
+        for key, value in data_to_display.items():
+            if key not in displayed_keys and key.lower() not in ignored_fields:
+                if value is not None and value != "" and not (isinstance(value, str) and value.startswith('data:image')):
+                    label = field_labels.get(key, key.replace('_', ' ').title())
+                    formatted_value = format_value(value, key)
+                    other_fields.append([label + " :", formatted_value])
+        
+        if other_fields:
+            # Section Autres informations
+            other_section = Table([["Autres Informations"]], colWidths=[doc.width])
+            other_section.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), navy_blue),
+                ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
+                ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 11),
+                ('PADDING', (0, 0), (-1, -1), 8),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ]))
+            elements.append(other_section)
+            elements.append(Spacer(1, 5))
+            
+            other_table = Table(other_fields, colWidths=[150, doc.width - 160])
+            other_table.setStyle(TableStyle([
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 10),
+                ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#6B7280')),
+                ('TEXTCOLOR', (1, 0), (1, -1), dark_gray),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 4),
+                ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                ('LINEBELOW', (0, 0), (-1, -2), 0.5, colors.HexColor('#E5E7EB')),
+            ]))
+            elements.append(other_table)
+        
+        # Espace avant le pied de page interne (date de génération)
         elements.append(Spacer(1, 30))
-        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor('#9CA3AF'), alignment=TA_CENTER)
-        elements.append(Paragraph(f"Généré par Terciform le {datetime.now().strftime('%d/%m/%Y à %H:%M')}", footer_style))
+        
+        # Date de génération
+        gen_date_style = ParagraphStyle(
+            'GenDate', 
+            parent=styles['Normal'], 
+            fontSize=8, 
+            textColor=colors.HexColor('#9CA3AF'), 
+            alignment=TA_CENTER
+        )
+        elements.append(Paragraph(f"Document généré le {datetime.now().strftime('%d/%m/%Y à %H:%M')}", gen_date_style))
         
         doc.build(elements, onFirstPage=add_terciform_footer, onLaterPages=add_terciform_footer)
         buffer.seek(0)
@@ -4946,6 +5153,8 @@ async def generate_questionnaire_pdf(
         )
     except Exception as e:
         logger.error(f"❌ Erreur génération PDF questionnaire: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 

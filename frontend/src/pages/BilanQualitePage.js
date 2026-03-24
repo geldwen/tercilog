@@ -476,12 +476,6 @@ const BilanQualitePage = () => {
             {(() => {
               // Calculer les moyennes de progression et satisfaction
               const q3Completed = lignes.filter(e => e.q3?.submitted && e.q3?.score_ressenti_progression != null);
-              const avgProgression = q3Completed.length > 0 
-                ? Math.round(q3Completed.reduce((sum, e) => sum + (e.q3?.score_ressenti_progression || 0), 0) / q3Completed.length)
-                : null;
-              const avgSatisfaction = q3Completed.length > 0 
-                ? Math.round(q3Completed.reduce((sum, e) => sum + (e.q3?.score_satisfaction || 0), 0) / q3Completed.length)
-                : null;
               const avgStars = q3Completed.filter(e => e.q3?.overallStars).length > 0
                 ? (q3Completed.filter(e => e.q3?.overallStars).reduce((sum, e) => sum + (e.q3?.overallStars || 0), 0) / q3Completed.filter(e => e.q3?.overallStars).length).toFixed(1)
                 : null;
@@ -491,25 +485,7 @@ const BilanQualitePage = () => {
               return (
                 <Card className="mb-6 border-2" style={{ borderColor: parcoursColors.borderColor, backgroundColor: `${parcoursColors.bgLight}50` }}>
                   <CardContent className="py-4">
-                    <div className="flex flex-wrap items-center justify-center gap-8">
-                      <div className="text-center">
-                        <p className="text-sm font-medium text-gray-600 mb-1">Progression Moyenne</p>
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
-                            style={{ backgroundColor: avgProgression >= 70 ? '#22C55E' : avgProgression >= 50 ? '#F59E0B' : '#EF4444' }}>
-                            {avgProgression}%
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-medium text-gray-600 mb-1">Satisfaction Moyenne</p>
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
-                            style={{ backgroundColor: avgSatisfaction >= 70 ? '#22C55E' : avgSatisfaction >= 50 ? '#F59E0B' : '#EF4444' }}>
-                            {avgSatisfaction}%
-                          </div>
-                        </div>
-                      </div>
+                    <div className="flex flex-wrap items-center justify-center gap-12">
                       {avgStars && (
                         <div className="text-center">
                           <p className="text-sm font-medium text-gray-600 mb-1">Note Moyenne</p>
@@ -587,7 +563,7 @@ const BilanQualitePage = () => {
                               return (
                                 <td key={qType} className="px-4 py-3 text-center">
                                   {submitted ? (
-                                    <div className="flex flex-col items-center gap-1">
+                                    <div className="flex items-center justify-center gap-2">
                                       {/* Badge soumis avec oeil pour voir */}
                                       <button onClick={() => handleVoir(e, qType, qData)} 
                                         className="inline-flex flex-col items-center gap-1 text-green-700 hover:opacity-80">
@@ -601,41 +577,23 @@ const BilanQualitePage = () => {
                                         )}
                                         <span className="text-xs">Soumis</span>
                                       </button>
-                                      {/* Boutons actions rapides PDF/Email */}
-                                      <div className="flex gap-1 mt-1">
-                                        <button 
-                                          onClick={(ev) => {
-                                            ev.stopPropagation();
-                                            handleDownloadQuestionnairePDF({
-                                              eleve: e.nom,
-                                              type: qType,
-                                              data: qData,
-                                              submittedAt: qData?.submitted_at,
-                                              parcours: activeParcours
-                                            });
-                                          }}
-                                          className="p-1 rounded bg-green-100 hover:bg-green-200 text-green-700"
-                                          title="Télécharger PDF"
-                                        >
-                                          <Download className="w-3 h-3" />
-                                        </button>
-                                        <button 
-                                          onClick={(ev) => {
-                                            ev.stopPropagation();
-                                            handleSendQuestionnaireEmail({
-                                              eleve: e.nom,
-                                              type: qType,
-                                              data: qData,
-                                              submittedAt: qData?.submitted_at,
-                                              parcours: activeParcours
-                                            });
-                                          }}
-                                          className="p-1 rounded bg-blue-100 hover:bg-blue-200 text-blue-700"
-                                          title="Envoyer par email"
-                                        >
-                                          <Mail className="w-3 h-3" />
-                                        </button>
-                                      </div>
+                                      {/* Bouton PDF à côté de l'oeil */}
+                                      <button 
+                                        onClick={(ev) => {
+                                          ev.stopPropagation();
+                                          handleDownloadQuestionnairePDF({
+                                            eleve: e.nom,
+                                            type: qType,
+                                            data: qData,
+                                            submittedAt: qData?.submitted_at,
+                                            parcours: activeParcours
+                                          });
+                                        }}
+                                        className="w-5 h-5 rounded-full bg-blue-500 inline-flex items-center justify-center hover:bg-blue-600"
+                                        title="Télécharger PDF"
+                                      >
+                                        <Download className="w-3 h-3 text-white" />
+                                      </button>
                                     </div>
                                   ) : (
                                     <button onClick={() => handleRelance(e, qType)}
