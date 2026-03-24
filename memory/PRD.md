@@ -98,6 +98,12 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 24, 2026 (Update 2)**: Added buttons to Bilan des Tests page
+  - Added two aligned buttons for each test (T1/T2/T3) when submitted:
+    - 🟢 Green button (Eye icon) - View test results in modal
+    - 🔵 Blue button (Download icon) - Download test PDF
+  - Added `handleDownloadTestPDF` function in BilanTests.js
+  - Layout: Score in green circle + two small buttons below, aligned horizontally
 - **March 24, 2026**: UI cleanup, PDF improvements, and Test buttons
   - **Aligned buttons** in Q1/Q2/Q3 columns: green (👁 voir) + blue (⬇ PDF) - same size, horizontally aligned
   - **Removed email button** from questionnaire actions (kept only view + download PDF)

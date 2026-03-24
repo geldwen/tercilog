@@ -288,6 +288,45 @@ export default function BilanTests() {
     setSelectedTest({ studentName: eleve.nom, testType, testData });
   };
   
+  // Télécharger le PDF du test
+  const handleDownloadTestPDF = async (eleve, testType, testData) => {
+    try {
+      toast.info("Génération du PDF en cours...");
+      
+      // Récupérer le template_id du test
+      const templateId = testData?.template_id || `test-${activeParcours.toLowerCase()}-${testType.toLowerCase()}`;
+      
+      const response = await axios.post(
+        `${API}/api/tests/generate-pdf`,
+        {
+          test_id: testData?.id || `${eleve.id}-${testType}`,
+          template_id: templateId,
+          student_name: eleve.nom,
+          student_answers: testData?.answers || {},
+          score: testData?.score,
+          submitted_at: testData?.submitted_at || testData?.date
+        },
+        {
+          headers: getAuthHeaders(),
+          responseType: 'blob'
+        }
+      );
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${testType}_${eleve.nom.replace(/ /g, '_')}_${activeParcours}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("PDF téléchargé !");
+    } catch (error) {
+      console.error("Erreur téléchargement PDF:", error);
+      toast.error("Erreur lors du téléchargement du PDF");
+    }
+  };
+  
   // Export PDF
   const exportPDF = () => {
     const doc = new jsPDF({ unit: "pt" });
@@ -514,22 +553,36 @@ export default function BilanTests() {
                                 return (
                                   <td key={testType} className="px-4 py-3 text-center">
                                     {hasScore ? (
-                                      <button 
-                                        onClick={() => handleVoir(e, testType, testData)}
-                                        className="inline-flex flex-col items-center gap-1 hover:opacity-80 transition-opacity"
-                                      >
-                                        <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center shadow-md hover:shadow-lg transition-shadow">
-                                          <span className="text-white font-bold text-lg">{displayScore}%</span>
+                                      <div className="flex flex-col items-center gap-1">
+                                        {/* Score dans cercle vert */}
+                                        <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+                                          <span className="text-white font-bold text-sm">{displayScore}%</span>
                                         </div>
-                                        <span className="text-xs text-green-700 font-medium">Voir</span>
-                                      </button>
+                                        {/* Deux boutons alignés : Voir + PDF */}
+                                        <div className="flex items-center justify-center gap-1 mt-1">
+                                          <button 
+                                            onClick={() => handleVoir(e, testType, testData)}
+                                            className="w-6 h-6 rounded-full bg-green-600 inline-flex items-center justify-center hover:bg-green-700"
+                                            title="Voir les résultats"
+                                          >
+                                            <Eye className="w-3.5 h-3.5 text-white" />
+                                          </button>
+                                          <button 
+                                            onClick={() => handleDownloadTestPDF(e, testType, testData)}
+                                            className="w-6 h-6 rounded-full bg-blue-500 inline-flex items-center justify-center hover:bg-blue-600"
+                                            title="Télécharger PDF"
+                                          >
+                                            <Download className="w-3.5 h-3.5 text-white" />
+                                          </button>
+                                        </div>
+                                      </div>
                                     ) : (
                                       <button 
                                         onClick={() => handleRelance(e, testType)}
                                         disabled={relanceLoading === `${e.id}-${testType}`}
                                         className="inline-flex flex-col items-center gap-1 hover:opacity-80 disabled:opacity-50 transition-opacity"
                                       >
-                                        <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center shadow-md">
+                                        <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center shadow-md">
                                           <Mail className="w-5 h-5 text-white" />
                                         </div>
                                         <span className="text-xs text-red-700 font-medium">
