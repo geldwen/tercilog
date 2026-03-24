@@ -563,21 +563,16 @@ const BilanQualitePage = () => {
                               return (
                                 <td key={qType} className="px-4 py-3 text-center">
                                   {submitted ? (
-                                    <div className="flex items-center justify-center gap-2">
-                                      {/* Badge soumis avec oeil pour voir */}
-                                      <button onClick={() => handleVoir(e, qType, qData)} 
-                                        className="inline-flex flex-col items-center gap-1 text-green-700 hover:opacity-80">
-                                        {/* Pour Q3: Afficher les étoiles si disponibles */}
-                                        {isQ3 && q3Stars ? (
-                                          renderStars(q3Stars)
-                                        ) : (
-                                          <span className="w-5 h-5 rounded-full bg-green-500 inline-flex items-center justify-center">
-                                            <Eye className="w-3 h-3 text-white" />
-                                          </span>
-                                        )}
-                                        <span className="text-xs">Soumis</span>
+                                    <div className="flex items-center justify-center gap-1">
+                                      {/* Bouton voir (oeil) */}
+                                      <button 
+                                        onClick={() => handleVoir(e, qType, qData)} 
+                                        className="w-6 h-6 rounded-full bg-green-500 inline-flex items-center justify-center hover:bg-green-600"
+                                        title="Voir le questionnaire"
+                                      >
+                                        <Eye className="w-3.5 h-3.5 text-white" />
                                       </button>
-                                      {/* Bouton PDF à côté de l'oeil */}
+                                      {/* Bouton télécharger PDF */}
                                       <button 
                                         onClick={(ev) => {
                                           ev.stopPropagation();
@@ -589,18 +584,24 @@ const BilanQualitePage = () => {
                                             parcours: activeParcours
                                           });
                                         }}
-                                        className="w-5 h-5 rounded-full bg-blue-500 inline-flex items-center justify-center hover:bg-blue-600"
+                                        className="w-6 h-6 rounded-full bg-blue-500 inline-flex items-center justify-center hover:bg-blue-600"
                                         title="Télécharger PDF"
                                       >
-                                        <Download className="w-3 h-3 text-white" />
+                                        <Download className="w-3.5 h-3.5 text-white" />
                                       </button>
+                                      {/* Pour Q3: Afficher les étoiles en dessous */}
+                                      {isQ3 && q3Stars && (
+                                        <div className="ml-1">
+                                          {renderStars(q3Stars)}
+                                        </div>
+                                      )}
                                     </div>
                                   ) : (
                                     <button onClick={() => handleRelance(e, qType)}
                                       disabled={relanceLoading === `${e.id}-${qType}`}
                                       className="inline-flex items-center gap-1 text-red-700 hover:opacity-80 disabled:opacity-50">
-                                      <span className="w-5 h-5 rounded-full bg-red-500 inline-flex items-center justify-center">
-                                        <Mail className="w-3 h-3 text-white" />
+                                      <span className="w-6 h-6 rounded-full bg-red-500 inline-flex items-center justify-center">
+                                        <Mail className="w-3.5 h-3.5 text-white" />
                                       </span>
                                       <span className="text-xs">{relanceLoading === `${e.id}-${qType}` ? "..." : "Relancer"}</span>
                                     </button>

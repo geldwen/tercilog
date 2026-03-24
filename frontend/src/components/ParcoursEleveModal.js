@@ -247,6 +247,41 @@ function InteractiveTestsDisplaySection({ studentId, studentName, studentEmail }
     }
   };
 
+  // Télécharger le PDF du test
+  const handleDownloadTestPDF = async (test) => {
+    try {
+      toast.info("Génération du PDF en cours...");
+      const response = await axios.post(
+        `${API}/tests/generate-pdf`,
+        {
+          test_id: test.id,
+          template_id: test.template_id || 'test-bureautique-positionnement-v1',
+          student_name: studentName,
+          student_answers: test.answers || {},
+          score: test.score,
+          submitted_at: test.submitted_at
+        },
+        {
+          headers: getAuthHeaders(),
+          responseType: 'blob'
+        }
+      );
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Test_${test.template_name || 'Test'}_${studentName.replace(/ /g, '_')}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("PDF téléchargé !");
+    } catch (error) {
+      console.error("Error downloading test PDF:", error);
+      toast.error("Erreur lors du téléchargement du PDF");
+    }
+  };
+
   // Fonction pour obtenir la mention selon le score
   const getMention = (score) => {
     if (score < 30) {
@@ -296,24 +331,23 @@ function InteractiveTestsDisplaySection({ studentId, studentName, studentEmail }
                   </p>
                 </div>
                 
-                {/* Boutons */}
+                {/* Boutons alignés : Voir + Télécharger */}
                 <div className="flex gap-2 justify-center">
                   <Button
                     onClick={() => handleViewTest(test)}
                     size="sm"
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="bg-green-600 hover:bg-green-700 text-white"
                   >
-                    <FileText className="w-4 h-4 mr-1" />
-                    Visualiser les résultats
+                    <Eye className="w-4 h-4 mr-1" />
+                    Voir
                   </Button>
                   <Button
-                    onClick={() => toast.info("Fonction d'envoi par email en cours de développement")}
+                    onClick={() => handleDownloadTestPDF(test)}
                     size="sm"
-                    variant="outline"
-                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
-                    <Mail className="w-4 h-4 mr-1" />
-                    Envoyer
+                    <Download className="w-4 h-4 mr-1" />
+                    PDF
                   </Button>
                 </div>
               </div>

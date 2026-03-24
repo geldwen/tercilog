@@ -4966,28 +4966,76 @@ async def generate_questionnaire_pdf(
         # Extraire les données (gérer le cas où elles sont dans 'answers')
         data_to_display = q_data.get('answers', q_data) if isinstance(q_data.get('answers'), dict) else q_data
         
-        # Organisation des champs par sections
-        sections_config = {
-            "Q1": {
-                "Situation Initiale": ["niveau_initial", "experience_prealable", "logiciels_utilises"],
-                "Objectifs et Attentes": ["objectifs", "attentes", "besoins_specifiques", "motivations"],
-                "Informations Complémentaires": ["disponibilites", "contraintes", "materiel_disponible"]
-            },
-            "Q2": {
-                "Progression": ["progression_ressentie", "score_ressenti_progression", "objectifs_atteints"],
-                "Évaluation de la Formation": ["satisfaction_accompagnement", "score_satisfaction", "qualite_contenu"],
-                "Retour d'Expérience": ["points_positifs", "points_ameliorer", "difficulties", "suggestions"]
-            },
-            "Q3": {
-                "Bilan de la Formation": ["progression_ressentie", "score_ressenti_progression", "objectifs_atteints", "objectifs_formation"],
-                "Compétences Acquises": ["mastered_skills", "competences_acquises", "maitrise_logiciel"],
-                "Satisfaction Globale": ["score_satisfaction", "satisfaction_formateur", "qualite_pedagogie", "rythme_formation"],
-                "Évaluation Finale": ["overallStars", "recommandation", "commentaire_libre", "avis_formation", "remarques_formateur"]
+        # Détecter le type de parcours (Bureautique/Excel vs Langues/Anglais)
+        parcours_lower = parcours.lower() if parcours else ""
+        is_bureautique = any(p in parcours_lower for p in ['excel', 'word', 'powerpoint', 'bureautique', 'informatique', 'office'])
+        is_langue = any(p in parcours_lower for p in ['anglais', 'english', 'langue', 'français', 'allemand', 'espagnol'])
+        
+        # Organisation des champs par sections selon le type de formation
+        if is_bureautique:
+            sections_config = {
+                "Q1": {
+                    "Situation Initiale": ["niveau_initial", "experience_prealable", "logiciels_utilises", "version_logiciel"],
+                    "Objectifs et Attentes": ["objectifs", "attentes", "besoins_specifiques", "fonctionnalites_souhaitees"],
+                    "Contexte Professionnel": ["contexte_utilisation", "frequence_utilisation", "taches_quotidiennes"]
+                },
+                "Q2": {
+                    "Progression Technique": ["progression_ressentie", "score_ressenti_progression", "fonctionnalites_maitrisees"],
+                    "Évaluation de la Formation": ["satisfaction_accompagnement", "score_satisfaction", "qualite_contenu", "rythme_adapte"],
+                    "Retour d'Expérience": ["points_positifs", "points_ameliorer", "difficulties", "suggestions"]
+                },
+                "Q3": {
+                    "Bilan de la Formation": ["progression_ressentie", "score_ressenti_progression", "objectifs_atteints", "objectifs_formation"],
+                    "Compétences Bureautiques Acquises": ["mastered_skills", "competences_acquises", "maitrise_logiciel", 
+                        "formules_maitrisees", "tableaux_croises_dynamiques", "graphiques", "macros", "mise_en_forme"],
+                    "Satisfaction Globale": ["score_satisfaction", "satisfaction_formateur", "qualite_pedagogie", "rythme_formation"],
+                    "Évaluation Finale": ["overallStars", "recommandation", "commentaire_libre", "avis_formation", "remarques_formateur", "utilisation_professionnelle"]
+                }
             }
-        }
+        elif is_langue:
+            sections_config = {
+                "Q1": {
+                    "Niveau Linguistique Initial": ["niveau_initial", "niveau_cecrl", "experience_prealable"],
+                    "Compétences à Développer": ["comprehension_orale", "expression_orale", "comprehension_ecrite", "expression_ecrite"],
+                    "Objectifs et Contexte": ["objectifs", "attentes", "contexte_utilisation", "besoins_specifiques"]
+                },
+                "Q2": {
+                    "Progression Linguistique": ["progression_ressentie", "score_ressenti_progression", "aisance_orale", "aisance_ecrite"],
+                    "Évaluation de la Formation": ["satisfaction_accompagnement", "score_satisfaction", "qualite_contenu"],
+                    "Retour d'Expérience": ["points_positifs", "points_ameliorer", "difficulties", "suggestions"]
+                },
+                "Q3": {
+                    "Bilan de la Formation": ["progression_ressentie", "score_ressenti_progression", "objectifs_atteints"],
+                    "Compétences Linguistiques Acquises": ["comprehension_orale", "expression_orale", "comprehension_ecrite", "expression_ecrite", 
+                        "vocabulaire_professionnel", "grammaire", "prononciation"],
+                    "Satisfaction Globale": ["score_satisfaction", "satisfaction_formateur", "qualite_pedagogie", "rythme_formation"],
+                    "Évaluation Finale": ["overallStars", "recommandation", "commentaire_libre", "avis_formation", "remarques_formateur"]
+                }
+            }
+        else:
+            # Configuration générique
+            sections_config = {
+                "Q1": {
+                    "Situation Initiale": ["niveau_initial", "experience_prealable"],
+                    "Objectifs et Attentes": ["objectifs", "attentes", "besoins_specifiques", "motivations"],
+                    "Informations Complémentaires": ["disponibilites", "contraintes"]
+                },
+                "Q2": {
+                    "Progression": ["progression_ressentie", "score_ressenti_progression", "objectifs_atteints"],
+                    "Évaluation de la Formation": ["satisfaction_accompagnement", "score_satisfaction", "qualite_contenu"],
+                    "Retour d'Expérience": ["points_positifs", "points_ameliorer", "difficulties", "suggestions"]
+                },
+                "Q3": {
+                    "Bilan de la Formation": ["progression_ressentie", "score_ressenti_progression", "objectifs_atteints", "objectifs_formation"],
+                    "Compétences Acquises": ["mastered_skills", "competences_acquises"],
+                    "Satisfaction Globale": ["score_satisfaction", "satisfaction_formateur", "qualite_pedagogie", "rythme_formation"],
+                    "Évaluation Finale": ["overallStars", "recommandation", "commentaire_libre", "avis_formation", "remarques_formateur"]
+                }
+            }
         
         # Labels pour les champs
         field_labels = {
+            # Champs généraux
             "niveau_initial": "Niveau initial",
             "experience_prealable": "Expérience préalable",
             "logiciels_utilises": "Logiciels utilisés",
@@ -5019,7 +5067,32 @@ async def generate_questionnaire_pdf(
             "recommandation": "Recommandation",
             "commentaire_libre": "Commentaire libre",
             "avis_formation": "Avis sur la formation",
-            "remarques_formateur": "Remarques sur le formateur"
+            "remarques_formateur": "Remarques sur le formateur",
+            # Champs bureautique/Excel
+            "version_logiciel": "Version du logiciel",
+            "fonctionnalites_souhaitees": "Fonctionnalités souhaitées",
+            "contexte_utilisation": "Contexte d'utilisation",
+            "frequence_utilisation": "Fréquence d'utilisation",
+            "taches_quotidiennes": "Tâches quotidiennes",
+            "fonctionnalites_maitrisees": "Fonctionnalités maîtrisées",
+            "rythme_adapte": "Rythme adapté",
+            "formules_maitrisees": "Formules maîtrisées",
+            "tableaux_croises_dynamiques": "Tableaux croisés dynamiques",
+            "graphiques": "Graphiques",
+            "macros": "Macros/VBA",
+            "mise_en_forme": "Mise en forme",
+            "utilisation_professionnelle": "Utilisation professionnelle",
+            # Champs langues/Anglais
+            "niveau_cecrl": "Niveau CECRL",
+            "comprehension_orale": "Compréhension orale",
+            "expression_orale": "Expression orale",
+            "comprehension_ecrite": "Compréhension écrite",
+            "expression_ecrite": "Expression écrite",
+            "aisance_orale": "Aisance à l'oral",
+            "aisance_ecrite": "Aisance à l'écrit",
+            "vocabulaire_professionnel": "Vocabulaire professionnel",
+            "grammaire": "Grammaire",
+            "prononciation": "Prononciation"
         }
         
         # Champs à ignorer

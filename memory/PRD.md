@@ -98,16 +98,15 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
-- **March 24, 2026**: UI cleanup and PDF improvements
-  - Removed "Progression Moyenne" and "Satisfaction Moyenne" from Bilan Qualité banner (kept only "Note Moyenne" and "Parcours Complétés")
-  - Simplified Q1/Q2/Q3 buttons: removed email button, kept only PDF download button (blue circle next to green eye)
-  - Completely redesigned questionnaire PDF generation with professional layout:
-    - Organized content in sections (Bilan Formation, Compétences, Satisfaction, etc.)
-    - Navy blue section headers
-    - Proper table formatting with borders
-    - Star ratings displayed as ★★★★☆
-    - TerciForm logo in header on every page
-    - Legal footer (SIRET, NDA) on every page
+- **March 24, 2026**: UI cleanup, PDF improvements, and Test buttons
+  - **Aligned buttons** in Q1/Q2/Q3 columns: green (👁 voir) + blue (⬇ PDF) - same size, horizontally aligned
+  - **Removed email button** from questionnaire actions (kept only view + download PDF)
+  - **Simplified banner**: removed "Progression Moyenne" and "Satisfaction Moyenne" (kept only "Note Moyenne" and "Parcours Complétés")
+  - **Course-specific PDF sections**: 
+    - Excel/Bureautique: "Compétences Bureautiques Acquises" (formules, TCD, graphiques, macros)
+    - Anglais/Langues: "Compétences Linguistiques" (compréhension/expression orale/écrite)
+  - **Test buttons in Parcours élève modal**: Added "Voir" (green) + "PDF" (blue) buttons for each test
+  - Added `handleDownloadTestPDF` function in ParcoursEleveModal.js
 - **March 23, 2026 (Session 2)**: UI improvements and document templates
   - Removed "Mon avis sur la formation" banner from Student Dashboard (was redundant)
   - Enhanced PDF header/footer: Logo now appears on EVERY page (not just first page)
