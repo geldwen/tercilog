@@ -11577,10 +11577,10 @@ async def get_livret_status(
     
     student = await db.users.find_one(
         {"id": student_id, "role": "student"},
-        {"_id": 0, "livret_accueil": 1}
+        {"_id": 0, "livret_accueil": 1, "id": 1}
     )
     
-    if not student:
+    if student is None:
         raise HTTPException(status_code=404, detail="Élève non trouvé")
     
     livret_accueil = student.get("livret_accueil", {})
@@ -11685,9 +11685,9 @@ async def get_document_signatures(
 
     student = await db.users.find_one(
         {"id": student_id, "role": "student"},
-        {"_id": 0, "program_signature": 1, "contract_signature": 1}
+        {"_id": 0, "program_signature": 1, "contract_signature": 1, "id": 1}
     )
-    if not student:
+    if student is None:
         raise HTTPException(status_code=404, detail="Élève non trouvé")
 
     prog = student.get("program_signature", {})
