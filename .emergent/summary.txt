@@ -1,210 +1,165 @@
 <analysis>**original_problem_statement**:
-The user, a French-speaking administrator of an educational platform, has a continuous stream of feature requests and UI/UX improvements.
+The user, a French-speaking administrator of an educational platform, has a series of critical feature requests and UI/UX adjustments centered around their Qualiopi certification requirements and student experience. 
+Key requirements:
+1. **Professional PDF Branding**: All exported PDFs must have the TerciForm logo in the header and a specific legal footer (Marine blue line, Address, SIRET, NDA).
+2. **Dashboard UI Cleanup**: Remove the Mon avis sur la formation banner from the student dashboard. Clean up the Bilan Qualité banner by removing irrelevant stats.
+3. **Button Alignment & Placement**: Move PDF download buttons out of modals and place them directly next to the View (Eye) icons in the Bilan Qualité (Q1, Q2, Q3) and Bilan des Tests (T1, T2, T3) tables.
+4. **Course-Specific Content**: Ensure that Excel course PDFs show Excel-specific skills (Pivot tables, formulas) and NOT language skills (oral/written comprehension) which are meant for English courses.
+5. **Pedagogical Resources Management**: For Excel students only, create a new section in the student dashboard for downloading Supports and Evaluations. These must be visible but grayed out (locked) by default, and the admin must have a way to unlock them file by file.
 
-Initial requests from the previous session included:
-*   Fixing email notifications, session duration calculations, and test reminder emails.
-*   Creating a complete Excel learning path with tests, questionnaires, and admin tools.
-*   Addressing Jitsi video conferencing instability.
+**User's preferred language**: French. (INSTRUCT NEXT AGENT: You MUST respond and provide all user-facing communication in French).
 
-In the current session, the user has requested numerous and rapid UI/UX changes to the Teacher and Admin dashboards, including:
-1.  **Session Management UI Overhaul**:
-    *   Adding direct signing buttons (émargement) for daily sessions.
-    *   Implementing a new, comprehensive, and integrated search module for sessions.
-    *   Changing the default session list to hide past sessions and only show current/future ones for the month.
-    *   Adding status indicators (present/absent checkboxes, visible signatures for past sessions).
-    *   Refactoring the Jitsi Rejoindre la visio button to group by time slot, creating a separate button for each group.
-2.  **Bug Fixes**:
-    *   Resolving critical bugs in the Qualiopi questionnaire viewer where  was displayed, signatures were shown as raw text, and submission buttons were confusingly disabled.
-3.  **Client Management**:
-    *   Differentiating between client types: organisme de formation (training organization) and societe (company).
-    *   Creating a new, distinct Espace Client dashboard for societe clients, which is a modified version of the existing Espace Gestion dashboard.
-    *   Adding email notifications to managers when a new document is uploaded for a student.
-
-**User's preferred language**: French
-
-**what currently exists?**
-The application is a full-stack educational platform with a React frontend and a monolithic FastAPI backend using MongoDB.
-
-The agent has implemented a series of significant UI/UX enhancements on the  page, completely revamping how sessions are displayed, searched, and managed. This includes a new integrated search module, revised default filtering logic, and dynamic action buttons based on session date.
-
-The agent also attempted to fix a critical bug in the questionnaire viewer () and added email notifications for document uploads on the backend.
-
-Work has just begun on a major new feature: differentiating client types. This involves backend model changes ( collection), updates to the admin interface (), and the creation of a new  by copying and modifying the existing . The codebase, particularly , has become even more complex and fragile due to these rapid, successive changes.
-
-A critical, unresolved issue from the previous session persists: the production deployment pipeline does not serve the latest frontend build, making all new frontend features invisible to the user in production.
+**what currently exists?** 
+A full-stack React and FastAPI (MongoDB) application. The backend is a massive monolith ( > 16,000 lines). In this session, the agent successfully implemented global PDF branding, cleaned up the UI as requested, placed inline view/download buttons for Questionnaires and Tests, fixed course-specific data rendering for Excel PDFs, and implemented the backend/frontend logic for locking/unlocking Excel pedagogical resources.
 
 **Last working item**:
-- Last item agent was working: Implementing the distinction between organisme de formation and societe clients and creating a new Espace Client dashboard. The agent had:
-    1.  Added  to the  model in .
-    2.  Added a type selector to the Create Client form in .
-    3.  Created a new file  by copying .
-    4.  Begun modifying  to remove the Documents tab and its related data-loading logic. The agent was in the middle of these edits.
-- Status: IN PROGRESS
-- Agent Testing Done: N
-- Which testing method agent to use?: both
-- User Testing Done: N
+- **Last item agent was working**: Fixing a production bug reported by the user where pedagogical resources were completely hidden for the student Julien Lipinski instead of showing up as grayed out/locked. The agent realized this is likely a case-sensitivity issue with the  string (e.g., excel vs Excel vs Bureautique) and was updating  and  to ensure the resources ALWAYS appear (but remain grayed out) regardless of exact casing.
+- **Status**: IN PROGRESS
+- **Agent Testing Done**: N (Interrupted while applying the fix)
+- **Which testing method agent to use?**: both (Use screenshot tool to verify the frontend shows grayed-out resources for Excel students, and use python/curl to ensure the backend returns the resources list properly even with different casing).
+- **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: (P0) Complete the new Espace Client dashboard implementation.
--   Issue 2: (P0, CRITICAL BLOCKER) Production deployment does not serve the latest frontend build.
--   Issue 3: (P1) The questionnaire viewer bug fix needs user verification.
--   Issue 4: (P1, Recurring) Trainer documents disappear when editing a trainer profile.
--   Issue 5: (P2) User  cannot log in.
--   Issue 6: (P2) Jitsi video conferencing instability on the public server.
+Priority Order:
+Issue 1: (P0) Pedagogical resources are completely hidden instead of showing up grayed out/locked for certain Excel students in production (like Julien Lipinski).
+Issue 2: (P2) Trainer documents disappear when editing a trainer profile (Carried over from older forks).
+Issue 3: (P3) User  cannot log in (Carried over from older forks).
 
-**Issues Detail**:
--   **Issue 1: Complete the new Espace Client dashboard implementation**
-    -   **Attempted fixes**: Agent created the new file and started removing/modifying sections as per user request.
-    -   **Next debug checklist**:
-        1.  In , finish removing the Documents tab ( and ).
-        2.  Globally replace the term élèves with participants within the component.
-        3.  In the Échanges avec le formateur section, remove the salle, organisation, and accueil tabs.
-        4.  Ensure the new dashboard correctly loads data for a societe type client.
-        5.  Verify the login flow directs societe managers to this new dashboard.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a core business requirement to support a new type of customer.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on other issue**: Blocked by Production deployment issue for user visibility.
+Issues Detail:
+- Issue 1:
+   - Attempted fixes: The agent initiated a  on  and  to handle case-insensitivity for the word Excel and to ensure the frontend renders the resource list unconditionally for matching students.
+   - Next debug checklist:
+      - Check  endpoints () to ensure  or includes bureautique.
+      - Check  to ensure that if resources exist, they are rendered. If  is false, apply a disabled CSS class (grayed out) and disable the download click.
+   - Why fix this issue and what will be achieved with the fix?: The user explicitly requested that students always see the existence of the documents to know what is coming, even if they can't click them yet.
+   - Status: IN PROGRESS
+   - Is recurring issue?: N
+   - Should Test frontend/backend/both after fix?: both
+   - Blocked on other issue: None
 
--   **Issue 2: Production deployment does not serve the latest frontend build**
-    -   **Attempted fixes**: The agent previously diagnosed this as a platform/infrastructure issue, not a code issue. In this session, the user confirmed it's still happening (le bouton jitsi ne remonte pas en prob).
-    -   **Next debug checklist**: This cannot be fixed with code. The agent's first action should be to advise the user to contact Emergent support about the frontend build not synchronizing in production, providing the Job ID.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical blocker preventing the user from using *any* of the newly developed frontend features in their production environment.
-    -   **Status**: BLOCKED
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: NA
-    -   **Blocked on other issue**: None
-
--   **Issue 3: The questionnaire viewer bug fix needs user verification**
-    -   **Attempted fixes**: The agent modified  to correctly parse nested objects (to fix  display), ignore signature data in the text view, and add UX hints to the submission modal.
-    -   **Next debug checklist**: The agent was unable to find submitted questionnaires in the preview environment to verify the fix. The next step is to either ask the user to test this in production (after the deployment issue is fixed) or create test data to validate the fix in the preview environment.
-    -   **Why fix this issue and what will be achieved with the fix?**: The bug makes Qualiopi quality questionnaires unusable, which is a critical failure for the platform.
-    -   **Status**: USER VERIFICATION PENDING
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: frontend
-    -   **Blocked on other issue**: Blocked by Production deployment issue.
+- Issue 2:
+   - Attempted fixes: None in this session.
+   - Next debug checklist: Check  trainer edit modal and backend PUT endpoint to see why document arrays are being overwritten or wiped.
+   - Why fix this issue and what will be achieved with the fix?: Prevents data loss for trainers.
+   - Status: NOT STARTED
+   - Is recurring issue?: Y
+   - Should Test frontend/backend/both after fix?: both
+   - Blocked on other issue: None
 
 **In progress Task List**:
--   Task 1: Complete the implementation of the new .
-    -   **Where to resume**: . The agent had just corrected a mistake while removing document-related logic and was about to remove the Documents tab from the JSX and rename élèves to participants.
-    -   **What will be achieved with this?**: A new, distinct dashboard for societe type clients.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on something**: Production deployment issue.
+Task 1: Complete the UI logic for locked pedagogical resources.
+   - Where to resume:  lines ~1186+. Ensure the UI visually grays out the  or  when .
+   - What will be achieved with this?: Fulfills the user's explicit UX request.
+   - Status: IN PROGRESS
+   - Should Test frontend/backend/both after fix?: frontend
 
-**Upcoming and Future Tasks**
--   **Upcoming Tasks**:
-    -   P0: **(CRITICAL)** Refactor  and . The number of rapid, complex changes has made these files extremely fragile and difficult to maintain. They must be broken down into smaller, manageable modules (routes, services, components).
--   **Future Tasks**:
-    -   P1: Delete test students (Nathalie Langmann, Monique Haddad, Ghighi) from production.
-    -   P2: Implement Fidélité (Loyalty) program functionality.
-    -   P2: Implement SMS notifications.
-    -   P3: Implement  type resource uploads/downloads for students.
-    -   P4: Build a full CRUD interface for quiz templates.
+**Upcoming and Future Tasks**:
+Upcoming Tasks:
+- P0: Refactor  (> 16,700 lines) and  (> 7,900 lines). (CRITICAL Tech Debt).
 
-**Completed work in this session**
--   **Session Management UI Overhaul ()**:
-    -   Implemented direct signing buttons (Émargement élève/professeur) for daily sessions and removed them from the dropdown.
-    -   Completely replaced the old session search with a new integrated search module (by year, month, day, student name).
-    -   Changed default session list to show only from today to the end of the month, hiding past sessions unless searched for.
-    -   Added Présent/Absent checkboxes for daily sessions, with visual feedback upon marking a student absent.
-    -   Refactored the Rejoindre la visio (Jitsi) button to group daily sessions by time slot, providing a unique join button for each slot.
-    -   Dynamically displayed action buttons (Renvoyer, Modifier, Supprimer) for upcoming sessions while showing signatures for past sessions.
-    -   Removed a redundant search filter bar from the top of the page.
-    -   Added a refresh button to the Heures restantes du mois card.
--   **Questionnaire Bug Fix (Attempted)**:
-    -   In , fixed a data rendering issue that showed  and raw signature data.
-    -   Improved UX on the Définir une action modal to clarify why the submit button might be disabled.
--   **Document & Client Management**:
-    -   **Backend**: Modified the  endpoint in  to send an email notification to all associated managers.
-    -   **Frontend**: Added a new DOCUMENTS tab to the  to view all documents shared with that client's students.
-    -   **Backend**: Began client-type implementation by adding a  field to the  model in .
--   **PRD Updates**: Maintained and updated  with completed tasks.
+Future Tasks:
+- P1: Billing/Facturation module (Proposed by the agent via the Digiformat improvements script).
+- P2: Automatic end-of-training certificate generation (Attestation fin de formation automatique).
+- P3: Loyalty program (Fidélité).
+- P4: SMS notifications.
+- P5: Implement  type resource uploads/downloads for students dynamically.
 
-**Earlier issues found/mentioned but not fixed**
--   The recurring bug where trainer documents disappear upon editing a profile remains unfixed.
--   The login issue for user  has not been addressed.
+**Completed work in this session**:
+- Global PDF Branding ( and header logic in ) (DONE)
+- Removed Mon avis sur la formation from  (DONE)
+- Inline View/Download buttons for Q1/Q2/Q3 in  (DONE)
+- Inline View/Download buttons for Tests in  (DONE)
+- Fixed PDF generation crashing when test templates are missing (DONE)
+- Course-specific dynamic text rendering in PDFs (Excel vs Anglais) (DONE)
+- Created Digiformat improvements document () (DONE)
+- Excel Pedagogical Resources lock/unlock backend API and Admin UI (DONE)
 
-**Known issue recurrence from previous fork**
--   **Monolithic Files**: This issue has become critical. The constant, complex modifications to  (now >7000 lines) and  make the system extremely prone to regression and difficult to debug. Refactoring is no longer a future task but a high-priority necessity.
--   **Production Deployment Discrepancy**: This is a recurring, critical blocker. The user explicitly confirmed new features are not appearing in production, which points to a persistent infrastructure or build pipeline problem.
+**Earlier issues found/mentioned but not fixed**:
+- Issue 1: Bilan Qualité Informatique data not showing in production (From previous handoff). The agent worked around this by fixing specific Excel logic, but the core data-mismatch issue between preview and production might still exist for generic IT courses.
+   - Debug checklist: Wait for user to mention if Informatique is still broken. If so, create a debug endpoint to pull raw data from production.
+   - Why to solve this issue and what will be achieved with this?: Qualiopi compliance blocker if recurring.
+   - Should Test frontend/backend/both after fix: both
+   - Is recurring issue? Y
 
-**Code Architecture**
+**Known issue recurrence from previous fork**:
+- Issue recurrence in previous fork: Massive monolith files (, ) causing side effects and making navigation difficult.
+- Recurrence count: 3+
+- Status: BLOCKED (Requires dedicated refactoring session)
+- Note: Do not add more code to  without warning the user that refactoring is critically needed soon.
+
+**Code Architecture**:
 
 
-**Key Technical Concepts**
--   **Complex Conditional Rendering (React)**: Extensive use of date logic (, comparisons) to dynamically alter the UI for daily, upcoming, and past sessions.
--   **Data Aggregation on Frontend**: Grouping sessions by time slot () directly in the  component to render separate Jitsi buttons.
--   **Component-based UI logic**: The session list is now a complex, stateful part of the TeacherDashboard that manages its own display logic based on user interaction (search) and time.
--   **Backend Email Integration**: Triggering  functions from API endpoints () based on application events.
--   **Fork-and-Specialize Component Strategy**: Creating the  by copying and then modifying the , a fast but potentially technical-debt-inducing approach.
+**Key Technical Concepts**:
+- Frontend: React, TailwindCSS, Lucide-react icons.
+- Backend: FastAPI, ReportLab (for heavy dynamic PDF generation).
+- Database: MongoDB (Motor async driver).
 
-**key DB schema**
--   **clients** (collection): Added  with possible values organisme_formation or societe.
+**key DB schema**:
+- : { role, parcours, credit_hours, ... }
+- : { student_id, category, sub_type, unlocked, unlocked_at, ... }
+- : { id, template_name, sections... }
 
-**All files of reference**
--   : Modified for client types and email notifications.
--   : The target of the vast majority of changes in this session.
--   : Modified to add the Documents tab.
--   : New file, currently being modified.
--   : Modified to fix rendering bugs.
--   : Updated regularly.
+**changes in tech stack**:
+- None
+
+**All files of reference**:
+-  (Modified extensively for PDFs and resources)
+-  (Modified for button layout)
+-  (Modified for button layout)
+-  (Modified for pedagogical resources)
+-  (Modified for resource unlocking modal)
+- 
+-  (Created new document)
 
 **Areas that need refactoring**:
--   ** (CRITICAL, P0)**: This file is unmaintainable. The session list, search module, daily session cards, and client management sections must be extracted into their own components with well-defined props.
--   ** (CRITICAL, P0)**: At over 14,000 lines, this is a major liability. It needs to be broken down into a proper structure with separate files for routes, models, and services (e.g., , , ).
--    & : These are large and will benefit from being broken down into smaller components to avoid becoming the next .
+- 
+- 
 
-**key api endpoints**
--   **Modified**:
-    -   : Now triggers an email notification to the client's managers.
-    -   : Implicitly updated to handle the new  field.
-    -   : Implicitly updated to return the new  field.
+**key api endpoints**:
+-  (Modified to handle missing templates gracefully)
+-  (NEW)
+-  (NEW)
+-  (NEW)
+-  (NEW)
 
-**Critical Info for New Agent**
--   **PRODUCTION DEPLOYMENT IS THE #1 BLOCKER**: The user cannot see any new frontend features in production. The user confirmed this again in this session. Your first step must be to guide the user to contact Emergent support to resolve this infrastructure issue. Do not attempt to code further frontend features until this is confirmed fixed.
--   **CODE FRAGILITY**: The  file has undergone massive, rapid changes and is extremely brittle. Be extra cautious when making edits. Proposing a refactoring plan to the user is highly recommended as the next major task after the current one is finished.
--   **VERIFY BUG FIXES**: The fix for the questionnaire bug was done blind without test data. It needs to be validated. Do not assume it is resolved.
+**Critical Info for New Agent**:
+- **Case Sensitivity Bug**: The user states Julien Lipinski can't see his unlocked resources in production. The DB  string might be excel, Excel, or Bureautique. Your first task is to make the pedagogical resources endpoint and UI logic resilient to this.
+- **UI Requirement**: The resources MUST render in the UI even if locked. If locked, they should be visually grayed out with a lock icon, and the download action should be disabled. Currently, they might be completely hidden due to conditional rendering.
+- **PDF Generation**:  is heavily utilized. Any changes to PDF layouts require updating absolute coordinates or TableFlow elements in . 
 
-**documents and test reports created in this job**
--   : Updated multiple times.
+**documents and test reports created in this job**:
+- 
+- 
 
-**Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Remove the old search bar above the hours cards. Add email notifications for document uploads. Add a Documents tab to the manager dashboard. (Implemented)
-2.  **User**: Remove the Absent button from the student details view. Change daily session UI: remove waiting for signature badges, add present/absent checkboxes, and stack the signing buttons vertically. (Implemented)
-3.  **User**: Change session list filter to show from today to end-of-month. For past sessions found via search, show signatures instead of action buttons. (Implemented)
-4.  **User**: Critical bug in questionnaire viewer: shows  and raw signature, and submit button is confusingly disabled. (Fix Attempted)
-5.  **User**: You misunderstood the Jitsi button. It should be one button per time slot, not one for the whole day. (Fixed)
-6.  **User**: Start differentiating between organisme de formation and societe clients. Add a type selector in the admin UI. (In Progress)
-7.  **User**: Create a new Espace Client dashboard for societe clients. (In Progress)
-8.  **User**: The new client dashboard should be like the manager one, but rename élèves to participants. (In Progress)
-9.  **User**: On the new client dashboard, remove the Documents tab. (In Progress)
-10. **User**: In the Échanges section of the new client dashboard, remove the salle, organisation, and accueil tabs. (In Progress)
+**Last 10 User Messages and any pending HUMAN messages**:
+1. User: Make the layout of Q1/Q2/Q3 PDFs cleaner. Remove email button, keep only PDF next to eye. Remove average progression stats.
+2. User: Align the buttons nicely. Remove English skills from Excel PDF outputs. Add the same 2 buttons to Tests.
+3. User: The test buttons should be in BILAN DES TESTS specifically.
+4. User: I have an error when downloading the test PDF. (Bug report)
+5. User: For EXCEL only, add Mes ressources pédagogiques with Supports and Evaluations. They must be grayed out until I unlock them. Propose an unlocking UI.
+6. User: (Chooses unlocking option A - file by file).
+7. User: I unlocked it for Julien in production but it doesn't appear in his dashboard. It stays empty. It should ALWAYS appear but be grayed out if not checked in the admin dashboard.
+*Pending*: Fix the visibility of locked resources for Excel students.
 
-**Project Health Check:**
--   **Broken**:
-    -   The production deployment pipeline for the frontend is confirmed to be serving stale files, rendering all UI work useless for the end-user.
--   **At Risk / Fragile**:
-    -   **Maintainability**: The  and  monoliths are a severe liability. The risk of regression with any new change is extremely high. The copy-paste approach for new dashboards is adding to the technical debt.
+**Project Health Check**:
+- Broken: Pedagogical resource visibility in production (case/logic bug).
+- At Risk:  and  are critical monoliths that will eventually break routing or state management due to size.
 
-**3rd Party Integrations**
--   **Jitsi Meet**: Video conferencing, pointing to . Logic for generating room names is in .
--   **Gmail SMTP**: Used for all transactional emails.
--   **jsPDF / jsPDF-AutoTable**: Client-side PDF generation.
--   **ReportLab**: Server-side PDF generation.
+**3rd Party Integrations**:
+- Gmail SMTP (Transactional emails)
+- Jitsi Meet (Meetings)
+- None of the above utilize the Emergent LLM Key.
 
-**Testing status**
--   **Testing agent used after significant changes**: NO
--   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: None
--   **Known regressions**: None identified, but the risk is extremely high.
+**Testing status**:
+- Testing agent used after significant changes: NO (Agent relied heavily on  and  curl commands to verify layout and API responses).
+- Troubleshoot agent used after agent stuck in loop: NO
+- Test files created: None
+- Known regressions: None currently known, aside from the active case-sensitivity bug.
 
-**Credentials to test flow:**
--   **Teacher/Admin**:  / 
--   **Manager (Zepartner)**:  / 
+**Credentials to test flow**:
+- To test student dashboard: Find student emails via  or DB query. Password is generally omitted from API, so frontend testing might require forcing auth state or checking DB directly. (Example: )
 
-**What agent forgot to execute**
--   The agent has consistently failed to address the long-standing issues from the previous handoff: the  login issue and the disappearing trainer documents bug.
--   No regression tests (e.g., using pytest or React Testing Library) have been created, which is a critical omission given the codebase's fragility and the volume of changes.
--   The test sessions created for UI verification were not deleted, leaving test data in the database.</analysis>
+**What agent forgot to execute**:
+- The agent forgot to ensure the grayed out CSS logic was actually rendering the cards when  before declaring the feature complete.
+- The agent did not run the  despite making significant UI modifications across multiple dashboard pages. Next agent should prioritize testing subagent after fixing the current bug.</analysis>

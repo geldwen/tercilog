@@ -12,7 +12,7 @@ Test Information:
 - Total API Calls: 1,050 (35 routes × 3 providers × 10 iterations)
 
 Backend Providers Tested:
-1. Preview: https://preview-qa.preview.emergentagent.com
+1. Preview: https://terciform-excel.preview.emergentagent.com
 2. Caddy: https://terciform-edu.emergent.host
 3. Cloudflare: https://terciform-edu.emergent.host
 

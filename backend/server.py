@@ -12815,7 +12815,7 @@ async def create_client(
 def send_gestionnaire_welcome_email(to_email: str, name: str, centre_name: str, password: str):
     """Envoie un email de bienvenue à un gestionnaire/responsable"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-excel.preview.emergentagent.com')
     
     html_body = f"""
     <html>
@@ -12933,7 +12933,7 @@ def send_gestionnaire_welcome_email(to_email: str, name: str, centre_name: str, 
 def send_new_client_assignment_email(to_email: str, name: str, centre_name: str):
     """Envoie un email de notification quand un utilisateur existant est assigné à un nouveau client"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-excel.preview.emergentagent.com')
     
     html_body = f"""
     <html>
@@ -13028,7 +13028,7 @@ def send_new_client_assignment_email(to_email: str, name: str, centre_name: str)
 def send_new_student_notification_to_gestionnaires(student_name: str, student_organism: str, gestionnaire_emails: list):
     """Envoie une notification aux gestionnaires quand un nouvel élève est créé"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-excel.preview.emergentagent.com')
     
     html_body = f"""
     <html>
@@ -13104,7 +13104,7 @@ def send_new_student_notification_to_gestionnaires(student_name: str, student_or
 def send_document_notification_to_gestionnaires(document_name: str, student_name: str, category: str, gestionnaire_emails: list):
     """Envoie une notification aux gestionnaires quand un document est créé/uploadé"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-excel.preview.emergentagent.com')
     
     # Traduction des catégories
     category_labels = {
@@ -13914,7 +13914,7 @@ def send_room_request_email(to_email: str, recipient_name: str, client_name: str
         """
     
     # URL du portail de gestion (à personnaliser)
-    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-excel.preview.emergentagent.com')
     
     html_body = f"""
     <html>
@@ -14766,7 +14766,7 @@ async def get_ticket_recipient_trainers(current_user: User = Depends(get_current
 async def send_ticket_notification_email(ticket: dict, message: dict, notification_type: str, old_status: str = None):
     """Envoyer notification email pour les tickets"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-excel.preview.emergentagent.com')
     ticket_link = f"{portal_url}?ticket={ticket['id']}"
     
     # Déterminer le destinataire
@@ -14928,7 +14928,7 @@ async def send_ticketing_notification(
 ):
     """Envoyer une notification email pour les demandes de ticketing"""
     
-    portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
+    portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-excel.preview.emergentagent.com')
     timestamp = datetime.now(timezone.utc).strftime("%d/%m/%Y à %H:%M:%S")
     
     sender_name = sender_user.get('name', 'Utilisateur')
@@ -15843,7 +15843,7 @@ async def update_ticketing_request_status(
             if client:
                 validator_name = client.get("nom_centre", validator_name)
         
-        portal_url = os.environ.get('FRONTEND_URL', 'https://preview-qa.preview.emergentagent.com')
+        portal_url = os.environ.get('FRONTEND_URL', 'https://terciform-excel.preview.emergentagent.com')
         
         subject = f"[TerciForm] Votre demande de {category_label} a été {status_label}"
         
@@ -16280,8 +16280,16 @@ async def get_student_pedagogical_resources(student_id: str, current_user: User 
     
     parcours = student.get("parcours", "")
     
+    # Normaliser le parcours pour la recherche (case insensitive)
+    parcours_lower = parcours.lower() if parcours else ""
+    
+    # Mapper vers le parcours de ressources (Excel, Bureautique -> Excel)
+    matched_parcours = None
+    if parcours_lower in ["excel", "bureautique", "informatique", "office"]:
+        matched_parcours = "Excel"
+    
     # Vérifier si le parcours a des ressources pédagogiques
-    if parcours not in PEDAGOGICAL_RESOURCES:
+    if not matched_parcours or matched_parcours not in PEDAGOGICAL_RESOURCES:
         return {"resources": [], "parcours": parcours, "has_resources": False}
     
     # Récupérer les statuts de déverrouillage depuis la base de données
@@ -16293,7 +16301,7 @@ async def get_student_pedagogical_resources(student_id: str, current_user: User 
     unlocked_ids = {r["resource_id"]: r for r in unlocked_resources}
     
     # Construire la réponse avec les ressources et leur statut
-    resources_config = PEDAGOGICAL_RESOURCES[parcours]
+    resources_config = PEDAGOGICAL_RESOURCES[matched_parcours]
     
     result = {
         "parcours": parcours,
@@ -16339,9 +16347,15 @@ async def unlock_pedagogical_resource(
         raise HTTPException(status_code=404, detail="Élève non trouvé")
     
     parcours = student.get("parcours", "")
+    parcours_lower = parcours.lower() if parcours else ""
+    
+    # Mapper vers le parcours de ressources
+    matched_parcours = None
+    if parcours_lower in ["excel", "bureautique", "informatique", "office"]:
+        matched_parcours = "Excel"
     
     # Vérifier que la ressource existe pour ce parcours
-    if parcours not in PEDAGOGICAL_RESOURCES:
+    if not matched_parcours or matched_parcours not in PEDAGOGICAL_RESOURCES:
         raise HTTPException(status_code=400, detail="Aucune ressource pour ce parcours")
     
     # Chercher la ressource
