@@ -69,13 +69,10 @@ Build a comprehensive educational platform called "TerciForm" with:
 ## Pending Issues
 | Issue | Priority | Status |
 |-------|----------|--------|
-| Production deployment not serving latest frontend build | P0 | BLOCKER - Contact Emergent support |
-| Djibril Kante should be historized | P1 | Check production data |
-| Isleme Baghouz shows wrong hours | P1 | Check production data |
-| User volker@zepartner.com cannot login | P2 | Not Started |
 | Trainer documents disappear on edit | P2 | Not Started |
+| User volker@zepartner.com cannot login | P3 | Not Started |
 | Refactor TeacherDashboard.js (>7000 lines) | P2 | Not Started |
-| Refactor server.py (>14000 lines) | P2 | Not Started |
+| Refactor server.py (>16000 lines) | P2 | Not Started |
 | Jitsi instability on public server | P3 | Reverted to meet.jit.si |
 
 ## Key Files
@@ -98,6 +95,15 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 28, 2026 (Fix)**: Fixed critical bug - Pedagogical resources invisible for Excel students
+  - **Root causes fixed**:
+    1. Backend used `current_user.student_id` (non-existent field) → changed to `current_user.id`
+    2. Backend used exact parcours string match → changed to case-insensitive substring matching
+    3. Frontend hid resources section when no tests were assigned → now shows if pedagogical resources exist
+    4. Backend download endpoint used raw parcours as dict key → uses normalized `matched_parcours`
+  - Case-insensitive matching now supports: excel, Excel, bureautique, informatique, office
+  - Resources now ALWAYS appear: grayed with lock icon if locked, green Télécharger button if unlocked
+  - All 16 backend tests + frontend UI tests pass at 100%
 - **March 28, 2026**: Ressources pédagogiques Excel (supports + évaluations)
   - Added downloadable resources for Excel students only:
     - **Supports**: Module Excel (35h) - 67 Mo
