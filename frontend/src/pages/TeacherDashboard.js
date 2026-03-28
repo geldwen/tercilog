@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Trash2, Mail, Edit, PenTool, FileText, FileCheck, CalendarDays, Euro, FolderOpen, Download, MoreVertical, Video, Search, Monitor, School, Smile, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Phone, Award, Upload, X, Building, MessageSquare, ExternalLink, RefreshCw, Filter } from "lucide-react";
+import { LogOut, Plus, Calendar, Users, Clock, CheckCircle, XCircle, AlertCircle, Trash2, Mail, Edit, PenTool, FileText, FileCheck, CalendarDays, Euro, FolderOpen, Download, MoreVertical, Video, Search, Monitor, School, Smile, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Phone, Award, Upload, X, Building, MessageSquare, ExternalLink, RefreshCw, Filter, Settings, Lock, Unlock } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import PlanningView from "@/components/PlanningView";
 import BillingView from "@/components/BillingView";
@@ -399,6 +399,12 @@ export default function TeacherDashboard({ user, onLogout }) {
       q3: ["Q3 – Questionnaire fin de formation Excel"]
     }
   };
+
+  // États pour le modal de gestion des ressources pédagogiques
+  const [showResourcesModal, setShowResourcesModal] = useState(false);
+  const [resourcesModalStudent, setResourcesModalStudent] = useState(null);
+  const [studentPedagogicalResources, setStudentPedagogicalResources] = useState(null);
+  const [loadingResources, setLoadingResources] = useState(false);
 
   // Liste des années (2025 à 2030)
   const yearsList = [2025, 2026, 2027, 2028, 2029, 2030];
@@ -1898,6 +1904,57 @@ export default function TeacherDashboard({ user, onLogout }) {
       loadData(selectedMonth);
     } catch (error) {
       toast.error(error.response?.data?.detail || "Erreur");
+    }
+  };
+
+  // ========== GESTION DES RESSOURCES PÉDAGOGIQUES ==========
+  
+  // Ouvrir le modal de gestion des ressources
+  const handleOpenResourcesModal = async (student) => {
+    setResourcesModalStudent(student);
+    setShowResourcesModal(true);
+    setLoadingResources(true);
+    
+    try {
+      const response = await axios.get(`${API}/students/${student.id}/pedagogical-resources`);
+      setStudentPedagogicalResources(response.data);
+    } catch (error) {
+      console.error('Erreur chargement ressources:', error);
+      toast.error('Erreur lors du chargement des ressources');
+    } finally {
+      setLoadingResources(false);
+    }
+  };
+  
+  // Déverrouiller une ressource
+  const handleUnlockResource = async (resourceId, resourceName) => {
+    if (!resourcesModalStudent) return;
+    
+    try {
+      await axios.post(`${API}/students/${resourcesModalStudent.id}/pedagogical-resources/${resourceId}/unlock`);
+      toast.success(`"${resourceName}" déverrouillé !`);
+      
+      // Recharger les ressources
+      const response = await axios.get(`${API}/students/${resourcesModalStudent.id}/pedagogical-resources`);
+      setStudentPedagogicalResources(response.data);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors du déverrouillage');
+    }
+  };
+  
+  // Verrouiller une ressource
+  const handleLockResource = async (resourceId, resourceName) => {
+    if (!resourcesModalStudent) return;
+    
+    try {
+      await axios.post(`${API}/students/${resourcesModalStudent.id}/pedagogical-resources/${resourceId}/lock`);
+      toast.success(`"${resourceName}" verrouillé`);
+      
+      // Recharger les ressources
+      const response = await axios.get(`${API}/students/${resourcesModalStudent.id}/pedagogical-resources`);
+      setStudentPedagogicalResources(response.data);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors du verrouillage');
     }
   };
 
@@ -4747,6 +4804,16 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 <FolderOpen className="w-5 h-5" />
                                 <span>Parcours élève</span>
                               </Button>
+                              {/* Bouton Gérer les ressources - uniquement pour Excel */}
+                              {student.parcours === "Excel" && (
+                                <Button 
+                                  onClick={() => handleOpenResourcesModal(student)} 
+                                  className="w-full py-3 mt-1 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-lg shadow-md hover:brightness-110 active:scale-[0.99] flex items-center justify-center gap-2 font-medium"
+                                >
+                                  <Settings className="w-5 h-5" />
+                                  <span>Gérer les ressources</span>
+                                </Button>
+                              )}
                             </div>
                           </div>
                           {sortedMonths.length > 0 && (
@@ -7856,6 +7923,153 @@ export default function TeacherDashboard({ user, onLogout }) {
         clientId={ticketingClient?.id}
         clientName={ticketingClient?.nom_centre}
       />
+
+      {/* Modal Gestion des Ressources Pédagogiques */}
+      <Dialog open={showResourcesModal} onOpenChange={setShowResourcesModal}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Settings className="w-6 h-6 text-green-600" />
+              Gestion des Ressources Pédagogiques
+            </DialogTitle>
+            <DialogDescription>
+              {resourcesModalStudent?.name} - Parcours {resourcesModalStudent?.parcours}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            {loadingResources ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                <span className="ml-3 text-gray-500">Chargement...</span>
+              </div>
+            ) : !studentPedagogicalResources?.has_resources ? (
+              <div className="text-center py-8 text-gray-500">
+                <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>Aucune ressource pédagogique configurée pour ce parcours.</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Section SUPPORTS */}
+                {studentPedagogicalResources?.supports?.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                      📚 Supports de cours
+                    </h3>
+                    <div className="space-y-3">
+                      {studentPedagogicalResources.supports.map((resource) => (
+                        <div 
+                          key={resource.id}
+                          className={`p-4 rounded-lg border-2 ${
+                            resource.unlocked 
+                              ? 'bg-green-50 border-green-300' 
+                              : 'bg-gray-50 border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <p className="font-medium text-gray-800">{resource.name}</p>
+                              <p className="text-sm text-gray-500">{resource.description}</p>
+                              {resource.unlocked && resource.unlocked_at && (
+                                <p className="text-xs text-green-600 mt-1">
+                                  ✅ Débloqué le {new Date(resource.unlocked_at).toLocaleDateString('fr-FR')}
+                                </p>
+                              )}
+                            </div>
+                            <div className="ml-4">
+                              {resource.unlocked ? (
+                                <Button
+                                  onClick={() => handleLockResource(resource.id, resource.name)}
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-red-300 text-red-600 hover:bg-red-50"
+                                >
+                                  <Lock className="w-4 h-4 mr-1" />
+                                  Verrouiller
+                                </Button>
+                              ) : (
+                                <Button
+                                  onClick={() => handleUnlockResource(resource.id, resource.name)}
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                >
+                                  <Unlock className="w-4 h-4 mr-1" />
+                                  Débloquer
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Section ÉVALUATIONS */}
+                {studentPedagogicalResources?.evaluations?.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                      📝 Évaluations
+                    </h3>
+                    <div className="space-y-3">
+                      {studentPedagogicalResources.evaluations.map((resource) => (
+                        <div 
+                          key={resource.id}
+                          className={`p-4 rounded-lg border-2 ${
+                            resource.unlocked 
+                              ? 'bg-blue-50 border-blue-300' 
+                              : 'bg-gray-50 border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <p className="font-medium text-gray-800">{resource.name}</p>
+                              <p className="text-sm text-gray-500">{resource.description}</p>
+                              {resource.unlocked && resource.unlocked_at && (
+                                <p className="text-xs text-blue-600 mt-1">
+                                  ✅ Débloqué le {new Date(resource.unlocked_at).toLocaleDateString('fr-FR')}
+                                </p>
+                              )}
+                            </div>
+                            <div className="ml-4">
+                              {resource.unlocked ? (
+                                <Button
+                                  onClick={() => handleLockResource(resource.id, resource.name)}
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-red-300 text-red-600 hover:bg-red-50"
+                                >
+                                  <Lock className="w-4 h-4 mr-1" />
+                                  Verrouiller
+                                </Button>
+                              ) : (
+                                <Button
+                                  onClick={() => handleUnlockResource(resource.id, resource.name)}
+                                  size="sm"
+                                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                  <Unlock className="w-4 h-4 mr-1" />
+                                  Débloquer
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="border-t pt-4">
+            <Button variant="outline" onClick={() => setShowResourcesModal(false)}>
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

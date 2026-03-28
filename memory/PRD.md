@@ -98,6 +98,19 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 28, 2026**: Ressources pédagogiques Excel (supports + évaluations)
+  - Added downloadable resources for Excel students only:
+    - **Supports**: Module Excel (35h) - 67 Mo
+    - **Évaluations**: Évaluation n°1, Évaluation n°2
+  - Resources are locked by default (grayed out)
+  - Teacher can unlock/lock individual resources via "Gérer les ressources" modal
+  - Students can download unlocked resources from their dashboard
+  - New backend endpoints:
+    - `GET /students/{id}/pedagogical-resources` - List resources with unlock status
+    - `POST /students/{id}/pedagogical-resources/{resource_id}/unlock` - Unlock a resource
+    - `POST /students/{id}/pedagogical-resources/{resource_id}/lock` - Lock a resource
+    - `GET /students/{id}/pedagogical-resources/{resource_id}/download` - Download file
+  - New MongoDB collection: `pedagogical_unlocks`
 - **March 24, 2026 (Update 2)**: Added buttons to Bilan des Tests page
   - Added two aligned buttons for each test (T1/T2/T3) when submitted:
     - 🟢 Green button (Eye icon) - View test results in modal

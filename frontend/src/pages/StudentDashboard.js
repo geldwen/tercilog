@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { LogOut, BookOpen, MessageSquare, Download, FileText, TrendingUp, CheckCircle, RefreshCw, Video } from "lucide-react";
+import { LogOut, BookOpen, MessageSquare, Download, FileText, TrendingUp, CheckCircle, RefreshCw, Video, Lock, FileCheck } from "lucide-react";
 import SignaturePad from "@/components/SignaturePad";
 import SignatureCanvas from 'react-signature-canvas';
 import FormationNeedsQuestionnaire from "@/components/FormationNeedsQuestionnaire";
@@ -45,6 +45,10 @@ export default function StudentDashboard({ user, onLogout }) {
   const [showSignatureDialog, setShowSignatureDialog] = useState(false);
   const [currentSessionToSign, setCurrentSessionToSign] = useState(null);
   const [studentResources, setStudentResources] = useState([]);
+  
+  // Ressources pédagogiques (supports et évaluations)
+  const [pedagogicalResources, setPedagogicalResources] = useState(null);
+  const [loadingPedagogical, setLoadingPedagogical] = useState(false);
   
   // Livret d'accueil states
   const [livretStatus, setLivretStatus] = useState({ signed: false, signed_at: null });
@@ -103,6 +107,7 @@ export default function StudentDashboard({ user, onLogout }) {
     loadQuestionnairesStatus();
     loadStudentResources();
     loadLivretStatus();
+    loadPedagogicalResources();
   }, []);
 
   const loadStudentResources = async () => {
@@ -115,6 +120,56 @@ export default function StudentDashboard({ user, onLogout }) {
       setStudentResources(response.data.resources || []);
     } catch (error) {
       console.error('Erreur lors du chargement des ressources:', error);
+    }
+  };
+
+  // Charger les ressources pédagogiques (supports et évaluations)
+  const loadPedagogicalResources = async () => {
+    try {
+      setLoadingPedagogical(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `${API}/students/${user.id}/pedagogical-resources`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setPedagogicalResources(response.data);
+    } catch (error) {
+      console.error('Erreur lors du chargement des ressources pédagogiques:', error);
+    } finally {
+      setLoadingPedagogical(false);
+    }
+  };
+
+  // Télécharger une ressource pédagogique
+  const handleDownloadPedagogicalResource = async (resourceId, resourceName) => {
+    try {
+      toast.info('Téléchargement en cours...');
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `${API}/students/${user.id}/pedagogical-resources/${resourceId}/download`,
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: 'blob'
+        }
+      );
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${resourceName}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Document téléchargé !');
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+      if (error.response?.status === 403) {
+        toast.error('Ce document n\'est pas encore disponible');
+      } else {
+        toast.error('Erreur lors du téléchargement');
+      }
     }
   };
 
@@ -1153,11 +1208,152 @@ export default function StudentDashboard({ user, onLogout }) {
                     </p>
                   </CardHeader>
                   <CardContent className="pt-6">
-                    <div className="text-center py-8 text-gray-500">
-                      <BookOpen size={48} className="mx-auto mb-3 text-gray-300" />
-                      <p>Aucune ressource pédagogique disponible pour le moment.</p>
-                      <p className="text-sm mt-2">Vos supports de cours apparaîtront ici une fois téléchargés par votre formateur.</p>
-                    </div>
+                    {loadingPedagogical ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                        <p className="mt-2 text-gray-500">Chargement...</p>
+                      </div>
+                    ) : pedagogicalResources?.has_resources ? (
+                      <div className="space-y-6">
+                        {/* Section SUPPORTS */}
+                        {pedagogicalResources.supports?.length > 0 && (
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                              <FileText size={20} className="text-green-600" />
+                              📚 Supports de cours
+                            </h3>
+                            <div className="space-y-3">
+                              {pedagogicalResources.supports.map((resource) => (
+                                <div 
+                                  key={resource.id}
+                                  className={`p-4 rounded-lg border-2 transition-all ${
+                                    resource.unlocked 
+                                      ? 'bg-white border-green-300 hover:shadow-md' 
+                                      : 'bg-gray-100 border-gray-200 opacity-60'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      {resource.unlocked ? (
+                                        <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
+                                          <FileText className="w-5 h-5 text-white" />
+                                        </div>
+                                      ) : (
+                                        <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center">
+                                          <Lock className="w-5 h-5 text-white" />
+                                        </div>
+                                      )}
+                                      <div>
+                                        <p className={`font-medium ${resource.unlocked ? 'text-gray-800' : 'text-gray-500'}`}>
+                                          {resource.name}
+                                        </p>
+                                        <p className="text-sm text-gray-500">{resource.description}</p>
+                                        {resource.unlocked && resource.unlocked_at && (
+                                          <p className="text-xs text-green-600 mt-1">
+                                            ✅ Disponible depuis le {new Date(resource.unlocked_at).toLocaleDateString('fr-FR')}
+                                          </p>
+                                        )}
+                                        {!resource.unlocked && (
+                                          <p className="text-xs text-orange-600 mt-1">
+                                            🔒 En attente de déblocage par votre formateur
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {resource.unlocked ? (
+                                      <Button
+                                        onClick={() => handleDownloadPedagogicalResource(resource.id, resource.name)}
+                                        className="bg-green-600 hover:bg-green-700 text-white"
+                                        size="sm"
+                                      >
+                                        <Download size={16} className="mr-1" />
+                                        Télécharger
+                                      </Button>
+                                    ) : (
+                                      <div className="px-3 py-1 bg-gray-200 text-gray-500 rounded text-sm">
+                                        Verrouillé
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Section ÉVALUATIONS */}
+                        {pedagogicalResources.evaluations?.length > 0 && (
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                              <FileCheck size={20} className="text-blue-600" />
+                              📝 Évaluations
+                            </h3>
+                            <div className="space-y-3">
+                              {pedagogicalResources.evaluations.map((resource) => (
+                                <div 
+                                  key={resource.id}
+                                  className={`p-4 rounded-lg border-2 transition-all ${
+                                    resource.unlocked 
+                                      ? 'bg-white border-blue-300 hover:shadow-md' 
+                                      : 'bg-gray-100 border-gray-200 opacity-60'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      {resource.unlocked ? (
+                                        <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+                                          <FileCheck className="w-5 h-5 text-white" />
+                                        </div>
+                                      ) : (
+                                        <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center">
+                                          <Lock className="w-5 h-5 text-white" />
+                                        </div>
+                                      )}
+                                      <div>
+                                        <p className={`font-medium ${resource.unlocked ? 'text-gray-800' : 'text-gray-500'}`}>
+                                          {resource.name}
+                                        </p>
+                                        <p className="text-sm text-gray-500">{resource.description}</p>
+                                        {resource.unlocked && resource.unlocked_at && (
+                                          <p className="text-xs text-blue-600 mt-1">
+                                            ✅ Disponible depuis le {new Date(resource.unlocked_at).toLocaleDateString('fr-FR')}
+                                          </p>
+                                        )}
+                                        {!resource.unlocked && (
+                                          <p className="text-xs text-orange-600 mt-1">
+                                            🔒 En attente de déblocage par votre formateur
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {resource.unlocked ? (
+                                      <Button
+                                        onClick={() => handleDownloadPedagogicalResource(resource.id, resource.name)}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                                        size="sm"
+                                      >
+                                        <Download size={16} className="mr-1" />
+                                        Télécharger
+                                      </Button>
+                                    ) : (
+                                      <div className="px-3 py-1 bg-gray-200 text-gray-500 rounded text-sm">
+                                        Verrouillé
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <BookOpen size={48} className="mx-auto mb-3 text-gray-300" />
+                        <p>Aucune ressource pédagogique disponible pour votre parcours.</p>
+                        <p className="text-sm mt-2">Les supports de cours apparaîtront ici lorsqu'ils seront débloqués par votre formateur.</p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </>

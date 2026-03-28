@@ -16229,6 +16229,250 @@ async def init_excel_templates(current_user: User = Depends(get_current_user)):
     }
 
 
+# ==================== RESSOURCES PÉDAGOGIQUES (Excel) ====================
+
+# Configuration des ressources pédagogiques par parcours
+PEDAGOGICAL_RESOURCES = {
+    "Excel": {
+        "supports": [
+            {
+                "id": "excel-module-35h",
+                "name": "Module Excel (35h)",
+                "description": "Support de cours complet pour la formation Excel",
+                "file_path": "resources/excel/Module_Excel_35h.pdf",
+                "file_size": "67 Mo",
+                "category": "support"
+            }
+        ],
+        "evaluations": [
+            {
+                "id": "excel-eval-1",
+                "name": "Évaluation n°1 - Bases Excel",
+                "description": "Première évaluation - Fondamentaux d'Excel",
+                "file_path": "resources/excel/Evaluation_1_Excel.pdf",
+                "file_size": "159 Ko",
+                "category": "evaluation"
+            },
+            {
+                "id": "excel-eval-2",
+                "name": "Évaluation n°2 - Fonctions avancées",
+                "description": "Deuxième évaluation - Formules et fonctions avancées",
+                "file_path": "resources/excel/Evaluation_2_Excel.pdf",
+                "file_size": "971 Ko",
+                "category": "evaluation"
+            }
+        ]
+    }
+}
+
+
+@api_router.get("/students/{student_id}/pedagogical-resources")
+async def get_student_pedagogical_resources(student_id: str, current_user: User = Depends(get_current_user)):
+    """Récupérer les ressources pédagogiques d'un élève avec leur statut de déverrouillage"""
+    # Vérifier accès
+    if current_user.role == "student" and current_user.student_id != student_id:
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    # Récupérer l'élève pour connaître son parcours (dans la collection users)
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+    
+    parcours = student.get("parcours", "")
+    
+    # Vérifier si le parcours a des ressources pédagogiques
+    if parcours not in PEDAGOGICAL_RESOURCES:
+        return {"resources": [], "parcours": parcours, "has_resources": False}
+    
+    # Récupérer les statuts de déverrouillage depuis la base de données
+    unlocked_resources = await db.pedagogical_unlocks.find(
+        {"student_id": student_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    unlocked_ids = {r["resource_id"]: r for r in unlocked_resources}
+    
+    # Construire la réponse avec les ressources et leur statut
+    resources_config = PEDAGOGICAL_RESOURCES[parcours]
+    
+    result = {
+        "parcours": parcours,
+        "has_resources": True,
+        "supports": [],
+        "evaluations": []
+    }
+    
+    for support in resources_config.get("supports", []):
+        unlock_info = unlocked_ids.get(support["id"])
+        result["supports"].append({
+            **support,
+            "unlocked": unlock_info is not None,
+            "unlocked_at": unlock_info.get("unlocked_at") if unlock_info else None,
+            "unlocked_by": unlock_info.get("unlocked_by") if unlock_info else None
+        })
+    
+    for evaluation in resources_config.get("evaluations", []):
+        unlock_info = unlocked_ids.get(evaluation["id"])
+        result["evaluations"].append({
+            **evaluation,
+            "unlocked": unlock_info is not None,
+            "unlocked_at": unlock_info.get("unlocked_at") if unlock_info else None,
+            "unlocked_by": unlock_info.get("unlocked_by") if unlock_info else None
+        })
+    
+    return result
+
+
+@api_router.post("/students/{student_id}/pedagogical-resources/{resource_id}/unlock")
+async def unlock_pedagogical_resource(
+    student_id: str, 
+    resource_id: str, 
+    current_user: User = Depends(get_current_user)
+):
+    """Déverrouiller une ressource pédagogique pour un élève (formateur uniquement)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Seul le formateur peut déverrouiller les ressources")
+    
+    # Vérifier que l'élève existe (dans la collection users)
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+    
+    parcours = student.get("parcours", "")
+    
+    # Vérifier que la ressource existe pour ce parcours
+    if parcours not in PEDAGOGICAL_RESOURCES:
+        raise HTTPException(status_code=400, detail="Aucune ressource pour ce parcours")
+    
+    # Chercher la ressource
+    resource_found = None
+    for support in PEDAGOGICAL_RESOURCES[parcours].get("supports", []):
+        if support["id"] == resource_id:
+            resource_found = support
+            break
+    if not resource_found:
+        for evaluation in PEDAGOGICAL_RESOURCES[parcours].get("evaluations", []):
+            if evaluation["id"] == resource_id:
+                resource_found = evaluation
+                break
+    
+    if not resource_found:
+        raise HTTPException(status_code=404, detail="Ressource non trouvée")
+    
+    # Vérifier si déjà déverrouillée
+    existing = await db.pedagogical_unlocks.find_one({
+        "student_id": student_id,
+        "resource_id": resource_id
+    })
+    
+    if existing:
+        return {"message": "Ressource déjà déverrouillée", "already_unlocked": True}
+    
+    # Créer l'entrée de déverrouillage
+    unlock_entry = {
+        "id": str(uuid.uuid4()),
+        "student_id": student_id,
+        "resource_id": resource_id,
+        "resource_name": resource_found["name"],
+        "unlocked_at": datetime.now(timezone.utc).isoformat(),
+        "unlocked_by": current_user.id,
+        "unlocked_by_name": current_user.email
+    }
+    
+    await db.pedagogical_unlocks.insert_one(unlock_entry)
+    
+    logger.info(f"✅ Ressource '{resource_found['name']}' déverrouillée pour élève {student.get('name')}")
+    
+    return {
+        "message": f"Ressource '{resource_found['name']}' déverrouillée avec succès",
+        "unlocked": True,
+        "unlocked_at": unlock_entry["unlocked_at"]
+    }
+
+
+@api_router.post("/students/{student_id}/pedagogical-resources/{resource_id}/lock")
+async def lock_pedagogical_resource(
+    student_id: str, 
+    resource_id: str, 
+    current_user: User = Depends(get_current_user)
+):
+    """Reverrouiller une ressource pédagogique pour un élève (formateur uniquement)"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Seul le formateur peut verrouiller les ressources")
+    
+    # Supprimer le déverrouillage
+    result = await db.pedagogical_unlocks.delete_one({
+        "student_id": student_id,
+        "resource_id": resource_id
+    })
+    
+    if result.deleted_count == 0:
+        return {"message": "Ressource déjà verrouillée", "already_locked": True}
+    
+    logger.info(f"🔒 Ressource {resource_id} verrouillée pour élève {student_id}")
+    
+    return {"message": "Ressource verrouillée avec succès", "locked": True}
+
+
+@api_router.get("/students/{student_id}/pedagogical-resources/{resource_id}/download")
+async def download_pedagogical_resource(
+    student_id: str, 
+    resource_id: str, 
+    current_user: User = Depends(get_current_user)
+):
+    """Télécharger une ressource pédagogique (si déverrouillée)"""
+    # Vérifier accès
+    if current_user.role == "student" and current_user.student_id != student_id:
+        raise HTTPException(status_code=403, detail="Accès non autorisé")
+    
+    # Récupérer l'élève (dans la collection users)
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+    
+    parcours = student.get("parcours", "")
+    
+    # Chercher la ressource
+    if parcours not in PEDAGOGICAL_RESOURCES:
+        raise HTTPException(status_code=400, detail="Aucune ressource pour ce parcours")
+    
+    resource_found = None
+    for support in PEDAGOGICAL_RESOURCES[parcours].get("supports", []):
+        if support["id"] == resource_id:
+            resource_found = support
+            break
+    if not resource_found:
+        for evaluation in PEDAGOGICAL_RESOURCES[parcours].get("evaluations", []):
+            if evaluation["id"] == resource_id:
+                resource_found = evaluation
+                break
+    
+    if not resource_found:
+        raise HTTPException(status_code=404, detail="Ressource non trouvée")
+    
+    # Vérifier si déverrouillée (sauf pour les formateurs)
+    if current_user.role != "teacher":
+        unlock = await db.pedagogical_unlocks.find_one({
+            "student_id": student_id,
+            "resource_id": resource_id
+        })
+        if not unlock:
+            raise HTTPException(status_code=403, detail="Cette ressource n'est pas encore disponible")
+    
+    # Servir le fichier
+    file_path = ROOT_DIR / "static" / resource_found["file_path"]
+    
+    if not file_path.exists():
+        logger.error(f"❌ Fichier non trouvé: {file_path}")
+        raise HTTPException(status_code=404, detail="Fichier non trouvé sur le serveur")
+    
+    return FileResponse(
+        path=str(file_path),
+        filename=resource_found["name"] + ".pdf",
+        media_type="application/pdf"
+    )
+
+
 # Include router
 app.include_router(api_router)
 
