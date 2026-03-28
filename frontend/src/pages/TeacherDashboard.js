@@ -14,6 +14,7 @@ import BillingView from "@/components/BillingView";
 import ParcoursEleveModal from "@/components/ParcoursEleveModal";
 import TicketingModal from "@/components/TicketingModal";
 import MeetingManager from "@/components/MeetingManager";
+import BulkTeacherSign from "@/components/BulkTeacherSign";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -2440,6 +2441,9 @@ export default function TeacherDashboard({ user, onLogout }) {
 
           {/* Onglet SÉANCES */}
           <TabsContent value="sessions" className="space-y-6">
+
+            {/* Bouton utilitaire re-signature en masse */}
+            <BulkTeacherSign onComplete={() => loadSessions()} />
 
             {/* Statistiques du mois sélectionné */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

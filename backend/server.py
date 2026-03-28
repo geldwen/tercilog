@@ -7287,6 +7287,93 @@ async def fix_signature_status(current_user: User = Depends(get_current_user)):
     }
 
 
+
+# ============================================================
+# UTILITAIRE : Re-signature formateur en masse
+# ============================================================
+
+@api_router.get("/sessions/unsigned-teacher")
+async def get_unsigned_teacher_sessions(current_user: User = Depends(get_current_user)):
+    """Liste toutes les séances passées sans signature formateur"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès réservé aux formateurs")
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    sessions = await db.sessions.find(
+        {
+            "date": {"$lte": today},
+            "$or": [
+                {"teacher_signature_status": {"$ne": "signed"}},
+                {"teacher_signature": {"$in": [None, ""]}},
+            ]
+        },
+        {"_id": 0}
+    ).to_list(length=500)
+
+    # Enrich with student names
+    student_ids = list(set(s.get("student_id") for s in sessions if s.get("student_id")))
+    students_map = {}
+    if student_ids:
+        students = await db.users.find(
+            {"id": {"$in": student_ids}},
+            {"_id": 0, "id": 1, "name": 1}
+        ).to_list(length=500)
+        students_map = {s["id"]: s.get("name", "Inconnu") for s in students}
+
+    result = []
+    for s in sessions:
+        result.append({
+            "id": s.get("id"),
+            "date": s.get("date"),
+            "start_time": s.get("start_time"),
+            "end_time": s.get("end_time"),
+            "subject": s.get("subject"),
+            "student_id": s.get("student_id"),
+            "student_name": students_map.get(s.get("student_id"), "Inconnu"),
+            "teacher_signature_status": s.get("teacher_signature_status"),
+            "duration_hours": s.get("duration_hours"),
+        })
+
+    result.sort(key=lambda x: x.get("date", ""), reverse=True)
+    return {"sessions": result, "count": len(result)}
+
+
+@api_router.post("/sessions/bulk-teacher-sign")
+async def bulk_teacher_sign(data: dict, current_user: User = Depends(get_current_user)):
+    """Applique une signature formateur à plusieurs séances en masse"""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Accès réservé aux formateurs")
+
+    session_ids = data.get("session_ids", [])
+    signature = data.get("signature")
+
+    if not session_ids:
+        raise HTTPException(status_code=400, detail="Aucune séance sélectionnée")
+    if not signature:
+        raise HTTPException(status_code=400, detail="Signature manquante")
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    result = await db.sessions.update_many(
+        {"id": {"$in": session_ids}},
+        {"$set": {
+            "teacher_signature": signature,
+            "teacher_signature_status": "signed",
+            "teacher_signed_at": now_iso,
+            "teacher_signed_by": current_user.id,
+        }}
+    )
+
+    logger.info(f"Bulk teacher sign: {result.modified_count} sessions signed by {current_user.email}")
+
+    return {
+        "success": True,
+        "message": f"{result.modified_count} séance(s) signée(s) avec succès",
+        "signed_count": result.modified_count,
+        "signed_at": now_iso,
+    }
+
+
+
 @api_router.post("/sessions/activate-all-emargements")
 async def activate_all_emargements(current_user: User = Depends(get_current_user)):
     """ENDPOINT D'URGENCE: Activer l'émargement pour TOUTES les séances"""
