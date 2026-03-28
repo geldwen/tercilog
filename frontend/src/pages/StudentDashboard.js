@@ -1079,7 +1079,7 @@ export default function StudentDashboard({ user, onLogout }) {
 
         {activeTab === 'parcours' && (
           <div className="space-y-6">
-            {studentResources.length === 0 ? (
+            {studentResources.length === 0 && !pedagogicalResources?.has_resources ? (
               <Card className="shadow-lg">
                 <CardContent className="py-12">
                   <p className="text-center text-gray-500">
@@ -1423,7 +1423,13 @@ export default function StudentDashboard({ user, onLogout }) {
       </main>
 
       {/* Training Needs Questionnaires - Affichage selon le parcours */}
-      {user?.parcours === 'Informatique' ? (
+      {(() => {
+        const parcoursLower = (user?.parcours || '').toLowerCase();
+        const isInformatique = parcoursLower === 'informatique';
+        const isBureautique = parcoursLower === 'bureautique';
+        const isExcel = parcoursLower === 'excel' || isBureautique;
+        
+        if (isInformatique) return (
         <>
           <InformatiqueFormationNeedsQuestionnaire
             open={showNeedsDialog}
@@ -1453,7 +1459,8 @@ export default function StudentDashboard({ user, onLogout }) {
             resourceId={studentResources.find(r => r.category === 'QUESTIONNAIRE_QUALIOPI' && r.sub_type === 'FIN')?.id}
           />
         </>
-      ) : user?.parcours === 'Bureautique' ? (
+      );
+        if (isBureautique) return (
         <>
           <BureautiqueFormationNeedsQuestionnaire
             open={showNeedsDialog}
@@ -1482,7 +1489,8 @@ export default function StudentDashboard({ user, onLogout }) {
             studentId={user?.id}
           />
         </>
-      ) : user?.parcours === 'Excel' ? (
+      );
+        if (isExcel) return (
         <>
           <FormationNeedsQuestionnaire
             open={showNeedsDialog}
@@ -1514,7 +1522,8 @@ export default function StudentDashboard({ user, onLogout }) {
             parcours="Excel"
           />
         </>
-      ) : (
+      );
+        return (
         <>
           <FormationNeedsQuestionnaire
             open={showNeedsDialog}
@@ -1543,7 +1552,8 @@ export default function StudentDashboard({ user, onLogout }) {
             studentId={user?.id}
           />
         </>
-      )}
+      );
+      })()}
 
       {/* Feedback Dialog */}
       <Dialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog}>

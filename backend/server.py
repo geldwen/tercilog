@@ -16270,7 +16270,7 @@ PEDAGOGICAL_RESOURCES = {
 async def get_student_pedagogical_resources(student_id: str, current_user: User = Depends(get_current_user)):
     """Récupérer les ressources pédagogiques d'un élève avec leur statut de déverrouillage"""
     # Vérifier accès
-    if current_user.role == "student" and current_user.student_id != student_id:
+    if current_user.role == "student" and current_user.id != student_id:
         raise HTTPException(status_code=403, detail="Accès non autorisé")
     
     # Récupérer l'élève pour connaître son parcours (dans la collection users)
@@ -16285,7 +16285,8 @@ async def get_student_pedagogical_resources(student_id: str, current_user: User 
     
     # Mapper vers le parcours de ressources (Excel, Bureautique -> Excel)
     matched_parcours = None
-    if parcours_lower in ["excel", "bureautique", "informatique", "office"]:
+    is_excel_related = any(keyword in parcours_lower for keyword in ['excel', 'bureautique', 'informatique', 'office'])
+    if is_excel_related:
         matched_parcours = "Excel"
     
     # Vérifier si le parcours a des ressources pédagogiques
@@ -16351,7 +16352,8 @@ async def unlock_pedagogical_resource(
     
     # Mapper vers le parcours de ressources
     matched_parcours = None
-    if parcours_lower in ["excel", "bureautique", "informatique", "office"]:
+    is_excel_related = any(keyword in parcours_lower for keyword in ['excel', 'bureautique', 'informatique', 'office'])
+    if is_excel_related:
         matched_parcours = "Excel"
     
     # Vérifier que la ressource existe pour ce parcours
@@ -16360,12 +16362,12 @@ async def unlock_pedagogical_resource(
     
     # Chercher la ressource
     resource_found = None
-    for support in PEDAGOGICAL_RESOURCES[parcours].get("supports", []):
+    for support in PEDAGOGICAL_RESOURCES[matched_parcours].get("supports", []):
         if support["id"] == resource_id:
             resource_found = support
             break
     if not resource_found:
-        for evaluation in PEDAGOGICAL_RESOURCES[parcours].get("evaluations", []):
+        for evaluation in PEDAGOGICAL_RESOURCES[matched_parcours].get("evaluations", []):
             if evaluation["id"] == resource_id:
                 resource_found = evaluation
                 break
@@ -16436,7 +16438,7 @@ async def download_pedagogical_resource(
 ):
     """Télécharger une ressource pédagogique (si déverrouillée)"""
     # Vérifier accès
-    if current_user.role == "student" and current_user.student_id != student_id:
+    if current_user.role == "student" and current_user.id != student_id:
         raise HTTPException(status_code=403, detail="Accès non autorisé")
     
     # Récupérer l'élève (dans la collection users)
@@ -16445,18 +16447,25 @@ async def download_pedagogical_resource(
         raise HTTPException(status_code=404, detail="Élève non trouvé")
     
     parcours = student.get("parcours", "")
+    parcours_lower = parcours.lower() if parcours else ""
+    
+    # Mapper vers le parcours de ressources (case insensitive)
+    matched_parcours = None
+    is_excel_related = any(keyword in parcours_lower for keyword in ['excel', 'bureautique', 'informatique', 'office'])
+    if is_excel_related:
+        matched_parcours = "Excel"
     
     # Chercher la ressource
-    if parcours not in PEDAGOGICAL_RESOURCES:
+    if not matched_parcours or matched_parcours not in PEDAGOGICAL_RESOURCES:
         raise HTTPException(status_code=400, detail="Aucune ressource pour ce parcours")
     
     resource_found = None
-    for support in PEDAGOGICAL_RESOURCES[parcours].get("supports", []):
+    for support in PEDAGOGICAL_RESOURCES[matched_parcours].get("supports", []):
         if support["id"] == resource_id:
             resource_found = support
             break
     if not resource_found:
-        for evaluation in PEDAGOGICAL_RESOURCES[parcours].get("evaluations", []):
+        for evaluation in PEDAGOGICAL_RESOURCES[matched_parcours].get("evaluations", []):
             if evaluation["id"] == resource_id:
                 resource_found = evaluation
                 break
