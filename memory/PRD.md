@@ -95,6 +95,20 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 28, 2026**: Programme de formation & Contrat de formation - Signature électronique
+  - Added two new banners in student dashboard "Ma formation" tab for ALL students (all parcours):
+    - **Mon programme de formation**: Download PDF + manual signature with timestamp
+    - **Mon contrat de formation**: Download PDF + manual signature with timestamp
+  - Each banner has: Télécharger button (downloads PDF), Signer button (opens signature dialog with attestation text, checkbox, react-signature-canvas)
+  - After signing: shows "Signé le DD/MM/YYYY HH:MM" and Signer button becomes disabled "Signé"
+  - Backend endpoints:
+    - `GET /api/documents/programme` - Serve programme PDF
+    - `GET /api/documents/contrat` - Serve contrat PDF
+    - `POST /api/students/{id}/sign-document` - Save signature (document_type: "programme"|"contrat")
+    - `GET /api/students/{id}/formation-signatures` - Get signature status for both documents
+  - Signature data stored in `users` collection: `program_signature` and `contract_signature` fields
+  - PDFs stored at `/app/backend/static/documents/`
+  - All 14 backend tests + full frontend UI tests pass at 100%
 - **March 28, 2026 (Fix)**: Fixed critical bug - Pedagogical resources invisible for Excel students
   - **Root causes fixed**:
     1. Backend used `current_user.student_id` (non-existent field) → changed to `current_user.id`
