@@ -7223,14 +7223,19 @@ async def resend_attendance_email(session_id: str, current_user: User = Depends(
     if not email_sent:
         raise HTTPException(status_code=500, detail="Failed to send email")
     
-    # Update session to mark email as sent and set signature status to pending (élève + formateur)
+    # Update session to mark email as sent and set signature status to pending
+    # IMPORTANT: Ne pas écraser teacher_signature_status si déjà signé
+    update_fields = {
+        "attendance_email_sent": True,
+        "signature_status": "pending",
+    }
+    # Ne réinitialiser teacher_signature_status que si le formateur n'a pas encore signé
+    if session_doc.get('teacher_signature_status') != 'signed':
+        update_fields["teacher_signature_status"] = "pending"
+    
     await db.sessions.update_one(
         {"id": session_id},
-        {"$set": {
-            "attendance_email_sent": True,
-            "signature_status": "pending",
-            "teacher_signature_status": "pending"
-        }}
+        {"$set": update_fields}
     )
     
     return {"message": "Attendance email resent"}
@@ -7238,22 +7243,48 @@ async def resend_attendance_email(session_id: str, current_user: User = Depends(
 
 @api_router.post("/sessions/fix-signature-status")
 async def fix_signature_status(current_user: User = Depends(get_current_user)):
-    """ENDPOINT D'URGENCE: Corriger toutes les séances avec signature mais status pending"""
+    """ENDPOINT D'URGENCE: Corriger toutes les séances avec signature mais status incorrect"""
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
-    # Trouver toutes les séances avec signature mais status pending
-    problem_sessions = await db.sessions.find({
-        "signature": {"$exists": True, "$ne": None},
-        "signature_status": "pending"
+    fixed_student = 0
+    fixed_teacher = 0
+    
+    # Fix 1: Séances avec signature élève mais status != signed
+    student_problems = await db.sessions.find({
+        "signature": {"$exists": True, "$ne": None, "$ne": ""},
+        "signature_status": {"$ne": "signed"}
     }).to_list(length=None)
     
-    fixed_count = 0
-    for session in problem_sessions:
-        await db.sessions.update_one(
-            {"id": session["id"]},
-            {"$set": {"signature_status": "signed"}}
-        )
+    for session in student_problems:
+        if session.get("signature"):
+            await db.sessions.update_one(
+                {"id": session["id"]},
+                {"$set": {"signature_status": "signed"}}
+            )
+            fixed_student += 1
+    
+    # Fix 2: Séances avec signature formateur mais teacher_signature_status != signed
+    teacher_problems = await db.sessions.find({
+        "teacher_signature": {"$exists": True, "$ne": None, "$ne": ""},
+        "teacher_signature_status": {"$ne": "signed"}
+    }).to_list(length=None)
+    
+    for session in teacher_problems:
+        if session.get("teacher_signature"):
+            await db.sessions.update_one(
+                {"id": session["id"]},
+                {"$set": {"teacher_signature_status": "signed"}}
+            )
+            fixed_teacher += 1
+    
+    logger.info(f"Fix signatures: {fixed_student} élève(s), {fixed_teacher} formateur(s)")
+    
+    return {
+        "message": f"Corrections appliquées: {fixed_student} signature(s) élève, {fixed_teacher} signature(s) formateur",
+        "fixed_student_signatures": fixed_student,
+        "fixed_teacher_signatures": fixed_teacher
+    }
 
 
 @api_router.post("/sessions/activate-all-emargements")
