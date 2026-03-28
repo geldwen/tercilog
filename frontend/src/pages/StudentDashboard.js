@@ -52,6 +52,13 @@ export default function StudentDashboard({ user, onLogout }) {
   
   // Livret d'accueil states
   const [livretStatus, setLivretStatus] = useState({ signed: false, signed_at: null });
+  
+  // Programme et Contrat de formation states
+  const [docSignatures, setDocSignatures] = useState({ programme: { signed: false }, contrat: { signed: false } });
+  const [showDocSignatureDialog, setShowDocSignatureDialog] = useState(false);
+  const [currentDocType, setCurrentDocType] = useState(null); // 'programme' or 'contrat'
+  const [docAcceptedCheckbox, setDocAcceptedCheckbox] = useState(false);
+  const [submittingDoc, setSubmittingDoc] = useState(false);
 
   // Calcul des notifications pour les onglets
   const getFormationNotificationCount = () => {
@@ -107,6 +114,7 @@ export default function StudentDashboard({ user, onLogout }) {
     loadQuestionnairesStatus();
     loadStudentResources();
     loadLivretStatus();
+    loadDocSignatures();
     loadPedagogicalResources();
   }, []);
 
@@ -262,6 +270,86 @@ export default function StudentDashboard({ user, onLogout }) {
     }
   };
 
+
+  // ===== PROGRAMME / CONTRAT DE FORMATION =====
+  const loadDocSignatures = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `${API}/students/${user.id}/formation-signatures`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setDocSignatures(response.data);
+    } catch (error) {
+      console.error('Erreur chargement signatures documents:', error);
+    }
+  };
+
+  const handleDownloadDocument = async (docType) => {
+    try {
+      const token = localStorage.getItem('token');
+      const endpoint = docType === 'programme' ? 'documents/programme' : 'documents/contrat';
+      const response = await axios.get(`${API}/${endpoint}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+      const filename = docType === 'programme' ? 'Programme_formation_TerciForm.pdf' : 'Contrat_Formation_TerciForm.pdf';
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Document téléchargé !');
+    } catch (error) {
+      console.error('Erreur téléchargement:', error);
+      toast.error('Erreur lors du téléchargement');
+    }
+  };
+
+  const handleOpenDocSignature = (docType) => {
+    setCurrentDocType(docType);
+    setDocAcceptedCheckbox(false);
+    setShowDocSignatureDialog(true);
+  };
+
+  const clearDocSignature = () => {
+    if (window.docSigCanvas) {
+      window.docSigCanvas.clear();
+    }
+  };
+
+  const handleSubmitDocSignature = async () => {
+    if (!docAcceptedCheckbox) {
+      toast.error('Vous devez cocher la case de confirmation');
+      return;
+    }
+    if (!window.docSigCanvas || window.docSigCanvas.isEmpty()) {
+      toast.error('Veuillez signer le document');
+      return;
+    }
+    const signature = window.docSigCanvas.toDataURL();
+    try {
+      setSubmittingDoc(true);
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API}/students/${user.id}/sign-document`,
+        { document_type: currentDocType, signature, accepted_checkbox: docAcceptedCheckbox },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const label = currentDocType === 'programme' ? 'Programme de formation' : 'Contrat de formation';
+      toast.success(`${label} signé avec succès !`);
+      setShowDocSignatureDialog(false);
+      await loadDocSignatures();
+    } catch (error) {
+      console.error('Erreur signature:', error);
+      toast.error('Erreur lors de la signature');
+    } finally {
+      setSubmittingDoc(false);
+    }
+  };
 
   const loadQuestionnairesStatus = async () => {
     try {
@@ -1050,8 +1138,67 @@ export default function StudentDashboard({ user, onLogout }) {
               </CardContent>
             </Card>
 
+            {/* Mon programme de formation */}
+            <Card className="shadow-lg border-2 border-blue-200" data-testid="programme-formation-card">
+              <CardHeader style={{backgroundColor: '#EEF4FF'}}>
+                <CardTitle className="flex items-center gap-3" style={{color: TERCIFORM_BLUE}}>
+                  <FileText size={28} />
+                  Mon programme de formation
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <FileText size={48} style={{color: TERCIFORM_BLUE}} />
+                  <div className="flex-1">
+                    <p className="font-semibold text-lg text-gray-800 mb-2">
+                      Programme de formation TerciForm
+                    </p>
+                    <p className="text-sm text-gray-600 mb-1">
+                      Consultez et signez votre programme de formation
+                    </p>
+                    {docSignatures.programme?.signed && (
+                      <p className="text-sm text-green-600 font-semibold mt-2" data-testid="programme-signed-status">
+                        Signé le {new Date(docSignatures.programme.signed_at).toLocaleDateString('fr-FR', {
+                          day: '2-digit', month: '2-digit', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit'
+                        })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-3 mt-6">
+                  <Button
+                    onClick={() => handleDownloadDocument('programme')}
+                    style={{backgroundColor: TERCIFORM_BLUE}}
+                    className="flex-1 sm:flex-none"
+                    data-testid="programme-download-btn"
+                  >
+                    <Download size={16} className="mr-2" />
+                    Télécharger
+                  </Button>
+                  {!docSignatures.programme?.signed ? (
+                    <Button
+                      onClick={() => handleOpenDocSignature('programme')}
+                      className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700"
+                      data-testid="programme-sign-btn"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      Signer
+                    </Button>
+                  ) : (
+                    <Button disabled className="flex-1 sm:flex-none bg-gray-300 cursor-not-allowed">
+                      <CheckCircle size={16} className="mr-2" />
+                      Signé
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Mon contrat de formation */}
-            <Card className="shadow-lg border-2 border-blue-200">
+            <Card className="shadow-lg border-2 border-blue-200" data-testid="contrat-formation-card">
               <CardHeader style={{backgroundColor: '#EEF4FF'}}>
                 <CardTitle className="flex items-center gap-3" style={{color: TERCIFORM_BLUE}}>
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -1060,17 +1207,53 @@ export default function StudentDashboard({ user, onLogout }) {
                   Mon contrat de formation
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4">
-                  <FileText size={48} className="text-gray-400" />
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <FileText size={48} style={{color: TERCIFORM_BLUE}} />
                   <div className="flex-1">
-                    <p className="text-gray-600">Votre contrat de formation</p>
-                    <p className="text-sm text-gray-500 mt-1">Document disponible prochainement</p>
+                    <p className="font-semibold text-lg text-gray-800 mb-2">
+                      Contrat de formation TerciForm
+                    </p>
+                    <p className="text-sm text-gray-600 mb-1">
+                      Consultez et signez votre contrat de formation
+                    </p>
+                    {docSignatures.contrat?.signed && (
+                      <p className="text-sm text-green-600 font-semibold mt-2" data-testid="contrat-signed-status">
+                        Signé le {new Date(docSignatures.contrat.signed_at).toLocaleDateString('fr-FR', {
+                          day: '2-digit', month: '2-digit', year: 'numeric',
+                          hour: '2-digit', minute: '2-digit'
+                        })}
+                      </p>
+                    )}
                   </div>
-                  <Button disabled variant="outline">
+                </div>
+                <div className="flex flex-wrap gap-3 mt-6">
+                  <Button
+                    onClick={() => handleDownloadDocument('contrat')}
+                    style={{backgroundColor: TERCIFORM_BLUE}}
+                    className="flex-1 sm:flex-none"
+                    data-testid="contrat-download-btn"
+                  >
                     <Download size={16} className="mr-2" />
-                    Télécharger PDF
+                    Télécharger
                   </Button>
+                  {!docSignatures.contrat?.signed ? (
+                    <Button
+                      onClick={() => handleOpenDocSignature('contrat')}
+                      className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700"
+                      data-testid="contrat-sign-btn"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      Signer
+                    </Button>
+                  ) : (
+                    <Button disabled className="flex-1 sm:flex-none bg-gray-300 cursor-not-allowed">
+                      <CheckCircle size={16} className="mr-2" />
+                      Signé
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1761,6 +1944,86 @@ export default function StudentDashboard({ user, onLogout }) {
               className="bg-green-600 hover:bg-green-700 text-white"
             >
               {submittingLivret ? 'Validation en cours...' : 'Valider la signature'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de signature Programme / Contrat de formation */}
+      <Dialog open={showDocSignatureDialog} onOpenChange={setShowDocSignatureDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="doc-signature-dialog">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold" style={{color: TERCIFORM_BLUE}}>
+              {currentDocType === 'programme' ? 'Signature du programme de formation' : 'Signature du contrat de formation'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
+              <p className="text-gray-800 whitespace-pre-line leading-relaxed">
+                <span className="font-semibold">Je soussigné(e) {user?.name},</span>
+                {'\n\n'}
+                {currentDocType === 'programme'
+                  ? "atteste avoir pris connaissance du programme de formation mis à ma disposition par TerciForm.\n\nJe déclare avoir lu ce document, en comprendre le contenu, les objectifs pédagogiques, les modalités d'évaluation et la durée de la formation.\n\nJe reconnais que cette validation électronique vaut engagement de ma part et fait foi au même titre qu'une signature manuscrite sur document papier."
+                  : "atteste avoir pris connaissance du contrat de formation mis à ma disposition par TerciForm.\n\nJe déclare avoir lu ce document, en comprendre les termes, les conditions générales, les obligations réciproques et les modalités de la formation.\n\nJe reconnais que cette validation électronique vaut engagement de ma part et fait foi au même titre qu'une signature manuscrite sur document papier."
+                }
+              </p>
+            </div>
+
+            <div className="flex items-start gap-3 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+              <input
+                type="checkbox"
+                id="doc-checkbox"
+                checked={docAcceptedCheckbox}
+                onChange={(e) => setDocAcceptedCheckbox(e.target.checked)}
+                className="w-5 h-5 mt-1 cursor-pointer"
+                data-testid="doc-accept-checkbox"
+              />
+              <label htmlFor="doc-checkbox" className="cursor-pointer text-gray-800 font-medium">
+                {currentDocType === 'programme'
+                  ? "Je confirme avoir lu et accepté le programme de formation. *"
+                  : "Je confirme avoir lu et accepté le contrat de formation. *"
+                }
+              </label>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-lg font-semibold" style={{color: TERCIFORM_BLUE}}>
+                Signature manuelle (obligatoire) *
+              </Label>
+              <p className="text-sm text-gray-600">
+                Dessinez votre signature ci-dessous avec votre souris ou votre doigt
+              </p>
+              <div className="border-2 border-gray-300 rounded-lg bg-white">
+                <SignatureCanvas
+                  ref={(ref) => { window.docSigCanvas = ref; }}
+                  canvasProps={{
+                    className: "w-full h-48 touch-none",
+                    style: { touchAction: "none" }
+                  }}
+                  onTouchStart={(e) => e.preventDefault()}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={clearDocSignature} className="text-gray-700">
+                  Effacer
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-3">
+            <Button type="button" variant="outline" onClick={() => setShowDocSignatureDialog(false)} disabled={submittingDoc}>
+              Annuler
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSubmitDocSignature}
+              disabled={!docAcceptedCheckbox || submittingDoc}
+              className="bg-green-600 hover:bg-green-700 text-white"
+              data-testid="doc-validate-signature-btn"
+            >
+              {submittingDoc ? 'Validation en cours...' : 'Valider la signature'}
             </Button>
           </DialogFooter>
         </DialogContent>

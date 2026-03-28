@@ -11592,6 +11592,120 @@ async def get_livret_status(
     }
 
 
+
+# ============================================================
+# PROGRAMME DE FORMATION & CONTRAT DE FORMATION - Endpoints
+# ============================================================
+
+@api_router.get("/documents/programme")
+async def get_programme_formation(current_user: User = Depends(get_current_user)):
+    """Sert le fichier PDF du programme de formation"""
+    file_path = ROOT_DIR / "static" / "documents" / "Programme_formation_Excel_TerciForm.pdf"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Programme de formation non trouvé")
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        filename="Programme_formation_TerciForm.pdf"
+    )
+
+
+@api_router.get("/documents/contrat")
+async def get_contrat_formation(current_user: User = Depends(get_current_user)):
+    """Sert le fichier PDF du contrat de formation"""
+    file_path = ROOT_DIR / "static" / "documents" / "Contrat_Formation_TerciForm_Type.pdf"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Contrat de formation non trouvé")
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        filename="Contrat_Formation_TerciForm.pdf"
+    )
+
+
+@api_router.post("/students/{student_id}/sign-document")
+async def sign_student_document(
+    student_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Enregistre la signature d'un document (programme ou contrat) par un élève.
+    data: { document_type: "programme"|"contrat", signature: "base64...", accepted_checkbox: true }
+    """
+    if current_user.role == "student" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Non autorisé")
+
+    student = await db.users.find_one({"id": student_id, "role": "student"}, {"_id": 0})
+    if not student:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+
+    document_type = data.get("document_type")
+    if document_type not in ("programme", "contrat"):
+        raise HTTPException(status_code=400, detail="Type de document invalide. Utilisez 'programme' ou 'contrat'.")
+
+    field_name = "program_signature" if document_type == "programme" else "contract_signature"
+
+    signature_data = {
+        "signed": True,
+        "signed_at": datetime.now(timezone.utc).isoformat(),
+        "signature": data.get("signature"),
+        "accepted_checkbox": data.get("accepted_checkbox", False)
+    }
+
+    await db.users.update_one(
+        {"id": student_id},
+        {"$set": {field_name: signature_data}}
+    )
+
+    action_name = "programme_formation_signed" if document_type == "programme" else "contrat_formation_signed"
+    await log_student_activity(
+        student_id=student_id,
+        student_name=student.get("name", ""),
+        action=action_name,
+        details={"signed_at": signature_data["signed_at"]}
+    )
+
+    label = "Programme de formation" if document_type == "programme" else "Contrat de formation"
+    return {
+        "success": True,
+        "message": f"{label} signé avec succès",
+        "signed_at": signature_data["signed_at"]
+    }
+
+
+@api_router.get("/students/{student_id}/formation-signatures")
+async def get_document_signatures(
+    student_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Récupère le statut de signature du programme et du contrat pour un élève"""
+    if current_user.role == "student" and current_user.id != student_id:
+        raise HTTPException(status_code=403, detail="Non autorisé")
+
+    student = await db.users.find_one(
+        {"id": student_id, "role": "student"},
+        {"_id": 0, "program_signature": 1, "contract_signature": 1}
+    )
+    if not student:
+        raise HTTPException(status_code=404, detail="Élève non trouvé")
+
+    prog = student.get("program_signature", {})
+    contrat = student.get("contract_signature", {})
+
+    return {
+        "programme": {
+            "signed": prog.get("signed", False),
+            "signed_at": prog.get("signed_at"),
+        },
+        "contrat": {
+            "signed": contrat.get("signed", False),
+            "signed_at": contrat.get("signed_at"),
+        }
+    }
+
+
+
 @api_router.post("/students/{student_id}/evolution-report")
 async def generate_student_evolution_report(
     student_id: str,
