@@ -33,6 +33,8 @@ export default function BulkTeacherSign({ onComplete }) {
       setUnsignedCount(res.data.count || 0);
     } catch (e) {
       console.error('Error loading unsigned count', e);
+      // En cas d'erreur API, on force l'affichage du bouton pour diagnostic
+      setUnsignedCount(-1);
     }
   };
 
@@ -126,11 +128,11 @@ export default function BulkTeacherSign({ onComplete }) {
     <>
       <Button
         onClick={handleOpen}
-        className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg"
+        className={unsignedCount === -1 ? "bg-red-500 hover:bg-red-600 text-white shadow-lg" : "bg-orange-500 hover:bg-orange-600 text-white shadow-lg"}
         data-testid="bulk-sign-btn"
       >
         <AlertTriangle size={16} className="mr-2" />
-        Corriger {unsignedCount} signature(s) manquante(s)
+        {unsignedCount === -1 ? "Vérifier les signatures manquantes (erreur de chargement)" : `Corriger ${unsignedCount} signature(s) manquante(s)`}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
