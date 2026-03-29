@@ -11680,6 +11680,64 @@ async def get_livret_status(
 
 
 
+
+# ============================================================
+# GRAMMAIRE ANGLAIS - Ressources statiques
+# ============================================================
+
+GRAMMAIRE_LES_TEMPS = [
+    {"id": "temps_1", "name": "1) Les présents en anglais", "filename": "1_les_presents_en_anglais.pdf"},
+    {"id": "temps_2", "name": "2) Les futurs en anglais", "filename": "2_les_futurs_en_anglais.pdf"},
+    {"id": "temps_3", "name": "3) Les passés en anglais", "filename": "3_les_passes_en_anglais.pdf"},
+    {"id": "temps_4", "name": "4) Les modaux en anglais", "filename": "4_les_modaux_en_anglais.pdf"},
+]
+
+GRAMMAIRE_GENERAL = []  # Sera rempli avec les fichiers A-G
+
+
+@api_router.get("/grammaire/structure")
+async def get_grammaire_structure(current_user: User = Depends(get_current_user)):
+    """Retourne la structure des dossiers de grammaire pour les élèves Anglais"""
+    return {
+        "les_temps": [{"id": f["id"], "name": f["name"]} for f in GRAMMAIRE_LES_TEMPS],
+        "general": [{"id": f["id"], "name": f["name"]} for f in GRAMMAIRE_GENERAL],
+        "vocabulaire": {"id": "vocab_challenge", "name": "Vocabulary Challenge"},
+    }
+
+
+@api_router.get("/grammaire/les-temps/{file_id}")
+async def download_grammaire_temps(file_id: str, current_user: User = Depends(get_current_user)):
+    """Télécharge un fichier de grammaire 'Les temps'"""
+    file_entry = next((f for f in GRAMMAIRE_LES_TEMPS if f["id"] == file_id), None)
+    if not file_entry:
+        raise HTTPException(status_code=404, detail="Fichier non trouvé")
+    file_path = ROOT_DIR / "static" / "documents" / "grammaire" / "les_temps" / file_entry["filename"]
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Fichier non trouvé sur le serveur")
+    return FileResponse(path=file_path, media_type="application/pdf", filename=file_entry["name"] + ".pdf")
+
+
+@api_router.get("/grammaire/general/{file_id}")
+async def download_grammaire_general(file_id: str, current_user: User = Depends(get_current_user)):
+    """Télécharge un fichier de grammaire 'Général'"""
+    file_entry = next((f for f in GRAMMAIRE_GENERAL if f["id"] == file_id), None)
+    if not file_entry:
+        raise HTTPException(status_code=404, detail="Fichier non trouvé")
+    file_path = ROOT_DIR / "static" / "documents" / "grammaire" / "general" / file_entry["filename"]
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Fichier non trouvé sur le serveur")
+    return FileResponse(path=file_path, media_type="application/pdf", filename=file_entry["name"] + ".pdf")
+
+
+@api_router.get("/grammaire/vocabulaire/challenge")
+async def get_vocabulary_challenge(current_user: User = Depends(get_current_user)):
+    """Sert le fichier HTML du Vocabulary Challenge"""
+    file_path = ROOT_DIR / "static" / "documents" / "grammaire" / "vocabulaire" / "vocabulary_challenge.html"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Fichier non trouvé")
+    return FileResponse(path=file_path, media_type="text/html", filename="vocabulary_challenge.html")
+
+
 # ============================================================
 # PROGRAMME DE FORMATION & CONTRAT DE FORMATION - Endpoints
 # ============================================================

@@ -21,6 +21,7 @@ import DynamicQuestionnaire from "@/components/DynamicQuestionnaire";
 import InformatiqueFormationNeedsQuestionnaire from "@/components/InformatiqueFormationNeedsQuestionnaire";
 import InformatiqueMidCourseQuestionnaire from "@/components/InformatiqueMidCourseQuestionnaire";
 import InformatiqueEndCourseQuestionnaire from "@/components/InformatiqueEndCourseQuestionnaire";
+import GrammaireAnglais from "@/components/GrammaireAnglais";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -1262,14 +1263,21 @@ export default function StudentDashboard({ user, onLogout }) {
 
         {activeTab === 'parcours' && (
           <div className="space-y-6">
+            {/* Grammaire Anglais - visible uniquement pour les parcours Anglais, toujours affiché */}
+            {user?.parcours && user.parcours.toLowerCase().includes('anglais') && (
+              <GrammaireAnglais />
+            )}
+
             {studentResources.length === 0 && !pedagogicalResources?.has_resources ? (
-              <Card className="shadow-lg">
-                <CardContent className="py-12">
-                  <p className="text-center text-gray-500">
-                    Aucun test ou ressource n'a été assigné pour le moment.
-                  </p>
-                </CardContent>
-              </Card>
+              !user?.parcours?.toLowerCase().includes('anglais') && (
+                <Card className="shadow-lg">
+                  <CardContent className="py-12">
+                    <p className="text-center text-gray-500">
+                      Aucun test ou ressource n'a été assigné pour le moment.
+                    </p>
+                  </CardContent>
+                </Card>
+              )
             ) : (
               <>
                 {/* Bulle globale : Tests de positionnement */}

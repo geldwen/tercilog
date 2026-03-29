@@ -21,3 +21,9 @@
 - **Role**: student
 - **Parcours**: Excel
 - **Student ID**: `2419b94d-085a-426f-9f33-0be54fc3f61f`
+
+## Student (Anglais)
+- **Email**: `marie.martin.test@example.com`
+- **Password**: `AnglaisTest2024!`
+- **Role**: student
+- **Parcours**: Anglais
