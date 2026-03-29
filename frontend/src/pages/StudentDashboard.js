@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { LogOut, BookOpen, MessageSquare, Download, FileText, TrendingUp, CheckCircle, RefreshCw, Video, Lock, FileCheck } from "lucide-react";
+import { LogOut, BookOpen, MessageSquare, Download, FileText, TrendingUp, CheckCircle, RefreshCw, Video, Lock, FileCheck, Trophy } from "lucide-react";
 import SignaturePad from "@/components/SignaturePad";
 import SignatureCanvas from 'react-signature-canvas';
 import FormationNeedsQuestionnaire from "@/components/FormationNeedsQuestionnaire";
@@ -1445,14 +1445,25 @@ export default function StudentDashboard({ user, onLogout }) {
                                       </div>
                                     </div>
                                     {resource.unlocked ? (
-                                      <Button
-                                        onClick={() => handleDownloadPedagogicalResource(resource.id, resource.name)}
-                                        className="bg-green-600 hover:bg-green-700 text-white"
-                                        size="sm"
-                                      >
-                                        <Download size={16} className="mr-1" />
-                                        Télécharger
-                                      </Button>
+                                      resource.is_external_link ? (
+                                        <Button
+                                          onClick={() => window.open(`${window.location.origin}/vocabulary_challenge.html`, '_blank')}
+                                          className="bg-amber-500 hover:bg-amber-600 text-white"
+                                          size="sm"
+                                        >
+                                          <Trophy size={16} className="mr-1" />
+                                          Ouvrir
+                                        </Button>
+                                      ) : (
+                                        <Button
+                                          onClick={() => handleDownloadPedagogicalResource(resource.id, resource.name)}
+                                          className="bg-green-600 hover:bg-green-700 text-white"
+                                          size="sm"
+                                        >
+                                          <Download size={16} className="mr-1" />
+                                          Télécharger
+                                        </Button>
+                                      )
                                     ) : (
                                       <div className="px-3 py-1 bg-gray-200 text-gray-500 rounded text-sm">
                                         Verrouillé

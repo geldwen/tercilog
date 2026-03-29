@@ -16509,10 +16509,9 @@ PEDAGOGICAL_RESOURCES = {
             {"id": "anglais-general-e", "name": "E) Les comparatifs et superlatifs", "description": "Grammaire — Général", "file_path": "documents/grammaire/general/E_les_comparatifs_et_superlatifs.pdf", "category": "support", "folder": "Général"},
             {"id": "anglais-general-f", "name": "F) Le génitif saxon", "description": "Grammaire — Général", "file_path": "documents/grammaire/general/F_le_genitif_saxon.pdf", "category": "support", "folder": "Général"},
             {"id": "anglais-general-g", "name": "G) La forme passive en anglais", "description": "Grammaire — Général", "file_path": "documents/grammaire/general/G_la_forme_passive_en_anglais.pdf", "category": "support", "folder": "Général"},
+            {"id": "anglais-vocab-challenge", "name": "Vocabulary Challenge", "description": "Vocabulaire — Testez votre vocabulaire", "category": "support", "folder": "Vocabulaire", "is_external_link": True},
         ],
-        "evaluations": [
-            {"id": "anglais-vocab-challenge", "name": "Vocabulary Challenge", "description": "Vocabulaire — Testez votre vocabulaire", "file_path": "documents/grammaire/vocabulaire/vocabulary_challenge.html", "category": "evaluation", "folder": "Vocabulaire", "is_html": True},
-        ]
+        "evaluations": []
     }
 }
 
