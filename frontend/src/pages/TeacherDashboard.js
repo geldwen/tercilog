@@ -7928,7 +7928,7 @@ export default function TeacherDashboard({ user, onLogout }) {
 
       {/* Modal Gestion des Ressources Pédagogiques */}
       <Dialog open={showResourcesModal} onOpenChange={setShowResourcesModal}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
               <Settings className="w-6 h-6 text-green-600" />
@@ -7939,7 +7939,7 @@ export default function TeacherDashboard({ user, onLogout }) {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4">
+          <div className="py-4 overflow-y-auto flex-1 pr-2">
             {loadingResources ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
