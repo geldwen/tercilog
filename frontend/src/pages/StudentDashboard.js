@@ -1265,7 +1265,7 @@ export default function StudentDashboard({ user, onLogout }) {
           <div className="space-y-6">
             {/* Grammaire Anglais - visible uniquement pour les parcours Anglais, toujours affiché */}
             {user?.parcours && user.parcours.toLowerCase().includes('anglais') && (
-              <GrammaireAnglais />
+              <GrammaireAnglais userId={user.id} />
             )}
 
             {studentResources.length === 0 && !pedagogicalResources?.has_resources ? (

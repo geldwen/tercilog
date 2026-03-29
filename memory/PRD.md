@@ -95,6 +95,23 @@ Build a comprehensive educational platform called "TerciForm" with:
 - jsPDF / jsPDF-AutoTable (client-side PDF generation)
 
 ## Changelog
+- **March 29, 2026**: Grammaire Anglais - Ressources avec verrouillage
+  - Added grammar resources section for ALL Anglais students (existing and future):
+    - **Les temps**: 4 PDFs (présents, futurs, passés, modaux)
+    - **Général**: 7 PDFs (articles, pronoms personnels, pronoms relatifs, quantificateurs, comparatifs/superlatifs, génitif saxon, forme passive)
+    - **Vocabulaire**: Vocabulary Challenge (standalone HTML app)
+  - Uses same lock/unlock system as Excel (`pedagogical_unlocks` collection)
+  - Admin can lock/unlock each file per student via "Gérer les ressources" button
+  - Locked files appear grayed out with lock icon and "en attente de déblocage" message
+  - Extended `PEDAGOGICAL_RESOURCES` dict and parcours matching to include Anglais
+  - Added "Gérer les ressources" button to Anglais student cards in admin
+  - Component: `/app/frontend/src/components/GrammaireAnglais.js`
+  - Files stored at `/app/backend/static/documents/grammaire/`
+- **March 28, 2026**: Utilitaire re-signature formateur en masse
+  - Orange button "Corriger X signature(s) manquante(s)" in SÉANCES tab
+  - 2-step flow: select sessions → draw one signature → apply to all
+  - Backend: `GET /api/sessions/unsigned-teacher`, `POST /api/sessions/bulk-teacher-sign`
+  - Component: `/app/frontend/src/components/BulkTeacherSign.js`
 - **March 28, 2026**: Programme de formation & Contrat de formation - Signature électronique
   - Added two new banners in student dashboard "Ma formation" tab for ALL students (all parcours):
     - **Mon programme de formation**: Download PDF + manual signature with timestamp

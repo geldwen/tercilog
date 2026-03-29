@@ -11682,63 +11682,6 @@ async def get_livret_status(
 
 
 # ============================================================
-# GRAMMAIRE ANGLAIS - Ressources statiques
-# ============================================================
-
-GRAMMAIRE_LES_TEMPS = [
-    {"id": "temps_1", "name": "1) Les présents en anglais", "filename": "1_les_presents_en_anglais.pdf"},
-    {"id": "temps_2", "name": "2) Les futurs en anglais", "filename": "2_les_futurs_en_anglais.pdf"},
-    {"id": "temps_3", "name": "3) Les passés en anglais", "filename": "3_les_passes_en_anglais.pdf"},
-    {"id": "temps_4", "name": "4) Les modaux en anglais", "filename": "4_les_modaux_en_anglais.pdf"},
-]
-
-GRAMMAIRE_GENERAL = []  # Sera rempli avec les fichiers A-G
-
-
-@api_router.get("/grammaire/structure")
-async def get_grammaire_structure(current_user: User = Depends(get_current_user)):
-    """Retourne la structure des dossiers de grammaire pour les élèves Anglais"""
-    return {
-        "les_temps": [{"id": f["id"], "name": f["name"]} for f in GRAMMAIRE_LES_TEMPS],
-        "general": [{"id": f["id"], "name": f["name"]} for f in GRAMMAIRE_GENERAL],
-        "vocabulaire": {"id": "vocab_challenge", "name": "Vocabulary Challenge"},
-    }
-
-
-@api_router.get("/grammaire/les-temps/{file_id}")
-async def download_grammaire_temps(file_id: str, current_user: User = Depends(get_current_user)):
-    """Télécharge un fichier de grammaire 'Les temps'"""
-    file_entry = next((f for f in GRAMMAIRE_LES_TEMPS if f["id"] == file_id), None)
-    if not file_entry:
-        raise HTTPException(status_code=404, detail="Fichier non trouvé")
-    file_path = ROOT_DIR / "static" / "documents" / "grammaire" / "les_temps" / file_entry["filename"]
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Fichier non trouvé sur le serveur")
-    return FileResponse(path=file_path, media_type="application/pdf", filename=file_entry["name"] + ".pdf")
-
-
-@api_router.get("/grammaire/general/{file_id}")
-async def download_grammaire_general(file_id: str, current_user: User = Depends(get_current_user)):
-    """Télécharge un fichier de grammaire 'Général'"""
-    file_entry = next((f for f in GRAMMAIRE_GENERAL if f["id"] == file_id), None)
-    if not file_entry:
-        raise HTTPException(status_code=404, detail="Fichier non trouvé")
-    file_path = ROOT_DIR / "static" / "documents" / "grammaire" / "general" / file_entry["filename"]
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Fichier non trouvé sur le serveur")
-    return FileResponse(path=file_path, media_type="application/pdf", filename=file_entry["name"] + ".pdf")
-
-
-@api_router.get("/grammaire/vocabulaire/challenge")
-async def get_vocabulary_challenge(current_user: User = Depends(get_current_user)):
-    """Sert le fichier HTML du Vocabulary Challenge"""
-    file_path = ROOT_DIR / "static" / "documents" / "grammaire" / "vocabulaire" / "vocabulary_challenge.html"
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Fichier non trouvé")
-    return FileResponse(path=file_path, media_type="text/html", filename="vocabulary_challenge.html")
-
-
-# ============================================================
 # PROGRAMME DE FORMATION & CONTRAT DE FORMATION - Endpoints
 # ============================================================
 
@@ -16552,6 +16495,24 @@ PEDAGOGICAL_RESOURCES = {
                 "category": "evaluation"
             }
         ]
+    },
+    "Anglais": {
+        "supports": [
+            {"id": "anglais-temps-1", "name": "1) Les présents en anglais", "description": "Grammaire — Les temps", "file_path": "documents/grammaire/les_temps/1_les_presents_en_anglais.pdf", "category": "support", "folder": "Les temps"},
+            {"id": "anglais-temps-2", "name": "2) Les futurs en anglais", "description": "Grammaire — Les temps", "file_path": "documents/grammaire/les_temps/2_les_futurs_en_anglais.pdf", "category": "support", "folder": "Les temps"},
+            {"id": "anglais-temps-3", "name": "3) Les passés en anglais", "description": "Grammaire — Les temps", "file_path": "documents/grammaire/les_temps/3_les_passes_en_anglais.pdf", "category": "support", "folder": "Les temps"},
+            {"id": "anglais-temps-4", "name": "4) Les modaux en anglais", "description": "Grammaire — Les temps", "file_path": "documents/grammaire/les_temps/4_les_modaux_en_anglais.pdf", "category": "support", "folder": "Les temps"},
+            {"id": "anglais-general-a", "name": "A) Les articles en anglais", "description": "Grammaire — Général", "file_path": "documents/grammaire/general/A_les_articles_en_anglais.pdf", "category": "support", "folder": "Général"},
+            {"id": "anglais-general-b", "name": "B) Les pronoms personnels", "description": "Grammaire — Général", "file_path": "documents/grammaire/general/B_les_pronoms_personnels.pdf", "category": "support", "folder": "Général"},
+            {"id": "anglais-general-c", "name": "C) Les pronoms relatifs", "description": "Grammaire — Général", "file_path": "documents/grammaire/general/C_les_pronoms_relatifs.pdf", "category": "support", "folder": "Général"},
+            {"id": "anglais-general-d", "name": "D) Les quantificateurs", "description": "Grammaire — Général", "file_path": "documents/grammaire/general/D_les_quantificateurs.pdf", "category": "support", "folder": "Général"},
+            {"id": "anglais-general-e", "name": "E) Les comparatifs et superlatifs", "description": "Grammaire — Général", "file_path": "documents/grammaire/general/E_les_comparatifs_et_superlatifs.pdf", "category": "support", "folder": "Général"},
+            {"id": "anglais-general-f", "name": "F) Le génitif saxon", "description": "Grammaire — Général", "file_path": "documents/grammaire/general/F_le_genitif_saxon.pdf", "category": "support", "folder": "Général"},
+            {"id": "anglais-general-g", "name": "G) La forme passive en anglais", "description": "Grammaire — Général", "file_path": "documents/grammaire/general/G_la_forme_passive_en_anglais.pdf", "category": "support", "folder": "Général"},
+        ],
+        "evaluations": [
+            {"id": "anglais-vocab-challenge", "name": "Vocabulary Challenge", "description": "Vocabulaire — Testez votre vocabulaire", "file_path": "documents/grammaire/vocabulaire/vocabulary_challenge.html", "category": "evaluation", "folder": "Vocabulaire", "is_html": True},
+        ]
     }
 }
 
@@ -16576,8 +16537,11 @@ async def get_student_pedagogical_resources(student_id: str, current_user: User 
     # Mapper vers le parcours de ressources (Excel, Bureautique -> Excel)
     matched_parcours = None
     is_excel_related = any(keyword in parcours_lower for keyword in ['excel', 'bureautique', 'informatique', 'office'])
+    is_anglais_related = any(keyword in parcours_lower for keyword in ['anglais', 'english'])
     if is_excel_related:
         matched_parcours = "Excel"
+    elif is_anglais_related:
+        matched_parcours = "Anglais"
     
     # Vérifier si le parcours a des ressources pédagogiques
     if not matched_parcours or matched_parcours not in PEDAGOGICAL_RESOURCES:
@@ -16643,8 +16607,11 @@ async def unlock_pedagogical_resource(
     # Mapper vers le parcours de ressources
     matched_parcours = None
     is_excel_related = any(keyword in parcours_lower for keyword in ['excel', 'bureautique', 'informatique', 'office'])
+    is_anglais_related = any(keyword in parcours_lower for keyword in ['anglais', 'english'])
     if is_excel_related:
         matched_parcours = "Excel"
+    elif is_anglais_related:
+        matched_parcours = "Anglais"
     
     # Vérifier que la ressource existe pour ce parcours
     if not matched_parcours or matched_parcours not in PEDAGOGICAL_RESOURCES:
@@ -16742,8 +16709,11 @@ async def download_pedagogical_resource(
     # Mapper vers le parcours de ressources (case insensitive)
     matched_parcours = None
     is_excel_related = any(keyword in parcours_lower for keyword in ['excel', 'bureautique', 'informatique', 'office'])
+    is_anglais_related = any(keyword in parcours_lower for keyword in ['anglais', 'english'])
     if is_excel_related:
         matched_parcours = "Excel"
+    elif is_anglais_related:
+        matched_parcours = "Anglais"
     
     # Chercher la ressource
     if not matched_parcours or matched_parcours not in PEDAGOGICAL_RESOURCES:
@@ -16776,13 +16746,17 @@ async def download_pedagogical_resource(
     file_path = ROOT_DIR / "static" / resource_found["file_path"]
     
     if not file_path.exists():
-        logger.error(f"❌ Fichier non trouvé: {file_path}")
+        logger.error(f"Fichier non trouvé: {file_path}")
         raise HTTPException(status_code=404, detail="Fichier non trouvé sur le serveur")
+    
+    is_html = resource_found.get("is_html", False)
+    media_type = "text/html" if is_html else "application/pdf"
+    ext = ".html" if is_html else ".pdf"
     
     return FileResponse(
         path=str(file_path),
-        filename=resource_found["name"] + ".pdf",
-        media_type="application/pdf"
+        filename=resource_found["name"] + ext,
+        media_type=media_type
     )
 
 
