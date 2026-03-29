@@ -4808,16 +4808,14 @@ export default function TeacherDashboard({ user, onLogout }) {
                                 <FolderOpen className="w-5 h-5" />
                                 <span>Parcours élève</span>
                               </Button>
-                              {/* Bouton Gérer les ressources - pour Excel/Bureautique/Informatique/Anglais */}
-                              {['excel', 'bureautique', 'informatique', 'office', 'anglais'].some(k => (student.parcours || '').toLowerCase().includes(k)) && (
-                                <Button 
+                              {/* Bouton Gérer les ressources - sur toutes les fiches élèves */}
+                              <Button 
                                   onClick={() => handleOpenResourcesModal(student)} 
                                   className="w-full py-3 mt-1 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-lg shadow-md hover:brightness-110 active:scale-[0.99] flex items-center justify-center gap-2 font-medium"
                                 >
                                   <Settings className="w-5 h-5" />
                                   <span>Gérer les ressources</span>
                                 </Button>
-                              )}
                             </div>
                           </div>
                           {sortedMonths.length > 0 && (
