@@ -1447,7 +1447,7 @@ export default function StudentDashboard({ user, onLogout }) {
                                     {resource.unlocked ? (
                                       resource.is_external_link ? (
                                         <Button
-                                          onClick={() => window.open(`${window.location.origin}/vocabulary_challenge.html`, '_blank')}
+                                          onClick={() => window.open(`${process.env.REACT_APP_BACKEND_URL}/api/vocabulary-challenge`, '_blank')}
                                           className="bg-amber-500 hover:bg-amber-600 text-white"
                                           size="sm"
                                         >

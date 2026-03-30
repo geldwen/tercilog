@@ -11682,6 +11682,17 @@ async def get_livret_status(
 
 
 # ============================================================
+
+# Vocabulary Challenge - served as interactive HTML page (no auth required for direct open)
+@api_router.get("/vocabulary-challenge")
+async def serve_vocabulary_challenge():
+    """Sert le Vocabulary Challenge comme page HTML interactive"""
+    file_path = ROOT_DIR / "static" / "documents" / "grammaire" / "vocabulaire" / "vocabulary_challenge.html"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Vocabulary Challenge non trouvé")
+    return FileResponse(path=file_path, media_type="text/html")
+
+
 # PROGRAMME DE FORMATION & CONTRAT DE FORMATION - Endpoints
 # ============================================================
 
