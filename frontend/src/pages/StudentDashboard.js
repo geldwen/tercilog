@@ -1447,7 +1447,14 @@ export default function StudentDashboard({ user, onLogout }) {
                                     {resource.unlocked ? (
                                       resource.is_external_link ? (
                                         <Button
-                                          onClick={() => window.open(`${process.env.REACT_APP_BACKEND_URL}/api/vocabulary-challenge`, '_blank')}
+                                          onClick={() => {
+                                            const endpoints = {
+                                              'anglais-vocab-challenge': 'vocabulary-challenge',
+                                              'anglais-extra-video': 'extra-video',
+                                            };
+                                            const endpoint = endpoints[resource.id] || 'vocabulary-challenge';
+                                            window.open(`${process.env.REACT_APP_BACKEND_URL}/api/${endpoint}`, '_blank');
+                                          }}
                                           className="bg-amber-500 hover:bg-amber-600 text-white"
                                           size="sm"
                                         >

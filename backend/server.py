@@ -11704,6 +11704,17 @@ async def serve_vocabulary_challenge():
     return FileResponse(path=file_path, media_type="text/html")
 
 
+# Extra Video - served as interactive HTML page
+@api_router.get("/extra-video")
+async def serve_extra_video():
+    """Sert la page Extra Video comme page HTML interactive"""
+    file_path = ROOT_DIR / "static" / "documents" / "grammaire" / "extra" / "terciform_extra_video.html"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Extra Video non trouvé")
+    return FileResponse(path=file_path, media_type="text/html")
+
+
+
 # PROGRAMME DE FORMATION & CONTRAT DE FORMATION - Endpoints
 # ============================================================
 
@@ -16532,6 +16543,7 @@ PEDAGOGICAL_RESOURCES = {
             {"id": "anglais-general-f", "name": "F) Le génitif saxon", "description": "Grammaire — Général", "file_path": "documents/grammaire/general/F_le_genitif_saxon.pdf", "category": "support", "folder": "Général"},
             {"id": "anglais-general-g", "name": "G) La forme passive en anglais", "description": "Grammaire — Général", "file_path": "documents/grammaire/general/G_la_forme_passive_en_anglais.pdf", "category": "support", "folder": "Général"},
             {"id": "anglais-vocab-challenge", "name": "Vocabulary Challenge", "description": "Vocabulaire — Testez votre vocabulaire", "category": "support", "folder": "Vocabulaire", "is_external_link": True},
+            {"id": "anglais-extra-video", "name": "Extra Video", "description": "Extra — Ressources vidéo complémentaires", "category": "support", "folder": "Extra", "is_external_link": True},
         ],
         "evaluations": []
     }
