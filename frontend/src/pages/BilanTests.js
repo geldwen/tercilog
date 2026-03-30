@@ -191,10 +191,10 @@ export default function BilanTests() {
       const formattedData = students.map(student => {
         const studentTests = testsByStudent[student.name] || [];
         
-        // Identifier T1, T2, T3 par type ou position
-        const t1 = studentTests.find(t => t.type === 'T1' || t.type === 'positionnement' || t.name?.toLowerCase().includes('positionnement'));
-        const t2 = studentTests.find(t => t.type === 'T2' || t.type === 'intermediaire' || t.name?.toLowerCase().includes('intermédiaire'));
-        const t3 = studentTests.find(t => t.type === 'T3' || t.type === 'final' || t.name?.toLowerCase().includes('final'));
+        // Identifier T1, T2, T3 par type, sub_type ou nom
+        const t1 = studentTests.find(t => t.type === 'T1' || t.sub_type === 'POSITIONNEMENT' || t.type === 'positionnement' || t.name?.toLowerCase().includes('positionnement') || t.template_name?.toLowerCase().includes('positionnement'));
+        const t2 = studentTests.find(t => t.type === 'T2' || t.sub_type === 'MI_PARCOURS' || t.type === 'intermediaire' || t.name?.toLowerCase().includes('intermédiaire') || t.name?.toLowerCase().includes('mi parcours') || t.name?.toLowerCase().includes('mi-parcours') || t.template_name?.toLowerCase().includes('mi'));
+        const t3 = studentTests.find(t => t.type === 'T3' || t.sub_type === 'FIN' || t.type === 'final' || t.name?.toLowerCase().includes('final') || t.name?.toLowerCase().includes('fin') || t.template_name?.toLowerCase().includes('fin'));
         
         // Si pas trouvé par type, utiliser l'ordre chronologique
         const sortedTests = studentTests.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));

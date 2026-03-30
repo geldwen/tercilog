@@ -2924,6 +2924,7 @@ async def restart_test(
             "$set": {
                 "status": "NON_COMMENCE",
                 "score": None,
+                "student_answers": None,
                 "answers": None,
                 "submitted_at": None,
                 "updated_at": datetime.now(timezone.utc)
@@ -3098,9 +3099,9 @@ async def get_all_tests(current_user: User = Depends(get_current_user)):
     if current_user.role != "teacher":
         raise HTTPException(status_code=403, detail="Access denied")
     
-    # Récupérer tous les élèves du professeur
+    # Récupérer TOUS les élèves (y compris ceux sans teacher_id)
     students = await db.users.find(
-        {"role": "student", "teacher_id": current_user.id},
+        {"role": "student"},
         {"_id": 0}
     ).to_list(length=None)
     
@@ -3116,12 +3117,22 @@ async def get_all_tests(current_user: User = Depends(get_current_user)):
         {"_id": 0}
     ).to_list(length=None)
     
+    # Mapper sub_type vers type pour le frontend
+    sub_type_to_type = {
+        "POSITIONNEMENT": "T1",
+        "MI_PARCOURS": "T2",
+        "FIN": "T3",
+    }
+    
     # Grouper par élève
     tests_by_student = {}
     for test in tests:
+        # Ajouter un champ 'type' depuis sub_type pour le frontend
+        if not test.get("type") and test.get("sub_type"):
+            test["type"] = sub_type_to_type.get(test["sub_type"], test["sub_type"])
+        
         student_id = test["student_id"]
         if student_id not in tests_by_student:
-            # Trouver le nom de l'élève
             student = next((s for s in students if s["id"] == student_id), None)
             tests_by_student[student_id] = {
                 "student_name": student["name"] if student else "Inconnu",
