@@ -1010,41 +1010,55 @@ def send_welcome_email(to_email: str, student_name: str, student_email: str, tem
     html_body = f"""
     <html>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 20px;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
             <!-- Header avec logo et dégradé -->
             <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; text-align: center;">
                 <img src="https://customer-assets.emergentagent.com/job_c2836d13-0ae2-4588-909c-94c20a9d54f4/artifacts/qj45ffom_Terciform%20%28propulsez%20vos%20compe%CC%81tences%29%20logo%20final.png" alt="TerciForm" style="max-height: 60px; margin-bottom: 15px;">
-                <h1 style="color: white; margin: 0; font-size: 24px;">🎉 Bienvenue sur TerciForm !</h1>
+                <h1 style="color: white; margin: 0; font-size: 22px; font-weight: 600;">Bienvenue sur TerciForm</h1>
             </div>
             
             <!-- Contenu -->
-            <div style="padding: 30px;">
-                <p style="font-size: 16px;">Bonjour <strong>{student_name}</strong>,</p>
+            <div style="padding: 30px 35px;">
+                <p style="font-size: 15px; margin-top: 0;">Bonjour <strong>{student_name}</strong>,</p>
                 
-                <p style="font-size: 15px;">Bienvenue dans votre espace de formation TerciForm. Votre compte a été créé avec succès.</p>
+                <p style="font-size: 15px;">Bienvenue dans votre espace de formation TerciForm.</p>
                 
-                <p style="font-size: 15px;">Merci de vous connecter pour confirmer vos séances et accéder à votre parcours de formation.</p>
+                <p style="font-size: 15px;">Votre espace apprenant a été créé avec succès.</p>
+                
+                <p style="font-size: 15px;">Vous y trouverez l'ensemble des informations relatives à votre parcours de formation ainsi que les documents à consulter et à signer, notamment :</p>
+                
+                <ul style="font-size: 15px; padding-left: 20px; color: #1e3a5f;">
+                    <li style="margin-bottom: 6px;">Le livret d'accueil</li>
+                    <li style="margin-bottom: 6px;">Vos plannings de formation et émargements</li>
+                    <li style="margin-bottom: 6px;">Vos documents contractuels</li>
+                    <li style="margin-bottom: 6px;">Vos tests et ressources pédagogiques</li>
+                    <li style="margin-bottom: 6px;">Vos questionnaires de satisfaction</li>
+                </ul>
                 
                 <!-- Cadre identifiants -->
                 <div style="background-color: #e8f4fd; border-left: 4px solid #1e3a5f; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;">
-                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f;">🔐 Vos identifiants de connexion :</p>
+                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e3a5f; font-size: 15px;">Vos identifiants de connexion :</p>
                     <p style="margin: 5px 0; font-size: 14px;"><strong>Identifiant :</strong> {student_email}</p>
                     <p style="margin: 5px 0; font-size: 14px;"><strong>Mot de passe :</strong> {temp_password}</p>
                 </div>
                 
+                <p style="font-size: 15px;">Nous vous invitons à vous connecter dès maintenant afin de prendre connaissance de ces éléments.</p>
+                
                 <!-- Bouton -->
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="{portal_url}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
-                        🔗 Accéder à mon espace
+                    <a href="{portal_url}" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 15px;">
+                        Accéder à mon espace
                     </a>
                 </div>
                 
-                <p style="font-size: 12px; color: #666; margin-top: 20px;">
+                <p style="font-size: 12px; color: #666; margin-top: 15px;">
                     Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br>
                     <a href="{portal_url}" style="color: #1e3a5f;">{portal_url}</a>
                 </p>
                 
-                <p style="margin-top: 30px; color: #333;">
+                <p style="font-size: 15px;">Nous vous souhaitons une excellente formation.</p>
+                
+                <p style="margin-top: 25px; color: #333; font-size: 15px;">
                     Cordialement,<br>
                     <strong>L'équipe TerciForm</strong>
                 </p>
@@ -1052,8 +1066,9 @@ def send_welcome_email(to_email: str, student_name: str, student_email: str, tem
             
             <!-- Footer -->
             <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
-                <p style="margin: 0; color: #666; font-size: 12px;">
-                    Cet email a été envoyé automatiquement par TerciForm.
+                <p style="margin: 0; color: #888; font-size: 11px;">
+                    TerciForm — 12 rue Marcel Sembat, 93400 Saint-Ouen-sur-Seine<br>
+                    SIRET : 94786549900018 | NDA : 11931005093
                 </p>
             </div>
         </div>
@@ -1061,7 +1076,7 @@ def send_welcome_email(to_email: str, student_name: str, student_email: str, tem
     </html>
     """
     
-    return send_email(to_email, "🎉 Bienvenue sur TerciForm - Vos identifiants", html_body)
+    return send_email(to_email, "Bienvenue sur TerciForm - Vos identifiants", html_body)
 
 
 def send_session_reminder_email(to_email: str, student_name: str, subject: str, date: str, start_time: str, end_time: str, meeting_link: str = ""):
