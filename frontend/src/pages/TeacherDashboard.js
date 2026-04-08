@@ -1761,7 +1761,7 @@ export default function TeacherDashboard({ user, onLogout }) {
 
   const handleEditSession = (session) => {
     setEditingSession(session);
-    const calculatedRate = session.hourly_rate || inferHourlyRate(session.subject || "");
+    const calculatedRate = session.hourly_rate != null ? session.hourly_rate : inferHourlyRate(session.subject || "");
     setSessionForm({
       subject: session.subject || "",
       date: session.date || "",
@@ -1771,7 +1771,7 @@ export default function TeacherDashboard({ user, onLogout }) {
       validation_deadline_hours: 48,
       meeting_link: session.meeting_link || "",
       hourly_rate: calculatedRate,
-      hourly_rate_source: session.hourly_rate_source || "auto",
+      hourly_rate_source: session.hourly_rate_source || "manual",
       modality: session.modality || "distanciel",
       organism: session.organism || "",
       time_slots: [{ start_time: session.start_time || "", end_time: session.end_time || "" }]
@@ -3190,9 +3190,17 @@ export default function TeacherDashboard({ user, onLogout }) {
                                   step="1"
                                   min="0"
                                   value={session.hourly_rate}
-                                  onChange={(e) => updateMultiSession(index, 'hourly_rate', parseFloat(e.target.value) || 0)}
+                                  onChange={(e) => updateMultiSession(index, 'hourly_rate', e.target.value === '' ? 0 : parseFloat(e.target.value))}
                                   className="flex-1"
+                                  placeholder="0"
                                 />
+                                <button
+                                  type="button"
+                                  onClick={() => updateMultiSession(index, 'hourly_rate', 0)}
+                                  className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-sm font-medium"
+                                >
+                                  0€
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => updateMultiSession(index, 'hourly_rate', 20)}
@@ -3316,21 +3324,33 @@ export default function TeacherDashboard({ user, onLogout }) {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Coût horaire (€) *</Label>
+                      <Label>Coût horaire (€)</Label>
                       <div className="flex items-center gap-2">
                         <Input
                           type="number"
                           step="1"
                           min="0"
-                          value={sessionForm.hourly_rate || 40}
+                          value={sessionForm.hourly_rate ?? ''}
                           onChange={(e) => setSessionForm({
                             ...sessionForm,
-                            hourly_rate: parseFloat(e.target.value) || 0,
+                            hourly_rate: e.target.value === '' ? 0 : parseFloat(e.target.value),
                             hourly_rate_source: 'manual'
                           })}
                           className="flex-1"
+                          placeholder="0"
                         />
                         
+                        <button
+                          type="button"
+                          onClick={() => setSessionForm({
+                            ...sessionForm,
+                            hourly_rate: 0,
+                            hourly_rate_source: 'manual'
+                          })}
+                          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium transition-colors"
+                        >
+                          0€
+                        </button>
                         <button
                           type="button"
                           onClick={() => setSessionForm({

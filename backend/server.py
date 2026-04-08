@@ -7054,7 +7054,9 @@ async def update_session(session_id: str, data: dict, background_tasks: Backgrou
     
     # Recalculer le montant avec le nouveau prix et/ou la nouvelle durée
     hourly_rate = data.get("hourly_rate", session_doc.get("hourly_rate", 0))
-    if duration and hourly_rate:
+    if hourly_rate is None:
+        hourly_rate = 0
+    if duration is not None:
         update_data["amount"] = round(duration * hourly_rate, 2)
     
     # Mettre à jour la séance
