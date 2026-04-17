@@ -1277,8 +1277,8 @@ export default function StudentDashboard({ user, onLogout }) {
               if (!isExcelStudent) return null;
               return (
                 <>
-                  <Card className="shadow-lg border-2 border-emerald-200" data-testid="programme-excel-card">
-                    <CardHeader style={{backgroundColor: '#ECFDF5'}}>
+                  <Card className="shadow-lg border-2 border-blue-200" data-testid="programme-excel-card">
+                    <CardHeader style={{backgroundColor: '#EEF4FF'}}>
                       <CardTitle className="flex items-center gap-3" style={{color: TERCIFORM_BLUE}}>
                         <FileCheck size={28} />
                         Programme de formation Excel TerciForm
@@ -1286,7 +1286,7 @@ export default function StudentDashboard({ user, onLogout }) {
                     </CardHeader>
                     <CardContent className="pt-6">
                       <div className="flex items-start gap-4">
-                        <FileText size={48} className="text-emerald-600" />
+                        <FileText size={48} style={{color: TERCIFORM_BLUE}} />
                         <div className="flex-1">
                           <p className="font-semibold text-lg text-gray-800 mb-2">Programme de formation Excel</p>
                           <p className="text-sm text-gray-600">Programme détaillé de votre formation Excel TerciForm</p>
@@ -1303,8 +1303,8 @@ export default function StudentDashboard({ user, onLogout }) {
                     </CardContent>
                   </Card>
 
-                  <Card className="shadow-lg border-2 border-emerald-200" data-testid="fiche-produit-excel-card">
-                    <CardHeader style={{backgroundColor: '#ECFDF5'}}>
+                  <Card className="shadow-lg border-2 border-blue-200" data-testid="fiche-produit-excel-card">
+                    <CardHeader style={{backgroundColor: '#EEF4FF'}}>
                       <CardTitle className="flex items-center gap-3" style={{color: TERCIFORM_BLUE}}>
                         <FileCheck size={28} />
                         Fiche produit formation Excel TerciForm
@@ -1312,7 +1312,7 @@ export default function StudentDashboard({ user, onLogout }) {
                     </CardHeader>
                     <CardContent className="pt-6">
                       <div className="flex items-start gap-4">
-                        <FileText size={48} className="text-emerald-600" />
+                        <FileText size={48} style={{color: TERCIFORM_BLUE}} />
                         <div className="flex-1">
                           <p className="font-semibold text-lg text-gray-800 mb-2">Fiche produit formation Excel</p>
                           <p className="text-sm text-gray-600">Fiche descriptive de votre formation Excel TerciForm</p>
@@ -1333,6 +1333,8 @@ export default function StudentDashboard({ user, onLogout }) {
             })()}
           </div>
         )}
+
+        {activeTab === 'parcours' && (
           <div className="space-y-6">
 
             {studentResources.length === 0 && !pedagogicalResources?.has_resources ? (
