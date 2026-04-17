@@ -11805,10 +11805,16 @@ async def sign_student_document(
         raise HTTPException(status_code=404, detail="Élève non trouvé")
 
     document_type = data.get("document_type")
-    if document_type not in ("programme", "contrat"):
-        raise HTTPException(status_code=400, detail="Type de document invalide. Utilisez 'programme' ou 'contrat'.")
+    if document_type not in ("programme", "contrat", "programme_excel", "fiche_produit_excel"):
+        raise HTTPException(status_code=400, detail="Type de document invalide.")
 
-    field_name = "program_signature" if document_type == "programme" else "contract_signature"
+    field_map = {
+        "programme": "program_signature",
+        "contrat": "contract_signature",
+        "programme_excel": "programme_excel_signature",
+        "fiche_produit_excel": "fiche_produit_excel_signature"
+    }
+    field_name = field_map[document_type]
 
     signature_data = {
         "signed": True,
@@ -11822,7 +11828,13 @@ async def sign_student_document(
         {"$set": {field_name: signature_data}}
     )
 
-    action_name = "programme_formation_signed" if document_type == "programme" else "contrat_formation_signed"
+    action_map = {
+        "programme": "programme_formation_signed",
+        "contrat": "contrat_formation_signed",
+        "programme_excel": "programme_excel_signed",
+        "fiche_produit_excel": "fiche_produit_excel_signed"
+    }
+    action_name = action_map[document_type]
     await log_student_activity(
         student_id=student_id,
         student_name=student.get("name", ""),
@@ -11830,7 +11842,13 @@ async def sign_student_document(
         details={"signed_at": signature_data["signed_at"]}
     )
 
-    label = "Programme de formation" if document_type == "programme" else "Contrat de formation"
+    label_map = {
+        "programme": "Programme de formation",
+        "contrat": "Contrat de formation",
+        "programme_excel": "Programme de formation Excel",
+        "fiche_produit_excel": "Fiche produit formation Excel"
+    }
+    label = label_map[document_type]
     return {
         "success": True,
         "message": f"{label} signé avec succès",
@@ -11849,13 +11867,15 @@ async def get_document_signatures(
 
     student = await db.users.find_one(
         {"id": student_id, "role": "student"},
-        {"_id": 0, "program_signature": 1, "contract_signature": 1, "id": 1}
+        {"_id": 0, "program_signature": 1, "contract_signature": 1, "programme_excel_signature": 1, "fiche_produit_excel_signature": 1, "id": 1}
     )
     if student is None:
         raise HTTPException(status_code=404, detail="Élève non trouvé")
 
     prog = student.get("program_signature", {})
     contrat = student.get("contract_signature", {})
+    prog_excel = student.get("programme_excel_signature", {})
+    fiche_excel = student.get("fiche_produit_excel_signature", {})
 
     return {
         "programme": {
@@ -11865,6 +11885,14 @@ async def get_document_signatures(
         "contrat": {
             "signed": contrat.get("signed", False),
             "signed_at": contrat.get("signed_at"),
+        },
+        "programme_excel": {
+            "signed": prog_excel.get("signed", False),
+            "signed_at": prog_excel.get("signed_at"),
+        },
+        "fiche_produit_excel": {
+            "signed": fiche_excel.get("signed", False),
+            "signed_at": fiche_excel.get("signed_at"),
         }
     }
 

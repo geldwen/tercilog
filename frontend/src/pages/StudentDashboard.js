@@ -351,7 +351,13 @@ export default function StudentDashboard({ user, onLogout }) {
         { document_type: currentDocType, signature, accepted_checkbox: docAcceptedCheckbox },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const label = currentDocType === 'programme' ? 'Programme de formation' : 'Contrat de formation';
+      const labelMap = {
+        'programme': 'Programme de formation',
+        'contrat': 'Contrat de formation',
+        'programme_excel': 'Programme de formation Excel',
+        'fiche_produit_excel': 'Fiche produit formation Excel'
+      };
+      const label = labelMap[currentDocType] || 'Document';
       toast.success(`${label} signé avec succès !`);
       setShowDocSignatureDialog(false);
       await loadDocSignatures();
@@ -1150,64 +1156,6 @@ export default function StudentDashboard({ user, onLogout }) {
               </CardContent>
             </Card>
 
-            {/* Mon programme de formation */}
-            <Card className="shadow-lg border-2 border-blue-200" data-testid="programme-formation-card">
-              <CardHeader style={{backgroundColor: '#EEF4FF'}}>
-                <CardTitle className="flex items-center gap-3" style={{color: TERCIFORM_BLUE}}>
-                  <FileText size={28} />
-                  Mon programme de formation
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
-                  <FileText size={48} style={{color: TERCIFORM_BLUE}} />
-                  <div className="flex-1">
-                    <p className="font-semibold text-lg text-gray-800 mb-2">
-                      Programme de formation TerciForm
-                    </p>
-                    <p className="text-sm text-gray-600 mb-1">
-                      Consultez et signez votre programme de formation
-                    </p>
-                    {docSignatures.programme?.signed && (
-                      <p className="text-sm text-green-600 font-semibold mt-2" data-testid="programme-signed-status">
-                        Signé le {new Date(docSignatures.programme.signed_at).toLocaleDateString('fr-FR', {
-                          day: '2-digit', month: '2-digit', year: 'numeric',
-                          hour: '2-digit', minute: '2-digit'
-                        })}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-3 mt-6">
-                  <Button
-                    onClick={() => handleDownloadDocument('programme')}
-                    style={{backgroundColor: TERCIFORM_BLUE}}
-                    className="flex-1 sm:flex-none"
-                    data-testid="programme-download-btn"
-                  >
-                    <Download size={16} className="mr-2" />
-                    Télécharger
-                  </Button>
-                  {!docSignatures.programme?.signed ? (
-                    <Button
-                      onClick={() => handleOpenDocSignature('programme')}
-                      className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700"
-                      data-testid="programme-sign-btn"
-                    >
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                      Signer
-                    </Button>
-                  ) : (
-                    <Button disabled className="flex-1 sm:flex-none bg-gray-300 cursor-not-allowed">
-                      <CheckCircle size={16} className="mr-2" />
-                      Signé
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Mon contrat de formation */}
             <Card className="shadow-lg border-2 border-blue-200" data-testid="contrat-formation-card">
@@ -1289,16 +1237,28 @@ export default function StudentDashboard({ user, onLogout }) {
                         <FileText size={48} style={{color: TERCIFORM_BLUE}} />
                         <div className="flex-1">
                           <p className="font-semibold text-lg text-gray-800 mb-2">Programme de formation Excel</p>
-                          <p className="text-sm text-gray-600">Programme détaillé de votre formation Excel TerciForm</p>
+                          <p className="text-sm text-gray-600">Téléchargez et signez votre programme de formation Excel</p>
+                          {docSignatures.programme_excel?.signed && (
+                            <p className="text-sm text-green-600 font-semibold mt-2">
+                              Signé le {new Date(docSignatures.programme_excel.signed_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-3 mt-6">
                         <Button onClick={() => handleDownloadDocument('programme-excel')} style={{backgroundColor: TERCIFORM_BLUE}} data-testid="programme-excel-download-btn">
-                          <Download size={16} className="mr-2" /> Télécharger le PDF
+                          <Download size={16} className="mr-2" /> Télécharger
                         </Button>
-                        <Button variant="outline" onClick={() => { const token = localStorage.getItem('token'); window.open(`${API}/documents/programme-excel`, '_blank'); }} data-testid="programme-excel-view-btn">
-                          <FileText size={16} className="mr-2" /> Consulter
-                        </Button>
+                        {!docSignatures.programme_excel?.signed ? (
+                          <Button onClick={() => handleOpenDocSignature('programme_excel')} className="bg-green-600 hover:bg-green-700" data-testid="programme-excel-sign-btn">
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            Signer
+                          </Button>
+                        ) : (
+                          <Button disabled className="bg-gray-300 cursor-not-allowed">
+                            <CheckCircle size={16} className="mr-2" /> Signé
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -1315,16 +1275,28 @@ export default function StudentDashboard({ user, onLogout }) {
                         <FileText size={48} style={{color: TERCIFORM_BLUE}} />
                         <div className="flex-1">
                           <p className="font-semibold text-lg text-gray-800 mb-2">Fiche produit formation Excel</p>
-                          <p className="text-sm text-gray-600">Fiche descriptive de votre formation Excel TerciForm</p>
+                          <p className="text-sm text-gray-600">Téléchargez et signez votre fiche produit formation Excel</p>
+                          {docSignatures.fiche_produit_excel?.signed && (
+                            <p className="text-sm text-green-600 font-semibold mt-2">
+                              Signé le {new Date(docSignatures.fiche_produit_excel.signed_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-3 mt-6">
                         <Button onClick={() => handleDownloadDocument('fiche-produit-excel')} style={{backgroundColor: TERCIFORM_BLUE}} data-testid="fiche-produit-excel-download-btn">
-                          <Download size={16} className="mr-2" /> Télécharger le PDF
+                          <Download size={16} className="mr-2" /> Télécharger
                         </Button>
-                        <Button variant="outline" onClick={() => { const token = localStorage.getItem('token'); window.open(`${API}/documents/fiche-produit-excel`, '_blank'); }} data-testid="fiche-produit-excel-view-btn">
-                          <FileText size={16} className="mr-2" /> Consulter
-                        </Button>
+                        {!docSignatures.fiche_produit_excel?.signed ? (
+                          <Button onClick={() => handleOpenDocSignature('fiche_produit_excel')} className="bg-green-600 hover:bg-green-700" data-testid="fiche-produit-excel-sign-btn">
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            Signer
+                          </Button>
+                        ) : (
+                          <Button disabled className="bg-gray-300 cursor-not-allowed">
+                            <CheckCircle size={16} className="mr-2" /> Signé
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -2047,7 +2019,15 @@ export default function StudentDashboard({ user, onLogout }) {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="doc-signature-dialog">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold" style={{color: TERCIFORM_BLUE}}>
-              {currentDocType === 'programme' ? 'Signature du programme de formation' : 'Signature du contrat de formation'}
+              {(() => {
+                const titles = {
+                  'programme': 'Signature du programme de formation',
+                  'contrat': 'Signature du contrat de formation',
+                  'programme_excel': 'Signature du programme de formation Excel',
+                  'fiche_produit_excel': 'Signature de la fiche produit formation Excel'
+                };
+                return titles[currentDocType] || 'Signature du document';
+              })()}
             </DialogTitle>
           </DialogHeader>
           
@@ -2056,10 +2036,15 @@ export default function StudentDashboard({ user, onLogout }) {
               <p className="text-gray-800 whitespace-pre-line leading-relaxed">
                 <span className="font-semibold">Je soussigné(e) {user?.name},</span>
                 {'\n\n'}
-                {currentDocType === 'programme'
-                  ? "atteste avoir pris connaissance du programme de formation mis à ma disposition par TerciForm.\n\nJe déclare avoir lu ce document, en comprendre le contenu, les objectifs pédagogiques, les modalités d'évaluation et la durée de la formation.\n\nJe reconnais que cette validation électronique vaut engagement de ma part et fait foi au même titre qu'une signature manuscrite sur document papier."
-                  : "atteste avoir pris connaissance du contrat de formation mis à ma disposition par TerciForm.\n\nJe déclare avoir lu ce document, en comprendre les termes, les conditions générales, les obligations réciproques et les modalités de la formation.\n\nJe reconnais que cette validation électronique vaut engagement de ma part et fait foi au même titre qu'une signature manuscrite sur document papier."
-                }
+                {(() => {
+                  const texts = {
+                    'programme': "atteste avoir pris connaissance du programme de formation mis à ma disposition par TerciForm.\n\nJe déclare avoir lu ce document, en comprendre le contenu, les objectifs pédagogiques, les modalités d'évaluation et la durée de la formation.\n\nJe reconnais que cette validation électronique vaut engagement de ma part et fait foi au même titre qu'une signature manuscrite sur document papier.",
+                    'contrat': "atteste avoir pris connaissance du contrat de formation mis à ma disposition par TerciForm.\n\nJe déclare avoir lu ce document, en comprendre les termes, les conditions générales, les obligations réciproques et les modalités de la formation.\n\nJe reconnais que cette validation électronique vaut engagement de ma part et fait foi au même titre qu'une signature manuscrite sur document papier.",
+                    'programme_excel': "atteste avoir pris connaissance du programme de formation Excel mis à ma disposition par TerciForm.\n\nJe déclare avoir lu ce document, en comprendre le contenu, les objectifs pédagogiques et les modalités de la formation.\n\nJe reconnais que cette validation électronique vaut engagement de ma part et fait foi au même titre qu'une signature manuscrite sur document papier.",
+                    'fiche_produit_excel': "atteste avoir pris connaissance de la fiche produit de la formation Excel mise à ma disposition par TerciForm.\n\nJe déclare avoir lu ce document et en comprendre le contenu.\n\nJe reconnais que cette validation électronique vaut engagement de ma part et fait foi au même titre qu'une signature manuscrite sur document papier."
+                  };
+                  return texts[currentDocType] || '';
+                })()}
               </p>
             </div>
 
@@ -2073,10 +2058,15 @@ export default function StudentDashboard({ user, onLogout }) {
                 data-testid="doc-accept-checkbox"
               />
               <label htmlFor="doc-checkbox" className="cursor-pointer text-gray-800 font-medium">
-                {currentDocType === 'programme'
-                  ? "Je confirme avoir lu et accepté le programme de formation. *"
-                  : "Je confirme avoir lu et accepté le contrat de formation. *"
-                }
+                {(() => {
+                  const labels = {
+                    'programme': "Je confirme avoir lu et accepté le programme de formation. *",
+                    'contrat': "Je confirme avoir lu et accepté le contrat de formation. *",
+                    'programme_excel': "Je confirme avoir lu et accepté le programme de formation Excel. *",
+                    'fiche_produit_excel': "Je confirme avoir lu et accepté la fiche produit formation Excel. *"
+                  };
+                  return labels[currentDocType] || "Je confirme avoir lu et accepté ce document. *";
+                })()}
               </label>
             </div>
 
