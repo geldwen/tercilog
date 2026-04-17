@@ -288,12 +288,24 @@ export default function StudentDashboard({ user, onLogout }) {
   const handleDownloadDocument = async (docType) => {
     try {
       const token = localStorage.getItem('token');
-      const endpoint = docType === 'programme' ? 'documents/programme' : 'documents/contrat';
+      const endpointMap = {
+        'programme': 'documents/programme',
+        'contrat': 'documents/contrat',
+        'programme-excel': 'documents/programme-excel',
+        'fiche-produit-excel': 'documents/fiche-produit-excel'
+      };
+      const filenameMap = {
+        'programme': 'Programme_formation_TerciForm.pdf',
+        'contrat': 'Contrat_Formation_TerciForm.pdf',
+        'programme-excel': 'Programme_formation_Excel_TerciForm.pdf',
+        'fiche-produit-excel': 'Fiche_Produit_Formation_Excel.pdf'
+      };
+      const endpoint = endpointMap[docType];
       const response = await axios.get(`${API}/${endpoint}`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: 'blob'
       });
-      const filename = docType === 'programme' ? 'Programme_formation_TerciForm.pdf' : 'Contrat_Formation_TerciForm.pdf';
+      const filename = filenameMap[docType];
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -1257,10 +1269,70 @@ export default function StudentDashboard({ user, onLogout }) {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Documents spécifiques Excel - Programme et Fiche produit */}
+            {(() => {
+              const parcoursLower = (user?.parcours || '').toLowerCase();
+              const isExcelStudent = ['excel', 'bureautique', 'informatique', 'office'].some(k => parcoursLower.includes(k));
+              if (!isExcelStudent) return null;
+              return (
+                <>
+                  <Card className="shadow-lg border-2 border-emerald-200" data-testid="programme-excel-card">
+                    <CardHeader style={{backgroundColor: '#ECFDF5'}}>
+                      <CardTitle className="flex items-center gap-3" style={{color: TERCIFORM_BLUE}}>
+                        <FileCheck size={28} />
+                        Programme de formation Excel TerciForm
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <FileText size={48} className="text-emerald-600" />
+                        <div className="flex-1">
+                          <p className="font-semibold text-lg text-gray-800 mb-2">Programme de formation Excel</p>
+                          <p className="text-sm text-gray-600">Programme détaillé de votre formation Excel TerciForm</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-3 mt-6">
+                        <Button onClick={() => handleDownloadDocument('programme-excel')} style={{backgroundColor: TERCIFORM_BLUE}} data-testid="programme-excel-download-btn">
+                          <Download size={16} className="mr-2" /> Télécharger le PDF
+                        </Button>
+                        <Button variant="outline" onClick={() => { const token = localStorage.getItem('token'); window.open(`${API}/documents/programme-excel`, '_blank'); }} data-testid="programme-excel-view-btn">
+                          <FileText size={16} className="mr-2" /> Consulter
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="shadow-lg border-2 border-emerald-200" data-testid="fiche-produit-excel-card">
+                    <CardHeader style={{backgroundColor: '#ECFDF5'}}>
+                      <CardTitle className="flex items-center gap-3" style={{color: TERCIFORM_BLUE}}>
+                        <FileCheck size={28} />
+                        Fiche produit formation Excel TerciForm
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <FileText size={48} className="text-emerald-600" />
+                        <div className="flex-1">
+                          <p className="font-semibold text-lg text-gray-800 mb-2">Fiche produit formation Excel</p>
+                          <p className="text-sm text-gray-600">Fiche descriptive de votre formation Excel TerciForm</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-3 mt-6">
+                        <Button onClick={() => handleDownloadDocument('fiche-produit-excel')} style={{backgroundColor: TERCIFORM_BLUE}} data-testid="fiche-produit-excel-download-btn">
+                          <Download size={16} className="mr-2" /> Télécharger le PDF
+                        </Button>
+                        <Button variant="outline" onClick={() => { const token = localStorage.getItem('token'); window.open(`${API}/documents/fiche-produit-excel`, '_blank'); }} data-testid="fiche-produit-excel-view-btn">
+                          <FileText size={16} className="mr-2" /> Consulter
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              );
+            })()}
           </div>
         )}
-
-        {activeTab === 'parcours' && (
           <div className="space-y-6">
 
             {studentResources.length === 0 && !pedagogicalResources?.has_resources ? (

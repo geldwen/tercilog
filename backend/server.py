@@ -11761,6 +11761,32 @@ async def get_contrat_formation(current_user: User = Depends(get_current_user)):
     )
 
 
+@api_router.get("/documents/programme-excel")
+async def get_programme_formation_excel(current_user: User = Depends(get_current_user)):
+    """Sert le PDF Programme de formation Excel TerciForm (Excel uniquement)"""
+    file_path = ROOT_DIR / "static" / "documents" / "Programme_formation_Excel_TerciForm.pdf"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Programme de formation Excel non trouvé")
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        filename="Programme_formation_Excel_TerciForm.pdf"
+    )
+
+
+@api_router.get("/documents/fiche-produit-excel")
+async def get_fiche_produit_excel(current_user: User = Depends(get_current_user)):
+    """Sert le PDF Fiche Produit Formation Excel TerciForm (Excel uniquement)"""
+    file_path = ROOT_DIR / "static" / "documents" / "Fiche_Produit_Formation_Excel.pdf"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Fiche produit formation Excel non trouvée")
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        filename="Fiche_Produit_Formation_Excel.pdf"
+    )
+
+
 @api_router.post("/students/{student_id}/sign-document")
 async def sign_student_document(
     student_id: str,
