@@ -112,6 +112,9 @@ async def startup_event():
         )
         scheduler.start()
         logger.info("✅ Scheduler de rappels 15min démarré - Vérification toutes les 2 minutes")
+        # Initialize TerciCall CRM
+        init_tercicall_db(db)
+        await seed_tercicall_admin()
     except Exception as e:
         logger.error(f"Erreur lors du démarrage du scheduler: {e}")
 
@@ -16863,6 +16866,10 @@ async def download_pedagogical_resource(
         media_type=media_type
     )
 
+
+# Include TerciCall CRM router
+from tercicall_routes import tercicall_router, init_db as init_tercicall_db, seed_tercicall_admin
+api_router.include_router(tercicall_router)
 
 # Include router
 app.include_router(api_router)

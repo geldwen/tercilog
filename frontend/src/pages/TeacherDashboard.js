@@ -15,6 +15,7 @@ import ParcoursEleveModal from "@/components/ParcoursEleveModal";
 import TicketingModal from "@/components/TicketingModal";
 import MeetingManager from "@/components/MeetingManager";
 import BulkTeacherSign from "@/components/BulkTeacherSign";
+import TerciCallCRM from "@/components/TerciCallCRM";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -2435,6 +2436,13 @@ export default function TeacherDashboard({ user, onLogout }) {
               >
                 <Building className="w-5 h-5 mr-3" />
                 CLIENTS
+              </TabsTrigger>
+              <TabsTrigger 
+                value="prospection" 
+                className="px-10 py-4 text-lg font-bold uppercase tracking-wide rounded-xl shadow-lg transition-all duration-200 data-[state=active]:scale-105 data-[state=inactive]:opacity-80 data-[state=inactive]:hover:opacity-100 data-[state=inactive]:bg-indigo-500 data-[state=inactive]:text-white data-[state=active]:bg-indigo-600 data-[state=active]:text-white hover:shadow-xl"
+              >
+                <Phone className="w-5 h-5 mr-3" />
+                PROSPECTION
               </TabsTrigger>
             </TabsList>
           </div>
@@ -5407,6 +5415,12 @@ export default function TeacherDashboard({ user, onLogout }) {
               </div>
             )}
           </TabsContent>
+
+          {/* ===== ONGLET PROSPECTION (TerciCall CRM) ===== */}
+          <TabsContent value="prospection">
+            <TerciCallCRM />
+          </TabsContent>
+
           </Tabs>
           </>
         )}

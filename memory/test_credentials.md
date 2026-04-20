@@ -1,29 +1,19 @@
 # Test Credentials
 
-## Admin
-- **Email**: `terciform@gmail.com`
-- **Password**: `Geldwen1982*+`
-- **Role**: teacher
+## TerciForm App (Main)
+- **Admin**: `terciform@gmail.com` / `Geldwen1982*+`
+- **Role**: teacher (admin)
 
-## Manager (Zepartner)
-- **Email**: `mounarezgui.pro@gmail.com`
-- **Password**: `zepart648`
-- **Role**: gestionnaire
+## Test Students
+- **Excel Student**: `test.excel@test.com` / `Excel2024!`
+  - Role: student
+  - Parcours: Excel
 
-## Client (societe)
-- **Email**: `gestionnaire@testsociete.com`
-- **Password**: `TestSociete2024!`
-- **Role**: gestionnaire
+- **Anglais Student**: `test.anglais@test.com` / `Anglais2024!`
+  - Role: student
+  - Parcours: Anglais
 
-## Student (Excel)
-- **Email**: `test.excel@test.com`
-- **Password**: `Excel2024!`
-- **Role**: student
-- **Parcours**: Excel
-- **Student ID**: `2419b94d-085a-426f-9f33-0be54fc3f61f`
-
-## Student (Anglais)
-- **Email**: `marie.martin.test@example.com`
-- **Password**: `AnglaisTest2024!`
-- **Role**: student
-- **Parcours**: Anglais
+## TerciCall CRM (Prospection Module)
+- **Admin**: Prénom: `Jonathan` / Mot de passe: `Geldwen1982*+`
+  - Role: admin
+  - Access: Via "PROSPECTION" tab in admin dashboard
