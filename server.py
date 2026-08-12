@@ -556,7 +556,7 @@ def send_email(to_email: str, subject: str, html_body: str):
         html_part = MIMEText(html_body, 'html')
         msg.attach(html_part)
         
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=8)
         server.login(gmail_user, gmail_password)
         server.sendmail(gmail_user, to_email, msg.as_string())
         server.quit()
@@ -595,7 +595,7 @@ def send_email_with_attachment(to_email: str, subject: str, html_body: str, pdf_
         msg.attach(pdf_attachment)
         
         # Envoi
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=8)
         server.login(gmail_user, gmail_password)
         server.sendmail(gmail_user, to_email, msg.as_string())
         server.quit()
@@ -1781,7 +1781,7 @@ async def send_formation_needs_email(
         msg.attach(part)
         
         # Envoyer
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=8) as server:
             server.login(gmail_user, gmail_password)
             server.send_message(msg)
         
@@ -1946,7 +1946,7 @@ async def send_mid_course_questionnaire_email(
         msg.attach(part)
         
         # Envoyer
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=8) as server:
             server.login(gmail_user, gmail_password)
             server.send_message(msg)
         
@@ -2111,7 +2111,7 @@ async def send_end_course_questionnaire_email(
         msg.attach(part)
         
         # Envoyer
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=8) as server:
             server.login(gmail_user, gmail_password)
             server.send_message(msg)
         
@@ -6980,7 +6980,7 @@ TerciForm
             msg.attach(part)
             
             # Envoyer
-            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server = smtplib.SMTP('smtp.gmail.com', 587, timeout=8)
             server.starttls()
             server.login(gmail_user, gmail_password)
             server.send_message(msg)
@@ -7215,7 +7215,7 @@ async def send_attendance_pdf(data: dict, current_user: User = Depends(get_curre
         msg.attach(part)
         
         # Envoyer
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=8) as server:
             server.login(gmail_user, gmail_password)
             server.send_message(msg)
         
@@ -8291,7 +8291,7 @@ async def send_category_pdf_by_email(
         msg.attach(pdf_attachment)
         
         # Envoyer via SMTP
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        with smtplib.SMTP('smtp.gmail.com', 587, timeout=8) as server:
             server.starttls()
             server.login(gmail_user, gmail_password)
             server.send_message(msg)
