@@ -80,7 +80,7 @@ app.add_middleware(
 api_router = APIRouter(prefix="/api")
 
 # Create static directories if they don't exist (for production)
-static_dir = Path("/app/backend/static")
+static_dir = ROOT_DIR / "static"
 static_dir.mkdir(parents=True, exist_ok=True)
 (static_dir / "profile_pictures").mkdir(exist_ok=True)
 (static_dir / "documents").mkdir(exist_ok=True)
@@ -7369,7 +7369,7 @@ async def get_student_feedback(student_id: str, current_user: User = Depends(get
 @api_router.get("/profile-pictures/{filename}")
 async def get_profile_picture(filename: str):
     """Servir une photo de profil"""
-    file_path = f"/app/backend/static/profile_pictures/{filename}"
+    file_path = str(ROOT_DIR / "static" / "profile_pictures" / filename)
     
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Image not found")
@@ -7399,7 +7399,7 @@ async def upload_profile_picture(file: UploadFile = FastAPIFile(...), current_us
     # Générer un nom de fichier unique
     file_extension = file.filename.split('.')[-1]
     unique_filename = f"custom_{uuid.uuid4()}.{file_extension}"
-    file_path = f"/app/backend/static/profile_pictures/{unique_filename}"
+    file_path = str(ROOT_DIR / "static" / "profile_pictures" / unique_filename)
     
     # Sauvegarder le fichier
     with open(file_path, "wb") as f:
@@ -7549,7 +7549,7 @@ async def upload_student_document(
         raise HTTPException(status_code=404, detail="Student not found")
     
     # Créer le dossier étudiant si nécessaire
-    student_dir = Path(f"/app/backend/student_documents/{student_id}/{category}")
+    student_dir = ROOT_DIR / "student_documents" / student_id / category
     student_dir.mkdir(parents=True, exist_ok=True)
     
     # Sauvegarder le fichier
@@ -10289,7 +10289,7 @@ async def create_formateur(
     formateur_id = str(uuid.uuid4())
     
     # Créer le dossier pour les fichiers du formateur
-    formateur_dir = Path(f"/app/backend/static/formateurs/{formateur_id}")
+    formateur_dir = ROOT_DIR / "static" / "formateurs" / formateur_id
     formateur_dir.mkdir(parents=True, exist_ok=True)
     
     # Parser les matières (JSON string)
@@ -10416,7 +10416,7 @@ async def update_formateur(
             pass
     
     # Gérer les fichiers
-    formateur_dir = Path(f"/app/backend/static/formateurs/{formateur_id}")
+    formateur_dir = ROOT_DIR / "static" / "formateurs" / formateur_id
     formateur_dir.mkdir(parents=True, exist_ok=True)
     backend_url = os.environ.get('REACT_APP_BACKEND_URL', '')
     
@@ -10470,7 +10470,7 @@ async def delete_formateur(formateur_id: str, current_user: User = Depends(get_c
         raise HTTPException(status_code=404, detail="Formateur non trouvé")
     
     # Supprimer les fichiers associés
-    formateur_dir = Path(f"/app/backend/static/formateurs/{formateur_id}")
+    formateur_dir = ROOT_DIR / "static" / "formateurs" / formateur_id
     if formateur_dir.exists():
         shutil.rmtree(formateur_dir)
     
