@@ -6,6 +6,8 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import socket
+socket.setdefaulttimeout(10)  # empêche tout appel réseau bloquant oublié de bloquer indéfiniment
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
@@ -101,16 +103,16 @@ scheduler = AsyncIOScheduler()
 async def startup_event():
     """Démarrer le scheduler au lancement de l'application"""
     try:
-        # Vérifier les rappels toutes les 2 minutes pour être précis sur les 15 min
-        scheduler.add_job(
-            send_session_reminders,
-            trigger=IntervalTrigger(minutes=2),
-            id='session_reminders',
-            name='Vérification des rappels de séances (15 min avant)',
-            replace_existing=True
-        )
-        scheduler.start()
-        logger.info("✅ Scheduler de rappels 15min démarré - Vérification toutes les 2 minutes")
+        # TEMPORAIREMENT DÉSACTIVÉ le temps de stabiliser l'hébergement (à réactiver plus tard)
+        # scheduler.add_job(
+        #     send_session_reminders,
+        #     trigger=IntervalTrigger(minutes=2),
+        #     id='session_reminders',
+        #     name='Vérification des rappels de séances (15 min avant)',
+        #     replace_existing=True
+        # )
+        # scheduler.start()
+        logger.info("⏸️ Scheduler de rappels temporairement désactivé")
     except Exception as e:
         logger.error(f"Erreur lors du démarrage du scheduler: {e}")
 
