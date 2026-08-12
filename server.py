@@ -1518,27 +1518,22 @@ async def register(user_data: UserCreate):
     
     await db.users.insert_one(doc)
     
-    # Envoyer l'email de bienvenue si c'est un élève
+    # Envoyer l'email de bienvenue si c'est un élève (en arrière-plan, sans bloquer la réponse)
     if user_dict.get('role') == 'student':
-        try:
-            email_sent = send_welcome_email(
-                user_dict['email'],
-                user_dict['name'],
-                user_dict['email'],
-                temp_password
-            )
-            if email_sent:
-                # Mettre à jour le flag d'envoi
-                await db.users.update_one(
-                    {"id": user.id},
-                    {"$set": {"welcome_email_sent": True}}
-                )
-                logger.info(f"Welcome email sent to {user_dict['email']}")
-            else:
-                logger.warning(f"Failed to send welcome email to {user_dict['email']}")
-        except Exception as e:
-            # Ne pas bloquer la création du compte en cas d'erreur email
-            logger.error(f"Error sending welcome email to {user_dict['email']}: {e}")
+        async def _send_welcome_email_bg(user_id, email, name, pwd):
+            try:
+                email_sent = await asyncio.to_thread(send_welcome_email, email, name, email, pwd)
+                if email_sent:
+                    await db.users.update_one(
+                        {"id": user_id},
+                        {"$set": {"welcome_email_sent": True}}
+                    )
+                    logger.info(f"Welcome email sent to {email}")
+                else:
+                    logger.warning(f"Failed to send welcome email to {email}")
+            except Exception as e:
+                logger.error(f"Error sending welcome email to {email}: {e}")
+        asyncio.create_task(_send_welcome_email_bg(user.id, user_dict['email'], user_dict['name'], temp_password))
     
     return user
 
