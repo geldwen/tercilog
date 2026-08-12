@@ -1386,7 +1386,6 @@ def send_no_confirmation_reminder_to_student(to_email: str, student_name: str, d
     else:
         logger.error(f"Échec envoi email de rappel non-confirmation à {to_email}")
     return email_sent
-@api_router.post("/auth/register", response_model=User)
 async def save_student_resources(student_id: str, parcours: str, resources: dict):
     """Sauvegarder les tests et questionnaires sélectionnés pour un élève"""
     saved_resources = []
@@ -1495,6 +1494,7 @@ async def save_student_resources(student_id: str, parcours: str, resources: dict
     return saved_resources
 
 
+@api_router.post("/auth/register", response_model=User)
 async def register(user_data: UserCreate):
     # Permettre plusieurs élèves avec le même email (pour les tests)
     # Pas de vérification d'unicité d'email
